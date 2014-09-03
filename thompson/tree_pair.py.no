@@ -1,0 +1,118 @@
+from drawable_tree import DrawableTree
+from drawing import *
+
+class TreePair:
+	def __init__(self, domain_tree, range_tree, range_labels):
+		#1. If necessary, create the trees and ensure they have the same number of leaves.
+		if isinstance(domain_tree, str):
+			domain_tree = DrawableTree.from_string(domain_tree)
+		if isinstance(range_tree, str):
+			range_tree = DrawableTree.from_string(range_tree)
+		
+		self.num_leaves = domain_tree.num_leaves()
+		if self.num_leaves != range_tree.num_leaves():
+			raise ValueError("Domain tree has %i leaves, but range tree has %i leaves." % (self.num_leaves, range_tree.num_leaves()))
+		
+		self.domain = domain_tree
+		self.range = range_tree
+		
+		self.range_labels = [int(x) for x in range_labels.split()]
+		assert len(self.range_labels) == self.num_leaves, "Permutation is not fully specified."
+		
+		self.perm = {}
+		for i, right_label in enumerate(self.range_labels):
+			self.perm[right_label] = i
+		
+	def render(self, filename='output.svg', name='test', plot_bijection=True):
+		#1. Create the drawing and render the two trees.
+		dwg, canvas = new_drawing(filename, True)
+		y_offset = self.layout(canvas, name)
+		
+		if plot_bijection:
+			graph = self.plot_bijection()
+			graph.translate(coord(1, y_offset + GRAPH_SCALE_FACTOR))
+			canvas.add(graph)
+		
+		dwg.save()
+	
+	def layout(self, canvas, name):
+		"""Creates groups representing the two trees and adds them to canvas. An arrow is drawn between the two trees , representing an element of V. Returns y_offset, the y coordinate """
+		#1. Setup. Describe the trees as SVG groups.
+		self.domain.layout_rt()
+		self.range.layout_rt()
+		
+		left = self.domain.render(leaf_names=range(self.num_leaves))
+		right = self.range.render(leaf_names=self.range_labels)
+		
+		left['class'] = 'domain'
+		right['class'] = 'range'
+		
+		canvas.add(left)
+		canvas.add(right)
+		
+		#2. Position the two trees and draw an arrow between them.
+		w = left.size[0]
+		y = (left.size[1] - 1)/2
+		right.translate(coord(w + ARROW_LENGTH + 1, 0))
+		
+		g = svgwrite.container.Group(class_='group_element')
+		canvas.add(g)
+		
+		mid = coord(w + ARROW_LENGTH/2, y)
+		start = coord(-ARROW_LENGTH/2, 0)
+		end   = coord(+ARROW_LENGTH/2, 0)
+		g.translate(mid)
+		
+		arrow = svgwrite.shapes.Line(start, end, class_='arrow')
+		g.add(arrow)
+		
+		if name is not None:
+			g.add(svgwrite.text.Text(name, (0, 0), class_="above"))
+		
+		y_offset = max(left.size[1], right.size[1]) + 1
+		return y_offset
+		
+	def plot_bijection(self):
+		#3. Plot the group element as a set bijection of [0, 1]
+		g = svgwrite.container.Group(class_='graph')
+		
+		x_partition, _ , _ = self.domain.to_partition()
+		y_partition, _ , _ = self.range.to_partition()
+		
+		assert len(x_partition) == len(y_partition) == self.num_leaves + 1, "Partitions lengths improper."
+		
+		x_axis = svgwrite.shapes.Polyline(class_='axis')
+		for x in x_partition:
+			mark = coord(x, 0, scale=GRAPH_SCALE_FACTOR)
+			x_axis.points.append(mark)
+			g.add(svgwrite.text.Text(x, insert=mark, class_='below'))
+		g.add(x_axis)
+		
+		y_axis = svgwrite.shapes.Polyline(class_='axis')
+		for y in y_partition:
+			mark = coord(0, -y, scale=GRAPH_SCALE_FACTOR)
+			y_axis.points.append(mark)
+			
+			g.add(svgwrite.text.Text(str(y) + " ", insert=(-1*ex, mark[1]), class_='left centered'))
+		g.add(y_axis)
+		
+		start = end = None
+		for i in range(self.num_leaves):
+			#Draw the ith segment of the graph.
+			x = x_partition[i]
+			y = y_partition[self.perm[i]]
+			start = coord(x, -y, scale=GRAPH_SCALE_FACTOR)
+			
+			new_segment = start != end
+			
+			x = x_partition[i+1]
+			y = y_partition[self.perm[i]+1]
+			end   = coord(x, -y, scale=GRAPH_SCALE_FACTOR)
+			
+			if new_segment:
+				segment = svgwrite.path.Path(d=('M', start))
+				g.add(segment)
+			segment.push('L', end)
+		
+		return g
+	

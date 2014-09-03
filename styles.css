@@ -1,0 +1,24 @@
+circle { fill: #e8e8e8; stroke: black; }
+.leaf { fill: white; }
+/* .left { stroke: red; } */
+
+rect.debug { fill: red; opacity: 0.2 }
+
+line, polyline { stroke: black; fill: none; }
+.grid line:not(.axis) { stroke: #888; stroke-width: 0.5px; stroke-dasharray: 5,5; }
+.grid line.major {stroke-width: 1px;}
+
+.axis, .arrow { 	marker-end: url(#arrowhead); }
+
+.graph path { stroke: black; marker-start: url(#continuity); marker-mid: url(#crosshair); marker-end: url(#discontinuity); }
+.graph .axis { marker-mid: url(#tickmark); }
+#discontinuity circle { fill: white; }
+#continuity circle { fill: black; }
+#crosshair path { stroke: #666; }
+
+text { text-anchor: middle; font-family: sans-serif; }
+text.above { baseline-shift: 1ex; }
+text.centered { baseline-shift: -0.5ex; }
+text.below{ baseline-shift: -3ex; }
+text.left { text-anchor: end; }
+text.right { text-anchor: start; }

@@ -1,3 +1,7 @@
+#Don't include papers etc stored locally.
+literature/
+
+#Begin Github's defaults for Python projects.
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
