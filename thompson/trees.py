@@ -52,6 +52,25 @@ class BinaryTree:
 		child = type(self)(parent=self, right_child=right_child)
 		return child
 	
+	def set_child(self, child, right_child=False):
+		"""Sets the current node's child to be the given node. You should use this method rather than alter ``self.left`` or ``self.right`` directly, because ``child.parent`` needs to be updated too.
+		
+		Beware: cycles can be created with this method, meaning that the graph isn't a tree any more. Any method that traverses the tree will then attempt to loop infinitely! For instance:
+		
+			>>> node = BinaryTree()
+			>>> node.set_child(node)
+			>>> node.set_child(node)
+			>>> for descendant in node.walk(): pass
+			Traceback (most recent call last):
+				...
+			RuntimeError: maximum recursion depth exceeded
+		"""
+		if right_child:
+			self.right = child
+		else:
+			self.left = child
+		child.parent = self
+	
 	def is_root(self):
 		"""Returns ``True`` if this node has no parent; otherwise ``False``."""
 		return self.parent is None
@@ -119,7 +138,7 @@ class BinaryTree:
 	def from_string(cls, pattern):
 		"""Creates a strict binary tree from a string (or any iterable) specifying the pattern of branches and leaves in the tree. A ``"1"`` represents a parent with two children, and a ``"0"`` represents a leaf. All other characters are ignored.
 		
-		The pattern specifies the tree in :py:meth:`pre-order <walk_preorder>` (since we create parents before either of their children).
+		The pattern specifies the tree in :meth:`pre-order <walk_preorder>` (since we create parents before either of their children). Some sanity checks are made by :meth:`check_split_pattern`.
 		For example:
 		
 		- ``"100"``     denotes a single caret (``^``);
@@ -256,17 +275,21 @@ class DrawableTree(BinaryTree):
 		self._calc_bounds()
 	
 	def _setup_rt(self, depth=0):
-		#1. First, the tree is traversed from the bottom up.
+		"""Traverses the tree in post-order to assign x-coordinates to the tree's nodes. Note that :meth:`_add_offset` should be called after this method in order to apply the offsets."""
+		#We cannot determine a node's x-coordinate until we know those of its children.
 		for child in self:
 			child._setup_rt(depth+1)
 		
+		#The y-coordinates are easy
 		self.y = depth
-		#2. Leave leaves alone. Their parents will consider them a subtree and fix their position later.
 		if self.is_leaf():
 			self.x = 0
+		elif self.num_children() == 1:
+			child = self.left or self.right
+			self.x = child.x
 		else:
 			assert self.num_children() == 2, "Expected exactly 0 or 2 children."
-			self._fix_subtrees()
+			self.x = self._fix_subtrees()
 	
 	def _fix_subtrees(self):
 		#3. Otherwise, we're a parent. We have to move the right subtree enough to the right to ensure that it doesn't overlap the left subtree. To determine the distance, we calculate contours. A tree's left contour is the list of its leftmost nodes' x-coordinates at each depth; similarly for a right contour.
@@ -294,13 +317,13 @@ class DrawableTree(BinaryTree):
 			ro._offset = loffset - roffset
 		
 		assert (self.left.x + self.right.x) % 2 == 0,  "Parent placed at non-integer coordinate"
-		self.x =  (self.left.x + self.right.x) // 2
+		return (self.left.x + self.right.x) // 2
 	
 	def _next_left(self):
-		return self._thread or self.left
+		return self._thread or self.left or self.right
 	
 	def _next_right(self):
-		return self._thread or self.right 
+		return self._thread or self.right or self.left
 	
 	def _add_offset(self, offset_sum=0):
 		#As we move up the tree in :py:meth:`layout`, we may find that we have to reposition subtrees. The repositioning information is stored in self._offset; this method uses that information."""
@@ -316,7 +339,6 @@ class DrawableTree(BinaryTree):
 		if self.is_leaf():
 			min_x, max_x, height = self.x, self.x, 0
 		else:
-			#leaves have bounds = (0, 0, 0) already thanks to __init__
 			min_x  = min(child.bounds.min_x  for child in self)
 			max_x  = max(child.bounds.max_x  for child in self)
 			height = max(child.bounds.height for child in self) + 1
@@ -337,9 +359,10 @@ class DrawableTree(BinaryTree):
 		
 		#1. Draw the branches of the tree.
 		for child in self.walk():
-			if child.parent is None:
+			if child is self:
 				continue
 			start = Coord(child.parent)
+			print(start, child.parent)
 			end = Coord(child)
 			line = svgwrite.shapes.Line(start, end)
 			g.add(line)
@@ -371,6 +394,8 @@ class DrawableTree(BinaryTree):
 		If *name* is given, returns a :py:class:`Group <svgwrite:svgwrite.container.Group>` containing the circle and
 		*name* rendered as :py:class:`Text <svgwrite:svgwrite.text.Text>`. Otherwise, the circle is returned."""
 		center = Coord(self)
+		# if name is None:
+		#	 name = str(self._offset)
 		if name is None:
 			circle = svgwrite.shapes.Circle(center, NODE_RADIUS)
 		else:

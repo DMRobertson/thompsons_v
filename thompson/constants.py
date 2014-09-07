@@ -6,7 +6,7 @@ from svgwrite import cm, em, ex
 GRID_SPACING = 40
 
 #:The radius of a tree node in `SVG units`_.
-NODE_RADIUS = GRID_SPACING//2.1
+NODE_RADIUS = GRID_SPACING//2.2
 
 #:The length of an arrow representing a group element, in grid units.
 #:
