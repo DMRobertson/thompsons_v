@@ -1,11 +1,16 @@
+.debug { visibility: visible; }
+.thread { visibility: hidden; }
+
 circle { fill: #e8e8e8; stroke: black; }
 .leaf { fill: white; }
 /* .left { stroke: red; } */
+.thread {stroke: #888; stroke-dasharray: 5,5;}
 
 rect.debug { fill: red; opacity: 0.2 }
 
 line, polyline { stroke: black; fill: none; }
-.grid line:not(.axis) { stroke: #888; stroke-width: 0.5px; stroke-dasharray: 5,5; }
+
+.grid line:not(.axis) { stroke-width: 0.5px; stroke: #888; stroke-dasharray: 5,5; }
 .grid line.major {stroke-width: 1px;}
 
 .axis, .arrow { 	marker-end: url(#arrowhead); }

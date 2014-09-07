@@ -103,7 +103,7 @@ def new_drawing(filename='output.svg', num_grid_lines=0):
 	dwg.add(canvas)
 	
 	if num_grid_lines > 0:
-		grid = svgwrite.container.Group(class_='grid')
+		grid = svgwrite.container.Group(class_='grid debug')
 		for i in range(num_grid_lines+1):
 			x = svgwrite.shapes.Line(Coord(0, i), Coord(num_grid_lines, i))
 			y = svgwrite.shapes.Line(Coord(i, 0), Coord(i, num_grid_lines))

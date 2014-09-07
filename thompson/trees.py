@@ -33,7 +33,6 @@ class BinaryTree:
 		
 		:param node parent:				The node to attach this node to, or `None` if this node is to have no parent.
 		:param bool right_child: 		If True, attaches self as the right child of `parent`. If false, attaches self as the left child."""
-		
 		self.parent = parent
 		self.left = None
 		self.right = None
@@ -273,6 +272,7 @@ class DrawableTree(BinaryTree):
 		self._setup_rt()
 		self._add_offset()
 		self._calc_bounds()
+		assert self.bounds.min_x == 0, "Leftmost tree coordinate is x = %i (expected x=0)" % self.bounds.min_x
 	
 	def _setup_rt(self, depth=0):
 		"""Traverses the tree in post-order to assign x-coordinates to the tree's nodes. Note that :meth:`_add_offset` should be called after this method in order to apply the offsets."""
@@ -305,7 +305,7 @@ class DrawableTree(BinaryTree):
 		self.right._offset = separation
 		self.right.x += separation
 		
-		#5. We leave threads on any leaves on outer chords, so that chords can easily be retraced from higher in the tree. I'm not sure what the offsets are doing exactly other than allowing the algorithm to continue working futher up the tree.
+		#5. We leave threads on any leaves on outer chords, so that chords can easily be retraced from higher in the tree. I'm not sure what the offsets are doing exactly other than allowing the algorithm to continue working further up the tree.
 		if not self.right.is_leaf():
 			roffset += separation
 		
@@ -362,10 +362,15 @@ class DrawableTree(BinaryTree):
 			if child is self:
 				continue
 			start = Coord(child.parent)
-			print(start, child.parent)
 			end = Coord(child)
 			line = svgwrite.shapes.Line(start, end)
 			g.add(line)
+			
+			if child._thread:
+				start = Coord(child)
+				end = Coord(child._thread)
+				line = svgwrite.shapes.Line(start, end, class_='thread debug')
+				g.add(line)
 		
 		#2. Draw all the nodes as circles
 		i = 0
@@ -394,8 +399,6 @@ class DrawableTree(BinaryTree):
 		If *name* is given, returns a :py:class:`Group <svgwrite:svgwrite.container.Group>` containing the circle and
 		*name* rendered as :py:class:`Text <svgwrite:svgwrite.text.Text>`. Otherwise, the circle is returned."""
 		center = Coord(self)
-		# if name is None:
-		#	 name = str(self._offset)
 		if name is None:
 			circle = svgwrite.shapes.Circle(center, NODE_RADIUS)
 		else:
@@ -420,12 +423,11 @@ class DrawableTree(BinaryTree):
 		else:
 			return g
 
-def _contour(left, right, max_sep=None, loffset=0, roffset=0, left_outer=None, right_outer=None):
+def _contour(left, right, max_sep=0, loffset=0, roffset=0, left_outer=None, right_outer=None):
 	#See the comments for DrawableTree._fix_subtrees 
 	#1. Compute the separation between the root nodes `left` and `right`, accounting for offsets.
 	separation = left.x + loffset - (right.x + roffset)
-	if max_sep is None or separation > max_sep:
-		max_sep = separation
+	max_sep = max(max_sep, separation)
 	
 	if left_outer  is None: left_outer  = left
 	if right_outer is None: right_outer = right
