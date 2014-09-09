@@ -48,7 +48,9 @@ intersphinx_mapping = {
 	'py3': ('https://docs.python.org/3/', None)
 }
 
-"""Epilogue"""
+"""Pro- and Epilogue"""
+with open('prologue.txt', 'r', encoding='utf-8') as f:
+	rst_prolog = f.read()
 with open('epilogue.txt', 'r', encoding='utf-8') as f:
 	rst_epilog = f.read()
 

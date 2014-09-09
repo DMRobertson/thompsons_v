@@ -251,9 +251,9 @@ class DrawableTree(BinaryTree):
 	
 	The implementation of the :py:meth:`layout` algorithm was adapted from Bill Mill's article [Mill]_. Bill has made his code `available under the WTFPL <https://github.com/llimllib/pymag-trees>`_.
 	
-	:ivar x:		``0``			: This node's parent.
-	:ivar y:		``0``			: This node's left child.
-	:ivar bounds:	``(0, 0, 0)``	: A 3-tuple specifing the size of the subtree below and including this node. Entries are (*min_x*, *max_x*, *height*), storing the smallest/largest x-coordinate of any descendants and also the height of this node above its descendants.
+	:ivar x:		``0``
+	:ivar y:		``0``
+	:ivar bounds:	``(0, 0, 0)``. A 3-tuple specifing the position and height of the subtree below and including the current node. Automatically determined when :meth:`layout()` is called.
 	"""
 	def __init__(self, parent=None, right_child=False):
 		"""The same as :py:meth:`BinaryTree.__init__`. Some extra attributes needed for positioning are initialised."""
@@ -326,13 +326,16 @@ class DrawableTree(BinaryTree):
 		return self._thread or self.right or self.left
 	
 	def _add_offset(self, offset_sum=0):
-		#As we move up the tree in :py:meth:`layout`, we may find that we have to reposition subtrees. The repositioning information is stored in self._offset; this method uses that information."""
+		"""As we move up the tree in :py:meth:`layout`, we may find that we have to reposition subtrees so they don't overlap. The repositioning information is stored in self._offset; this method uses that information."""
 		self.x += offset_sum
 		for child in self:
 			child._add_offset(offset_sum + self._offset)
 	
 	def _calc_bounds(self):
-		"""In one final post-order traversal of the tree, we compute the bounds attribute, which describes the position and height of the tree including and below the current node."""
+		"""In one final post-order traversal of the tree, we compute the bounds attribute. This is a 3-tuple specifing the position and height of the subtree below and including the current node.
+		
+		Entries are (*min_x*, *max_x*, *height*), storing the smallest/largest x-coordinate of any descendants and also the height of this node above its descendants. Entries can be accessed by index or attribute.
+		"""
 		for child in self:
 			child._calc_bounds()
 		
@@ -344,18 +347,14 @@ class DrawableTree(BinaryTree):
 			height = max(child.bounds.height for child in self) + 1
 		self.bounds = Bounds(min_x, max_x, height)
 	
-	def render(self, filename=None, leaf_names=None):
+	@creates_SVG
+	def render(self, leaf_names=None):
 		"""Returns an SVG :py:class:`Group <svgwrite:svgwrite.container.Group>` whose contents are the drawing of this node and its descendants. 
 		
-		:param str filename:	If omitted, returns the group object. If specified, the group is added to a :class:`Drawing <svgwrite:svgwrite.drawing.Drawing>`. The drawing is then saved to *filename* and returned.
-		:param leaf_names:		An optional list of names to be given to the leaves below this node.
-		:type leaf_names: list of str
+		:param leaf_names: An optional list of names to be given to the leaves below this node. The leaves are specified depth-first, left to right---the same order as all the :meth:`BinaryTree.walk` methods.
+		:type leaf_names:  list of str
 		"""
-		if filename is not None:
-			dwg, canvas = new_drawing(filename)
 		g = svgwrite.container.Group()
-		#The +1 is the extra space required to draw circles and not points.
-		g.size = self.bounds.max_x - self.bounds.min_x + 1, self.bounds.height + 1
 		
 		#1. Draw the branches of the tree.
 		for child in self.walk():
@@ -383,15 +382,11 @@ class DrawableTree(BinaryTree):
 				name = None
 			g.add(child.render_node(name))
 		
-		#3. Offset the drawing so it aligns nicely with the grid.
-		offset_group(g)
-		
-		if filename is not None:
-			canvas.add(g)
-			dwg.save()
-			return dwg
-		else:
-			return g
+		#3. Before finishing, offset the group so it aligns nicely with the grid.
+		#Add 1 to width and height to give extra room for the node's radii. See the documentation of set_size for an example.
+		size = Coord(self.bounds.max_x - self.bounds.min_x + 1, self.bounds.height + 1)
+		set_size(g, size, offset=Coord(0.5, 0.5))
+		return g
 	
 	def render_node(self, name=None):
 		"""Creates an SVG :py:class:`Circle <svgwrite:svgwrite.shapes.Circle>` representing this node.
