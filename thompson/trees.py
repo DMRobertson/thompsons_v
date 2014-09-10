@@ -166,7 +166,6 @@ class BinaryTree:
 						break
 		return root
 	
-	"""TODO: ."""
 	
 	@staticmethod
 	def check_split_pattern(pattern):
@@ -348,7 +347,7 @@ class DrawableTree(BinaryTree):
 		self.bounds = Bounds(min_x, max_x, height)
 	
 	@creates_SVG
-	def render(self, leaf_names=None):
+	def render(self, leaf_names=None, **kwargs):
 		"""Returns an SVG :py:class:`Group <svgwrite:svgwrite.container.Group>` whose contents are the drawing of this node and its descendants. 
 		
 		:param leaf_names: An optional list of names to be given to the leaves below this node. The leaves are specified depth-first, left to right---the same order as all the :meth:`BinaryTree.walk` methods.

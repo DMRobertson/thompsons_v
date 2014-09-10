@@ -1,5 +1,8 @@
-from .trees import DrawableTree
+import svgwrite
+
 from .drawing import *
+from .constants import *
+from .trees import DrawableTree
 
 __all__ = ['TreePair']
 
@@ -23,14 +26,10 @@ class TreePair:
 		
 		Label the leaves of the domain tree :math:`D_1, D_2,\dotsc, D_N` in depth-first order from left to right---the same order that binary tree :meth:`~thompson.trees.BinaryTree.walk` methods use. For each :math:`i`, label the image in the range tree of :math:`D_i` with an :math:`i`. The argument *range_labels* should be a space-separated string listing the labels of the range tree in depth-first traversal order.
 		
-		.. figure:: examples/example_permutation.png
 			
-			**Example.** This is the object ``TreePair("1100100", "1110000", "1 2 0 3")``.
+			**Example.** TODO. This is the object ``TreePair("1100100", "1110000", "1 2 0 3")``.
 		
 		:raises ValueError: if the two trees have a different number of leaves.
-		
-		.. todo::
-			
 		"""
 		if isinstance(domain_tree, str):
 			domain_tree = DrawableTree.from_string(domain_tree)
@@ -41,7 +40,7 @@ class TreePair:
 			raise ValueError("Domain tree has %i leaves, but range tree has %i leaves." \
 			  % (self.num_leaves, range_tree.num_leaves()))
 		
-		self.num_leaves = self.domain.num_leaves()
+		self.num_leaves = domain_tree.num_leaves()
 		self.domain = domain_tree
 		self.range = range_tree
 		
@@ -50,21 +49,21 @@ class TreePair:
 		
 		self.perm = {}
 		for traversal_index, label in enumerate(self.range_labels):
-			self.perm[label] = i
+			self.perm[label] = traversal_index
 	
-	@creates_SVG
+	"""@creates_SVG
 	def render(self, name='test'):
 		#1. Create the drawing and render the two trees.
-		dwg, canvas = new_drawing(filename, True)
+		dwg, canvas = new_drawing(True)
 		y_offset = self.layout(canvas, name)
 		
-		"""if plot_bijection:
+		if plot_bijection:
 			graph = self.plot_bijection()
 			graph.translate(Coord(1, y_offset + GRAPH_SCALE_FACTOR))
 			canvas.add(graph)"""
 		
 	@creates_SVG
-	def layout(self, name):
+	def render(self, name='test', **kwargs):
 		"""Renders the two trees and positions them in a group."""
 		#1. Setup. Create a container group and get the SVG groups for the trees.
 		container = svgwrite.container.Group(class_='element')
@@ -81,69 +80,99 @@ class TreePair:
 		container.add(left)
 		container.add(right)
 		
-		#2. Position the two trees and draw an arrow between them.
-		w = left.size[0]
-		y = (left.size[1] - 1)/2
-		right.translate(Coord(w + ARROW_LENGTH + 1, 0))
-		
-		g = svgwrite.container.Group(class_='group_element')
-		canvas.add(g)
-		
-		mid = coord(w + ARROW_LENGTH/2, y)
-		start = coord(-ARROW_LENGTH/2, 0)
-		end   = coord(+ARROW_LENGTH/2, 0)
-		g.translate(mid)
+		#2. Draw an arrow between the two trees.
+		if name is not None:
+			mid = left.size.scale(1, 0.5) + Coord(ARROW_LENGTH/2, 0)
+			start = Coord(-ARROW_LENGTH/2, 0)
+			end = -start
+
+			arrow_parent = svgwrite.container.Group()
+			arrow_parent.translate(mid)
+			label = svgwrite.text.Text(name, (0, 0), class_="above")
+			arrow_parent.add(label)
+			container.add(arrow_parent)
+		else:
+			start = left.size.scale(1, 0.5)
+			end = start + Coord(ARROW_LENGTH, 0)
+			arrow_parent = container
 		
 		arrow = svgwrite.shapes.Line(start, end, class_='arrow')
-		g.add(arrow)
+		arrow_parent.add(arrow)
 		
-		if name is not None:
-			g.add(svgwrite.text.Text(name, (0, 0), class_="above"))
+		#3. Finally, position the right tree.
+		start = left.size.to_x() + Coord(ARROW_LENGTH, 0)
+		right.translate(start)
 		
-		y_offset = max(left.size[1], right.size[1]) + 1
+		size = start.x + right.size.x, max(left.size.y, right.size.y) 
+		set_size(container, size)
 		return container
 	
 	@creates_SVG
-	def render_bijection(self):
-		"""Returns an SVG group."""
-		#3. Plot the group element as a set bijection of [0, 1]
+	def render_bijection(self, **kwargs):
+		"""Returns an SVG group containing a plot of *self*, rendered as a bijection of :math:`[0, 1]`."""
+		#0. Setup.
 		g = svgwrite.container.Group(class_='graph')
 		
 		x_partition, _ , _ = self.domain.to_partition()
 		y_partition, _ , _ = self.range.to_partition()
 		
+		#TODO make the trees perform this check
 		assert len(x_partition) == len(y_partition) == self.num_leaves + 1, "Partitions lengths improper."
 		
+		#1. Draw both the axes.
 		x_axis = svgwrite.shapes.Polyline(class_='axis')
 		for x in x_partition:
-			mark = Coord(x, 0, scale=GRAPH_SCALE_FACTOR)
+			mark = Coord(x, 0) * GRAPH_SCALE_FACTOR
 			x_axis.points.append(mark)
-			g.add(svgwrite.text.Text(x, insert=mark, class_='below'))
+			label = self.add_fraction(x, Coord(0, 0.5) + mark)
+			g.add(label)
 		g.add(x_axis)
 		
 		y_axis = svgwrite.shapes.Polyline(class_='axis')
 		for y in y_partition:
-			mark = Coord(0, -y, scale=GRAPH_SCALE_FACTOR)
+			mark = Coord(0, -y) * GRAPH_SCALE_FACTOR
 			y_axis.points.append(mark)
-			g.add(svgwrite.text.Text(str(y) + " ", insert=(-1*ex, mark[1]), class_='left centered'))
+			label = self.add_fraction(y, Coord(-0.5, 0) + mark)
+			g.add(label)
 		g.add(y_axis)
 		
+		#2. Draw the segments of the plotted function.
 		start = end = None
 		for i in range(self.num_leaves):
 			#Draw the ith segment of the graph.
 			x = x_partition[i]
 			y = y_partition[self.perm[i]]
-			start = Coord(x, -y, scale=GRAPH_SCALE_FACTOR)
+			start = Coord(x, -y)*GRAPH_SCALE_FACTOR
 			
 			new_segment = start != end
 			
 			x = x_partition[i+1]
 			y = y_partition[self.perm[i]+1]
-			end   = Coord(x, -y, scale=GRAPH_SCALE_FACTOR)
+			end = Coord(x, -y) * GRAPH_SCALE_FACTOR
 			
 			if new_segment:
-				segment = svgwrite.path.Path(d=('M', start))
+				segment = svgwrite.shapes.Polyline(points=(start,), class_='plot')
 				g.add(segment)
-			segment.push('L', end)
+			segment.points.append(end)
 		
+		size = Coord(1, 1) * GRAPH_SCALE_FACTOR + Coord(2, 2)
+		set_size(g, size, offset=Coord(0, GRAPH_SCALE_FACTOR) + Coord(1, 1))
 		return g
+	
+	@staticmethod
+	def add_fraction(q, insert):
+		"""Represents a :class:`Fraction <py3:fractions.Fraction>` as an SVG element. If the denominator of *q* is 1, the fraction is simply represented as an integer by a :class:`Text <svgwrite:svgwrite.text.Text> element. Otherwise, returns a :class:`Group <svgwrite:svgwrite.text.Group>` which draws *q* as a slanted (possibly top-heavy) fraction.
+		"""
+		if q.denominator == 1:
+			text = svgwrite.text.Text(str(q.numerator), insert)
+			return text
+		
+		g = svgwrite.container.Group(class_='fraction')
+		g.translate(insert)
+		n = svgwrite.text.Text(str(q.numerator),   class_='numerator',   insert=(-0.1*em, -0.1*em))
+		d = svgwrite.text.Text(str(q.denominator), class_='denominator', insert=( 0.1*em,  0.9*em))
+		g.add(svgwrite.shapes.Line((-0.3*em, 0.3*em), (0.3*em, -0.3*em)))
+		g.add(n)
+		g.add(d)
+		return g
+	

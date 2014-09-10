@@ -1,29 +1,39 @@
-.debug { visibility: visible; }
-.thread { visibility: hidden; }
-
-circle { fill: #e8e8e8; stroke: black; }
-.leaf { fill: white; }
-/* .left { stroke: red; } */
-.thread {stroke: #888; stroke-dasharray: 5,5;}
-
+.debug { visibility: hidden; }
 rect.debug { fill: red; opacity: 0.2 }
 
+/* Generic Styles */
 line, polyline { stroke: black; fill: none; }
 
-.grid line:not(.axis) { stroke-width: 0.5px; stroke: #888; stroke-dasharray: 5,5; }
-.grid line.major {stroke-width: 1px;}
-
-.axis, .arrow { 	marker-end: url(#arrowhead); }
-
-.graph path { stroke: black; marker-start: url(#continuity); marker-mid: url(#crosshair); marker-end: url(#discontinuity); }
-.graph .axis { marker-mid: url(#tickmark); }
+/* Markers Definitions */
+#arrowhead polygon { } 
 #discontinuity circle { fill: white; }
 #continuity circle { fill: black; }
-#crosshair path { stroke: #666; }
+#crosshair path { stroke: #444; }
 
+/* Text */
 text { text-anchor: middle; font-family: sans-serif; }
 text.above { baseline-shift: 1ex; }
 text.centered { baseline-shift: -0.5ex; }
-text.below{ baseline-shift: -3ex; }
+text.below { baseline-shift: -3ex; }
 text.left { text-anchor: end; }
 text.right { text-anchor: start; }
+
+/* Fractions */
+.fraction text { font-size: 80%; }
+text.numerator    { text-anchor: end;  }
+text.denominator { text-anchor: start;}
+
+/* Binary Trees */
+circle { fill: #e8e8e8; stroke: black; }
+.leaf { fill: white; }
+.thread {stroke: #888; stroke-dasharray: 5,5;}
+
+/* Arrows */
+.arrow { 	marker-end: url(#arrowhead); }
+
+/* Grids and Graphs */
+.axis { 	marker-end: url(#arrowhead); }
+.grid line:not(.axis) { stroke-width: 0.5px; stroke: #888; stroke-dasharray: 5,5; }
+.grid line.major {stroke-width: 1px;}
+.graph .plot { marker-start: url(#continuity); marker-mid: url(#crosshair); marker-end: url(#discontinuity); }
+.graph .axis { marker-mid: url(#tickmark); }
