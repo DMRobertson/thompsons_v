@@ -346,7 +346,7 @@ class DrawableTree(BinaryTree):
 			height = max(child.bounds.height for child in self) + 1
 		self.bounds = Bounds(min_x, max_x, height)
 	
-	@creates_SVG
+	@creates_svg
 	def render(self, leaf_names=None, **kwargs):
 		"""Returns an SVG :py:class:`Group <svgwrite:svgwrite.container.Group>` whose contents are the drawing of this node and its descendants. 
 		

@@ -18,7 +18,7 @@ import pkg_resources
 
 from .constants import *
 
-__all__ = ['Coord', 'creates_SVG', 'new_drawing', 'set_size']
+__all__ = ['Coord', 'creates_svg', 'new_drawing', 'set_size', 'svg_fraction']
 __all__.sort()
 
 _css_cache = None
@@ -153,10 +153,10 @@ class Coord(namedtuple('BaseCoord', 'x y')):
 			sy = sx
 		return type(self)(self.x * sx, self.y * sy, scale=1)
 
-def creates_SVG(f):
+def creates_svg(f):
 	"""Decorator. If *f* is a function that returns a :class:`Group <svgwrite:svgwrite.container.Group>`, applying this decorator modifies *f* to optionally embed that group in an SVG file. For example:
 	
-		>>> @creates_SVG
+		>>> @creates_svg
 		... def f(**kwargs):
 		... 	return svgwrite.container.Group()
 		... 
@@ -195,7 +195,7 @@ def creates_SVG(f):
 	if output.__doc__ is None:
 		output.__doc__ = ""
 	i = get_docstring_indentation(output.__doc__)
-	output.__doc__ += """\n\n""" + "\t"*i + """This method is decorated by :func:`~thompson.drawing.creates_SVG`. A *filename* argument can be supplied to render the group to an SVG file."""
+	output.__doc__ += """\n\n""" + "\t"*i + """This method is decorated by :func:`~thompson.drawing.creates_svg`. A *filename* argument can be supplied to render the group to an SVG file."""
 	return output
 
 def get_docstring_indentation(string):
@@ -328,9 +328,9 @@ def set_size(g, size, offset=None):
 	
 	**Example.**
 	
-	.. figure:: examples/set_size_example.svg
+	.. figure:: examples/drawing/set_size_example.svg
 		
-		The effect of the *offset* argument. Left: no offset; Right: offset ``Coord(0.5, 0.5)``. [:download:`Source code <examples/set_size_example.py>`].
+		The effect of the *offset* argument. Left: no offset; Right: offset ``Coord(0.5, 0.5)``. [:download:`Source code <examples/drawing/set_size_example.py>`].
 	"""
 	if offset is not None:
 		g.translate(offset)
@@ -340,3 +340,20 @@ def set_size(g, size, offset=None):
 	r = svgwrite.shapes.Rect(insert=insert, size=size, class_='debug')
 	g.elements.insert(0, r)
 	g.size = size
+
+def SVG_fraction(q, insert):
+	"""Represents a :class:`Fraction <py3:fractions.Fraction>` as an SVG element. If the denominator of *q* is 1, the fraction is simply represented as an integer by a :class:`Text <svgwrite:svgwrite.text.Text> element. Otherwise, returns a :class:`Group <svgwrite:svgwrite.text.Group>` which draws *q* as a slanted (possibly top-heavy) fraction.
+	"""
+	if q.denominator == 1:
+		text = svgwrite.text.Text(str(q.numerator), insert)
+		return text
+	
+	g = svgwrite.container.Group(class_='fraction')
+	g.translate(insert)
+	
+	n = svgwrite.text.Text(str(q.numerator),   class_='numerator',   insert=(-0.1*em, -0.1*em))
+	d = svgwrite.text.Text(str(q.denominator), class_='denominator', insert=( 0.1*em,  0.9*em))
+	g.add(n)
+	g.add(d)
+	g.add(svgwrite.shapes.Line((-0.3*em, 0.3*em), (0.3*em, -0.3*em)))
+	return g

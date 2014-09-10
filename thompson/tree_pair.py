@@ -51,7 +51,7 @@ class TreePair:
 		for traversal_index, label in enumerate(self.range_labels):
 			self.perm[label] = traversal_index
 	
-	"""@creates_SVG
+	"""@creates_svg
 	def render(self, name='test'):
 		#1. Create the drawing and render the two trees.
 		dwg, canvas = new_drawing(True)
@@ -62,7 +62,7 @@ class TreePair:
 			graph.translate(Coord(1, y_offset + GRAPH_SCALE_FACTOR))
 			canvas.add(graph)"""
 		
-	@creates_SVG
+	@creates_svg
 	def render(self, name='test', **kwargs):
 		"""Renders the two trees and positions them in a group."""
 		#1. Setup. Create a container group and get the SVG groups for the trees.
@@ -107,7 +107,7 @@ class TreePair:
 		set_size(container, size)
 		return container
 	
-	@creates_SVG
+	@creates_svg
 	def render_bijection(self, **kwargs):
 		"""Returns an SVG group containing a plot of *self*, rendered as a bijection of :math:`[0, 1]`."""
 		#0. Setup.
@@ -158,21 +158,3 @@ class TreePair:
 		size = Coord(1, 1) * GRAPH_SCALE_FACTOR + Coord(2, 2)
 		set_size(g, size, offset=Coord(0, GRAPH_SCALE_FACTOR) + Coord(1, 1))
 		return g
-	
-	@staticmethod
-	def add_fraction(q, insert):
-		"""Represents a :class:`Fraction <py3:fractions.Fraction>` as an SVG element. If the denominator of *q* is 1, the fraction is simply represented as an integer by a :class:`Text <svgwrite:svgwrite.text.Text> element. Otherwise, returns a :class:`Group <svgwrite:svgwrite.text.Group>` which draws *q* as a slanted (possibly top-heavy) fraction.
-		"""
-		if q.denominator == 1:
-			text = svgwrite.text.Text(str(q.numerator), insert)
-			return text
-		
-		g = svgwrite.container.Group(class_='fraction')
-		g.translate(insert)
-		n = svgwrite.text.Text(str(q.numerator),   class_='numerator',   insert=(-0.1*em, -0.1*em))
-		d = svgwrite.text.Text(str(q.denominator), class_='denominator', insert=( 0.1*em,  0.9*em))
-		g.add(svgwrite.shapes.Line((-0.3*em, 0.3*em), (0.3*em, -0.3*em)))
-		g.add(n)
-		g.add(d)
-		return g
-	
