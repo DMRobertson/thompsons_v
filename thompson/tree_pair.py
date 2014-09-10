@@ -63,8 +63,13 @@ class TreePair:
 			canvas.add(graph)"""
 		
 	@creates_svg
-	def render(self, name='test', **kwargs):
-		"""Renders the two trees and positions them in a group."""
+	def render(self, name=None, **kwargs):
+		"""Renders a representation of the group element in terms of trees. The domain and range trees are rendered, and an arrow (with optional label *name*) is drawn between them. Labels are added to the leaves to describe the permutation.
+		
+		.. figure:: examples/tree_pair/TreePair_render.svg
+			
+			**Example.** The output of ``TreePair("11000", "10100", "0 1 2").render()``. [:download:`Source code <examples/tree_pair/TreePair_render.py>`].
+		"""
 		#1. Setup. Create a container group and get the SVG groups for the trees.
 		container = svgwrite.container.Group(class_='element')
 		
@@ -103,13 +108,18 @@ class TreePair:
 		start = left.size.to_x() + Coord(ARROW_LENGTH, 0)
 		right.translate(start)
 		
-		size = start.x + right.size.x, max(left.size.y, right.size.y) 
+		size = Coord(start.x + right.size.x, max(left.size.y, right.size.y), scale=1)
 		set_size(container, size)
 		return container
 	
 	@creates_svg
 	def render_bijection(self, **kwargs):
-		"""Returns an SVG group containing a plot of *self*, rendered as a bijection of :math:`[0, 1]`."""
+		"""Returns an SVG group containing a plot of *self*, rendered as a bijection of :math:`[0, 1]`.
+		
+		.. figure:: examples/tree_pair/TreePair_render_bijection.svg
+			
+			**Example.** The output of ``TreePair("11000", "10100", "0 1 2").render_bijection)``. [:download:`Source code <examples/tree_pair/TreePair_render.py>`].
+		"""
 		#0. Setup.
 		g = svgwrite.container.Group(class_='graph')
 		
@@ -124,7 +134,7 @@ class TreePair:
 		for x in x_partition:
 			mark = Coord(x, 0) * GRAPH_SCALE_FACTOR
 			x_axis.points.append(mark)
-			label = self.add_fraction(x, Coord(0, 0.5) + mark)
+			label = svg_fraction(x, Coord(0, 0.5) + mark)
 			g.add(label)
 		g.add(x_axis)
 		
@@ -132,7 +142,7 @@ class TreePair:
 		for y in y_partition:
 			mark = Coord(0, -y) * GRAPH_SCALE_FACTOR
 			y_axis.points.append(mark)
-			label = self.add_fraction(y, Coord(-0.5, 0) + mark)
+			label = svg_fraction(y, Coord(-0.5, 0) + mark)
 			g.add(label)
 		g.add(y_axis)
 		

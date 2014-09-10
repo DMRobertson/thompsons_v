@@ -326,11 +326,9 @@ def set_size(g, size, offset=None):
 	:param size: A :class:`Coord` inate.
 	:param offset: Optional: a :class:`Coord` inate.
 	
-	**Example.**
-	
-	.. figure:: examples/drawing/set_size_example.svg
+	.. figure:: examples/drawing/set_size.svg
 		
-		The effect of the *offset* argument. Left: no offset; Right: offset ``Coord(0.5, 0.5)``. [:download:`Source code <examples/drawing/set_size_example.py>`].
+		**Example.** The effect of the *offset* argument. Left: no offset; Right: offset ``Coord(0.5, 0.5)``. [:download:`Source code <examples/drawing/set_size.py>`].
 	"""
 	if offset is not None:
 		g.translate(offset)
@@ -341,7 +339,7 @@ def set_size(g, size, offset=None):
 	g.elements.insert(0, r)
 	g.size = size
 
-def SVG_fraction(q, insert):
+def svg_fraction(q, insert):
 	"""Represents a :class:`Fraction <py3:fractions.Fraction>` as an SVG element. If the denominator of *q* is 1, the fraction is simply represented as an integer by a :class:`Text <svgwrite:svgwrite.text.Text> element. Otherwise, returns a :class:`Group <svgwrite:svgwrite.text.Group>` which draws *q* as a slanted (possibly top-heavy) fraction.
 	"""
 	if q.denominator == 1:
@@ -355,5 +353,5 @@ def SVG_fraction(q, insert):
 	d = svgwrite.text.Text(str(q.denominator), class_='denominator', insert=( 0.1*em,  0.9*em))
 	g.add(n)
 	g.add(d)
-	g.add(svgwrite.shapes.Line((-0.3*em, 0.3*em), (0.3*em, -0.3*em)))
+	g.add(svgwrite.shapes.Line((-4, 4), (4, -4)))
 	return g
