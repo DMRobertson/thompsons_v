@@ -8,8 +8,9 @@ Submodules
 
    thompson.constants
    thompson.drawing
-   thompson.trees
+   thompson.permutation
    thompson.tree_pair
+   thompson.trees
 
 Module contents
 ---------------

@@ -2,6 +2,7 @@ import svgwrite
 
 from .drawing import *
 from .constants import *
+from .permutation import Permutation
 from .trees import DrawableTree
 
 __all__ = ['TreePair']
@@ -16,6 +17,12 @@ class TreePair:
 	where each subinterval :math:`[x_i, x_{i+1}]` looks like :math:`[{a}/{2^n}, (a+1)/{2^n}]` for integers :math:`a` and :math:`n`. Such subintervals are called dyadic; the partition itself is also called dyadic. 
 	
 	The elements of :math:`V` are the bijections which take two dyadic partitions of :math:`I` and linearly map subintervals from one partition onto subintervals from another. We can use (strict) binary trees to represent dyadic intervals (see :meth:`~thompson.trees.BinaryTrees.to_partition`). The missing ingredient is how the intervals map to each other.
+	
+	:ivar int num_leaves: The number of leaves on both trees.
+	:ivar tree domain: The domain tree.
+	:ivar tree range: The range tree.
+	:ivar perm: The :class:`Permutation` of leaves.
+		
 	"""
 	def __init__(self, domain_tree, range_tree, range_labels):
 		r"""Creates a new tree pair object given a pair of trees and *range_labels*, a string specifying how the leaves of the domain tree map to those of the range tree. Some sanity checks are made on the arguments.
@@ -24,12 +31,13 @@ class TreePair:
 		:param range_tree: the same.
 		:param range_labels: a string specifying how the leaves are mapped from the domain to range tree.
 		
-		Label the leaves of the domain tree :math:`D_1, D_2,\dotsc, D_N` in depth-first order from left to right---the same order that binary tree :meth:`~thompson.trees.BinaryTree.walk` methods use. For each :math:`i`, label the image in the range tree of :math:`D_i` with an :math:`i`. The argument *range_labels* should be a space-separated string listing the labels of the range tree in depth-first traversal order.
+		Call the leaves of the domain tree :math:`D_1, D_2, \dotsc, D_N` in depth-first order from left to right---the same order that binary tree :meth:`~thompson.trees.BinaryTree.walk` methods use. For each :math:`i`, label the image in the range tree of :math:`D_i` with an :math:`i`. The argument *range_labels* should be a space-separated string listing the labels of the range tree in depth-first traversal order.
 		
+		.. figure:: examples/tree_pair/TreePair_render.svg
 			
-			**Example.** TODO. This is the object ``TreePair("1100100", "1110000", "1 2 0 3")``.
+			**Example.** This is the object ``TreePair("11000", "10100", "1 2 3")``.
 		
-		:raises ValueError: if the two trees have a different number of leaves.
+		:raises ValueError: if the two trees have a different number of leaves; if range_labels doesn't properly describe a permutation (see :class:`~thompson.permutation.Permutation`); or if range_labels describes a permutation of too many/few leaves.
 		"""
 		if isinstance(domain_tree, str):
 			domain_tree = DrawableTree.from_string(domain_tree)
@@ -37,31 +45,18 @@ class TreePair:
 			range_tree = DrawableTree.from_string(range_tree)
 		
 		if domain_tree.num_leaves() != range_tree.num_leaves():
-			raise ValueError("Domain tree has %i leaves, but range tree has %i leaves." \
+			raise ValueError("Domain tree has %i leaves, but range tree has %i leaves." 
 			  % (self.num_leaves, range_tree.num_leaves()))
 		
 		self.num_leaves = domain_tree.num_leaves()
 		self.domain = domain_tree
 		self.range = range_tree
 		
-		self.range_labels = [int(x) for x in range_labels.split()]
-		assert len(self.range_labels) == self.num_leaves, "Permutation is not fully specified."
-		
-		self.perm = {}
-		for traversal_index, label in enumerate(self.range_labels):
-			self.perm[label] = traversal_index
+		self.perm = Permutation(range_labels)
+		if self.perm.size != self.num_leaves:
+			raise ValueError("range_labels permutes %i leaves, but the trees have %i leaves."
+			  % (self.num_leaves, self.perm.size))
 	
-	"""@creates_svg
-	def render(self, name='test'):
-		#1. Create the drawing and render the two trees.
-		dwg, canvas = new_drawing(True)
-		y_offset = self.layout(canvas, name)
-		
-		if plot_bijection:
-			graph = self.plot_bijection()
-			graph.translate(Coord(1, y_offset + GRAPH_SCALE_FACTOR))
-			canvas.add(graph)"""
-		
 	@creates_svg
 	def render(self, name=None, **kwargs):
 		"""Renders a representation of the group element in terms of trees. The domain and range trees are rendered, and an arrow (with optional label *name*) is drawn between them. Labels are added to the leaves to describe the permutation.
@@ -76,8 +71,8 @@ class TreePair:
 		self.domain.layout()
 		self.range.layout()
 		
-		left = self.domain.render(leaf_names=range(self.num_leaves))
-		right = self.range.render(leaf_names=self.range_labels)
+		left = self.domain.render(leaf_names=range(1, self.num_leaves + 1))
+		right = self.range.render(leaf_names=self.perm.output)
 		
 		left['class'] = 'domain'
 		right['class'] = 'range'
@@ -148,16 +143,15 @@ class TreePair:
 		
 		#2. Draw the segments of the plotted function.
 		start = end = None
-		for i in range(self.num_leaves):
+		for i in range(1, self.num_leaves+1):
 			#Draw the ith segment of the graph.
-			x = x_partition[i]
-			y = y_partition[self.perm[i]]
+			x = x_partition[i-1]
+			y = y_partition[self.perm[i]-1]
 			start = Coord(x, -y)*GRAPH_SCALE_FACTOR
 			
 			new_segment = start != end
-			
-			x = x_partition[i+1]
-			y = y_partition[self.perm[i]+1]
+			x = x_partition[i]
+			y = y_partition[self.perm[i]]
 			end = Coord(x, -y) * GRAPH_SCALE_FACTOR
 			
 			if new_segment:

@@ -1,7 +1,7 @@
 from thompson.tree_pair import TreePair
 from thompson.drawing import *
 
-x = TreePair("11000", "10100", "0 1 2")
+x = TreePair("11000", "10100", "1 2 3")
 
 g = x.render()
 dwg, canvas = new_drawing(filename='TreePair_render.svg')

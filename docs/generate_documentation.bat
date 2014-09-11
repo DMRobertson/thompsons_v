@@ -1,6 +1,7 @@
 @Echo Off
 
 echo.Running apidoc.
+REM sphinx-apidoc -o . -e  ..
 sphinx-apidoc -o . -e -F -H "Thompson's V" -A "David Robertson" ..
 
 echo.Cleaning up build directory.
