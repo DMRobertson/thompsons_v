@@ -27,7 +27,7 @@ def skip(app, what, name, obj, skip, options):
 		return False
 	return skip
 
- def setup(app):
+def setup(app):
 	 app.connect("autodoc-skip-member", skip)
 
 #Methods and attributes which are documented are displayed in the same order as their docstrings are defined.
