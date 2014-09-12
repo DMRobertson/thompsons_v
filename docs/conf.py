@@ -21,9 +21,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 """Begin my additions."""
 #From http://stackoverflow.com/a/5599712 .
 def skip(app, what, name, obj, skip, options):
-	#if obj.__class__.__name__ == 'function' and name.endswith("__") and obj.__doc__:
-	if name.endswith("__") and obj.__doc__:
-		#don't skip magic methods if they have docstrings
+	if hasattr(obj, '__call__') and name.endswith("__") and obj.__doc__:
 		return False
 	return skip
 
