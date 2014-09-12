@@ -162,3 +162,13 @@ class TreePair:
 		size = Coord(1, 1) * GRAPH_SCALE_FACTOR + Coord(2, 2)
 		set_size(g, size, offset=Coord(0, GRAPH_SCALE_FACTOR) + Coord(1, 1))
 		return g
+	
+	def in_F(self):
+		#TODO DOCTESTS
+		"""Returns True if this represents an element of *F* (i.e. the order of the leaves is unchanged)."""
+		return self.perm.is_identity()
+	
+	def in_T(self):
+		#TODO DOCTESTS
+		"""Returns True if this represents an element of *T* (i.e. the order of the leaves is cyclicly)."""
+		return self.perm.is_cycle()
