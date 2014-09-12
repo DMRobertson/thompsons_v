@@ -32,7 +32,7 @@ class Coord(namedtuple('BaseCoord', 'x y')):
 	__slots__ = ()
 	
 	def __new__(cls, x, y=None, scale=GRID_SPACING):
-		"""Coord instances scale grid units (that trees use) up to `SVG units <http://svgwrite.readthedocs.org/en/latest/overview.html#units>`_ (that the drawing uses). By default, the scale factor is :py:data:`~thompson.constants.GRID_SPACING` (40).
+		"""Coord instances scale grid units (that trees use) up to `SVG units`_ (that the drawing uses). By default, the scale factor is :py:data:`~thompson.constants.GRID_SPACING` (40).
 		
 			>>> x = Coord(1, 2)
 			>>> x == (40, 80)

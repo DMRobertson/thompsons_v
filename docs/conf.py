@@ -37,6 +37,7 @@ autodoc_member_order = 'bysource'
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
 print('Working in', sys.path[0])
+print(sys.version_info)
 
 """THEMES"""
 if not on_rtd:  # only import and set the theme if we're building docs locally
@@ -54,9 +55,9 @@ intersphinx_mapping = {
 }
 
 """Pro- and Epilogue"""
-with open('prologue.txt', 'r', encoding='utf-8') as f:
+with open('prologue.txt', 'r') as f:
 	rst_prolog = f.read()
-with open('epilogue.txt', 'r', encoding='utf-8') as f:
+with open('epilogue.txt', 'r') as f:
 	rst_epilog = f.read()
 
 """End my additions"""
