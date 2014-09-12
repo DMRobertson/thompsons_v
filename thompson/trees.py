@@ -230,7 +230,7 @@ class BinaryTree:
 		
 		.. todo::
 			
-			Use a stack/queue rather than recursion. Test with fraction classes."""
+			Use a stack/queue rather than recursion."""
 		if partition is None:
 			partition = [Fraction(after), Fraction(before)]
 		if self.is_leaf():

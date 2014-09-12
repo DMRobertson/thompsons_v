@@ -16,13 +16,15 @@
 import sys
 import os
 
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
 """Begin my additions."""
 #From http://stackoverflow.com/a/5599712 .
 def skip(app, what, name, obj, skip, options):
-    if obj.__class__.__name__ == 'function' and name.endswith("__") and obj.__doc__:
-        #don't skip magic methods if they have docstrings
-        return False
-    return skip
+	if obj.__class__.__name__ == 'function' and name.endswith("__") and obj.__doc__:
+		#don't skip magic methods if they have docstrings
+		return False
+	return skip
 
 def setup(app):
     app.connect("autodoc-skip-member", skip)
@@ -36,11 +38,14 @@ autodoc_member_order = 'bysource'
 sys.path.insert(0, os.path.abspath('..'))
 print('Working in', sys.path[0])
 
-"""Configuring extensions"""
-import sphinx_rtd_theme
-html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+"""THEMES"""
+if not on_rtd:  # only import and set the theme if we're building docs locally
+	import sphinx_rtd_theme
+	html_theme = "sphinx_rtd_theme"
+	html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# otherwise, readthedocs.org uses their theme by default, so no need to specify it
 
+"""Configuring extensions"""
 todo_include_todos = True
 
 intersphinx_mapping = {
