@@ -21,13 +21,14 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 """Begin my additions."""
 #From http://stackoverflow.com/a/5599712 .
 def skip(app, what, name, obj, skip, options):
-	if obj.__class__.__name__ == 'function' and name.endswith("__") and obj.__doc__:
+	#if obj.__class__.__name__ == 'function' and name.endswith("__") and obj.__doc__:
+	if name.endswith("__") and obj.__doc__:
 		#don't skip magic methods if they have docstrings
 		return False
 	return skip
 
-def setup(app):
-    app.connect("autodoc-skip-member", skip)
+ def setup(app):
+	 app.connect("autodoc-skip-member", skip)
 
 #Methods and attributes which are documented are displayed in the same order as their docstrings are defined.
 autodoc_member_order = 'bysource'
