@@ -33,6 +33,10 @@ class BinaryTree:
 		
 		:param node parent:				The node to attach this node to, or `None` if this node is to have no parent.
 		:param bool right_child: 		If True, attaches self as the right child of `parent`. If false, attaches self as the left child."""
+		
+		if isinstance(parent, str):
+			raise TypeError('Parent should be a tree or None, not a string. did you mean to use BinaryTree.from_string()?')
+		
 		self.parent = parent
 		self.left = None
 		self.right = None
@@ -58,7 +62,7 @@ class BinaryTree:
 		
 			>>> node = BinaryTree()
 			>>> node.set_child(node)
-			>>> node.set_child(node)
+			>>> node.set_child(node, right_child=True)
 			>>> for descendant in node.walk(): pass
 			Traceback (most recent call last):
 				...
@@ -78,17 +82,26 @@ class BinaryTree:
 		"""Returns ``True`` if this node has no children; otherwise ``False``."""
 		return self.left is None and self.right is None
 	
+	def __len__(self):
+		"""We define the length of a tree node to be the number of non-``None`` children it possesses.
+		
+			>>> len(BinaryTree())
+			0
+			>>> len(BinaryTree.from_string("100"))
+			2
+			>>> root = BinaryTree()
+			>>> child = root.add_child()
+			>>> len(root)
+			1
+		
+		:rtype: int"""
+		return (self.left is not None) + (self.right is not None)
+	
 	def num_leaves(self):
 		"""Returns the number of leaves below this node.
 		
 		:rtype: int"""
 		return sum(child.is_leaf() for child in self.walk())
-	
-	def num_children(self):
-		"""Returns the number of children belonging to this node.
-		
-		:rtype: int"""
-		return (self.left is not None) + (self.right is not None)
 	
 	def __iter__(self):
 		"""Iterating over a node yields its left and right children. Missing children (``None``) are not included in the iteration."""
@@ -99,11 +112,8 @@ class BinaryTree:
 	
 	def walk(self):
 		"""The walk methods return generators that yield this node and its descendants, eventually iterating over the whole tree. The `three ways of traversing a tree depth-first <http://en.wikipedia.org/wiki/Tree_traversal#Types>`_ are available. If we don't care about the order of iteration, :py:meth:`walk` is a convenient shorthand for :py:meth:`walk_preorder`.
-		
-		.. todo::
-			
-			Currently implemented using recursion---may be more efficient using a stack/queue.
 		"""
+		#Currently implemented using recursion---may be more efficient using a stack/queue.
 		#Normally I would just write walk = walk_preorder in the class body, but this lets me use Sphinx to document walk before walk_preorder.
 		yield from self.walk_preorder()
 		
@@ -144,9 +154,10 @@ class BinaryTree:
 		- ``"1100100"`` denotes two carets with a common parent;
 		- ``"11000"``   denotes a caret with another caret attached to its left.
 		
-		.. todo::
-			
-			Add pictures here."""
+		.. figure:: /examples/trees/BinaryTree_from_string.svg
+		
+			The trees formed by the strings above. [:download:`Source code </examples/trees/BinaryTree_from_string.py>`].
+		"""
 		#create the root
 		pattern = cls.check_split_pattern(pattern)
 		current = root = cls()
@@ -157,7 +168,7 @@ class BinaryTree:
 			elif char == "0":
 				while True: #poor man's do-while
 					if current is root:
-						assert root.num_children() != 1, "Root has exactly 1 child (expected 0 or 2 children). Pattern was %s." % pattern
+						assert len(root) != 1, "Root has exactly 1 child (expected 0 or 2 children). Pattern was %s." % pattern
 						return root
 					current = current.parent
 					
@@ -165,7 +176,6 @@ class BinaryTree:
 						current = current.add_child(right_child=True)
 						break
 		return root
-	
 	
 	@staticmethod
 	def check_split_pattern(pattern):
@@ -228,10 +238,18 @@ class BinaryTree:
 	def to_partition(self, partition=None, after=0, before=1):
 		"""Strict binary trees represent a partition of an interval into dyadic sub-intervals. This method gives such a partition of :math:`[0, 1]`.
 		
-		.. todo::
+			>>> partition, _, _ = BinaryTree.from_string("11000").to_partition()
+			>>> partition
+			[Fraction(0, 1), Fraction(1, 4), Fraction(1, 2), Fraction(1, 1)]
+			>>> print(*(str(x) for x in partition), sep=', ')
+			0, 1/4, 1/2, 1
 			
-			Use a stack/queue rather than recursion."""
+		:return: a list of `Fractions <p3:fractions.Fraction>` forming the partition.
+		"""
+		#todo. Use a stack/queue rather than recursion.
+		#TODO. I have no idea why this works, so this could probably do with a rewrite.
 		if partition is None:
+		
 			partition = [Fraction(after), Fraction(before)]
 		if self.is_leaf():
 			return partition, after, before
@@ -241,6 +259,8 @@ class BinaryTree:
 			partition, after, before = self.left.to_partition(partition, after, before+1)
 			partition, after, before = self.right.to_partition(partition, after+1, before)
 		
+		if after == 0 and before == 1:
+			assert len(partition) == self.num_leaves()
 		return partition, after, before
 
 Bounds = namedtuple('Bounds', 'min_x max_x height')
@@ -283,11 +303,11 @@ class DrawableTree(BinaryTree):
 		self.y = depth
 		if self.is_leaf():
 			self.x = 0
-		elif self.num_children() == 1:
+		elif len(self) == 1:
 			child = self.left or self.right
 			self.x = child.x
 		else:
-			assert self.num_children() == 2, "Expected exactly 0 or 2 children."
+			assert len(self) == 2, "Expected exactly 0 or 2 children."
 			self.x = self._fix_subtrees()
 	
 	def _fix_subtrees(self):

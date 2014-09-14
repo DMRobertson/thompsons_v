@@ -10,17 +10,26 @@ from functools import reduce
 __all__ = ["Permutation"]
 
 class Permutation:
-	r"""A permutation of a finite set :math:`\{1, \dotsc, N\}` of integers.
+	r"""A permutation *f* of a finite set :math:`\{1, \dotsc, N\}` of integers.
 	
 	:ivar size: the size :math:`N` of the set being permuted.
 	"""
 	def __init__(self, output):
-		r"""This method accepts the *output* :math:`[f(1), f(2), \dotsc, f(N)]` of a permutation, speficied as
+		r"""This method accepts the *output* :math:`[f(1), f(2), \dotsc, f(N)]` of *f*, specified as
 		
 		- a list of integers, or
-		- a space-separated string of base 10 integers (which is converted into the above)
+		- a space-separated string of base 10 integers (which is converted into the above).
 		
-		and creates a corresponding Permutation object.
+		Put differently, the input is the bottom row of a `two-row matrix representation <http://en.wikipedia.org/wiki/Permutation#Definition_and_usage>`_
+		
+		.. math::
+			
+			\begin{pmatrix}
+				1		&2		&\dots	&N	\\
+				f(1)	&f(2)	&\dots	&f(N)
+			\end{pmatrix}
+		
+		of *f*.
 		
 		:raises ValueError: if the given output does not properly define a permutation. For example:
 		
@@ -57,7 +66,7 @@ class Permutation:
 		self.size = size
 	
 	def __getitem__(self, key):
-		#TODO. Might be more natural to use __call__?
+		#TODO. Might be more natural for a mathematician to use __call__? perm(1) instead of perm[1]?
 		r"""Permutations can be accessed like a dictionary or list to map inputs to output. The image :math:`f(x)` of  :math:`x \in \{1, \dotsc, N\}` is given by ``f[x]``.
 		
 			>>> f = Permutation("4 3 1 2")
@@ -100,7 +109,7 @@ class Permutation:
 		"""
 		return all(self[i] == i for i in range(1, self.size+1))
 	
-	def is_cycle(self):
+	def is_cycle(self, of_length=None):
 		"""Returns ``True`` if the permutation consists of a single cycle, otherwise ``False``. 
 		
 			>>> Permutation("1 2 3 4").is_cycle() #identity
@@ -109,13 +118,36 @@ class Permutation:
 			True
 			>>> Permutation("2 1 4 3").is_cycle() #product of 2-cycles (1 2)(3 4)
 			False
+		
+		If the argument *of_length* is given, the method returns ``True`` only if the permutation consists of a single cycle whose length is *of_length*. Identity permutations count as having length 0 or 1 (though to test for identity permutations it's better to use :meth:`is_identity`.
+		
+			>>> Permutation("1 2 3 4").is_cycle(of_length=0) #identity
+			True
+			>>> Permutation("1 2 3 4").is_cycle(of_length=1) #identity
+			True
+			>>> Permutation("2 1 3 4").is_cycle(of_length=2) #2-cycle (1 2)
+			True
+			>>> Permutation("2 1 3 4").is_cycle(of_length=3) #2-cycle (1 2)
+			False
+			>>> Permutation("2 1 4 3").is_cycle(of_length=2) #product of 2-cycles (1 2)(3 4)
+			False
 		"""
-		#Identity permutations' ((1)(2)...(N)) cycles() methods will return empty lists.
-		return len(self.cycles()) < 2
+		cycles = self.cycles()
+		num_cycles = len(cycles)
+		#1. Return false if this is a product of cycles.
+		if num_cycles > 1:
+			return False
+		#2. Identity permutations are single cycles; check to if this hasthe required length.
+		if num_cycles == 0:
+			return of_length in (0, 1, None)
+		#3. Now we have just a single cycle which is not the identity.
+		return (of_length is None) or (len(cycles[0]) == of_length)
 	
 	def cycles(self):
-		r"""Returns a list of tuples representing this permutation as a product of cycles. "1-cycles" like (3) correspond to the identity permutation, and are not included in the output.
+		r"""Returns a list of tuples representing this permutation as a product of cycles. Trivial cycles such as (6), (3) and () correspond to the identity permutation, and are not included in the output.
 		
+			>>> Permutation("2 3 4 5 6 1").cycles()
+			[(1, 2, 3, 4, 5, 6)]
 			>>> Permutation("2 3 1 5 4 6").cycles()
 			[(1, 2, 3), (4, 5)]
 		"""
@@ -135,12 +167,15 @@ class Permutation:
 		return cycles
 	
 	def order(self):
-		"""Returns the order of the permutation. This is the smallest positive integer *n* such that the *n* th power of the permutation is the identity.
+		"""Returns the order of the permutation. This is the smallest positive integer *n* such that the *n* th power of the permutation is the identity. Identity permutations have an order of 1.
 		
-			>>> x = Permutation("2 3 1 4 6 5")
-			>>> print(x)
-			(1 2 3)(5 6)
-			>>> x.order()
+			>>> Permutation("1 2 3 4 5 6").order() #Identity
+			1
+			>>> Permutation("2 3 4 5 6 1").order() #6-cycle (1 2 3 4 5 6)
+			6
+			>>> Permutation("2 1 3 4 6 5").order() #product of 2-cycles (1 2)(5 6)
+			2
+			>>> Permutation("2 3 1 4 6 5").order() #product of cycle (1 2 3)(5 6)
 			6
 		"""
 		return lcm(len(cycle) for cycle in self.cycles())

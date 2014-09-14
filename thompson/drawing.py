@@ -112,9 +112,9 @@ class Coord(namedtuple('BaseCoord', 'x y')):
 		"""
 		return type(self)(self.x/other, self.y/other, scale=1)
 	
-	"""@classmethod
+	@classmethod
 	def length(cls, x, scale=GRID_SPACING):
-		A one-dimensional version of Coord. Scales up its argument by :data:`~thompson.constants.GRID_SPACING`.
+		"""A one-dimensional version of Coord. Scales up its argument by :data:`~thompson.constants.GRID_SPACING`.
 		
 			:raises TypeError: if x is not a :class:`Number <py3:numbers.Number>`.
 		
@@ -122,10 +122,10 @@ class Coord(namedtuple('BaseCoord', 'x y')):
 			80
 		
 		
-		#This doesn't require a new class because addition, multiplication etc work as you'd expect. But we have to tell Python how to add coordinates (tuple addition is concatenation) and scale them (tuple scaling is repeition).
+		#This doesn't require a new class because addition, multiplication etc work as you'd expect. But we have to tell Python how to add coordinates (tuple addition is concatenation) and scale them (tuple scaling is repetition)."""
 		if not isinstance(x, Number):
 			raise TypeError('Argument %r was not a number' % r)
-		return x*scale"""
+		return x*scale
 	
 	def to_x(self):
 		"""Returns a copy of the coordinate whose y component is zero.
@@ -152,6 +152,10 @@ class Coord(namedtuple('BaseCoord', 'x y')):
 		if sy is None:
 			sy = sx
 		return type(self)(self.x * sx, self.y * sy, scale=1)
+	
+	@classmethod
+	def unscaled(cls, x, y=None):
+		return cls(x, y, scale=1)
 
 def creates_svg(f):
 	"""Decorator. If *f* is a function that returns a :class:`Group <svgwrite:svgwrite.container.Group>`, applying this decorator modifies *f* to optionally embed that group in an SVG file. For example:
@@ -340,7 +344,7 @@ def set_size(g, size, offset=None):
 	g.size = size
 
 def svg_fraction(q, insert):
-	"""Represents a :class:`Fraction <py3:fractions.Fraction>` as an SVG element. If the denominator of *q* is 1, the fraction is simply represented as an integer by a :class:`Text <svgwrite:svgwrite.text.Text> element. Otherwise, returns a :class:`Group <svgwrite:svgwrite.text.Group>` which draws *q* as a slanted (possibly top-heavy) fraction.
+	"""Represents a :class:`Fraction <py3:fractions.Fraction>` as an SVG element. If the denominator of *q* is 1, the fraction is simply represented as an integer by a :class:`Text <svgwrite:svgwrite.text.Text>` element. Otherwise, returns a :class:`Group <svgwrite:svgwrite.text.Group>` which draws *q* as a slanted (possibly top-heavy) fraction.
 	"""
 	if q.denominator == 1:
 		text = svgwrite.text.Text(str(q.numerator), insert)

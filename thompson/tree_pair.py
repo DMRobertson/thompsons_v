@@ -1,3 +1,9 @@
+"""
+.. testsetup:: 
+	
+	from thompson.tree_pair import *
+"""
+
 import svgwrite
 
 from .drawing import *
@@ -16,7 +22,7 @@ class TreePair:
 	
 	where each subinterval :math:`[x_i, x_{i+1}]` looks like :math:`[{a}/{2^n}, (a+1)/{2^n}]` for integers :math:`a` and :math:`n`. Such subintervals are called dyadic; the partition itself is also called dyadic. 
 	
-	The elements of :math:`V` are the bijections which take two dyadic partitions of :math:`I` and linearly map subintervals from one partition onto subintervals from another. We can use (strict) binary trees to represent dyadic intervals (see :meth:`~thompson.trees.BinaryTrees.to_partition`). The missing ingredient is how the intervals map to each other.
+	The elements of :math:`V` are the bijections which take two dyadic partitions of :math:`I` and linearly map subintervals from one partition onto subintervals from another. We can use (strict) binary trees to represent dyadic intervals (see :meth:`~thompson.trees.BinaryTree.to_partition`). The missing ingredient is how the intervals map to each other.
 	
 	:ivar int num_leaves: The number of leaves on both trees.
 	:ivar tree domain: The domain tree.
@@ -63,7 +69,7 @@ class TreePair:
 		
 		.. figure:: examples/tree_pair/TreePair_render.svg
 			
-			**Example.** The output of ``TreePair("11000", "10100", "0 1 2").render()``. [:download:`Source code <examples/tree_pair/TreePair_render.py>`].
+			**Example.** The output of ``TreePair("11000", "10100", "1 2 3").render()``. [:download:`Source code <examples/tree_pair/TreePair_render.py>`].
 		"""
 		#1. Setup. Create a container group and get the SVG groups for the trees.
 		container = svgwrite.container.Group(class_='element')
@@ -113,7 +119,7 @@ class TreePair:
 		
 		.. figure:: examples/tree_pair/TreePair_render_bijection.svg
 			
-			**Example.** The output of ``TreePair("11000", "10100", "0 1 2").render_bijection)``. [:download:`Source code <examples/tree_pair/TreePair_render.py>`].
+			**Example.** The output of ``TreePair("11000", "10100", "1 2 3").render_bijection)``. [:download:`Source code <examples/tree_pair/TreePair_render.py>`].
 		"""
 		#0. Setup.
 		g = svgwrite.container.Group(class_='graph')
@@ -164,11 +170,25 @@ class TreePair:
 		return g
 	
 	def in_F(self):
-		#TODO DOCTESTS
-		"""Returns True if this represents an element of *F* (i.e. the order of the leaves is unchanged)."""
+		"""Returns True if this represents an element of *F*. This happens when no permutation of the leaves occurs.
+		
+			>>> TreePair("11000", "10100", "1 2 3").in_F() #identity permutation
+			True
+			>>> TreePair("11000", "10100", "2 3 1").in_F() #3-cycle (1 2 3)
+			False
+			>>> TreePair("11000", "10100", "1 3 2").in_F() #2-cycle (2 3)
+			False
+		"""
 		return self.perm.is_identity()
 	
 	def in_T(self):
-		#TODO DOCTESTS
-		"""Returns True if this represents an element of *T* (i.e. the order of the leaves is cyclicly)."""
-		return self.perm.is_cycle()
+		"""Returns True if this represents an element of *T*. This happens when all the leaves are shifted by the same amount (possibly zero).
+		
+			>>> TreePair("11000", "10100", "1 2 3").in_T() #identity permutation
+			True
+			>>> TreePair("11000", "10100", "2 3 1").in_T() #3-cycle (1 2 3)
+			True
+			>>> TreePair("11000", "10100", "1 3 2").in_F() #2-cycle (2 3)
+			False
+		"""
+		return self.perm.is_identity() or self.perm.is_cycle(of_length=self.num_leaves)
