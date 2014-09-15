@@ -179,6 +179,51 @@ class Permutation:
 			6
 		"""
 		return lcm(len(cycle) for cycle in self.cycles())
+	
+	def remove_from_domain(self, index):
+		r"""Removes the rule that index -> self[index] from the permutation. The permutation is relabelled so that it uses the symbols 1 to n.
+		
+		**Example**. Suppose we begin with ``Permutation("3 4 5 6 1 2")``. Removing 4 would give us the permutation described by the first matrix below. Next, we alter the map such that it sends the preimage of 4 to the image of 4 (coloured red). Then we decrease any symbols larger than 4 (coloured blue) by one, to end up with a permutation in :math:`\mathcal{S}_5`.
+		
+		.. math::
+			
+			\begin{pmatrix}
+				1	&\color{red}{2}	&3	&\color{red}{-}	&5	&6	\\
+				3	&\color{red}{-}	&5	&\color{red}{6}	&2	&1
+			\end{pmatrix}
+			\to
+			\begin{pmatrix}
+				1	&\color{red}{2}	&3	&-	&5	&6	\\
+				3	&\color{red}{6}	&5	&-	&1	&2
+			\end{pmatrix}
+			\\\to 
+			\begin{pmatrix}
+				1	&2					&3					&\color{blue}{4}	&\color{blue}{5}	\\
+				3	&\color{blue}{5}	&\color{blue}{4}	&1					&2
+			\end{pmatrix}
+			\hspace{1.7em}
+		
+		The same computation, but done in the interpreter:
+		
+			>>> x = Permutation("3 4 5 6 1 2"); print(x)
+			(1 3 5)(2 4 6)
+			>>> x.remove_from_domain(4); print(x)
+			(1 3 4)(2 5)
+			>>> y = Permutation("3 5 4 1 2"); print(y)
+			(1 3 4)(2 5)
+		
+		This method is mainly included for use by :meth:`~thompson.tree_pair.TreePair.reduce`.
+		"""
+		#1. What maps to the thing we're going to remove?
+		preimage = self.output.index(index) + 1
+		#2. Remove the thing we want and fill in the hole we just created
+		image = self.output.pop(index-1)
+		self.size -= 1
+		self.output[preimage-1] = image
+		#3. Relabel so that everything fits from 1...n.
+		for i, value in enumerate(self.output):
+			if value > index:
+				self.output[i] -= 1
 
 def lcm2(a, b):
 	return a * b // gcd(a, b)

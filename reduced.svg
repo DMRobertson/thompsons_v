@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg baseProfile="full" height="100%" version="1.1" width="100%" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><style type="text/css"><![CDATA[.debug { visibility: hidden; }
+rect.debug { fill: red; opacity: 0.2 }
+
+/* Generic Styles */
+line, polyline { stroke: black; fill: none; }
+
+/* Markers Definitions */
+#arrowhead polygon { } 
+#discontinuity circle { fill: white; }
+#continuity circle { fill: black; }
+#crosshair path { stroke: #444; }
+
+/* Text */
+/* Due to a bug in webkit, when SVGs are used in an <img> tag, all text elements should have an explicit size set. See https://bugs.webkit.org/show_bug.cgi?id=68090 . */
+text { font-size: 14px; text-anchor: middle; font-family: sans-serif; }
+text.above { baseline-shift: 1ex; }
+text.centered { baseline-shift: -0.5ex; }
+text.below { baseline-shift: -3ex; }
+text.left { text-anchor: end; }
+text.right { text-anchor: start; }
+
+/* Fractions */
+.fraction text { font-size: 12px; }
+text.numerator    { text-anchor: end;  }
+text.denominator { text-anchor: start;}
+
+/* Binary Trees */
+circle { fill: #e8e8e8; stroke: black; }
+.leaf { fill: white; }
+.thread {stroke: #888; stroke-dasharray: 5,5;}
+
+/* Arrows */
+.arrow { 	marker-end: url(#arrowhead); }
+
+/* Grids and Graphs */
+.axis { 	marker-end: url(#arrowhead); }
+.grid line:not(.axis) { stroke-width: 0.5px; stroke: #888; stroke-dasharray: 5,5; }
+.grid line.major {stroke-width: 1px;}
+.graph .plot { marker-start: url(#continuity); marker-mid: url(#crosshair); marker-end: url(#discontinuity); }
+.graph .axis { marker-mid: url(#tickmark); }
+]]></style><marker id="arrowhead" markerHeight="10" markerUnits="strokeWidth" markerWidth="10" orient="auto" refX="9" refY="5"><polygon points="0,0 10,5 0,10" /></marker><marker id="tickmark" markerHeight="10" markerUnits="strokeWidth" markerWidth="2" orient="auto" refX="1" refY="5"><line stroke-width="2" x1="0" x2="0" y1="0" y2="10" /></marker><marker id="discontinuity" markerHeight="8" markerUnits="strokeWidth" markerWidth="8" orient="auto" refX="4" refY="4"><circle cx="4" cy="4" r="3.5" /></marker><marker id="continuity" markerHeight="8" markerUnits="strokeWidth" markerWidth="8" orient="auto" refX="4" refY="4"><circle cx="4" cy="4" r="3.5" /></marker><marker id="crosshair" markerHeight="10" markerUnits="strokeWidth" markerWidth="10" refX="5" refY="5"><path d="M 0 5 L 10 5 M 5 0 L 5 10" /></marker></defs><g id="canvas" transform="translate(40,40)"><g class="element"><rect class="debug" height="200" width="800" x="0" y="0" /><g class="domain" transform="translate(20.0,20.0)"><rect class="debug" height="200" width="360" x="-20.0" y="-20.0" /><line x1="160" x2="80" y1="0" y2="40" /><line x1="80" x2="40" y1="40" y2="80" /><line x1="40" x2="0" y1="80" y2="120" /><line class="thread debug" x1="0" x2="40" y1="120" y2="160" /><line x1="40" x2="80" y1="80" y2="120" /><line x1="80" x2="40" y1="120" y2="160" /><line x1="80" x2="120" y1="120" y2="160" /><line x1="80" x2="120" y1="40" y2="80" /><line class="thread debug" x1="120" x2="80" y1="80" y2="120" /><line x1="160" x2="240" y1="0" y2="40" /><line x1="240" x2="200" y1="40" y2="80" /><line class="thread debug" x1="200" x2="240" y1="80" y2="120" /><line x1="240" x2="280" y1="40" y2="80" /><line x1="280" x2="240" y1="80" y2="120" /><line x1="240" x2="200" y1="120" y2="160" /><line x1="240" x2="280" y1="120" y2="160" /><line x1="280" x2="320" y1="80" y2="120" /><line class="thread debug" x1="320" x2="280" y1="120" y2="160" /><circle cx="160" cy="0" r="18.0" /><circle class="left" cx="80" cy="40" r="18.0" /><circle class="left" cx="40" cy="80" r="18.0" /><g transform="translate(0,120)"><circle class="leaf left" cx="0" cy="0" r="18.0" /><text class="centered">1</text></g><circle cx="80" cy="120" r="18.0" /><g transform="translate(40,160)"><circle class="leaf left" cx="0" cy="0" r="18.0" /><text class="centered">2</text></g><g transform="translate(120,160)"><circle class="leaf" cx="0" cy="0" r="18.0" /><text class="centered">3</text></g><g transform="translate(120,80)"><circle class="leaf" cx="0" cy="0" r="18.0" /><text class="centered">4</text></g><circle cx="240" cy="40" r="18.0" /><g transform="translate(200,80)"><circle class="leaf left" cx="0" cy="0" r="18.0" /><text class="centered">5</text></g><circle cx="280" cy="80" r="18.0" /><circle class="left" cx="240" cy="120" r="18.0" /><g transform="translate(200,160)"><circle class="leaf left" cx="0" cy="0" r="18.0" /><text class="centered">6</text></g><g transform="translate(280,160)"><circle class="leaf" cx="0" cy="0" r="18.0" /><text class="centered">7</text></g><g transform="translate(320,120)"><circle class="leaf" cx="0" cy="0" r="18.0" /><text class="centered">8</text></g></g><g class="range" transform="translate(20.0,20.0) translate(440,0)"><rect class="debug" height="200" width="360" x="-20.0" y="-20.0" /><line x1="120" x2="40" y1="0" y2="40" /><line x1="40" x2="0" y1="40" y2="80" /><line class="thread debug" x1="0" x2="40" y1="80" y2="120" /><line x1="40" x2="80" y1="40" y2="80" /><line x1="80" x2="40" y1="80" y2="120" /><line x1="40" x2="0" y1="120" y2="160" /><line x1="40" x2="80" y1="120" y2="160" /><line x1="80" x2="120" y1="80" y2="120" /><line class="thread debug" x1="120" x2="80" y1="120" y2="160" /><line x1="120" x2="200" y1="0" y2="40" /><line x1="200" x2="160" y1="40" y2="80" /><line class="thread debug" x1="160" x2="200" y1="80" y2="120" /><line x1="200" x2="240" y1="40" y2="80" /><line x1="240" x2="200" y1="80" y2="120" /><line class="thread debug" x1="200" x2="240" y1="120" y2="160" /><line x1="240" x2="280" y1="80" y2="120" /><line x1="280" x2="240" y1="120" y2="160" /><line x1="280" x2="320" y1="120" y2="160" /><circle cx="120" cy="0" r="18.0" /><circle class="left" cx="40" cy="40" r="18.0" /><g transform="translate(0,80)"><circle class="leaf left" cx="0" cy="0" r="18.0" /><text class="centered">3</text></g><circle cx="80" cy="80" r="18.0" /><circle class="left" cx="40" cy="120" r="18.0" /><g transform="translate(0,160)"><circle class="leaf left" cx="0" cy="0" r="18.0" /><text class="centered">7</text></g><g transform="translate(80,160)"><circle class="leaf" cx="0" cy="0" r="18.0" /><text class="centered">6</text></g><g transform="translate(120,120)"><circle class="leaf" cx="0" cy="0" r="18.0" /><text class="centered">1</text></g><circle cx="200" cy="40" r="18.0" /><g transform="translate(160,80)"><circle class="leaf left" cx="0" cy="0" r="18.0" /><text class="centered">2</text></g><circle cx="240" cy="80" r="18.0" /><g transform="translate(200,120)"><circle class="leaf left" cx="0" cy="0" r="18.0" /><text class="centered">4</text></g><circle cx="280" cy="120" r="18.0" /><g transform="translate(240,160)"><circle class="leaf left" cx="0" cy="0" r="18.0" /><text class="centered">5</text></g><g transform="translate(320,160)"><circle class="leaf" cx="0" cy="0" r="18.0" /><text class="centered">8</text></g></g><g transform="translate(400.0,100.0)"><text class="above" x="0" y="0">g reduced</text><line class="arrow" x1="-40.0" x2="40.0" y1="0" y2="0" /></g></g></g></svg>

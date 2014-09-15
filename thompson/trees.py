@@ -7,6 +7,8 @@ This module works with trees of the latter kind. From this point onward, we use 
 	from thompson.trees import *
 """
 
+#TODO. Make a script that just generates a huge pile of Trees, so we can inspect the renderer by eye.
+
 from .drawing import *
 from .constants import *
 
@@ -86,12 +88,59 @@ class BinaryTree:
 		self.left = self.right = None
 	
 	def is_root(self):
-		"""Returns ``True`` if this node has no parent; otherwise ``False``."""
+		"""Returns ``True`` if this node has no parent; otherwise ``False``.
+		
+			>>> x = BinaryTree.from_string("100")
+			>>> x.is_root()
+			True
+			>>> x.left.is_root(), x.right.is_root()
+			(False, False)"""
 		return self.parent is None
 	
 	def is_leaf(self):
-		"""Returns ``True`` if this node has no children; otherwise ``False``."""
+		"""Returns ``True`` if this node has no children; otherwise ``False``.
+		
+			>>> x = BinaryTree.from_string("100")
+			>>> x.is_leaf()
+			False
+			>>> x.left.is_leaf(), x.right.is_leaf()
+			(True, True)
+		"""
 		return self.left is None and self.right is None
+	
+	def is_trivial(self):
+		"""Returns ``True`` if this node has no parent and no children; otherwise ``False``.
+		
+			>>> BinaryTree().is_trivial()
+			True
+			>>> BinaryTree.from_string("100").is_trivial()
+			False
+		"""
+		return self.parent is None and self.left is None and self.right is None
+	
+	def is_left_child(self):
+		"""Returns ``True`` if this node has a parent and if it is the left child of the parent.
+		
+			>>> x = BinaryTree()
+			>>> x.is_left_child()
+			False
+			>>> x = BinaryTree.from_string("100")
+			>>> x.left.is_left_child(), x.right.is_left_child()
+			(True, False)
+		"""
+		return self.parent is not None and self is self.parent.left
+	
+	def is_right_child(self):
+		"""Returns ``True`` if this node has a parent and if it is the right child of the parent.
+		
+			>>> x = BinaryTree()
+			>>> x.is_right_child()
+			False
+			>>> x = BinaryTree.from_string("100")
+			>>> x.left.is_right_child(), x.right.is_right_child()
+			(False, True)
+		"""
+		return self.parent is not None and self is self.parent.right
 	
 	def __len__(self):
 		"""We define the length of a tree node to be the number of non-``None`` children it possesses.
@@ -110,6 +159,8 @@ class BinaryTree:
 	
 	def __bool__(self):
 		#To evaluate bool(x), Python looks for x.__bool__(). Failing that, Python tries x.__len__() and returns len(x) > 0. This means that python would treat leaves as being False!
+		#In some places like _next_left(), we use the short circuiting of or to avoid returning None where possible.
+		#For this to work, non-None instances should be True.
 		return True
 	
 	def num_leaves(self):
@@ -172,24 +223,39 @@ class BinaryTree:
 		.. figure:: /examples/trees/BinaryTree_from_string.svg
 		
 			The trees formed by the strings above. [:download:`Source code </examples/trees/BinaryTree_from_string.py>`].
+		
+		:raises ValueError: if :meth:`check_split_pattern` finds an error in the pattern
+		:raises ValueError: if the pattern is ill-formed and ends prematurely. For example, "10001" appears to describe a tree with two branches and three leaves. After reading "100", the algorithm will stop and the final two characters will be ignored. 
+		
+			>>> BinaryTree.from_string("10001")
+			Traceback (most recent call last):
+				...
+			ValueError: Pattern 10001 ended prematurely after character #3.
+			
 		"""
-		#create the root
 		pattern = cls.check_split_pattern(pattern)
+		break_outer = False
+		#create the root
 		current = root = cls()
-		for char in pattern:
+		for i, char in enumerate(pattern):
 			if char == "1":
 				current = current.add_child()
-			
 			elif char == "0":
 				while True: #poor man's do-while
 					if current is root:
 						assert len(root) != 1, "Root has exactly 1 child (expected 0 or 2 children). Pattern was %s." % pattern
-						return root
+						break_outer = True
+						break
 					current = current.parent
 					
 					if current.left is not None and current.right is None:
 						current = current.add_child(right_child=True)
 						break
+			if break_outer:
+				break
+		
+		if i + 1 != len(pattern):
+			raise ValueError('Pattern {} ended prematurely after character #{}'.format(pattern, i+1))
 		return root
 	
 	@staticmethod
@@ -278,10 +344,17 @@ class BinaryTree:
 			assert len(partition) == self.num_leaves()
 		return partition, after, before
 	
-	def leaves(self):
-		"""Returns a depth-first list of leaves below this node."""
+	def leaves(self, perm=None):
+		"""Returns a depth-first list of leaves below this node. If a permutation *perm* is given, it is applied before returning the list."""
 		#TODO docstring
-		return [node for node in self.walk() if node.is_leaf()]
+		out = [node for node in self.walk() if node.is_leaf()]
+		#todo check len perm == num leaves
+		if perm is not None:
+			new_out = [None] * len(out)
+			for new_index, value in enumerate(perm.output):
+				new_out[new_index] = out[value-1]
+			out = new_out
+		return out
 
 Bounds = namedtuple('Bounds', 'min_x max_x height')
 
@@ -297,11 +370,13 @@ class DrawableTree(BinaryTree):
 	def __init__(self, parent=None, right_child=False):
 		"""The same as :py:meth:`BinaryTree.__init__`. Some extra attributes needed for positioning are initialised."""
 		super().__init__(parent, right_child)
-		
+		self._reset_drawing_info()
+	
+	def _reset_drawing_info(self):
+		"""Resets all state used to draw the tree."""
 		self.x = 0
 		self.y = 0
 		self.bounds = Bounds(0, 0, 0)
-		
 		self._offset = 0				#Used by layout methods to efficiently reposition a tree and its children.
 		self._thread = None				#Used by layout_rt to determine when subtrees overlap.
 	
@@ -315,14 +390,15 @@ class DrawableTree(BinaryTree):
 	
 	def _setup_rt(self, depth=0):
 		"""Traverses the tree in post-order to assign x-coordinates to the tree's nodes. Note that :meth:`_add_offset` should be called after this method in order to apply the offsets."""
+		#If case we have modified the tree since a previous layout() call.
+		self._reset_drawing_info()
+		
 		#We cannot determine a node's x-coordinate until we know those of its children.
 		for child in self:
 			child._setup_rt(depth+1)
 		
 		#The y-coordinates are easy
 		self.y = depth
-		#If case we have modified the tree since a previous layout() call.
-		self._offset = 0
 		if self.is_leaf():
 			self.x = 0
 		elif len(self) == 1:
@@ -343,15 +419,14 @@ class DrawableTree(BinaryTree):
 			separation += 1
 		self.right._offset = separation
 		self.right.x += separation
-		
 		#5. We leave threads on any leaves on outer chords, so that chords can easily be retraced from higher in the tree. I'm not sure what the offsets are doing exactly other than allowing the algorithm to continue working further up the tree.
 		if not self.right.is_leaf():
 			roffset += separation
 		
-		if ri and not li:							#For example the tree 10100 needs a thread on its left chord
+		if ri is not None and li is None:				#For example the tree 10100 needs a thread on its left chord
 			lo._thread = ri
 			lo._offset = roffset - loffset
-		elif li and not ri:							#For example the tree 11000 needs a thread on its right chord
+		elif li is not None and ri is None:				#For example the tree 11000 needs a thread on its right chord
 			ro._thread = li
 			ro._offset = loffset - roffset
 		
@@ -419,7 +494,7 @@ class DrawableTree(BinaryTree):
 				i += 1
 			else:
 				name = None
-			g.add(child.render_node(child._offset))
+			g.add(child.render_node(name))
 		
 		#3. Before finishing, offset the group so it aligns nicely with the grid.
 		#Add 1 to width and height to give extra room for the node's radii. See the documentation of set_size for an example.
@@ -457,7 +532,7 @@ class DrawableTree(BinaryTree):
 		else:
 			return g
 
-def _contour(left, right, max_sep=0, loffset=0, roffset=0, left_outer=None, right_outer=None):
+def _contour(left, right, max_sep=float('-inf'), loffset=0, roffset=0, left_outer=None, right_outer=None):
 	#See the comments for DrawableTree._fix_subtrees 
 	#1. Compute the separation between the root nodes `left` and `right`, accounting for offsets.
 	separation = left.x + loffset - (right.x + roffset)

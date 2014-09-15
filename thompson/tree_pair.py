@@ -92,7 +92,7 @@ class TreePair:
 		
 		#2. Draw an arrow between the two trees.
 		if name is not None:
-			mid = left.size.scale(1, 0.5) + Coord(ARROW_LENGTH/2, 0)
+			mid = Coord.unscaled(left.size.x, min(left.size.y, right.size.y)/2) + Coord(ARROW_LENGTH/2, 0)
 			start = Coord(-ARROW_LENGTH/2, 0)
 			end = -start
 
@@ -198,34 +198,58 @@ class TreePair:
 		return self.perm.is_identity() or self.perm.is_cycle(of_length=self.num_leaves)
 	
 	def reduce(self):
-		"""Many different tree pairs correspond to the same bijection of :math:`[0, 1]`. We can sometimes remove nodes from a tree pair to yield a pair of smaller trees which represents the same  bijection. We remove matching pairs of carets until it is no longer possible to do so. At this point, we call the tree pair *reduced*. Cannon, Floyd and Parry show in §2 of [CFP]_ that there is precisely one reduced tree diagram for each element of F.
+		"""Many different tree pairs correspond to the same bijection of :math:`[0, 1]`. We can sometimes remove nodes from a tree pair to yield a pair of smaller trees which represents the same  bijection. We remove matching pairs of carets until it is no longer possible to do so. At this point, we call the tree pair *reduced*. Cannon, Floyd and Parry show in section 2 of [CFP]_ that there is precisely one reduced tree diagram for each element of F.
 		
-		This method modifies the TreePair so that it becomes reduced."""
+		This method modifies the TreePair so that it becomes reduced.
+		
+			>>> #Same trees and no permutation represents the identity
+			>>> x = TreePair("111100000", "111100000")
+			>>> x.reduce()
+			>>> x.is_identity()
+			True
+		"""
 		#TODO make this work with elements of f, t and v
 		#TODO doctests
 		d_leaves = self.domain.leaves()
-		r_leaves = self.range.leaves()
-		
+		r_leaves = self.range.leaves(perm=self.perm)
+		from pprint import pprint
+		pprint(d_leaves)
+		pprint(r_leaves)
 		i = 0
 		#TODO: use the permutation here
 		while i < self.num_leaves - 1:
-			#If the (i, i+1)th leaves form a caret on the domain tree, and if their images form a caret on the range tree, then both carets can be removed.
+			print(i+1, i+2)
+			#pprint([d_leaves[i], d_leaves[i].parent, d_leaves[i+1], d_leaves[i+1].parent])
+			pprint([r_leaves[i], r_leaves[i].parent, r_leaves[i+1], r_leaves[i+1].parent])
+			#If the (i, i+1)th leaves form a caret on the domain tree,
+			#and if their images form a caret on the range tree
+			#and if the order is preserved,
 			if (d_leaves[i].parent is d_leaves[i+1].parent and
-			 r_leaves[i].parent is r_leaves[i+1].parent):
-				print(i+1, i+2)
-				del d_leaves[i+1]  
-				d_leaves[i] = d_leaves[i].parent
-				d_leaves[i].detach_children()
-				
-				del r_leaves[i+1]
-				r_leaves[i] = r_leaves[i].parent
-				r_leaves[i].detach_children()
+			  r_leaves[i].parent is r_leaves[i+1].parent and
+			  r_leaves[i].is_left_child()):
+				#then both carets can be removed.
+				self._delete_caret(d_leaves, i)
+				self._delete_caret(r_leaves, i)
+				self.perm.remove_from_domain(i+1)
 				self.num_leaves -= 1
-			i += 1
+			else:
+				i += 1
 	
+	@staticmethod
+	def _delete_caret(list, index):
+		del list[index + 1]  
+		list[index] = list[index].parent
+		list[index].detach_children()
 	
-	
-	
+	def is_identity(self):
+		""":meth:`reduce` s this tree pair. Returns true if the pair represents the identity element of V.
+		
+			>>> TreePair("111100000", "111100000").is_identity() #identical trees, no permutation
+			True
+			>>> TreePair("111100000", "111100000", "2 3 4 5 1").is_identity() #permute leaves
+			False
+		"""
+		return self.domain.is_trivial() and self.range.is_trivial()
 	
 	
 	
