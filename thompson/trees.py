@@ -7,8 +7,6 @@ This module works with trees of the latter kind. From this point onward, we use 
 	from thompson.trees import *
 """
 
-#TODO. Make a script that just generates a huge pile of Trees, so we can inspect the renderer by eye.
-
 from .drawing import *
 from .constants import *
 
@@ -153,8 +151,7 @@ class BinaryTree:
 			>>> child = root.add_child()
 			>>> len(root)
 			1
-		
-		:rtype: int"""
+		"""
 		return (self.left is not None) + (self.right is not None)
 	
 	def __bool__(self):
@@ -164,9 +161,13 @@ class BinaryTree:
 		return True
 	
 	def num_leaves(self):
-		"""Returns the number of leaves below this node.
+		"""Returns the number of leaves below and including this node.
 		
-		:rtype: int"""
+			>>> BinaryTree().num_leaves() #just a single leaf
+			1
+			>>> (BinaryTree.from_string("100").num_leaves()
+			2
+		"""
 		return sum(child.is_leaf() for child in self.walk())
 	
 	def __iter__(self):
@@ -231,7 +232,6 @@ class BinaryTree:
 			Traceback (most recent call last):
 				...
 			ValueError: Pattern 10001 ended prematurely after character #3.
-			
 		"""
 		pattern = cls.check_split_pattern(pattern)
 		break_outer = False
@@ -325,7 +325,7 @@ class BinaryTree:
 			>>> print(*(str(x) for x in partition), sep=', ')
 			0, 1/4, 1/2, 1
 			
-		:return: a list of `Fractions <p3:fractions.Fraction>` forming the partition.
+		:return: a list of :class:`Fractions <py3:fractions.Fraction>` forming the partition.
 		"""
 		#todo. Use a stack/queue rather than recursion.
 		#TODO. I have no idea why this works, so this could probably do with a rewrite.
@@ -348,16 +348,16 @@ class BinaryTree:
 		"""Returns a depth-first list of leaves below this node.
 		
 		If a permutation *perm* is given, it is applied before returning the list. The resulting list will be in label order rather than traversal order."""
-		if self.num_leaves() != self.perm.size:
+		if perm is not None and self.num_leaves() != perm.size:
 			raise ValueError("{} is of size {}, but the tree has {} leaves.".format(repr(perm), perm.size, self.num_leaves()))
-		out = [node for node in self.walk() if node.is_leaf()]
-		#todo check len perm == num leaves
+		
+		leaves = [node for node in self.walk() if node.is_leaf()]
 		if perm is not None:
-			new_out = [None] * len(out)
+			new_list = [None] * len(leaves)
 			for new_index, value in enumerate(perm.output):
-				new_out[new_index] = out[value-1]
-			out = new_out
-		return out
+				new_list[new_index] = leaves[value-1]
+			leaves = new_list
+		return leaves
 
 Bounds = namedtuple('Bounds', 'min_x max_x height')
 
@@ -420,8 +420,13 @@ class DrawableTree(BinaryTree):
 		separation += 1
 		if (self.right.x + separation - self.left.x) % 2 != 0:
 			separation += 1
-		self.right._offset = separation
-		self.right.x += separation
+		if separation > 0:
+			self.right._offset = separation
+			self.right.x += separation
+		#Handling this case separately ensures that the leftmost x-coordinate is zero.
+		elif separation < 0:
+			self.left._offset = -separation
+			self.left.x -= separation
 		#5. We leave threads on any leaves on outer chords, so that chords can easily be retraced from higher in the tree. I'm not sure what the offsets are doing exactly other than allowing the algorithm to continue working further up the tree.
 		if not self.right.is_leaf():
 			roffset += separation
@@ -470,6 +475,10 @@ class DrawableTree(BinaryTree):
 		
 		:param leaf_names: An optional list of names to be given to the leaves below this node. The leaves are specified depth-first, left to right---the same order as all the :meth:`BinaryTree.walk` methods.
 		:type leaf_names:  list of str
+		
+		.. figure:: /examples/trees/DrawableTree_render.svg
+		
+			**Example**. A randomly generated tree rendered to an SVG. [:download:`Source code <examples/trees/DrawableTree_render.py>`]
 		"""
 		g = svgwrite.container.Group()
 		
@@ -510,6 +519,8 @@ class DrawableTree(BinaryTree):
 		
 		If *name* is given, returns a :py:class:`Group <svgwrite:svgwrite.container.Group>` containing the circle and
 		*name* rendered as :py:class:`Text <svgwrite:svgwrite.text.Text>`. Otherwise, the circle is returned."""
+		
+		#TODO Maybe render the nodes deeper into the tree with a smaller radius? Or scale the y-axis a little
 		center = Coord(self)
 		if name is None:
 			circle = svgwrite.shapes.Circle(center, NODE_RADIUS)
