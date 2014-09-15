@@ -219,7 +219,7 @@ def get_docstring_indentation(string):
 		i += 1
 	return i
 
-def new_drawing(filename=None, num_grid_lines=0, embed_css=True, debug_css=False):
+def new_drawing(filename=None, num_grid_lines=0, embed_css=True, debug_css=False, **kwargs):
 	"""Creates a new SVG :class:`Drawing <svgwrite:svgwrite.drawing.Drawing>`. A :class:`Group <svgwrite:svgwrite.container.Group>` called *canvas* is created within the drawing, positioned slightly away from the origin. The grid that :class:`Coord` describes can optionally be drawn.
 	
 	CSS Selectors:

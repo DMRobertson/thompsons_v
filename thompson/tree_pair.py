@@ -22,7 +22,9 @@ class TreePair:
 	
 	where each subinterval :math:`[x_i, x_{i+1}]` looks like :math:`[{a}/{2^n}, (a+1)/{2^n}]` for integers :math:`a` and :math:`n`. Such subintervals are called dyadic; the partition itself is also called dyadic. 
 	
-	The elements of :math:`V` are the bijections which take two dyadic partitions of :math:`I` and linearly map subintervals from one partition onto subintervals from another. We can use (strict) binary trees to represent dyadic intervals (see :meth:`~thompson.trees.BinaryTree.to_partition`). The missing ingredient is how the intervals map to each other.
+	The elements of :math:`V` are the bijections which take two dyadic partitions of :math:`I` and linearly map subintervals from one partition onto subintervals from another. We can use (strict) binary trees to represent dyadic intervals (see :meth:`~thompson.trees.BinaryTree.to_partition`).
+	
+	The missing ingredient is how the intervals map to each other: for this, we use a :class:`~thompson.permutation.Permutation`.
 	
 	:ivar int num_leaves: The number of leaves on both trees.
 	:ivar tree domain: The domain tree.
@@ -30,12 +32,12 @@ class TreePair:
 	:ivar perm: The :class:`Permutation` of leaves.
 		
 	"""
-	def __init__(self, domain_tree, range_tree, range_labels):
+	def __init__(self, domain_tree, range_tree, range_labels=None):
 		r"""Creates a new tree pair object given a pair of trees and *range_labels*, a string specifying how the leaves of the domain tree map to those of the range tree. Some sanity checks are made on the arguments.
 		
 		:param domain_tree: a strict DrawableTree, or a string describing one.
 		:param range_tree: the same.
-		:param range_labels: a string specifying how the leaves are mapped from the domain to range tree.
+		:param range_labels: a string describing the permutation of leaves. If omitted, we assume the leaves' are not permuted at all.
 		
 		Call the leaves of the domain tree :math:`D_1, D_2, \dotsc, D_N` in depth-first order from left to right---the same order that binary tree :meth:`~thompson.trees.BinaryTree.walk` methods use. For each :math:`i`, label the image in the range tree of :math:`D_i` with an :math:`i`. The argument *range_labels* should be a space-separated string listing the labels of the range tree in depth-first traversal order.
 		
@@ -58,6 +60,8 @@ class TreePair:
 		self.domain = domain_tree
 		self.range = range_tree
 		
+		if range_labels is None:
+			range_labels = list(range(1, self.num_leaves+1))
 		self.perm = Permutation(range_labels)
 		if self.perm.size != self.num_leaves:
 			raise ValueError("range_labels permutes %i leaves, but the trees have %i leaves."
@@ -192,3 +196,37 @@ class TreePair:
 			False
 		"""
 		return self.perm.is_identity() or self.perm.is_cycle(of_length=self.num_leaves)
+	
+	def reduce(self):
+		"""Many different tree pairs correspond to the same bijection of :math:`[0, 1]`. We can sometimes remove nodes from a tree pair to yield a pair of smaller trees which represents the same  bijection. We remove matching pairs of carets until it is no longer possible to do so. At this point, we call the tree pair *reduced*. Cannon, Floyd and Parry show in §2 of [CFP]_ that there is precisely one reduced tree diagram for each element of F.
+		
+		This method modifies the TreePair so that it becomes reduced."""
+		#TODO make this work with elements of f, t and v
+		#TODO doctests
+		d_leaves = self.domain.leaves()
+		r_leaves = self.range.leaves()
+		
+		i = 0
+		#TODO: use the permutation here
+		while i < self.num_leaves - 1:
+			#If the (i, i+1)th leaves form a caret on the domain tree, and if their images form a caret on the range tree, then both carets can be removed.
+			if (d_leaves[i].parent is d_leaves[i+1].parent and
+			 r_leaves[i].parent is r_leaves[i+1].parent):
+				print(i+1, i+2)
+				del d_leaves[i+1]  
+				d_leaves[i] = d_leaves[i].parent
+				d_leaves[i].detach_children()
+				
+				del r_leaves[i+1]
+				r_leaves[i] = r_leaves[i].parent
+				r_leaves[i].detach_children()
+				self.num_leaves -= 1
+			i += 1
+	
+	
+	
+	
+	
+	
+	
+	

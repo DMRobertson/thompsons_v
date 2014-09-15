@@ -55,6 +55,8 @@ class BinaryTree:
 		child = type(self)(parent=self, right_child=right_child)
 		return child
 	
+	#TODO merge these two methods
+	
 	def set_child(self, child, right_child=False):
 		"""Sets the current node's child to be the given node. You should use this method rather than alter ``self.left`` or ``self.right`` directly, because ``child.parent`` needs to be updated too.
 		
@@ -73,6 +75,15 @@ class BinaryTree:
 		else:
 			self.left = child
 		child.parent = self
+	
+	def detach_children(self, recursive=True):
+		"""Detaches this node's children (if any) from itself. If *recursive* is True, the descendants of this node have their children detached too, `allowing the Python garbage collector <py3:object.__del__>` to remove them from memory. Otherwise the subtrees below this node are left intact."""
+		if recursive:
+			for child in self:
+				child.detach_children(recursive=True)
+		for child in self:
+			child.parent = None
+		self.left = self.right = None
 	
 	def is_root(self):
 		"""Returns ``True`` if this node has no parent; otherwise ``False``."""
@@ -96,6 +107,10 @@ class BinaryTree:
 		
 		:rtype: int"""
 		return (self.left is not None) + (self.right is not None)
+	
+	def __bool__(self):
+		#To evaluate bool(x), Python looks for x.__bool__(). Failing that, Python tries x.__len__() and returns len(x) > 0. This means that python would treat leaves as being False!
+		return True
 	
 	def num_leaves(self):
 		"""Returns the number of leaves below this node.
@@ -262,6 +277,11 @@ class BinaryTree:
 		if after == 0 and before == 1:
 			assert len(partition) == self.num_leaves()
 		return partition, after, before
+	
+	def leaves(self):
+		"""Returns a depth-first list of leaves below this node."""
+		#TODO docstring
+		return [node for node in self.walk() if node.is_leaf()]
 
 Bounds = namedtuple('Bounds', 'min_x max_x height')
 
@@ -301,13 +321,14 @@ class DrawableTree(BinaryTree):
 		
 		#The y-coordinates are easy
 		self.y = depth
+		#If case we have modified the tree since a previous layout() call.
+		self._offset = 0
 		if self.is_leaf():
 			self.x = 0
 		elif len(self) == 1:
 			child = self.left or self.right
 			self.x = child.x
 		else:
-			assert len(self) == 2, "Expected exactly 0 or 2 children."
 			self.x = self._fix_subtrees()
 	
 	def _fix_subtrees(self):
@@ -320,7 +341,6 @@ class DrawableTree(BinaryTree):
 		separation += 1
 		if (self.right.x + separation - self.left.x) % 2 != 0:
 			separation += 1
-		
 		self.right._offset = separation
 		self.right.x += separation
 		
@@ -399,7 +419,7 @@ class DrawableTree(BinaryTree):
 				i += 1
 			else:
 				name = None
-			g.add(child.render_node(name))
+			g.add(child.render_node(child._offset))
 		
 		#3. Before finishing, offset the group so it aligns nicely with the grid.
 		#Add 1 to width and height to give extra room for the node's radii. See the documentation of set_size for an example.
@@ -452,7 +472,7 @@ def _contour(left, right, max_sep=0, loffset=0, roffset=0, left_outer=None, righ
 	ro = right_outer._next_right()					#Tracks the right contour of the right tree
 	
 	#2. If the inner chords continue, accumulate the offset from this depth and continue.
-	if li and ri:
+	if li is not None and ri is not None:
 		loffset += left._offset
 		roffset += right._offset
 		return _contour(li, ri, max_sep, loffset, roffset, lo, ro)
