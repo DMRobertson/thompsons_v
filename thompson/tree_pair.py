@@ -130,10 +130,7 @@ class TreePair:
 		
 		x_partition, _ , _ = self.domain.to_partition()
 		y_partition, _ , _ = self.range.to_partition()
-		
-		#TODO make the trees perform this check
-		assert len(x_partition) == len(y_partition) == self.num_leaves + 1, "Partitions lengths improper."
-		
+				
 		#1. Draw both the axes.
 		x_axis = svgwrite.shapes.Polyline(class_='axis')
 		for x in x_partition:
@@ -212,15 +209,9 @@ class TreePair:
 		#TODO doctests
 		d_leaves = self.domain.leaves()
 		r_leaves = self.range.leaves(perm=self.perm)
-		from pprint import pprint
-		pprint(d_leaves)
-		pprint(r_leaves)
 		i = 0
 		#TODO: use the permutation here
 		while i < self.num_leaves - 1:
-			print(i+1, i+2)
-			#pprint([d_leaves[i], d_leaves[i].parent, d_leaves[i+1], d_leaves[i+1].parent])
-			pprint([r_leaves[i], r_leaves[i].parent, r_leaves[i+1], r_leaves[i+1].parent])
 			#If the (i, i+1)th leaves form a caret on the domain tree,
 			#and if their images form a caret on the range tree
 			#and if the order is preserved,
@@ -249,8 +240,7 @@ class TreePair:
 			>>> TreePair("111100000", "111100000", "2 3 4 5 1").is_identity() #permute leaves
 			False
 		"""
+		self.reduce()
 		return self.domain.is_trivial() and self.range.is_trivial()
-	
-	
-	
-	
+
+

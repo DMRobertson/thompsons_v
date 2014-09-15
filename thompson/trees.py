@@ -341,12 +341,15 @@ class BinaryTree:
 			partition, after, before = self.right.to_partition(partition, after+1, before)
 		
 		if after == 0 and before == 1:
-			assert len(partition) == self.num_leaves()
+			assert len(partition) == self.num_leaves(), "Partition {} size does not match the number of leaves ({}).".format(partition, self.num_leaves())
 		return partition, after, before
 	
 	def leaves(self, perm=None):
-		"""Returns a depth-first list of leaves below this node. If a permutation *perm* is given, it is applied before returning the list."""
-		#TODO docstring
+		"""Returns a depth-first list of leaves below this node.
+		
+		If a permutation *perm* is given, it is applied before returning the list. The resulting list will be in label order rather than traversal order."""
+		if self.num_leaves() != self.perm.size:
+			raise ValueError("{} is of size {}, but the tree has {} leaves.".format(repr(perm), perm.size, self.num_leaves()))
 		out = [node for node in self.walk() if node.is_leaf()]
 		#todo check len perm == num leaves
 		if perm is not None:
