@@ -62,7 +62,7 @@ class TreePair:
 		
 		if range_labels is None:
 			range_labels = list(range(1, self.num_leaves+1))
-		self.perm = Permutation(range_labels)
+		self.perm = Permutation(range_labels).inverse()
 		if self.perm.size != self.num_leaves:
 			raise ValueError("range_labels permutes %i leaves, but the trees have %i leaves."
 			  % (self.num_leaves, self.perm.size))
@@ -82,7 +82,7 @@ class TreePair:
 		self.range.layout()
 		
 		left = self.domain.render(leaf_names=range(1, self.num_leaves + 1))
-		right = self.range.render(leaf_names=self.perm.output)
+		right = self.range.render(leaf_names=self.perm.inverse().output)
 		
 		left['class'] = 'domain'
 		right['class'] = 'range'
@@ -123,7 +123,7 @@ class TreePair:
 		
 		.. figure:: examples/tree_pair/TreePair_render_bijection.svg
 			
-			**Example.** The output of ``TreePair("11000", "10100", "1 2 3").render_bijection)``. [:download:`Source code <examples/tree_pair/TreePair_render.py>`].
+			**Example.** The output of ``TreePair("11000", "10100", "1 2 3").render_bijection()``. [:download:`Source code <examples/tree_pair/TreePair_render.py>`].
 		"""
 		#0. Setup.
 		g = svgwrite.container.Group(class_='graph')
@@ -208,21 +208,29 @@ class TreePair:
 		#TODO make this work with elements of f, t and v
 		#TODO doctests
 		d_leaves = self.domain.leaves()
+		#TODO Maybe the method that does this should belong to the permutation class?
 		r_leaves = self.range.leaves(perm=self.perm)
+		
 		i = 0
-		#TODO: use the permutation here
+		#i   = 0, 1, ...., size-2 (pair indices)
+		#i+1 = 0, 1, ...., size-1 (list indices)
+		#i+2 = 1, 2, ...., size   (permutation indices)
 		while i < self.num_leaves - 1:
 			#If the (i, i+1)th leaves form a caret on the domain tree,
 			#and if their images form a caret on the range tree
-			#and if the order is preserved,
+			#and if the left/right order is preserved,
 			if (d_leaves[i].parent is d_leaves[i+1].parent and
 			  r_leaves[i].parent is r_leaves[i+1].parent and
 			  r_leaves[i].is_left_child()):
 				#then both carets can be removed.
 				self._delete_caret(d_leaves, i)
 				self._delete_caret(r_leaves, i)
-				self.perm.remove_from_domain(i+1)
+				self.perm.remove_from_domain(i+2)
 				self.num_leaves -= 1
+				
+				#Need to backtrack in case this contraction has formed a new caret behind it.
+				if i > 0:
+					i -= 1
 			else:
 				i += 1
 	
@@ -235,6 +243,8 @@ class TreePair:
 	def is_identity(self):
 		""":meth:`reduce` s this tree pair. Returns true if the pair represents the identity element of V.
 		
+			>>> TreePair("10100", "10100").is_identity() #identical trees, no permutation
+			True
 			>>> TreePair("111100000", "111100000").is_identity() #identical trees, no permutation
 			True
 			>>> TreePair("111100000", "111100000", "2 3 4 5 1").is_identity() #permute leaves

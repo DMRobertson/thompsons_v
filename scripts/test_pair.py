@@ -21,25 +21,15 @@ from thompson.trees import DrawableTree
 		#and update permutation
 	#if not: add children to g.domain 
 
-"""
-f = TreePair("1110010010100", "1101010011000")
-f.render(filename='original.svg', name='f')
-f.reduce()
-f.render(filename='reduced.svg', name = 'f reduced')
+x = TreePair("110100100", "110010100", "4 5 1 2 3")
+print(x.in_F(), x.in_T())
+x.render(filename='original.svg')
 
-TreePair("11100010100", "11010011000").render(filename='expected.svg', name='expected')
-"""
+x.reduce()
+x.render(filename='reduced.svg')
 
-# f = TreePair("111100000", "111100000", "1 2 3 5 4")
-# f = TreePair("11000", "11000", "1 3 2")
-"""
-f = TreePair("11101000101100100", "11011000101010100", "3 7 6 1 2 4 5 8 9")
-f.render(filename='original.svg', name='f')
-f.reduce()
-f.render(filename='reduced.svg', name = 'f reduced')
-TreePair("111010001011000", "110110001010100", "3 7 6 1 2 4 5 8").render(filename='expected.svg', name='f expected')"""
+y = TreePair("100", "100", "2 1")
+y.render(filename='expected.svg')
 
-f = TreePair("11101000101100100", "11011000101010100", "3 7 6 1 2 4 5 8 9")
-f.render(filename='original.svg', name='g')
-f.reduce()
-f.render(filename='reduced.svg', name = 'g reduced')
+TreePair("11000", "10100", "1 2 3").render(filename='test.svg')
+TreePair("11000", "10100", "1 2 3").render_bijection(filename='bijection.svg')
