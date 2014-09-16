@@ -43,7 +43,9 @@ class Permutation:
 			ValueError: Elements [3, 4] are not included in the output [1, 5, 2, 7]
 		"""
 		if isinstance(output, str):
-			output = [int(x) for x in output.split()]
+			temp = [int(x) for x in output.split()]
+			assert len(temp) > 0, "Permutation created from {} with of length zero".format(repr(output))
+			output = temp
 		
 		#1. Check that the output don't contain any duplicates.
 		alphabet = set()
@@ -51,7 +53,6 @@ class Permutation:
 			if item in alphabet:
 				raise ValueError("Label %r reused in %r" % (item, output))
 			alphabet.add(item)
-		
 		size = len(output)
 		
 		#2. Check that this really is a bijection of {1, ...., size}
@@ -75,11 +76,50 @@ class Permutation:
 			>>> f[10]
 			Traceback (most recent call last):
 			...
-			ValueError: "Key 10 is out of range 1, ..., 4."
+			KeyError: "Key 10 is out of range 1, ..., 4."
 		"""
 		if not (1 <= key <= self.size):
-			raise ValueError("Key %i is out of range 1, ..., %i." % (key, self.size))
+			raise KeyError("Key %i is out of range 1, ..., %i." % (key, self.size))
 		return self.output[key-1]
+	
+	def __setitem__(self, key, value):
+		"""Modifies the permutation so that the image of *key* under the permutation is *value*. Care should be taken to ensure that the permutation is still a permutation after modification.
+		
+		:raises ValueError: if *value* is not in the range 1...n, where n is the permutation's size.
+		:raises KeyError: if the same is true of *key*.
+		
+			>>> x = Permutation("3 2 1 4") #(1 3)
+			>>> x[10] = 8
+			Traceback (most recent call last):
+				...
+			KeyError: Key 10 is out of range 1, ..., 4.
+			>>> x[1] = 8
+			Traceback (most recent call last):
+				...
+			ValueError: Value 8 is out of range 1, ..., 4.
+			>>> x[1] = 1
+			>>> x[3] = 3
+			>>> print(x) #x is now the identity
+			()
+		"""
+		if not (1 <= key <= self.size):
+			raise KeyError("Key %i is out of range 1, ..., %i." % (key, self.size))
+		if not (1 <= value <= self.size):
+			raise ValueError("Value %i is out of range 1, ..., %i." % (value, self.size))
+		self.output[key-1] = value
+	
+	def __iter__(self):
+		"""Iterating over a permutation yields tuples (x, y) where y is the image of x under the current permutation.
+		
+			>>> for x, y in Permutation("2 3 1 4"):
+			... 	print(x, '->', y)
+			1 -> 2
+			2 -> 3
+			3 -> 1
+			4 -> 4
+		"""
+		for i in range(self.size):
+			yield (i+1), self.output[i]
 	
 	def __str__(self):
 		"""When permutations are converted to a string, they are represented as a product of cycles.
@@ -107,7 +147,7 @@ class Permutation:
 			>>> Permutation("2 1 3 4").is_identity()
 			False
 		"""
-		return all(self[i] == i for i in range(1, self.size+1))
+		return all(x == image for (x, image) in self)
 	
 	def is_cycle(self, of_length=None):
 		"""Returns ``True`` if the permutation consists of a single cycle, otherwise ``False``. 
@@ -180,6 +220,54 @@ class Permutation:
 		"""
 		return lcm(len(cycle) for cycle in self.cycles())
 	
+	def __mul__(self, other): #self after other
+		"""Multiplying permutations yields their composition.
+		
+			>>> f = Permutation("1 2 4 3") #(3 4)
+			>>> g = Permutation("3 2 1 4") #(1 3)
+			>>> print(f * g) #f after g
+			(1 4 3)
+			>>> a = Permutation("2 1") #(2 1)
+			>>> b = Permutation("5 1 2 3 4") #(1 5 4 3 2)
+			>>> print(a * b) #a after b
+			(1 5 4 3)
+			>>> print(b * a) #b after a
+			(2 5 4 3)
+		"""
+		size = max(self.size, other.size)
+		output = [0] * size
+		for i in range(size):
+			try:
+				x = other[i+1]
+			except KeyError:
+				x = i+1
+			try:
+				x = self[x]
+			except KeyError:
+				x = x
+			output[i] = x
+		return type(self)(output)
+	
+	def inverse(self):
+		"""Creates and returns a new permutation object representing the inverse of the current permutation.
+		
+		>>> from random import randint, shuffle
+		>>> x = list(range(1, randint(5,10)))
+		>>> shuffle(x)
+		>>> p = Permutation(x)
+		>>> print(p)
+		(...)
+		>>> q = p.inverse()
+		>>> print(q)
+		(...)
+		>>> (p * q).is_identity()
+		True
+		"""
+		output = [0] * self.size
+		for i, image in self:
+			output[image-1] = i
+		return type(self)(output)
+	
 	def remove_from_domain(self, index):
 		r"""Removes the rule that index -> self[index] from the permutation. The permutation is relabelled so that it uses the symbols 1 to n.
 		
@@ -212,15 +300,29 @@ class Permutation:
 			>>> y = Permutation("3 5 4 1 2"); print(y)
 			(1 3 4)(2 5)
 		
+		Some further examples:
+		
+			>>> z = Permutation("3 4 5 1 2"); print(z)
+			(1 3 5 2 4)
+			>>> z.remove_from_domain(2); print(z)
+			(1 2 4 3)
+			>>> i = Permutation("1 2 3 4 5 6") #identity of S_6
+			>>> i.remove_from_domain(4); print(i) #now identity of S_5
+			()
+		
 		This method is mainly included for use by :meth:`~thompson.tree_pair.TreePair.reduce`.
 		"""
+		#TODO. Maybe this should be __delitem__?
 		#1. What maps to the thing we're going to remove?
 		preimage = self.output.index(index) + 1
-		#2. Remove the thing we want and fill in the hole we just created
-		image = self.output.pop(index-1)
-		self.size -= 1
+		
+		#2. Change preimage -> index -> image to preimage -> image; then delete index
+		image = self[index]
 		self.output[preimage-1] = image
-		#3. Relabel so that everything fits from 1...n.
+		del self.output[index-1]
+		self.size -= 1
+		
+		#3. Relabel so that everything fits from 1...n-1.
 		for i, value in enumerate(self.output):
 			if value > index:
 				self.output[i] -= 1
