@@ -12,10 +12,11 @@ from .constants import *
 
 from collections import defaultdict, namedtuple
 from fractions import Fraction
+import random
 
 import svgwrite
 
-__all__ = ['BinaryTree', 'DrawableTree']
+__all__ = ['BinaryTree', 'DrawableTree', 'random_tree']
 
 class BinaryTree:
 	"""The tree structure we require to work with elements of Thompsons's groups is implemented by :py:class:`BinaryTree`. A binary tree is a tree in which each node has at most 2 children.
@@ -165,10 +166,45 @@ class BinaryTree:
 		
 			>>> BinaryTree().num_leaves() #just a single leaf
 			1
-			>>> (BinaryTree.from_string("100").num_leaves()
+			>>> BinaryTree.from_string("100").num_leaves()
 			2
 		"""
 		return sum(child.is_leaf() for child in self.walk())
+	
+	def __eq__(self, other):
+		"""Two trees are considered equal (isomorphic) if they have the same local structure at every node.
+		
+			>>> BinaryTree() == BinaryTree() #different instances, same structure
+			True
+			>>> BinaryTree.from_string("100") == BinaryTree.from_string("10100")
+			False
+			>>> BinaryTree.from_string("10100") != BinaryTree.from_string("11000") #mirror image
+			True
+			>>> BinaryTree() == "hello"
+			False
+		"""
+		if not isinstance(other, BinaryTree):
+			return NotImplemented
+		
+		#Ensure self.left exists iff other.left exists
+		if (self.left is None) != (other.left is None):
+			return False
+		#If they exist, check the left subtrees are equal
+		if (self.left is not None) and self.left != other.left:
+			return False
+		
+		#Ensure self.right exists iff other.right exists
+		if (self.right is None) != (other.right is None):
+			return False
+		#If they exists, check the left subtrees are equal
+		if (self.right is not None) and self.right != other.right:
+			return False
+		return True
+	
+	def __ne__(self, other):
+		if not isinstance(other, BinaryTree):
+			return NotImplemented
+		return not (self == other)
 	
 	def __iter__(self):
 		"""Iterating over a node yields its left and right children. Missing children (``None``) are not included in the iteration."""
@@ -348,14 +384,15 @@ class BinaryTree:
 		"""Returns a depth-first list of leaves below this node.
 		
 		If a permutation *perm* is given, it is applied before returning the list. The resulting list will be in label order rather than traversal order."""
-		if perm is not None and self.num_leaves() != perm.size:
+		size = self.num_leaves()
+		if perm is not None and size != perm.size:
 			raise ValueError("{} is of size {}, but the tree has {} leaves.".format(repr(perm), perm.size, self.num_leaves()))
 		
 		leaves = [node for node in self.walk() if node.is_leaf()]
 		if perm is not None:
-			new_list = [None] * len(leaves)
-			for new_index, value in enumerate(perm.output):
-				new_list[new_index] = leaves[value-1]
+			new_list = [None] * size
+			for i, image in perm:
+				new_list[i-1] = leaves[image-1]
 			leaves = new_list
 		return leaves
 
@@ -568,3 +605,31 @@ def _contour(left, right, max_sep=float('-inf'), loffset=0, roffset=0, left_oute
 		
 	#3. If one of the trees has ended before the other, we can just return.
 	return li, ri, max_sep, loffset, roffset, left_outer, right_outer
+def random_tree(num_leaves=None):
+	"""Returns a :class:`DrawableTree` with *num_leaves* leaves. If *num_leaves* is omitted, it defaults to a random integer in the range 5, ..., 15.
+	
+	The pattern of branches is randomly determined.
+	
+	I first saw this implemented in Roman Kogan's `nvTrees applet <http://www.math.tamu.edu/~romwell/nvTrees/>`_.
+	
+	.. doctest::
+		
+		>>> from random import randint
+		>>> x = randint(1, 20)
+		>>> random_tree(x).num_leaves() == x
+		True
+	"""
+	if num_leaves is None:
+		num_leaves = random.randint(5, 15)
+	
+	subtrees = ["0"] * num_leaves
+	indices = list(range(num_leaves))
+	
+	for _ in range(num_leaves-1):
+		#Pick two subtrees at random
+		i, j = random.sample(indices, 2)
+		#and join them together
+		subtrees[i] = "1" + subtrees[i] + subtrees[j]
+		del indices[-1], subtrees[j]
+	
+	return DrawableTree.from_string(subtrees[0])
