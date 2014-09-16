@@ -610,6 +610,7 @@ def random_tree(num_leaves=None):
 	
 	The pattern of branches is randomly determined.
 	
+	#TODO: reference here
 	I first saw this implemented in Roman Kogan's `nvTrees applet <http://www.math.tamu.edu/~romwell/nvTrees/>`_.
 	
 	.. doctest::

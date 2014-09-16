@@ -192,29 +192,37 @@ class TreePair:
 			>>> TreePair("11000", "10100", "1 3 2").in_F() #2-cycle (2 3)
 			False
 		"""
-		return self.perm.is_identity() or self.perm.is_cycle(of_length=self.num_leaves)
+		shift = self.perm.output.index(1)
+		for index, value in self.perm:
+			if value % self.perm.size != (index - shift) % self.perm.size:
+				return False
+		return True
 	
 	def reduce(self):
 		"""Many different tree pairs correspond to the same bijection of :math:`[0, 1]`. We can sometimes remove nodes from a tree pair to yield a pair of smaller trees which represents the same  bijection. We remove matching pairs of carets until it is no longer possible to do so. At this point, we call the tree pair *reduced*. Cannon, Floyd and Parry show in section 2 of [CFP]_ that there is precisely one reduced tree diagram for each element of F.
 		
-		This method modifies the TreePair so that it becomes reduced.
+		This method *modifies* the TreePair so that it becomes reduced. The examples below create an unreduced and reduced tree, then check to see if ``unreduced`` == ``reduced``. The :meth:`equality comparison <__eq__>` reduces both trees to perform the comparison.
 		
-			>>> #Same trees and no permutation represents the identity
-			>>> x = TreePair("111100000", "111100000")
-			>>> x.reduce()
-			>>> x.is_identity()
+			>>> w = TreePair("111100000", "111100000") #Identity element
+			>>> w == TreePair("0","0")
+			True
+			>>> x = TreePair("1110010010100", "1111100000100") #in F
+			>>> x == TreePair("110100100", "111100000")
+			True
+			>>> y = TreePair("11100100100", "11100010100", "3 4 5 6 1 2") #in T
+			>>> y == TreePair("1100100", "1100100", "2 3 4 1")
+			True
+			>>> z = TreePair("110110010010100", "111001001100100", "2 3 7 8 1 6 4 5") #in V
+			>>> z == TreePair("110100100", "110011000", "2 5 1 4 3")
 			True
 		"""
-		#TODO make this work with elements of f, t and v
-		#TODO doctests
 		d_leaves = self.domain.leaves()
 		#TODO Maybe the method that does this should belong to the permutation class?
 		r_leaves = self.range.leaves(perm=self.perm)
 		
 		i = 0
 		#i   = 0, 1, ...., size-2 (pair indices)
-		#i+1 = 0, 1, ...., size-1 (list indices)
-		#i+2 = 1, 2, ...., size   (permutation indices)
+		#i+1 = 1, ...., size-1    (permutation indices)
 		while i < self.num_leaves - 1:
 			#If the (i, i+1)th leaves form a caret on the domain tree,
 			#and if their images form a caret on the range tree
@@ -225,9 +233,8 @@ class TreePair:
 				#then both carets can be removed.
 				self._delete_caret(d_leaves, i)
 				self._delete_caret(r_leaves, i)
-				self.perm.remove_from_domain(i+2)
+				self.perm.remove_image_of(i+2)
 				self.num_leaves -= 1
-				
 				#Need to backtrack in case this contraction has formed a new caret behind it.
 				if i > 0:
 					i -= 1
@@ -239,6 +246,23 @@ class TreePair:
 		del list[index + 1]  
 		list[index] = list[index].parent
 		list[index].detach_children()
+	
+	def __eq__(self, other):
+		"""Two TreePairs are equal if they have the same permutation, domain trees and range trees after reduction.
+		TODO: Check this. Examples/doctests?
+		"""
+		if not isinstance(other, TreePair):
+			return NotImplemented
+		self.reduce()
+		other.reduce()
+		return (self.perm   == other.perm   and
+		        self.domain == other.domain and 
+		        self.range  == other.range)
+		
+	def __ne__(self, other):
+		if not isinstance(other, TreePair):
+			return NotImplemented
+		return not (self == other)
 	
 	def is_identity(self):
 		""":meth:`reduce` s this tree pair. Returns true if the pair represents the identity element of V.

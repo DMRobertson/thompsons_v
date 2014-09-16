@@ -139,6 +139,26 @@ class Permutation:
 		out_str = " ".join(str(x) for x in self.output)
 		return "%s(%r)" % (self.__class__.__name__, out_str)
 	
+	def __eq__(self, other):
+		"""Two permutations are equal if they have the same size and 
+		
+			>>> Permutation("2 3 1") == Permutation("3 2 1")
+			False
+			>>> Permutation("1 2 3") == Permutation("1 2 3 4") #Identities of S_3 and S_4
+			False
+			>>> x = Permutation("2 1 4 3") #Product of 2-cycles (1 2)(3 4)
+			>>> x == x.inverse()
+			True
+		"""
+		if not isinstance(other, Permutation):
+			return NotImplemented
+		return self.output == other.output
+	
+	def __ne__(self, other):
+		if not isinstance(other, Permutation):
+			return NotImplemented
+		return not(self.output == other.output)
+	
 	def is_identity(self):
 		"""Returns ``True`` if the permutation maps *x* to itself, for all applicable *x*. Otherwise ``False``.
 		
@@ -268,68 +288,58 @@ class Permutation:
 			output[image-1] = i
 		return type(self)(output)
 	
-	def remove_from_domain(self, index):
-		r"""Removes the rule that index -> self[index] from the permutation. The permutation is relabelled so that it uses the symbols 1 to n.
+	def remove_image_of(self, index):
+		r"""Removes the rule that index -> self[index] from the permutation. The permutation is relabelled so that it uses the symbols 1 to n-1 instead of 1 to n.
 		
-		**Example**. Suppose we begin with ``Permutation("3 4 5 6 1 2")``. Removing 4 would give us the permutation described by the first matrix below. Next, we alter the map such that it sends the preimage of 4 to the image of 4 (coloured red). Then we decrease any symbols larger than 4 (coloured blue) by one, to end up with a permutation in :math:`\mathcal{S}_5`.
+		**Example**. Suppose we begin with ``Permutation("3 4 5 6 1 2")`` and suppose we wish to remove the image of 2. We delete the rule 2 -> 4 (coloured red). Next, we reduce the domain labels (coloured green) which are greater than two by one. Finally, we decrease any range labels larger than 4 (coloured blue) by one, to end up with a permutation in :math:`\mathcal{S}_5`.
 		
 		.. math::
 			
 			\begin{pmatrix}
-				1	&\color{red}{2}	&3	&\color{red}{-}	&5	&6	\\
-				3	&\color{red}{-}	&5	&\color{red}{6}	&2	&1
+				1	&\color{red}{2}	&3	&4	&5	&6	\\
+				3	&\color{red}{4}	&5	&6	&1	&2
 			\end{pmatrix}
 			\to
 			\begin{pmatrix}
-				1	&\color{red}{2}	&3	&-	&5	&6	\\
-				3	&\color{red}{6}	&5	&-	&1	&2
+				1	&3					&4					&5					&6	\\
+				3	&\color{blue}{5}	&\color{blue}{6}	&1					&2
 			\end{pmatrix}
-			\\\to 
+			\\ \to 
 			\begin{pmatrix}
-				1	&2					&3					&\color{blue}{4}	&\color{blue}{5}	\\
-				3	&\color{blue}{5}	&\color{blue}{4}	&1					&2
+				1	&\color{LimeGreen}{2}	&\color{LimeGreen}{3}	&\color{LimeGreen}{4}	&\color{LimeGreen}{5}	\\
+				3	&\color{blue}{4}		&\color{blue}{5}		&1						&2
 			\end{pmatrix}
-			\hspace{1.7em}
 		
 		The same computation, but done in the interpreter:
 		
 			>>> x = Permutation("3 4 5 6 1 2"); print(x)
 			(1 3 5)(2 4 6)
-			>>> x.remove_from_domain(4); print(x)
-			(1 3 4)(2 5)
-			>>> y = Permutation("3 5 4 1 2"); print(y)
-			(1 3 4)(2 5)
+			>>> x.remove_image_of(2); print(x)
+			(1 3 5 2 4)
+			>>> x == Permutation("3 4 5 1 2")
+			True
 		
 		Some further examples:
 		
-			>>> z = Permutation("3 4 5 1 2"); print(z)
-			(1 3 5 2 4)
-			>>> z.remove_from_domain(2); print(z)
-			(1 2 4 3)
-			>>> i = Permutation("1 2 3 4 5 6") #identity of S_6
-			>>> i.remove_from_domain(4); print(i) #now identity of S_5
+			>>> y = Permutation("2 5 3 1 4"); print(y)
+			(1 2 5 4)
+			>>> y.remove_image_of(2); print(y)
+			(1 2 3)
+			>>> z = Permutation("1 2 3 4 5 6") #identity of S_6
+			>>> z.remove_image_of(4); print(z) #now identity of S_5
 			()
 		
 		This method is mainly included for use by :meth:`~thompson.tree_pair.TreePair.reduce`.
 		"""
-		#TODO. Maybe this should be __delitem__?
-		#1. What maps to the thing we're going to remove?
-		preimage = self.output.index(index) + 1
-		
-		#2. Change preimage -> index -> image to preimage -> image; then delete index
-		image = self[index]
-		self.output[preimage-1] = image
-		del self.output[index-1]
+		removed = self.output.pop(index-1)
 		self.size -= 1
-		
-		#3. Relabel so that everything fits from 1...n-1.
-		for i, value in enumerate(self.output):
-			if value > index:
-				self.output[i] -= 1
+		for j, value in self:
+			if value > removed:
+				self[j] = value - 1
 
 def lcm2(a, b):
 	return a * b // gcd(a, b)
 
 def lcm(iterable):
-	"""Returns the least common multiple of its arguments. From `Stack Overflow <http://stackoverflow.com/a/147539>`."""
+	"""Returns the least common multiple of *iterable*'s elements. From `Stack Overflow <http://stackoverflow.com/a/147539>`."""
 	return reduce(lcm2, iterable, 1)
