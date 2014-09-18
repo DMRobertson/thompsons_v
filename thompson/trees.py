@@ -384,6 +384,7 @@ class BinaryTree:
 		"""Returns a depth-first list of leaves below this node.
 		
 		If a permutation *perm* is given, it is applied before returning the list. The resulting list will be in label order rather than traversal order."""
+		#TODO example/doctest
 		size = self.num_leaves()
 		if perm is not None and size != perm.size:
 			raise ValueError("{} is of size {}, but the tree has {} leaves.".format(repr(perm), perm.size, self.num_leaves()))
@@ -606,15 +607,8 @@ def _contour(left, right, max_sep=float('-inf'), loffset=0, roffset=0, left_oute
 	#3. If one of the trees has ended before the other, we can just return.
 	return li, ri, max_sep, loffset, roffset, left_outer, right_outer
 def random_tree(num_leaves=None):
-	"""Returns a :class:`DrawableTree` with *num_leaves* leaves. If *num_leaves* is omitted, it defaults to a random integer in the range 5, ..., 15.
+	"""Returns a :class:`DrawableTree` with *num_leaves* leaves. If *num_leaves* is omitted, it defaults to a random integer in the range 5, ..., 15. The pattern of branches is randomly determined. The implementation of this method is due to [Kogan]_.
 	
-	The pattern of branches is randomly determined.
-	
-	#TODO: reference here
-	I first saw this implemented in Roman Kogan's `nvTrees applet <http://www.math.tamu.edu/~romwell/nvTrees/>`_.
-	
-	.. doctest::
-		
 		>>> from random import randint
 		>>> x = randint(1, 20)
 		>>> random_tree(x).num_leaves() == x
