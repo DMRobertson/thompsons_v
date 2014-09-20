@@ -31,4 +31,4 @@ h = f*g
 h.render(filename='product.svg')
 expected = TreePair("11000", "10100", "2 3 1")
 expected.render(filename='expected.svg')
-print(TreePair("0", "0") * TreePair("100", "100") == TreePair("0", "0"))
+print(h == expected)

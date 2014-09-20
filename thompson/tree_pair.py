@@ -324,7 +324,7 @@ class TreePair:
 		# assert s.range == o.domain, "Trees not equal"
 		prod = TreePair(s.domain, o.range)
 		# print(s.perm, o.perm)
-		prod.perm = s.perm * o.perm
+		prod.perm = o.perm * s.perm
 		return prod
 	
 	def expand(self, other, sran=None, odom=None, s_inserted = 0, sdom_leaves=None, o_inserted = 0, oran_leaves=None):
