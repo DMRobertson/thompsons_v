@@ -3,6 +3,7 @@
 	
 	from thompson.tree_pair import *
 """
+from copy import deepcopy
 
 import svgwrite
 
@@ -45,16 +46,25 @@ class TreePair:
 			
 			**Example.** This is the object ``TreePair("11000", "10100", "1 2 3")``.
 		
-		:raises ValueError: if the two trees have a different number of leaves; if range_labels doesn't properly describe a permutation (see :class:`~thompson.permutation.Permutation`); or if range_labels describes a permutation of too many/few leaves.
+		:raises ValueError:
+		- if the two trees have a different number of leaves,
+		- if the trees are given (i.e. not generated from a string) and one of them is not :meth:`strictly binary <thompson.trees.BinaryTree.is_strict>`,
+		- if range_labels doesn't properly describe a :class:`~thompson.permutation.Permutation`,
+		- if range_labels describes a permutation of too many/few leaves.
 		"""
 		if isinstance(domain_tree, str):
 			domain_tree = DrawableTree.from_string(domain_tree)
+		elif not domain_tree.is_strict():
+			raise ValueError("Domain tree is not strictly binary.")
+		
 		if isinstance(range_tree, str):
 			range_tree = DrawableTree.from_string(range_tree)
+		elif not domain_tree.is_strict():
+			raise ValueError("Range tree is not strictly binary.")
 		
 		if domain_tree.num_leaves() != range_tree.num_leaves():
 			raise ValueError("Domain tree has %i leaves, but range tree has %i leaves." 
-			  % (self.num_leaves, range_tree.num_leaves()))
+			  % (domain_tree.num_leaves(), range_tree.num_leaves()))
 		
 		self.num_leaves = domain_tree.num_leaves()
 		self.domain = domain_tree
@@ -219,7 +229,6 @@ class TreePair:
 		d_leaves = self.domain.leaves()
 		#TODO Maybe the method that does this should belong to the permutation class?
 		r_leaves = self.range.leaves(perm=self.perm)
-		
 		i = 0
 		#i   = 0, 1, ...., size-2 (pair indices)
 		#i+1 = 1, ...., size-1    (permutation indices)
@@ -248,9 +257,9 @@ class TreePair:
 		list[index].detach_children()
 	
 	def __eq__(self, other):
-		"""Two TreePairs are equal if they have the same permutation, domain trees and range trees after reduction.
-		TODO: Check this. Examples/doctests?
+		"""Two TreePairs are equal if they have the same permutation, domain trees and range trees after reduction. See :meth:`reduce()` for examples.
 		"""
+		
 		if not isinstance(other, TreePair):
 			return NotImplemented
 		self.reduce()
@@ -276,5 +285,137 @@ class TreePair:
 		"""
 		self.reduce()
 		return self.domain.is_trivial() and self.range.is_trivial()
+	
+	def __mul__(self, other): #self * other
+		r"""We use Python's multiplication to represent composition of tree pairs. The order is backwards compared to the usual meaning of composition. If ``F`` and ``G`` are tree pairs representing functions :math:`f` and :math:`g\colon` :math:`[0, 1] \to [0, 1]` , then ``F * G`` represents the composition
+		
+			.. math:: g \circ f : t \mapsto g(f(t))
+		
+		('f, then g' rather than 'f after g').
+		
+		**NB.** Both *self* and *other* are reduced before the multiplication begins. The product is also reduced before it is returned.
+		
+			>>> #Trivial * trivial = trivial
+			>>> TreePair("0", "0") * TreePair("100", "100") == TreePair("0", "0")
+			True
+			>>> #Same trees, two different permutations
+			>>> x = TreePair("1100100", "1100100", "1 4 2 3") * TreePair("1100100", "1100100", "2 3 4 1")
+			>>> x == TreePair("1100100", "1100100", "4 2 3 1")
+			True
+			>>> #Same trees within each pair
+			>>> y = TreePair("100", "100", "2 1") * TreePair("10100", "10100", "2 3 1")
+			>>> y == TreePair("11000", "10100", "3 2 1")
+			True
+			>>> #Complicated trees, identity permutations
+			>>> z = TreePair("1101000", "1100100") * TreePair("1110000", "1011000")
+			>>> z == TreePair("111001000", "101100100")
+			True
+		"""
+		if not isinstance(other, TreePair):
+			return NotImplemented
+		
+		self.reduce()
+		other.reduce()
+		
+		s = deepcopy(self)
+		o = deepcopy(other)
+		
+		s.expand(o)
+		# assert s.range == o.domain, "Trees not equal"
+		prod = TreePair(s.domain, o.range)
+		# print(s.perm, o.perm)
+		prod.perm = s.perm * o.perm
+		return prod
+	
+	def expand(self, other, sran=None, odom=None, s_inserted = 0, sdom_leaves=None, o_inserted = 0, oran_leaves=None):
+		"""Expands two tree pairs so that they can be multiplied."""
+		if sran is None: sran = self.range
+		if odom is None: odom = other.domain
+		if sdom_leaves is None: sdom_leaves = self.domain.leaves(perm=self.perm.inverse())
+		if oran_leaves is None: oran_leaves = other.range.leaves(perm=other.perm) #probly
+		
+		# print('expand:', sran.name, odom.name, s_inserted, names(sdom_leaves), o_inserted, names(oran_leaves))
+		
+		if sran.is_leaf() and not odom.is_leaf():
+			#replace the preimage of sran by a copy of odom
+			# print('copy', odom.name, 'onto', sdom_leaves[0].name)
+			
+			subtree = deepcopy(odom)
+			# subtree.name = "copy of" + subtree.name
+			sdom_leaves[0].replace_with(subtree)
+			
+			sdom_leaves.pop(0)# print('Removing', name(), 'from sdom_leaves')
+			for child in subtree.walk():
+				if child.is_leaf(): 
+					oran_leaves.pop(0)# print("subtree contains leaf", name(), "removing from oran_leaves")
+			
+			insertion_count = subtree.num_leaves() - 1
+			s_inserted += insertion_count
+			self.num_leaves += insertion_count
+			# print('inserted', insertion_count, 'leaves to self')
+			
+			#update the permutation
+			# print("expanding self permutation index", s_inserted+1, "to width", insertion_count + 1)
+			# print("from", repr(self.perm), end=" ")
+			self.perm.expand_range(s_inserted+1, insertion_count + 1)
+			# print('to', repr(self.perm))
+		
+			
+		elif not sran.is_leaf() and odom.is_leaf():
+			#replace the image of odom by sran
+			# print('copy', sran.name, 'onto', oran_leaves[0].name)
+			subtree = deepcopy(sran)
+			# subtree.name = "copy of" + subtree.name
+			insertion_count = subtree.num_leaves() - 1
+			oran_leaves[0].replace_with(subtree)
+			
+			oran_leaves.pop(0)# print('Removing', name(), 'from oran_leaves')
+			for child in subtree.walk():
+				if child.is_leaf():
+					sdom_leaves.pop(0)# print("subtree contains leaf", name(), "removing from sdom_leaves")
+			
+			insertion_count = subtree.num_leaves() - 1
+			o_inserted += insertion_count
+			self.num_leaves += insertion_count
+			# print('inserted', insertion_count, 'leaves to other')
+			
+			#update the permutation
+			# print("expanding other permutation from", repr(other.perm), end=" ")
+			other.perm.expand_domain(o_inserted+1, insertion_count + 1)
+			# print('to', repr(other.perm))
+			
+		elif not sran.is_leaf() and not odom.is_leaf():
+			s_inserted, sdom_leaves, o_inserted, oran_leaves =\
+			    self.expand(other, sran.left, odom.left, s_inserted, sdom_leaves, o_inserted, oran_leaves)
+			s_inserted, sdom_leaves, o_inserted, oran_leaves =\
+			    self.expand(other, sran.right, odom.right, s_inserted, sdom_leaves, o_inserted, oran_leaves)
+		
+		elif sran.is_leaf() and odom.is_leaf():
+			sdom_leaves.pop(0)# print('Removing', name(), 'from sdom_leaves')
+			oran_leaves.pop(0)# print('Removing', name(), 'from oran_leaves')
+		
+		# print('returning', s_inserted, o_inserted, names(sdom_leaves), names(oran_leaves))
+		return s_inserted, sdom_leaves, o_inserted, oran_leaves
+		
+#TODO: compose, invert
 
+def name(x):
+	if hasattr(x, 'name'):
+		return x.name
+	return repr(x)
 
+def names(xs):
+	return [name(x) for x in xs]
+
+#Named TreePairs
+#TODO check these
+#TODO label these as constants - not to be modified?
+A = TreePair("10100", "11000")
+B = TreePair("1010100", "1011000")
+C = TreePair("10100", "10100", "2 3 1")
+pi_0 = TreePair("10100", "10100", "2 1 3")
+
+#TODO: memoize?
+def x(n):
+	"""todo check me"""
+	return TreePair("10" * n + "100", "10" * (n-1) + "11000")

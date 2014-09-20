@@ -337,7 +337,7 @@ class Permutation:
 			if value > removed:
 				self[j] = value - 1
 	
-	def expand(self, index, to_width):
+	def expand_domain(self, index, to_width):
 		r"""Expands the rule that index -> self[index] into *to_width* different rules: index -> self[index], index + 1 -> self[index] + 1, ...; then adjusts the labels used by the permutation to ensure it is still a bijection. This is used by :meth:`~thompson.tree_pair.TreePair.expand` when expanding a leaf into a caret for multiplication.
 		
 		**Example**. Suppose we begin with ``Permutation("3 4 5 2 1")`` and suppose we expands the image of 2 to a width of 3.
@@ -363,19 +363,19 @@ class Permutation:
 		In the interpreter:
 		
 			>>> x = Permutation("3 4 5 2 1")
-			>>> x.expand(2, to_width=3); x
+			>>> x.expand_domain(2, to_width=3); x
 			Permutation('3 4 5 6 7 2 1')
 			
 		Other examples:
 		
 			>>> y = Permutation("1 2 3 4");
-			>>> y.expand(3, to_width=5); y #Expanding the identity gives the identity
+			>>> y.expand_domain(3, to_width=5); y #Expanding the identity gives the identity
 			Permutation('1 2 3 4 5 6 7 8')
 			>>> z = Permutation("5 3 2 6 1 4");
-			>>> z.expand(3, to_width=3); z
+			>>> z.expand_domain(3, to_width=3); z
 			Permutation('7 5 2 3 4 8 1 6')
 			>>> #expanding any index to a width of 1 does nothing
-			>>> z.expand(3, to_width=1); z
+			>>> z.expand_domain(3, to_width=1); z
 			Permutation('7 5 2 3 4 8 1 6')
 		"""
 		if to_width < 1:
@@ -391,6 +391,10 @@ class Permutation:
 		self.size += (to_width - 1)
 		self.output = self.output[:index-1] + replace + self.output[index:] 
 	
+	def expand_range(self, value, to_width):
+		"""TODO DOCSTRING"""
+		index = self.output.index(value) + 1
+		self.expand_domain(index, to_width)
 
 def lcm2(a, b):
 	return a * b // gcd(a, b)
