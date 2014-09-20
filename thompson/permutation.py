@@ -336,6 +336,61 @@ class Permutation:
 		for j, value in self:
 			if value > removed:
 				self[j] = value - 1
+	
+	def expand(self, index, to_width):
+		r"""Expands the rule that index -> self[index] into *to_width* different rules: index -> self[index], index + 1 -> self[index] + 1, ...; then adjusts the labels used by the permutation to ensure it is still a bijection. This is used by :meth:`~thompson.tree_pair.TreePair.expand` when expanding a leaf into a caret for multiplication.
+		
+		**Example**. Suppose we begin with ``Permutation("3 4 5 2 1")`` and suppose we expands the image of 2 to a width of 3.
+		We replace the symbol 2 by three copies (colored red) and assign images to them, counting up from the image of 2 (coloured blue). The twos are relabelled by integers, and the other indices are increased by 2 to compensate. To finish, we increase all original images which are greater than 5 by 2 (those in green) so that we have a bijection of {1, ..., 7}.
+		
+		.. math::
+			
+			\begin{pmatrix}
+				1	&2	&3	&4	&5	\\
+				3	&4	&5	&2	&1	
+			\end{pmatrix}
+			\to
+			\begin{pmatrix}
+				1	&\color{red}{2_A}	&\color{red}{2_B}	&\color{red}{2_C}	&3	&4	&5	\\
+				3	&\color{blue}{4}	&\color{blue}{5}	&\color{blue}{6}		&5	&2	&1	
+			\end{pmatrix}
+			\\ \to 
+			\begin{pmatrix}
+				1	&\color{red}{2}		&\color{red}{3}		&\color{red}{4}		&5						&6	&7	\\
+				3	&\color{blue}{4}	&\color{blue}{5}	&\color{blue}{6}	&\color{LimeGreen}{7}	&2	&1	
+			\end{pmatrix}
+		
+		In the interpreter:
+		
+			>>> x = Permutation("3 4 5 2 1")
+			>>> x.expand(2, to_width=3); x
+			Permutation('3 4 5 6 7 2 1')
+			
+		Other examples:
+		
+			>>> y = Permutation("1 2 3 4");
+			>>> y.expand(3, to_width=5); y #Expanding the identity gives the identity
+			Permutation('1 2 3 4 5 6 7 8')
+			>>> z = Permutation("5 3 2 6 1 4");
+			>>> z.expand(3, to_width=3); z
+			Permutation('7 5 2 3 4 8 1 6')
+			>>> #expanding any index to a width of 1 does nothing
+			>>> z.expand(3, to_width=1); z
+			Permutation('7 5 2 3 4 8 1 6')
+		"""
+		if to_width < 1:
+			raise ValueError("Width argument must be a positive integer (received {}).".format(to_width))
+		image = self[index]
+		
+		#1. Increase the output values to make room in the range.
+		for i, value in enumerate(self.output):
+			if i + 1 != index and value > image:
+				self.output[i] = value + to_width - 1
+		
+		replace = list(range(image, image + to_width))
+		self.size += (to_width - 1)
+		self.output = self.output[:index-1] + replace + self.output[index:] 
+	
 
 def lcm2(a, b):
 	return a * b // gcd(a, b)

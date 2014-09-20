@@ -56,7 +56,7 @@ class BinaryTree:
 		child = type(self)(parent=self, right_child=right_child)
 		return child
 	
-	#TODO merge these two methods
+	#TODO merge all the add_child etc methods. Find a consistent way to delete children and so on.
 	
 	def set_child(self, child, right_child=False):
 		"""Sets the current node's child to be the given node. You should use this method rather than alter ``self.left`` or ``self.right`` directly, because ``child.parent`` needs to be updated too.
@@ -76,6 +76,18 @@ class BinaryTree:
 		else:
 			self.left = child
 		child.parent = self
+	
+	def replace_with(self, replacement):
+		"""If this node has a parent, the parent's reference to it is changed to point to *replacement*. This node then has no parent. If this node has children and you intend for them to be deleted, use :meth:`detach_children`.
+		
+		:raises ValueError: if called on a node who has no parent.
+		"""
+		if self.parent is None:
+			raise ValueError("Cannot replace a node if it does not have a parent.")
+		right_child = self.parent.right is self
+		self.parent.set_child(replacement, right_child)
+		self.parent = None
+		
 	
 	def detach_children(self, recursive=True):
 		"""Detaches this node's children (if any) from itself. If *recursive* is True, the descendants of this node have their children detached too, `allowing the Python garbage collector <py3:object.__del__>` to remove them from memory. Otherwise the subtrees below this node are left intact."""

@@ -5,31 +5,26 @@ from thompson.tree_pair import TreePair
 from thompson.trees import DrawableTree
 
 #Testing a composition of tree pairs
-#The same number of leaves, but not compatible
-# f = TreePair("1101000", "1100100")
-# g = TreePair("1110000", "1011000")
-#want the tree pair f*g, corresponding to the bijection g after f of [0, 1]
-# h = f * g
-# print(h)
+f = TreePair("100", "100", "2 1")
+f.range.name = "A"
+f.range.left.name = "B"
+f.range.right.name = "C"
 
-#1. result = new tree pair: domain = f.domain, range = g.range
-#2. adjust so that they are compatible.
-# for each leaf of f.range:
-	#does a node with the same path (corresponding to the same interval) exist in g.domain?
-	#if so, and the node is a leaf: all is well, continue
-	#if so, but the node is not a leaf: duplicate the structure below the node in g.domain in f.range
-		#and update permutation
-	#if not: add children to g.domain 
+f.domain.name = "A'"
+f.domain.left.name = "C'"
+f.domain.right.name = "B'"
 
-x = TreePair("110100100", "110010100", "4 5 1 2 3")
-print(x.in_F(), x.in_T())
-x.render(filename='original.svg')
+g = TreePair("10100", "10100", "3 1 2")
+g.domain.name = "F"
+g.domain.left.name = "G"
+g.domain.right.name = "H"
+g.domain.right.left.name = "I"
+g.domain.right.right.name = "J"
 
-x.reduce()
-x.render(filename='reduced.svg')
+g.range.name = "F'"
+g.range.left.name = "J'"
+g.range.right.name = "H'"
+g.range.right.left.name = "G'"
+g.range.right.right.name = "I'"
 
-y = TreePair("100", "100", "2 1")
-y.render(filename='expected.svg')
-
-TreePair("11000", "10100", "1 2 3").render(filename='test.svg')
-TreePair("11000", "10100", "1 2 3").render_bijection(filename='bijection.svg')
+print(f*g == TreePair("11000", "10100", "3 2 1"))
