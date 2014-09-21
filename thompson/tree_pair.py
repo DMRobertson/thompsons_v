@@ -138,8 +138,8 @@ class TreePair:
 		#0. Setup.
 		g = svgwrite.container.Group(class_='graph')
 		
-		x_partition, _ , _ = self.domain.to_partition()
-		y_partition, _ , _ = self.range.to_partition()
+		x_partition = self.domain.to_partition()
+		y_partition = self.range.to_partition()
 				
 		#1. Draw both the axes.
 		x_axis = svgwrite.shapes.Polyline(class_='axis')
@@ -303,14 +303,16 @@ class TreePair:
 			>>> x == TreePair("1100100", "1100100", "4 2 3 1")
 			True
 			>>> #Same trees within each pair
-			>>> y = TreePair("100", "100", "2 1") * TreePair("10100", "10100", "2 3 1")
-			>>> y == TreePair("11000", "10100", "3 2 1")
+			>>> y = TreePair("100", "100", "2 1") * TreePair("10100", "10100", "3 1 2")
+			>>> y == TreePair("11000", "10100", "2 3 1")
 			True
 			>>> #Complicated trees, identity permutations
 			>>> z = TreePair("1101000", "1100100") * TreePair("1110000", "1011000")
 			>>> z == TreePair("111001000", "101100100")
 			True
 		"""
+		# TODO: really horrible example (4 different trees and 4 messy permutations)
+		# TODO: TreePair.__str__() and __repr__()
 		if not isinstance(other, TreePair):
 			return NotImplemented
 		
@@ -320,15 +322,16 @@ class TreePair:
 		s = deepcopy(self)
 		o = deepcopy(other)
 		
-		s.expand(o)
+		s._expand(o)
 		# assert s.range == o.domain, "Trees not equal"
 		prod = TreePair(s.domain, o.range)
 		# print(s.perm, o.perm)
 		prod.perm = o.perm * s.perm
 		return prod
 	
-	def expand(self, other, sran=None, odom=None, s_inserted = 0, sdom_leaves=None, o_inserted = 0, oran_leaves=None):
+	def _expand(self, other, sran=None, odom=None, s_inserted = 0, sdom_leaves=None, o_inserted = 0, oran_leaves=None):
 		"""Expands two tree pairs so that they can be multiplied."""
+		# TODO: better description
 		if sran is None: sran = self.range
 		if odom is None: odom = other.domain
 		if sdom_leaves is None: sdom_leaves = self.domain.leaves(perm=self.perm.inverse())
@@ -386,9 +389,9 @@ class TreePair:
 			
 		elif not sran.is_leaf() and not odom.is_leaf():
 			s_inserted, sdom_leaves, o_inserted, oran_leaves =\
-			    self.expand(other, sran.left, odom.left, s_inserted, sdom_leaves, o_inserted, oran_leaves)
+			    self._expand(other, sran.left, odom.left, s_inserted, sdom_leaves, o_inserted, oran_leaves)
 			s_inserted, sdom_leaves, o_inserted, oran_leaves =\
-			    self.expand(other, sran.right, odom.right, s_inserted, sdom_leaves, o_inserted, oran_leaves)
+			    self._expand(other, sran.right, odom.right, s_inserted, sdom_leaves, o_inserted, oran_leaves)
 		
 		elif sran.is_leaf() and odom.is_leaf():
 			sdom_leaves.pop(0)# print('Removing', name(), 'from sdom_leaves')
@@ -397,15 +400,15 @@ class TreePair:
 		# print('returning', s_inserted, o_inserted, names(sdom_leaves), names(oran_leaves))
 		return s_inserted, sdom_leaves, o_inserted, oran_leaves
 		
-#TODO: compose, invert
+#TODO: invert
 
-def name(x):
-	if hasattr(x, 'name'):
-		return x.name
-	return repr(x)
+# def name(x):
+	# if hasattr(x, 'name'):
+		# return x.name
+	# return repr(x)
 
-def names(xs):
-	return [name(x) for x in xs]
+# def names(xs):
+	# return [name(x) for x in xs]
 
 #Named TreePairs
 #TODO check these
@@ -414,6 +417,8 @@ A = TreePair("10100", "11000")
 B = TreePair("1010100", "1011000")
 C = TreePair("10100", "10100", "2 3 1")
 pi_0 = TreePair("10100", "10100", "2 1 3")
+
+# TODO use these in calculations
 
 #TODO: memoize?
 def x(n):

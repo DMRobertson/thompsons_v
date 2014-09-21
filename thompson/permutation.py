@@ -4,6 +4,7 @@
 	from thompson.permutation import *
 """
 
+from copy import copy
 from fractions import gcd
 from functools import reduce
 
@@ -67,7 +68,7 @@ class Permutation:
 		self.size = size
 	
 	def __getitem__(self, key):
-		#TODO. Might be more natural for a mathematician to use __call__? perm(1) instead of perm[1]?
+		#Might be more natural to use __call__? perm(1) instead of perm[1]?
 		r"""Permutations can be accessed like a dictionary or list to map inputs to output. The image :math:`f(x)` of  :math:`x \in \{1, \dotsc, N\}` is given by ``f[x]``.
 		
 			>>> f = Permutation("4 3 1 2")
@@ -257,14 +258,15 @@ class Permutation:
 		size = max(self.size, other.size)
 		output = [0] * size
 		for i in range(size):
-			try:
-				x = other[i+1]
-			except KeyError:
-				x = i+1
+			x = i + 1
+			try: 
+				x = other[x]
+			except KeyError: pass
+			
 			try:
 				x = self[x]
-			except KeyError:
-				x = x
+			except KeyError: pass
+			
 			output[i] = x
 		return type(self)(output)
 	
@@ -288,8 +290,20 @@ class Permutation:
 			output[image-1] = i
 		return type(self)(output)
 	
+	def __invert__(self):
+		"""We overload Python's bitwise inverse operator ``~`` as shorthand for inversion.
+		
+			>>> x = Permutation("3 2 4 1"); print(x)
+			(1 3 4)
+			>>> print(~x)
+			(1 4 3)
+		"""
+		return self.inverse()
+	
 	def remove_image_of(self, index):
 		r"""Removes the rule that index -> self[index] from the permutation. The permutation is relabelled so that it uses the symbols 1 to n-1 instead of 1 to n.
+		
+		:raises IndexError: if *index* is not in the range 1...permutation.size.
 		
 		**Example**. Suppose we begin with ``Permutation("3 4 5 6 1 2")`` and suppose we wish to remove the image of 2. We delete the rule 2 -> 4 (coloured red). Next, we reduce the domain labels (coloured green) which are greater than two by one. Finally, we decrease any range labels larger than 4 (coloured blue) by one, to end up with a permutation in :math:`\mathcal{S}_5`.
 		
@@ -340,6 +354,10 @@ class Permutation:
 	def expand_domain(self, index, to_width):
 		r"""Expands the rule that index -> self[index] into *to_width* different rules: index -> self[index], index + 1 -> self[index] + 1, ...; then adjusts the labels used by the permutation to ensure it is still a bijection. This is used by :meth:`~thompson.tree_pair.TreePair.expand` when expanding a leaf into a caret for multiplication.
 		
+		:raises ValueError:
+		- if *index* is not in the range 1...permutation.size
+		- if *to_width* is less than 2.
+		
 		**Example**. Suppose we begin with ``Permutation("3 4 5 2 1")`` and suppose we expands the image of 2 to a width of 3.
 		We replace the symbol 2 by three copies (colored red) and assign images to them, counting up from the image of 2 (coloured blue). The twos are relabelled by integers, and the other indices are increased by 2 to compensate. To finish, we increase all original images which are greater than 5 by 2 (those in green) so that we have a bijection of {1, ..., 7}.
 		
@@ -375,11 +393,19 @@ class Permutation:
 			>>> z.expand_domain(3, to_width=3); z
 			Permutation('7 5 2 3 4 8 1 6')
 			>>> #expanding any index to a width of 1 does nothing
-			>>> z.expand_domain(3, to_width=1); z
-			Permutation('7 5 2 3 4 8 1 6')
+			>>> z.expand_domain(3, to_width=1)
+			Traceback (most recent call last):
+				...
+			ValueError: Width argument must be at least 2 (received 1)
+			>>> z.expand_domain(100, to_width=2)
+			Traceback (most recent call last):
+				...
+			ValueError: Index argument (100) not in range 1 to 8.
 		"""
-		if to_width < 1:
-			raise ValueError("Width argument must be a positive integer (received {}).".format(to_width))
+		if not 1 <= index <= self.size:
+			raise ValueError("Index argument ({}) not in range 1 to {}.".format(index, self.size))
+		if to_width < 2:
+			raise ValueError("Width argument must be at least 2 (received {}).".format(to_width))
 		image = self[index]
 		
 		#1. Increase the output values to make room in the range.
@@ -392,9 +418,45 @@ class Permutation:
 		self.output = self.output[:index-1] + replace + self.output[index:] 
 	
 	def expand_range(self, value, to_width):
-		"""TODO DOCSTRING"""
+		"""This does the same thing as :meth:`expand_domain`, but rather than expanding *value* it expands the preimage of *value* under the permutation.
+		
+			>>> x = Permutation("5 4 3 2 1")
+			>>> x.expand_range(4, to_width=4); x
+			Permutation('8 4 5 6 7 3 2 1')
+		
+		:raises ValueError: see :meth:`expand_domain`'s error conditions.
+		"""
 		index = self.output.index(value) + 1
 		self.expand_domain(index, to_width)
+	
+	def apply_to(self, list):
+		"""Rearranges the elements of *list* according to the current permutation. After calling this method, list[i] is a reference to what used to be list[self[i]].
+		
+			>>> p = Permutation("2 4 1 3")
+			>>> x = ['a', 'b', 'c', 'd']
+			>>> p.apply_to(x); x
+			['c', 'a', 'd', 'b']
+		
+		.. seealso:: :meth:`apply_inverse_to`
+		
+		"""
+		copied = copy(list)
+		for i, image in self:
+			list[image-1] = copied[i-1]
+	
+	def apply_inverse_to(self, list):
+		"""Rearranges the elements of *list* according to the current permutation. After calling this method, list[self[i]] is a reference to what used to be list[i].
+		
+			>>> p = Permutation("2 4 1 3")
+			>>> x = ['a', 'b', 'c', 'd']
+			>>> p.apply_to(x); x
+			['c', 'a', 'd', 'b']
+			>>> p.apply_inverse_to(x); x
+			['a', 'b', 'c', 'd']
+		"""
+		copied = copy(list)
+		for i, image in self:
+			list[i-1] = copied[image-1]
 
 def lcm2(a, b):
 	return a * b // gcd(a, b)

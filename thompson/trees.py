@@ -5,6 +5,7 @@ This module works with trees of the latter kind. From this point onward, we use 
 .. testsetup:: 
 	
 	from thompson.trees import *
+	from thompson.tree_pair import TreePair
 """
 
 from .drawing import *
@@ -364,10 +365,10 @@ class BinaryTree:
 		"""
 		return all((child.left is None) == (child.right is None) for child in self.walk())
 	
-	def to_partition(self, partition=None, after=0, before=1):
-		"""Strict binary trees represent a partition of an interval into dyadic sub-intervals. This method gives such a partition of :math:`[0, 1]`.
+	def to_partition(self, start=0, end=1):
+		"""Strict binary trees represent a partition of an interval into dyadic sub-intervals. This method gives such a partition of :math:`[0, 1]`. The arguments *after* and *before* should not be supplied---they are only used internally in recursive calls to this method.
 		
-			>>> partition, _, _ = BinaryTree.from_string("11000").to_partition()
+			>>> partition = BinaryTree.from_string("11000").to_partition()
 			>>> partition
 			[Fraction(0, 1), Fraction(1, 4), Fraction(1, 2), Fraction(1, 1)]
 			>>> print(*(str(x) for x in partition), sep=', ')
@@ -375,38 +376,49 @@ class BinaryTree:
 			
 		:return: a list of :class:`Fractions <py3:fractions.Fraction>` forming the partition.
 		"""
+		partition, _, _ = self._refine_partition([Fraction(start), Fraction(end)], 0, 1)
+		assert len(partition) - 1 == self.num_leaves(),\
+		  "Partition [{}] consists of {} intervals, but the tree has {} leaves.".format(\
+		    ", ".join(str(x) for x in partition), len(partition) - 1, self.num_leaves()
+		  )
+		return partition
+	
+	def _refine_partition(self, partition, after, before):
+		"""Refines the partition according to the structure of the tree. The argument *partition* is a list of interval endpoint; *after* and before are incidences in that list.
+		"""
 		#todo. Use a stack/queue rather than recursion.
-		#TODO. I have no idea why this works, so this could probably do with a rewrite.
-		if partition is None:
-		
-			partition = [Fraction(after), Fraction(before)]
 		if self.is_leaf():
 			return partition, after, before
 		else:
 			mid = (partition[after] + partition[after + 1]) / 2 
 			partition.insert(after + 1, mid)
-			partition, after, before = self.left.to_partition(partition, after, before+1)
-			partition, after, before = self.right.to_partition(partition, after+1, before)
-		
-		if after == 0 and before == 1:
-			assert len(partition) == self.num_leaves(), "Partition {} size does not match the number of leaves ({}).".format(partition, self.num_leaves())
+			partition, after, before = self.left._refine_partition(partition, after, before+1)
+			partition, after, before = self.right._refine_partition(partition, after+1, before)
 		return partition, after, before
 	
 	def leaves(self, perm=None):
 		"""Returns a depth-first list of leaves below this node.
 		
-		If a permutation *perm* is given, it is applied before returning the list. The resulting list will be in label order rather than traversal order."""
-		#TODO example/doctest
+		If a permutation *perm* is given, it is applied before returning the list. The resulting list will be in label order rather than traversal order.
+		
+			>>> BinaryTree.from_string("100").leaves()
+			[<thompson.trees.BinaryTree object at 0x...>, <thompson.trees.BinaryTree object at 0x...>]
+			>>> x = TreePair("100", "100", "2 1")
+			>>> l = x.range.leaves()
+			>>> (l[0], l[1]) == (x.range.right, x.range.left)
+			True
+			>>> #Get the leaves in label order by undoing the permutation
+			>>> l = x.range.leaves(perm=x.perm)
+			>>> (l[0], l[1]) == (x.range.left, x.range.right)
+			True
+		"""
 		size = self.num_leaves()
 		if perm is not None and size != perm.size:
 			raise ValueError("{} is of size {}, but the tree has {} leaves.".format(repr(perm), perm.size, self.num_leaves()))
 		
 		leaves = [node for node in self.walk() if node.is_leaf()]
 		if perm is not None:
-			new_list = [None] * size
-			for i, image in perm:
-				new_list[i-1] = leaves[image-1]
-			leaves = new_list
+			perm.apply_inverse_to(leaves)
 		return leaves
 
 Bounds = namedtuple('Bounds', 'min_x max_x height')
