@@ -310,37 +310,49 @@ class TreePair:
 			>>> z = TreePair("1101000", "1100100") * TreePair("1110000", "1011000")
 			>>> z == TreePair("111001000", "101100100")
 			True
+			>>> #Powers of a permutation
+			>>> a = TreePair("11010100100", "11010100100", "1 6 5 2 3 4")
+			>>> a * a * a * a * a * a == TreePair("0", "0")
+			True
 		"""
 		# TODO: really horrible example (4 different trees and 4 messy permutations)
 		# TODO: TreePair.__str__() and __repr__()
 		if not isinstance(other, TreePair):
 			return NotImplemented
 		
-		self.reduce()
-		other.reduce()
+		# self.reduce()
+		# other.reduce()
 		
 		s = deepcopy(self)
 		o = deepcopy(other)
-		
+		# s.render(filename='s.svg')
+		# o.render(filename='o.svg')
+		# print("different objects?", self is other, s is o, s==o)
 		s._expand(o)
 		# assert s.range == o.domain, "Trees not equal"
 		prod = TreePair(s.domain, o.range)
 		# print(s.perm, o.perm)
 		prod.perm = o.perm * s.perm
+		#TODO. Is prod automatically reduced at this stage?
 		return prod
 	
 	def _expand(self, other, sran=None, odom=None, s_inserted = 0, sdom_leaves=None, o_inserted = 0, oran_leaves=None):
 		"""Expands two tree pairs so that they can be multiplied."""
 		# TODO: better description
-		if sran is None: sran = self.range
-		if odom is None: odom = other.domain
+		if sran is None: sran = self.range;
+		if odom is None: odom = other.domain;
 		if sdom_leaves is None: sdom_leaves = self.domain.leaves(perm=self.perm.inverse())
 		if oran_leaves is None: oran_leaves = other.range.leaves(perm=other.perm) #probly
 		
+		# print('expanding x:{} y:{} and x:{} y:{}'.format(sran.x, sran.y, odom.x, odom.y), sran == odom)
+		# sran.render(filename='sran.svg')
+		# odom.render(filename='odom.svg')
+		# input('press enter to continue')
 		# print('expand:', sran.name, odom.name, s_inserted, names(sdom_leaves), o_inserted, names(oran_leaves))
 		
 		if sran.is_leaf() and not odom.is_leaf():
-			#replace the preimage of sran by a copy of odom
+			# replace the preimage of sran by a copy of odom
+			# print('copy odom->sran')
 			# print('copy', odom.name, 'onto', sdom_leaves[0].name)
 			
 			subtree = deepcopy(odom)
@@ -364,10 +376,12 @@ class TreePair:
 			# print('to', repr(self.perm))
 		
 			
-		elif not sran.is_leaf() and odom.is_leaf():
+		elif (not sran.is_leaf()) and odom.is_leaf():
 			#replace the image of odom by sran
+			# print('copying sran->odom')
 			# print('copy', sran.name, 'onto', oran_leaves[0].name)
 			subtree = deepcopy(sran)
+			# subtree.render(filename='subtree.svg')
 			# subtree.name = "copy of" + subtree.name
 			insertion_count = subtree.num_leaves() - 1
 			oran_leaves[0].replace_with(subtree)
@@ -388,15 +402,18 @@ class TreePair:
 			# print('to', repr(other.perm))
 			
 		elif not sran.is_leaf() and not odom.is_leaf():
+			# print('left child')
 			s_inserted, sdom_leaves, o_inserted, oran_leaves =\
 			    self._expand(other, sran.left, odom.left, s_inserted, sdom_leaves, o_inserted, oran_leaves)
+			# print('right child')
 			s_inserted, sdom_leaves, o_inserted, oran_leaves =\
 			    self._expand(other, sran.right, odom.right, s_inserted, sdom_leaves, o_inserted, oran_leaves)
 		
 		elif sran.is_leaf() and odom.is_leaf():
+			# print('both leaves')
 			sdom_leaves.pop(0)# print('Removing', name(), 'from sdom_leaves')
 			oran_leaves.pop(0)# print('Removing', name(), 'from oran_leaves')
-		
+		# print('up')
 		# print('returning', s_inserted, o_inserted, names(sdom_leaves), names(oran_leaves))
 		return s_inserted, sdom_leaves, o_inserted, oran_leaves
 		
