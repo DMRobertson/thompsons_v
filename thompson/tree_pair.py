@@ -46,11 +46,10 @@ class TreePair:
 			
 			**Example.** This is the object ``TreePair("11000", "10100", "1 2 3")``.
 		
-		:raises ValueError:
-		- if the two trees have a different number of leaves,
-		- if the trees are given (i.e. not generated from a string) and one of them is not :meth:`strictly binary <thompson.trees.BinaryTree.is_strict>`,
-		- if range_labels doesn't properly describe a :class:`~thompson.permutation.Permutation`,
-		- if range_labels describes a permutation of too many/few leaves.
+		:raises ValueError: if the two trees have a different number of leaves,
+		:raises ValueError: if the trees are given (i.e. not generated from a string) and one of them is not :meth:`strictly binary <thompson.trees.BinaryTree.is_strict>`
+		:raises ValueError: if range_labels doesn't properly describe a :class:`~thompson.permutation.Permutation`,
+		:raises ValueError: if range_labels describes a permutation of too many/few leaves.
 		"""
 		if isinstance(domain_tree, str):
 			domain_tree = DrawableTree.from_string(domain_tree)
@@ -259,7 +258,6 @@ class TreePair:
 	def __eq__(self, other):
 		"""Two TreePairs are equal if they have the same permutation, domain trees and range trees after reduction. See :meth:`reduce()` for examples.
 		"""
-		
 		if not isinstance(other, TreePair):
 			return NotImplemented
 		self.reduce()
@@ -293,7 +291,7 @@ class TreePair:
 		
 		('f, then g' rather than 'f after g').
 		
-		**NB.** Both *self* and *other* are reduced before the multiplication begins. The product is also reduced before it is returned.
+		**NB.** Both *self* and *other* are reduced before the multiplication begins. TODO: The product is also reduced before it is returned.
 		
 			>>> #Trivial * trivial = trivial
 			>>> TreePair("0", "0") * TreePair("100", "100") == TreePair("0", "0")
@@ -314,94 +312,122 @@ class TreePair:
 			>>> a = TreePair("11010100100", "11010100100", "1 6 5 2 3 4")
 			>>> a * a * a * a * a * a == TreePair("0", "0")
 			True
+		
+		.. _multiplication example: :download:
+		
+		.. figure:: examples/tree_pair/TreePair_mul.svg
+			:alt: Drawings of f, g, and the compositions fg and gf.
+			:target: _downloads/TreePair_mul.svg
+		
+			**Example.** Let *f* be ``TreePair("100", "100", "2 1")`` and let *g* be ``TreePair("10100", "10100", "1 3 2")``. In terms of tree pairs, *f* exchanges the subtrees of the root; *g* does the same to the right child of the root. There are two ways to compose these elements, yielding two (in this case different) products.
+			
+			[:download:`Source code <examples/tree_pair/TreePair_mul.py>`] [:download:`Full size <examples/tree_pair/TreePair_mul.svg>`].
+		
+		
 		"""
 		# TODO: really horrible example (4 different trees and 4 messy permutations)
 		# TODO: TreePair.__str__() and __repr__()
 		if not isinstance(other, TreePair):
 			return NotImplemented
 		
-		# self.reduce()
-		# other.reduce()
+		self.reduce()
+		other.reduce()
 		
 		s = deepcopy(self)
 		o = deepcopy(other)
-		# s.render(filename='s.svg')
-		# o.render(filename='o.svg')
-		# print("different objects?", self is other, s is o, s==o)
 		s._expand(o)
-		# assert s.range == o.domain, "Trees not equal"
+		
 		prod = TreePair(s.domain, o.range)
-		# print(s.perm, o.perm)
-		prod.perm = o.perm * s.perm
-		#TODO. Is prod automatically reduced at this stage?
+		prod.perm = o.perm * s.perm #o after s
+		#TODO. Is prod reduced at this stage? Should it be? Hmm.
 		return prod
 	
 	def _expand(self, other, sran=None, odom=None, s_inserted = 0, sdom_leaves=None, o_inserted = 0, oran_leaves=None):
-		"""Expands two tree pairs so that they can be multiplied."""
+		"""Expands two tree pairs so that they can be multiplied. The general idea:
+		
+		1. Let sran = self.range, and odom=other.domain.
+		2. Are both sran and odom branches? If so, call this function again with:
+			a. sran = sran.left, odom = odom.left
+			b. sran = sran.right, odom = odom.right
+		3. Else, if sran is a leaf and odom is not:
+			a. Copy odom onto the preimage under self of sran.
+			b. Update the permutation of self.
+		4. Else, if odom is a leaf and sran is not:
+			a. Copy sran onto the image under other of sdom.
+			b. Update the permutation of other.
+		5. Else, both nodes are branches. Do nothing.
+		6. Return variables describing the current traversal state.
+		"""
 		# TODO: better description
 		if sran is None: sran = self.range;
 		if odom is None: odom = other.domain;
 		if sdom_leaves is None: sdom_leaves = self.domain.leaves(perm=self.perm.inverse())
 		if oran_leaves is None: oran_leaves = other.range.leaves(perm=other.perm) #probly
 		
-		# print('expanding x:{} y:{} and x:{} y:{}'.format(sran.x, sran.y, odom.x, odom.y), sran == odom)
-		# sran.render(filename='sran.svg')
-		# odom.render(filename='odom.svg')
-		# input('press enter to continue')
-		# print('expand:', sran.name, odom.name, s_inserted, names(sdom_leaves), o_inserted, names(oran_leaves))
+		#A module constant DEBUG_MULTIPLICATION toggles the various debug messages
+		if not DEBUG_MULTIPLICATION:
+			global print
+			print = no_op
+		else:
+			#Assign coordinates for print-out messages
+			self.domain.layout()
+			self.range.layout()
+			other.domain.layout()
+			other.range.layout()
+		print('expanding sran ({},{}) and odom ({},{}).'.format(sran.x, sran.y, odom.x, odom.y),
+			"Different:", sran == odom)
+		print("sdom_leaves", [(l.x, l.y) for l in sdom_leaves])
 		
 		if sran.is_leaf() and not odom.is_leaf():
 			# replace the preimage of sran by a copy of odom
-			# print('copy odom->sran')
-			# print('copy', odom.name, 'onto', sdom_leaves[0].name)
-			
+			print('copy odom onto sdom')
 			subtree = deepcopy(odom)
-			# subtree.name = "copy of" + subtree.name
 			sdom_leaves[0].replace_with(subtree)
+			sdom_leaves.pop(0)
+			print("sdom_leaves pop")
 			
-			sdom_leaves.pop(0)# print('Removing', name(), 'from sdom_leaves')
-			for child in subtree.walk():
-				if child.is_leaf(): 
-					oran_leaves.pop(0)# print("subtree contains leaf", name(), "removing from oran_leaves")
+			#Mark any leaves we copy over as dealt with
+			for i in range(subtree.num_leaves()):
+				oran_leaves.pop(0)
+				print("oran_leaves pop")
 			
 			insertion_count = subtree.num_leaves() - 1
 			s_inserted += insertion_count
 			self.num_leaves += insertion_count
-			# print('inserted', insertion_count, 'leaves to self')
+			print('inserted', insertion_count, 'leaves to self')
 			
 			#update the permutation
-			# print("expanding self permutation index", s_inserted+1, "to width", insertion_count + 1)
-			# print("from", repr(self.perm), end=" ")
-			self.perm.expand_range(s_inserted+1, insertion_count + 1)
-			# print('to', repr(self.perm))
+			index = self.num_leaves - s_inserted - len(sdom_leaves)
+			print("expanding self permutation range", index, "to width", insertion_count + 1)
+			print("from", repr(self.perm), end=" ")
+			self.perm.expand_range(index, insertion_count + 1)
+			print('to', repr(self.perm))
 		
-			
 		elif (not sran.is_leaf()) and odom.is_leaf():
 			#replace the image of odom by sran
-			# print('copying sran->odom')
-			# print('copy', sran.name, 'onto', oran_leaves[0].name)
+			print('copying sran onto oran')
 			subtree = deepcopy(sran)
-			# subtree.render(filename='subtree.svg')
-			# subtree.name = "copy of" + subtree.name
-			insertion_count = subtree.num_leaves() - 1
 			oran_leaves[0].replace_with(subtree)
+			oran_leaves.pop(0)
+			print("oran_leaves pop")
 			
-			oran_leaves.pop(0)# print('Removing', name(), 'from oran_leaves')
-			for child in subtree.walk():
-				if child.is_leaf():
-					sdom_leaves.pop(0)# print("subtree contains leaf", name(), "removing from sdom_leaves")
+			for i in range(subtree.num_leaves()):
+				sdom_leaves.pop(0)
+				print("sdom_leaves pop")
 			
 			insertion_count = subtree.num_leaves() - 1
 			o_inserted += insertion_count
-			self.num_leaves += insertion_count
-			# print('inserted', insertion_count, 'leaves to other')
+			other.num_leaves += insertion_count
+			print('inserted', insertion_count, 'leaves to other')
 			
 			#update the permutation
-			# print("expanding other permutation from", repr(other.perm), end=" ")
-			other.perm.expand_domain(o_inserted+1, insertion_count + 1)
-			# print('to', repr(other.perm))
+			index = other.num_leaves - o_inserted - len(oran_leaves)
+			print("expanding other permutation index", index, "to width", insertion_count + 1)
+			print("from", repr(other.perm), end=" ")
+			other.perm.expand_domain(index, insertion_count + 1)
+			print('to', repr(other.perm))
 			
-		elif not sran.is_leaf() and not odom.is_leaf():
+		elif (not sran.is_leaf()) and not odom.is_leaf():
 			# print('left child')
 			s_inserted, sdom_leaves, o_inserted, oran_leaves =\
 			    self._expand(other, sran.left, odom.left, s_inserted, sdom_leaves, o_inserted, oran_leaves)
@@ -410,22 +436,23 @@ class TreePair:
 			    self._expand(other, sran.right, odom.right, s_inserted, sdom_leaves, o_inserted, oran_leaves)
 		
 		elif sran.is_leaf() and odom.is_leaf():
-			# print('both leaves')
-			sdom_leaves.pop(0)# print('Removing', name(), 'from sdom_leaves')
-			oran_leaves.pop(0)# print('Removing', name(), 'from oran_leaves')
-		# print('up')
-		# print('returning', s_inserted, o_inserted, names(sdom_leaves), names(oran_leaves))
+			print('both sran and odom are leaves leaves')
+			sdom_leaves.pop(0)
+			oran_leaves.pop(0)
+			print("sdom_leaves pop")
+			print("oran_leaves pop")
+		print('returning to parent')
 		return s_inserted, sdom_leaves, o_inserted, oran_leaves
 		
 #TODO: invert
 
-# def name(x):
-	# if hasattr(x, 'name'):
-		# return x.name
-	# return repr(x)
+DEBUG_MULTIPLICATION = False
+"""Set this to ``True`` to print debug messages when :meth:`multiplying <TreePair.__mul__>` two tree pairs."""
 
-# def names(xs):
-	# return [name(x) for x in xs]
+def no_op(*args, **kwargs):
+	pass
+
+
 
 #Named TreePairs
 #TODO check these
@@ -435,7 +462,7 @@ B = TreePair("1010100", "1011000")
 C = TreePair("10100", "10100", "2 3 1")
 pi_0 = TreePair("10100", "10100", "2 1 3")
 
-# TODO use these in calculations
+# TODO loads more examples
 
 #TODO: memoize?
 def x(n):
