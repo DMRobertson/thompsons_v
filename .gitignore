@@ -1,5 +1,7 @@
 #Don't include papers etc stored locally.
 literature/
+#Don't include test SVG files
+scripts/*.svg
 
 #Begin Github's defaults for Python projects.
 # Byte-compiled / optimized / DLL files
