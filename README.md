@@ -21,7 +21,9 @@ How do I start playing around?
 ------------------------------
 
 Either clone the repository with
+
 	git clone https://github.com/DMRobertson/thompsons_v.git
+
 or download [the ZIPped version](https://github.com/DMRobertson/thompsons_v/archive/master.zip) and extract it. Navigate to the root directory---the one containing ``docs``, ``scripts`` and ``thompson``. Start the Python interpreter and run:
 
 	>>> from thompson.tree_pair import TreePair
