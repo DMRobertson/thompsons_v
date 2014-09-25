@@ -1,4 +1,4 @@
-from test_script import import_thompson
+from test import setup_script
 dwg, canvas = setup_script(__file__)
 
 from thompson.tree_pair import *

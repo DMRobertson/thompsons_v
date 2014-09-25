@@ -349,9 +349,9 @@ class TreePair:
 		o = deepcopy(other)
 		s._expand(o)
 		
-		prod = TreePair(s.domain, o.range)
-		prod.perm = o.perm * s.perm #o after s
-		#TODO. Is prod reduced at this stage? Should it be? Hmm.
+		prod = TreePair(s.domain, o.range, o.perm * s.perm)
+		prod.reduce()
+		#TODO. Todo. Reduce the product; create a method for powers that doesn't reduce maybe?
 		return prod
 	
 	def _expand(self, other, sran=None, odom=None, s_inserted = 0, sdom_leaves=None, o_inserted = 0, oran_leaves=None):
@@ -460,11 +460,18 @@ class TreePair:
 		
 			>>> TreePair("11000", "10100", "2 3 1").inverse()
 			TreePair('10100', '11000', '3 1 2')
+			>>> x = random_pair()
+			>>> x * x.inverse() == TreePair("0", "0")
+			True
 		"""
 		x = deepcopy(self)
 		x.domain, x.range = x.range, x.domain
-		x.perm = self.perm.inverse()
+		x.perm = x.perm.inverse()
 		return x
+	
+	def __invert__(self):
+		"""We overload Python's bitwise inverse operator ``~`` as shorthand for inversion."""
+		return self.inverse()
 
 DEBUG_MULTIPLICATION = False
 """Set this to ``True`` to print debug messages when :meth:`multiplying <TreePair.__mul__>` two tree pairs."""
@@ -480,7 +487,7 @@ def random_pair(num_leaves=None):
 	return TreePair(random_tree(num_leaves), random_tree(num_leaves), random_permutation(num_leaves))
 
 def render_2x2(parent, a, b, c, d, names=('a', 'b', 'c', 'd')):
-	"""Positions four tree pairs nicely into a grid."""
+	"""Positions four tree pairs nicely into a grid inside *parent*, an SVG container."""
 	a = a.render(name = names[0])
 	b = b.render(name = names[1])
 	c = c.render(name = names[2])
@@ -501,6 +508,7 @@ def render_2x2(parent, a, b, c, d, names=('a', 'b', 'c', 'd')):
 	set_size(parent, d.size + x + y + Coord(1, 1))
 
 def render_products(parent, f, g, names=('f', 'g')):
+	"""Renders illustrations of two tree pairs *f* and *g* and their products ``f * g`` and ``g * f``. The four diagrams are aligned to a grid and added SVG group *parent*."""
 	render_2x2(parent, f, g, f*g, g*f, [names[0], names[1], names[0] + names[1], names[1] + names[0]])
 
 #Named TreePairs
