@@ -7,8 +7,9 @@
 from copy import copy
 from fractions import gcd
 from functools import reduce
+import random
 
-__all__ = ["Permutation"]
+__all__ = ["Permutation", "random_permutation"]
 
 class Permutation:
 	r"""A permutation *f* of a finite set :math:`\{1, \dotsc, N\}` of integers.
@@ -66,6 +67,9 @@ class Permutation:
 		#3. Set up the useful stuff
 		self.output = output
 		self.size = size
+	
+	def __len__(self):
+		return self.size
 	
 	def __getitem__(self, key):
 		#Might be more natural to use __call__? perm(1) instead of perm[1]?
@@ -464,3 +468,12 @@ def lcm2(a, b):
 def lcm(iterable):
 	"""Returns the least common multiple of *iterable*'s elements. From `Stack Overflow <http://stackoverflow.com/a/147539>`."""
 	return reduce(lcm2, iterable, 1)
+
+def random_permutation(size=None):
+	"""Returns a randomly generated :class:`Permutation` of the set {1, ..., *size*}. If *size* is omitted, it defaults to a random integer in the range 5, ..., 15.
+	"""
+	if size is None:
+		size = random.randint(5, 15)
+	output = list(range(1, size+1))
+	random.shuffle(output)
+	return Permutation(output)

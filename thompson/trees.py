@@ -88,7 +88,6 @@ class BinaryTree:
 		right_child = self.parent.right is self
 		self.parent.set_child(replacement, right_child)
 		self.parent = None
-		
 	
 	def detach_children(self, recursive=True):
 		"""Detaches this node's children (if any) from itself. If *recursive* is True, the descendants of this node have their children detached too, `allowing the Python garbage collector <py3:object.__del__>` to remove them from memory. Otherwise the subtrees below this node are left intact."""
@@ -173,6 +172,15 @@ class BinaryTree:
 		#In some places like _next_left(), we use the short circuiting of or to avoid returning None where possible.
 		#For this to work, non-None instances should be True.
 		return True
+	
+	def __str__(self):
+		#TODO docstring
+		if self.is_leaf():
+			return '0'
+		if len(self) != 2:
+			return ValueError("Cannot represent a non-strict tree as a string of 1s and 0s.")
+		
+		return '1' + self.left.__str__() + self.right.__str__()
 	
 	def num_leaves(self):
 		"""Returns the number of leaves below and including this node.

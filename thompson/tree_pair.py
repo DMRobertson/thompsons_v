@@ -4,15 +4,16 @@
 	from thompson.tree_pair import *
 """
 from copy import deepcopy
+import random
 
 import svgwrite
 
 from .drawing import *
 from .constants import *
-from .permutation import Permutation
-from .trees import DrawableTree
+from .permutation import Permutation, random_permutation
+from .trees import DrawableTree, random_tree
 
-__all__ = ['TreePair']
+__all__ = ['TreePair', 'random_pair', 'render_products']
 
 class TreePair:
 	r"""Thompson's group :math:`V` may be described as a particular set of bijections of the interval :math:`I = [0, 1]`. In turn, these bijections can be represented as pairs of strict binary trees with some additional information. This class is responsible for keeping the three pieces together.
@@ -31,25 +32,26 @@ class TreePair:
 	:ivar tree domain: The domain tree.
 	:ivar tree range: The range tree.
 	:ivar perm: The :class:`Permutation` of leaves.
-		
 	"""
-	def __init__(self, domain_tree, range_tree, range_labels=None):
-		r"""Creates a new tree pair object given a pair of trees and *range_labels*, a string specifying how the leaves of the domain tree map to those of the range tree. Some sanity checks are made on the arguments.
+	def __init__(self, domain_tree, range_tree, perm=None):
+		r"""Creates a new tree pair object given a pair of trees and a permutation of the range tree's leaves. Some sanity checks are made on the arguments.
 		
 		:param domain_tree: a strict DrawableTree, or a string describing one.
 		:param range_tree: the same.
-		:param range_labels: a string describing the permutation of leaves. If omitted, we assume the leaves' are not permuted at all.
+		:param perm: One of: a string describing the permutation of the range tree's leaves;
+		:param perm: a :class:~thompson.perm.Permutation object describing the same;
+		:param perm: or None (argument omitted): the leaves are not permuted at all.
 		
-		Call the leaves of the domain tree :math:`D_1, D_2, \dotsc, D_N` in depth-first order from left to right---the same order that binary tree :meth:`~thompson.trees.BinaryTree.walk` methods use. For each :math:`i`, label the image in the range tree of :math:`D_i` with an :math:`i`. The argument *range_labels* should be a space-separated string listing the labels of the range tree in depth-first traversal order.
+		Name the leaves of the domain tree :math:`D_1, D_2, \dotsc, D_N` in depth-first order from left to right. For each :math:`i`, label the image in the range tree of :math:`D_i` with an :math:`i`. If *perm* is given as a string, it should be a space-separated string listing the labels of the range tree in depth-first order.
 		
 		.. figure:: examples/tree_pair/TreePair_render.svg
 			
-			**Example.** This is the object ``TreePair("11000", "10100", "1 2 3")``.
+			**Example.** This is the object ``TreePair("11000", "10100", "3 2 1")``.
 		
 		:raises ValueError: if the two trees have a different number of leaves,
-		:raises ValueError: if the trees are given (i.e. not generated from a string) and one of them is not :meth:`strictly binary <thompson.trees.BinaryTree.is_strict>`
-		:raises ValueError: if range_labels doesn't properly describe a :class:`~thompson.permutation.Permutation`,
-		:raises ValueError: if range_labels describes a permutation of too many/few leaves.
+		:raises ValueError: if a tree are given (i.e. not generated from a string) which is not :meth:`strictly binary <thompson.trees.BinaryTree.is_strict>`
+		:raises ValueError: if *perm* is given as a string and doesn't properly describe a :class:`~thompson.permutation.Permutation`,
+		:raises ValueError: if *perm* describes a permutation of too many/few leaves.
 		"""
 		if isinstance(domain_tree, str):
 			domain_tree = DrawableTree.from_string(domain_tree)
@@ -69,12 +71,25 @@ class TreePair:
 		self.domain = domain_tree
 		self.range = range_tree
 		
-		if range_labels is None:
-			range_labels = list(range(1, self.num_leaves+1))
-		self.perm = Permutation(range_labels).inverse()
+		if isinstance(perm, Permutation):
+			self.perm = perm
+		else:
+			if perm is None:
+				perm = list(range(1, self.num_leaves+1))
+			self.perm = Permutation(perm).inverse()
+		
 		if self.perm.size != self.num_leaves:
-			raise ValueError("range_labels permutes %i leaves, but the trees have %i leaves."
+			raise ValueError("Permutation given acts on %i leaves, but the trees have %i leaves."
 			  % (self.num_leaves, self.perm.size))
+	
+	def __str__(self):
+		#TODO docstring
+		return 'TreePair: {} -> {} with perm {}'.format(self.domain, self.range, self.perm)
+	
+	def __repr__(self):
+		#TODO docstring
+		perm = " ".join(str(x) for x in self.perm.inverse().output)
+		return "TreePair('{}', '{}', '{}')".format(self.domain, self.range, perm)
 	
 	@creates_svg
 	def render(self, name=None, **kwargs):
@@ -82,7 +97,7 @@ class TreePair:
 		
 		.. figure:: examples/tree_pair/TreePair_render.svg
 			
-			**Example.** The output of ``TreePair("11000", "10100", "1 2 3").render()``. [:download:`Source code <examples/tree_pair/TreePair_render.py>`].
+			**Example.** The output of ``TreePair("11000", "10100", "3 2 1).render()``. [:download:`Source code <examples/tree_pair/TreePair_render.py>`].
 		"""
 		#1. Setup. Create a container group and get the SVG groups for the trees.
 		container = svgwrite.container.Group(class_='element')
@@ -132,7 +147,7 @@ class TreePair:
 		
 		.. figure:: examples/tree_pair/TreePair_render_bijection.svg
 			
-			**Example.** The output of ``TreePair("11000", "10100", "1 2 3").render_bijection()``. [:download:`Source code <examples/tree_pair/TreePair_render.py>`].
+			**Example.** The output of ``TreePair("11000", "10100", "3 2 1").render_bijection()``. [:download:`Source code <examples/tree_pair/TreePair_render.py>`].
 		"""
 		#0. Setup.
 		g = svgwrite.container.Group(class_='graph')
@@ -321,8 +336,6 @@ class TreePair:
 			**Example.** Let *f* be ``TreePair("100", "100", "2 1")`` and let *g* be ``TreePair("10100", "10100", "1 3 2")``. In terms of tree pairs, *f* exchanges the subtrees of the root; *g* does the same to the right child of the root. There are two ways to compose these elements, yielding two (in this case different) products.
 			
 			[:download:`Source code <examples/tree_pair/TreePair_mul.py>`] [:download:`Full size <examples/tree_pair/TreePair_mul.svg>`].
-		
-		
 		"""
 		# TODO: really horrible example (4 different trees and 4 messy permutations)
 		# TODO: TreePair.__str__() and __repr__()
@@ -450,7 +463,7 @@ class TreePair:
 		"""
 		x = deepcopy(self)
 		x.domain, x.range = x.range, x.domain
-		x.perm.invert()
+		x.perm = self.perm.inverse()
 		return x
 
 DEBUG_MULTIPLICATION = False
@@ -459,7 +472,36 @@ DEBUG_MULTIPLICATION = False
 def no_op(*args, **kwargs):
 	pass
 
-#TODO: random tree pair
+def random_pair(num_leaves=None):
+	"""Returns a randomly generated :class:`TreePair` with *num_leaves* leaves. If *num_leaves* is omitted, it defaults to a random integer in the range 3, ..., 8. The pair is not necessarily :meth:`reduced <TreePair.reduce>` when it is returned.
+	"""
+	if num_leaves is None:
+		num_leaves = random.randint(3, 8)
+	return TreePair(random_tree(num_leaves), random_tree(num_leaves), random_permutation(num_leaves))
+
+def render_2x2(parent, a, b, c, d, names=('a', 'b', 'c', 'd')):
+	"""Positions four tree pairs nicely into a grid."""
+	a = a.render(name = names[0])
+	b = b.render(name = names[1])
+	c = c.render(name = names[2])
+	d = d.render(name = names[3])
+	
+	x = Coord.unscaled(max(a.size.x, c.size.x), 0) + Coord(1, 0)
+	y = Coord.unscaled(0, max(a.size.y, b.size.y)) + Coord(0, 1)
+	
+	b.translate(x)
+	c.translate(y)
+	d.translate(x + y)
+	
+	parent.add(a)
+	parent.add(b)
+	parent.add(c)
+	parent.add(d)
+	
+	set_size(parent, d.size + x + y + Coord(1, 1))
+
+def render_products(parent, f, g, names=('f', 'g')):
+	render_2x2(parent, f, g, f*g, g*f, [names[0], names[1], names[0] + names[1], names[1] + names[0]])
 
 #Named TreePairs
 #TODO check these

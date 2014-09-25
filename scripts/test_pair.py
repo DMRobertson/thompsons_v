@@ -1,11 +1,8 @@
-#Naughty hack to make the thompson package importable. Adds the root directory to sys.path
-import sys
-from pathlib import Path
+from test_script import import_thompson
+dwg, canvas = setup_script(__file__)
 
-root = Path(__file__).parents[1]
-sys.path.insert(0, str(root))
-
-from thompson.tree_pair import TreePair
+from thompson.tree_pair import *
+from thompson.drawing import *
 
 id = TreePair("0", "0")
 
