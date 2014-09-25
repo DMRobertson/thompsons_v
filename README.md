@@ -40,4 +40,4 @@ Tree pair objects represent certain maps from an interval to itself. To plot the
 
 ![TreePair("11000", "10100", "1 2 3") as a bijection](https://rawgit.com/DMRobertson/thompsons_v/master/docs/examples/tree_pair/TreePair_render_bijection.svg "The function that this element represents. It maps subintervals linearly: [0, 0.25] -> [0, 0.5]; [0.25, 0.5] -> [0.5, 0.75]; [0.5, 1] -> [0.75, 1].")
 
-Tree Pairs can (in theory) be multiplied. In practise this seems to be a bit broken, so I'll have to fix it.
+Tree Pairs can be multiplied to represent the composition of functions. They can also be inverted.

@@ -13,7 +13,7 @@ from .constants import *
 from .permutation import Permutation, random_permutation
 from .trees import DrawableTree, random_tree
 
-__all__ = ['TreePair', 'random_pair', 'render_products']
+__all__ = ['TreePair', 'random_pair', 'render_2x2', 'render_products']
 
 class TreePair:
 	r"""Thompson's group :math:`V` may be described as a particular set of bijections of the interval :math:`I = [0, 1]`. In turn, these bijections can be represented as pairs of strict binary trees with some additional information. This class is responsible for keeping the three pieces together.
@@ -487,7 +487,7 @@ def random_pair(num_leaves=None):
 	return TreePair(random_tree(num_leaves), random_tree(num_leaves), random_permutation(num_leaves))
 
 def render_2x2(parent, a, b, c, d, names=('a', 'b', 'c', 'd')):
-	"""Positions four tree pairs nicely into a grid inside *parent*, an SVG container."""
+	"""Renders illustrations of four tree pairs *a*, *b, *c* and *d*. The four diagrams are aligned to a grid and added SVG group *parent*."""
 	a = a.render(name = names[0])
 	b = b.render(name = names[1])
 	c = c.render(name = names[2])

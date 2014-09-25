@@ -1,5 +1,5 @@
 """The various parameters specify how to draw trees and so on. These deal with creating and positioning elements; as much styling as possible is achieved via CSS."""
-from svgwrite import cm, em, ex
+# from svgwrite import cm, em, ex
 
 #:When drawing trees we assign integer coordinates to each node, thus positioning the tree on a grid.
 #:One grid unit is equal to this amount of `SVG units`_.
