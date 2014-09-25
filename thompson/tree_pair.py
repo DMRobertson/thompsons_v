@@ -226,7 +226,6 @@ class TreePair:
 			True
 		"""
 		d_leaves = self.domain.leaves()
-		#TODO Maybe the method that does this should belong to the permutation class?
 		r_leaves = self.range.leaves(perm=self.perm)
 		i = 0
 		#i   = 0, 1, ...., size-2 (pair indices)
@@ -358,7 +357,6 @@ class TreePair:
 		5. Else, both nodes are branches. Do nothing.
 		6. Return variables describing the current traversal state.
 		"""
-		# TODO: better description
 		if sran is None: sran = self.range;
 		if odom is None: odom = other.domain;
 		if sdom_leaves is None: sdom_leaves = self.domain.leaves(perm=self.perm.inverse())
@@ -443,8 +441,17 @@ class TreePair:
 			print("oran_leaves pop")
 		print('returning to parent')
 		return s_inserted, sdom_leaves, o_inserted, oran_leaves
+	
+	def inverse(self):
+		"""Copies this tree pair, then modifies the copy so that it's the inverse of the original pair. The inverse is returned.
 		
-#TODO: invert
+			>>> TreePair("11000", "10100", "2 3 1").inverse()
+			TreePair('10100', '11000', '3 1 2')
+		"""
+		x = deepcopy(self)
+		x.domain, x.range = x.range, x.domain
+		x.perm.invert()
+		return x
 
 DEBUG_MULTIPLICATION = False
 """Set this to ``True`` to print debug messages when :meth:`multiplying <TreePair.__mul__>` two tree pairs."""
@@ -452,7 +459,7 @@ DEBUG_MULTIPLICATION = False
 def no_op(*args, **kwargs):
 	pass
 
-
+#TODO: random tree pair
 
 #Named TreePairs
 #TODO check these
