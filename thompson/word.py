@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 class Word(list):
 	r"""Represents an element of :math:`V_{n, r}`. These are words written in the alphabet \{x_1,\dotsc, x_r, \alpha_1, \dotsc, \alpha_n, \lambda\} (Section 2.3).
 	"""
@@ -123,11 +121,20 @@ class Word(list):
 			>>> w.standardise()
 			>>> print(w)
 			x a1 a2 a2 a1
+			>>> w = Word.from_string("x a1 a2 a1 x a2 a1 L a1 a2")
+			>>> w.standardise()
+			>>> print(w)
+			x a1 a2 a1 a2
+			>>> w = Word.from_string("x a1 a2 a1 a1 x a1 a2 a1 x a2 a1 L a1 a2 a1 x a1 a2 a1 a2 a2 L L")
+			>>> w.standardise()
+			>>> print(w)
+			x a1 a2 a1
 		"""
 		subwords = []
 		i = 0
 		while i < len(self):
 			symbol = self[i]
+			print("{:2} {:2} {}".format(symbol, i, subwords))
 			if symbol > 0: #Letter
 				subwords.append([symbol])
 			
@@ -136,39 +143,62 @@ class Word(list):
 					raise ValueError("Lambda contraction expected {} args but received only {}.".format(
 						self.arity, len(subwords)
 					))
-				width = self._contract(subwords, i)
-				if width is not None:
-					del self[i - width + 1: i + 1]
-					i -= width + 1 #subtract 1: loop will add one on at the end
+				#Peek ahead: is the lambda immediately followed by an alpha?
+				next = self[i+1] if i + 1 < len(self) else 0
+				if next < 0:
+					print('extract')
+					i = self._extract(subwords, i, -next)
+				else:
+					print('contract')
+					i = self._contract(subwords, i)
+				print(i)
 			
 			else: #Alpha
 				subwords[-1].append(symbol)
 				
 			i += 1
 	
+	def _extract(self, subwords, lambda_position, next):
+		"""If we find a lambda followed by an alpha, replace the lambda, the alpha and the lambda's arguments by argument #*next*.
+		
+		:return: Returns one less than what the value of i should be on the next iteration."""
+		start = lambda_position - sum(len(list) for list in subwords[-self.arity:])
+		extracted = subwords[-self.arity + next - 1]
+		
+		del subwords[-self.arity + 1:]
+		subwords[-1] = extracted
+		self[start:lambda_position + 2] = extracted
+		return start + len(extracted) - 1
+		
 	def _contract(self, subwords, lambda_position):
 		"""Attempts to contract the last *n* words in *subwords*, where *n* is the current word's arity.
 		
-		Returns the difference between the word's length before and after contraction.
+		Returns one less than what the value of i should be on the next iteration.
 		"""
-		start = subwords[-self.arity][:-1]
-		assert start[0] > 0 #is a letter
-		len_start = len(start)
+		start = lambda_position - sum(len(list) for list in subwords[-self.arity:])
+		prefix = subwords[-self.arity][:-1]
+		assert prefix[0] > 0 #is a letter
+		len_prefix = len(prefix)
 		invalid = False
 		
 		for j, word in enumerate(subwords[-self.arity:]):
-			if not (len(word) == len_start + 1
-			  and word[:len_start] == start
+			if not (len(word) == len_prefix + 1
+			  and word[:len_prefix] == prefix
 			  and word[-1] == -(j + 1)): #alpha_{j+1}
 				invalid = True
 				break
 		
 		if invalid:
-			subwords[-self.arity] = sum(subwords[-self.arity:]) 
+			subwords[-self.arity] = sum(subwords[-self.arity:])
 			del subwords[-self.arity + 1:]
-			return None
+			return lambda_position
+		
 		else:
-			subwords[-self.arity] = start
+			subwords[-self.arity] = prefix
 			del subwords[-self.arity + 1:]
-			width = len(start) * (self.arity - 1) + self.arity + 1
-			return width
+			self[start:lambda_position + 1] = prefix
+			return start + len_prefix - 1
+
+w = Word.from_string("x a1 a2 a1 x a1 a2 a1 x a2 a1 L a1 a2 a1 x a1 a2 a1 a2 a2 L L")
+w.standardise()
+print(w)
