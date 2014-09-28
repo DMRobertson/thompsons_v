@@ -1,8 +1,16 @@
+"""
+.. testsetup:: 
+	
+	from thompson.word import *
+"""
+
+from itertools import chain
+
 class Word(list):
-	r"""Represents an element of :math:`V_{n, r}`. These are words written in the alphabet \{x_1,\dotsc, x_r, \alpha_1, \dotsc, \alpha_n, \lambda\} (Section 2.3).
+	r"""Represents an element of the algebra :math:`V_{n, r}`. This consists of words written in the alphabet :math:`\{x_1,\dotsc, x_r, \alpha_1, \dotsc, \alpha_n, \lambda\}`. See Remark 3.3.
 	"""
 	def __init__(self, arity, alphabet_size):
-		r"""When creating a word, you must specify the arity *n* and the forest size *r*."""
+		r"""When creating a word manually, you must specify the arity *n* and the number of :math:`x_i`, *r*."""
 		super().__init__(self)
 		
 		self.arity = arity
@@ -21,7 +29,7 @@ class Word(list):
 		self.append(index)
 		return self
 	
-	x = letter
+	# x = letter
 	
 	def descend(self, index, power=1):
 		r"""Writes the descend operator :math:`\alpha_\text{index}` at the end of this word *power* times.
@@ -33,25 +41,28 @@ class Word(list):
 			self.append(-index)
 		return self
 	
-	alpha = descend
+	# alpha = descend
 	
 	def contract(self):
 		r"""Writes the contraction operator :math:`\lambda` at the end of this word."""
 		self.append(0)
 		return self
 	
-	lambda_ = contract
+	# lambda_ = contract
 	
 	@classmethod
 	def from_string(cls, str, arity = 2, alphabet_size = 1):
-		"""Creates a word object from a space separated string of letters. The *arity* and *alphabet_size* are determined automatically, but they can be overridden if necessary. No validation is performed on the new word object.
+		"""Creates a word object from a space separated string of letters. The *arity* and *alphabet_size* are automatically chosen to be as small as necessary, but they can be overridden if necessary. No :meth:`validation <validate>` is performed on the new word object.
 		
 			>>> w = Word.from_string("x a1 a1 a1 x a1 a1 a2 L a2")
 			>>> print(w)
 			x a1 a1 a1 x a1 a1 a2 L a2
 		
+		:raises ValueError: if the first symbol is not a letter :math:`x_i`.
 		"""
 		output = str.lower().split()
+		if output[0][0] != 'x':
+			raise ValueError("First symbol ({}) was not a letter x_i.".format(output[0]))
 		for i, string in enumerate(output):
 			char = string[0]
 			if char in 'x':
@@ -70,6 +81,28 @@ class Word(list):
 	
 	def __str__(self):
 		return " ".join(self._char(i) for i in self)
+	
+	def __lt__(self, other):
+		r"""Words are compared according to dictionary order (after reduction to :meth:`standard form <standardise>`). The alphabet :math:`X \cup \Omega` is ordered according to:
+		
+		..math :: \dots < \alpha_2 < \alpha_1 < \lambda < x_1 < x_2 < \dots
+		"""
+		#TODO examples and doctests
+		if not isinstance(other, Word):
+			return NotImplemented
+		
+		self.standardise()
+		other.standardise()
+		
+		for s, o in zip(self, other):
+			if s == o:
+				continue
+			if s < 0 and o < 0: #two alphas
+				#self < o iff the index for s is less than the index for o
+				return -s < -o
+			return s < 0
+		
+		return False
 	
 	def _char(self, symbol):
 		if symbol > 0:
@@ -113,14 +146,15 @@ class Word(list):
 			return 1 - self.arity
 	
 	def standardise(self):
-		"""Reduces this word to its standard form as defined in Rem 3.3.
-		:raises IndexError: if the first character is not a letter x_i.
-		:raises ValueError: if a lambda is found with insufficient arguments to its left.
+		r"""Reduces this word to its standard form as defined in Rem 3.3.
 		
-			>>> w = Word.from_string("x a1 a2 a1 x a1 a2 a2 L a2 a1")
+		:raises IndexError: if the first character is not a letter :math:`x_i`.
+		:raises ValueError: if a :math:`\lambda` is found with insufficient arguments to its left.
+		
+			>>> w = Word.from_string("x2 a1 a2 a1 x2 a1 a2 a2 L a2 a1")
 			>>> w.standardise()
 			>>> print(w)
-			x a1 a2 a2 a1
+			x2 a1 a2 a2 a1
 			>>> w = Word.from_string("x a1 a2 a1 x a2 a1 L a1 a2")
 			>>> w.standardise()
 			>>> print(w)
@@ -129,12 +163,17 @@ class Word(list):
 			>>> w.standardise()
 			>>> print(w)
 			x a1 a2 a1
+			>>> w = Word.from_string("x a1 a2 a1 x a1 a2 a1 x a2 a1 L a1 a2 a1 x a1 a2 a1 a2 a2 L L")
+			>>> w.standardise()
+			>>> print(w)
+			x a1 a2 a1 x a1 a2 a1 a2 L
 		"""
+		#TODO: an internal _is_standardised flag
 		subwords = []
 		i = 0
 		while i < len(self):
 			symbol = self[i]
-			print("{:2} {:2} {}".format(symbol, i, subwords))
+			# print("{:2} {:2} {}".format(symbol, i, subwords))
 			if symbol > 0: #Letter
 				subwords.append([symbol])
 			
@@ -146,12 +185,11 @@ class Word(list):
 				#Peek ahead: is the lambda immediately followed by an alpha?
 				next = self[i+1] if i + 1 < len(self) else 0
 				if next < 0:
-					print('extract')
+					# print('extract')
 					i = self._extract(subwords, i, -next)
 				else:
-					print('contract')
+					# print('contract')
 					i = self._contract(subwords, i)
-				print(i)
 			
 			else: #Alpha
 				subwords[-1].append(symbol)
@@ -169,36 +207,73 @@ class Word(list):
 		subwords[-1] = extracted
 		self[start:lambda_position + 2] = extracted
 		return start + len(extracted) - 1
+	
+	@classmethod
+	def are_contractible(cls, words):
+		r"""Tests to see if *words* is a list of the form :math:`(w\alpha_1, \dotsc, w\alpha_n)`.
 		
+		:return: :math:`w` if the test passes; ``None`` if the test fails.
+		"""
+		prefix = words[0][:-1]
+		assert prefix[0] > 0  #is a letter
+		expected_length = len(prefix) + 1
+		
+		for j, word in enumerate(words):
+			if not (
+			  len(word) == expected_length
+			  and word[:len(prefix)] == prefix
+			  and word[-1] == -j - 1): #alpha_{j+1}
+				return None
+		return prefix
+	
 	def _contract(self, subwords, lambda_position):
 		"""Attempts to contract the last *n* words in *subwords*, where *n* is the current word's arity.
 		
 		Returns one less than what the value of i should be on the next iteration.
 		"""
-		start = lambda_position - sum(len(list) for list in subwords[-self.arity:])
-		prefix = subwords[-self.arity][:-1]
-		assert prefix[0] > 0 #is a letter
-		len_prefix = len(prefix)
-		invalid = False
+		inspected = subwords[-self.arity:]
+		start = lambda_position - sum(len(list) for list in inspected)
+		prefix = Word.are_contractible(inspected, self.arity)
 		
-		for j, word in enumerate(subwords[-self.arity:]):
-			if not (len(word) == len_prefix + 1
-			  and word[:len_prefix] == prefix
-			  and word[-1] == -(j + 1)): #alpha_{j+1}
-				invalid = True
-				break
-		
-		if invalid:
-			subwords[-self.arity] = sum(subwords[-self.arity:])
-			del subwords[-self.arity + 1:]
-			return lambda_position
-		
-		else:
+		if prefix is not None:
+			#TODO: The lambda call is not of the form ua1, ua2, ..., uan, lambda, and the next symbol is NOT an alpha.
+			#I think there's no way this can be reduced further.
 			subwords[-self.arity] = prefix
 			del subwords[-self.arity + 1:]
-			self[start:lambda_position + 1] = prefix
-			return start + len_prefix - 1
-
-w = Word.from_string("x a1 a2 a1 x a1 a2 a1 x a2 a1 L a1 a2 a1 x a1 a2 a1 a2 a2 L L")
-w.standardise()
-print(w)
+			self[start : lambda_position + 1] = prefix
+			return start + len(prefix) - 1
+		else:
+			#We can contract the last *arity* words.
+			subwords[-self.arity] = chain.from_iterable(inspected)
+			del subwords[-self.arity + 1:]
+			return lambda_position
+	
+	@classmethod
+	def initial_segment(cls, u, v):
+		r"""Returns True if :math:`u` is an initial segment of :math:`v` or vice versa; otherwise returns False.
+		
+		Def 3.15: :math:`u` is an initial segment of :math:`v` if :math:`v = u\Gamma`, where :math:`\Gamma` is some string of alphas. Call :math:`u` a *proper* initial segment of :math:`v` if :math:`\Gamma` is not the empty string, *i.e.* if :math:`u \neq v`.
+		
+			>>> #completely different words
+			>>> u = Word.from_string("x1 a2 a1 a1 a2")
+			>>> v = Word.from_string("x2 a1 a2 a1 a2")
+			>>> Word.initial_segment(u, v)
+			False
+			>>> #v starts with u
+			>>> u = Word.from_string("x a1 a1 x2 a1 a2 L a1 a2")
+			>>> v = Word.from_string("x a1 a1 a2 a2 a1")
+			>>> Word.initial_segment(u, v)
+			True
+			>>> #v starts with u but has a lambda contraction later
+			>>> u = Word.from_string("x a1 a2")
+			>>> v = Word.from_string("x a1 a2 x a2 a2 L")
+			>>> Word.initial_segment(u, v)
+			False
+		"""
+		if len(u) > len(v):
+			u, v = v, u
+		u.standardise()
+		v.standardise()
+		return all(a == b for a, b in zip(u, v)) and all(b < 0 for b in v[len(u):])
+		
+			

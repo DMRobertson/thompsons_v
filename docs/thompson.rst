@@ -6,11 +6,14 @@ Submodules
 
 .. toctree::
 
+   thompson.automorphism
    thompson.constants
    thompson.drawing
+   thompson.generators
    thompson.permutation
    thompson.tree_pair
    thompson.trees
+   thompson.word
 
 Module contents
 ---------------
