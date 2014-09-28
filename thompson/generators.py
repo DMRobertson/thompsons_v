@@ -1,5 +1,3 @@
-from copy import copy
-
 from .word import Word
 
 class Generators:
@@ -13,7 +11,6 @@ class Generators:
 		"""When creating a generating set, you must specify the algebra :math:`V_{n, r}` it belongs to."""
 		self.arity = arity
 		self.alphabet_size = alphabet_size
-		self._string_cache = set()
 		self._words = []
 	
 	def append(self, word):
@@ -34,7 +31,7 @@ class Generators:
 			  .format(word, word.arity, self.arity))
 		
 		if word.alphabet_size > alphabet_size:
-			raise ValueError("Word {} has alphabet size {}, but generating set has alphabet size {}.".
+			raise ValueError("Can't add {} with alphabet size {} to generating set with alphabet size {}.".
 			  .format(word, word.alphabet_size, alphabet_size))
 		
 		if word not in self._words:
