@@ -9,6 +9,7 @@ from itertools import chain
 class Word(list):
 	r"""Represents an element of the algebra :math:`V_{n, r}`. This consists of words written in the alphabet :math:`\{x_1,\dotsc, x_r, \alpha_1, \dotsc, \alpha_n, \lambda\}`. See Remark 3.3.
 	"""
+	#TODO is this really needed?
 	def __init__(self, arity, alphabet_size):
 		r"""When creating a word manually, you must specify the arity *n* and the number of :math:`x_i`, *r*."""
 		super().__init__(self)
@@ -49,101 +50,6 @@ class Word(list):
 		return self
 	
 	# lambda_ = contract
-	
-	@classmethod
-	def from_string(cls, str, arity = 2, alphabet_size = 1):
-		"""Creates a word object from a space separated string of letters. The *arity* and *alphabet_size* are automatically chosen to be as small as necessary, but they can be overridden if necessary. No :meth:`validation <validate>` is performed on the new word object.
-		
-			>>> w = Word.from_string("x a1 a1 a1 x a1 a1 a2 L a2")
-			>>> print(w)
-			x a1 a1 a1 x a1 a1 a2 L a2
-		
-		:raises ValueError: if the first symbol is not a letter :math:`x_i`.
-		"""
-		output = str.lower().split()
-		if output[0][0] != 'x':
-			raise ValueError("First symbol ({}) was not a letter x_i.".format(output[0]))
-		for i, string in enumerate(output):
-			char = string[0]
-			if char in 'x':
-				value = 1 if len(string) == 1 else int(string[1:])
-				alphabet_size = max(alphabet_size, value)
-				output[i] = value
-			elif char in 'a':
-				value = int(string[1:])
-				arity = max(arity, value)
-				output[i] = -value
-			elif char in 'l': #ell for lambda
-				output[i] = 0
-		result = cls(arity, alphabet_size)
-		result.extend(output)
-		return result
-	
-	def __str__(self):
-		return " ".join(self._char(i) for i in self)
-	
-	def __lt__(self, other):
-		r"""Words are compared according to dictionary order (after reduction to :meth:`standard form <standardise>`). The alphabet :math:`X \cup \Omega` is ordered according to:
-		
-		..math :: \dots < \alpha_2 < \alpha_1 < \lambda < x_1 < x_2 < \dots
-		"""
-		#TODO examples and doctests
-		if not isinstance(other, Word):
-			return NotImplemented
-		
-		self.standardise()
-		other.standardise()
-		
-		for s, o in zip(self, other):
-			if s == o:
-				continue
-			if s < 0 and o < 0: #two alphas
-				#self < o iff the index for s is less than the index for o
-				return -s < -o
-			return s < 0
-		
-		return False
-	
-	def _char(self, symbol):
-		if symbol > 0:
-			if self.alphabet_size == 1:
-				return 'x'
-			return 'x' + str(symbol)
-		elif symbol < 0:
-			return 'a' + str(-symbol)
-		elif symbol == 0:
-			return 'L'
-	
-	def validate(self):
-		"""Raises a ValueError if this word is invalid. (Prop 2.12)
-		
-			>>> w = Word.from_string("x a1 a2 L")
-			>>> w.validate()
-			Traceback (most recent call last):
-				...
-			ValueError: Word is invalid at symbol #4 (L).
-			>>> w = Word.from_string("x a1 a2 x a2")
-			>>> w.validate()
-			Traceback (most recent call last):
-				...
-			ValueError: Word is invalid: valency is 2 (should be 1).
-		"""
-		valency = 0
-		for i, symbol in enumerate(self):
-			valency += self._valency_of(symbol)
-			if valency <= 0:
-				raise ValueError("Word is invalid at symbol #{} ({}).".format(i+1, self._char(symbol)))
-		if valency != 1:
-			raise ValueError("Word is invalid: valency is {} (should be 1).".format(valency))
-	
-	def _valency_of(self, symbol):
-		"""Returns the valency of a symbol as per Def 2.11."""
-		if symbol > 0: #letter x_i
-			return 1
-		if symbol < 0: #descenders alpha
-			return 0
-		if symbol == 0:#contractor lambda
-			return 1 - self.arity
 	
 	def standardise(self):
 		r"""Reduces this word to its standard form as defined in Rem 3.3.
@@ -233,7 +139,7 @@ class Word(list):
 		"""
 		inspected = subwords[-self.arity:]
 		start = lambda_position - sum(len(list) for list in inspected)
-		prefix = Word.are_contractible(inspected, self.arity)
+		prefix = Word.are_contractible(inspected)
 		
 		if prefix is not None:
 			#TODO: The lambda call is not of the form ua1, ua2, ..., uan, lambda, and the next symbol is NOT an alpha.
@@ -247,6 +153,115 @@ class Word(list):
 			subwords[-self.arity] = chain.from_iterable(inspected)
 			del subwords[-self.arity + 1:]
 			return lambda_position
+	
+	@classmethod
+	def from_string(cls, str, arity = 2, alphabet_size = 1):
+		"""Creates a word object from a space separated string of letters. The *arity* and *alphabet_size* are automatically chosen to be as small as necessary, but they can be overridden if necessary. No :meth:`validation <validate>` is performed on the new word object.
+		
+			>>> w = Word.from_string("x a1 a1 a1 x a1 a1 a2 L a2")
+			>>> print(w)
+			x a1 a1 a1 x a1 a1 a2 L a2
+		
+		:raises ValueError: if the first symbol is not a letter :math:`x_i`.
+		"""
+		output = str.lower().split()
+		if output[0][0] != 'x':
+			raise ValueError("First symbol ({}) was not a letter x_i.".format(output[0]))
+		for i, string in enumerate(output):
+			char = string[0]
+			if char in 'x':
+				value = 1 if len(string) == 1 else int(string[1:])
+				alphabet_size = max(alphabet_size, value)
+				output[i] = value
+			elif char in 'a':
+				value = int(string[1:])
+				arity = max(arity, value)
+				output[i] = -value
+			elif char in 'l': #ell for lambda
+				output[i] = 0
+		result = cls(arity, alphabet_size)
+		result.extend(output)
+		return result
+	
+	def __str__(self):
+		"""Returns a string representation of this word. Passing the result into :meth:`from_string` will yield the original word. **NB:** words are not standardised before they are converted to a string."""
+		return " ".join(self._char(i) for i in self)
+	
+	def _char(self, symbol):
+		if symbol > 0:
+			if self.alphabet_size == 1:
+				return 'x'
+			return 'x' + str(symbol)
+		elif symbol < 0:
+			return 'a' + str(-symbol)
+		elif symbol == 0:
+			return 'L'
+	
+	def __lt__(self, other):
+		r"""Words are compared according to dictionary order (after reduction to :meth:`standard form <standardise>`). The alphabet :math:`X \cup \Omega` is ordered according to:
+		
+		..math :: \dots < \alpha_2 < \alpha_1 < \lambda < x_1 < x_2 < \dots
+		"""
+		#TODO examples and doctests
+		if not isinstance(other, Word):
+			return NotImplemented
+		
+		self.standardise()
+		other.standardise()
+		
+		for s, o in zip(self, other):
+			if s == o:
+				continue
+			if s < 0 and o < 0: #two alphas
+				#self < o iff the index for s is less than the index for o
+				return -s < -o
+			return s < 0
+		
+		return False
+	
+	def __eq__(self, other):
+		"""Words are standardised before testing for equality."""
+		if not isinstance(other, Word):
+			return NotImplemented
+		self.standardise()
+		other.standardise()
+		return super().__eq__(self, other)
+	
+	def __ne__(self, other):
+		if not isinstance(other, Word):
+			return NotImplemented
+		return not self.__eq__(other)
+	
+	def validate(self):
+		"""Raises a ValueError if this word fails the valency test. (Prop 2.12)
+		
+			>>> w = Word.from_string("x a1 a2 L")
+			>>> w.validate()
+			Traceback (most recent call last):
+				...
+			ValueError: Word is invalid at symbol #4 (L).
+			>>> w = Word.from_string("x a1 a2 x a2")
+			>>> w.validate()
+			Traceback (most recent call last):
+				...
+			ValueError: Word is invalid: valency is 2 (should be 1).
+		"""
+		valency = 0
+		for i, symbol in enumerate(self):
+			valency += self._valency_of(symbol)
+			if valency <= 0:
+				raise ValueError("Word is invalid at symbol #{} ({}).".format(i+1, self._char(symbol)))
+		if valency != 1:
+			raise ValueError("Word is invalid: valency is {} (should be 1).".format(valency))
+	
+	def _valency_of(self, symbol):
+		"""Returns the valency of a symbol as per Def 2.11."""
+		if symbol > 0: #letter x_i
+			return 1
+		if symbol < 0: #descenders alpha
+			return 0
+		if symbol == 0:#contractor lambda
+			return 1 - self.arity
 	
 	@classmethod
 	def initial_segment(cls, u, v):
