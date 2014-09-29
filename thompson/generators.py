@@ -28,8 +28,8 @@ class Generators(list):
 		"""Adds *w* to this generating set. If *w* is a string, a :class:`Word` object is created and assigned the same arity and alphabet_size as the generating set.
 		
 		:raises TypeError: if *w* is neither a string nor a Word.
-		:raises ValueError: if *w* has a different arity to the generating set.
-		:raises ValueError: if *w* has a larger alphabet_size the generating set.
+		:raises IndexError: if *w* has a different arity to the generating set.
+		:raises IndexError: if *w* has a larger alphabet_size the generating set.
 		:raises ValueError: if *w* is already contained in this generating set.
 		"""
 		if isinstance(w, str):
@@ -38,11 +38,11 @@ class Generators(list):
 			raise TypeError("{:r} is neither a string nor a Word.".format(w))
 		
 		if w.arity != self.arity:
-			raise ValueError("Can't add {} with arity {} to generating set with arity {}."
+			raise IndexError("Can't add {} with arity {} to generating set with arity {}."
 			  .format(w, w.arity, self.arity))
 		
 		if w.alphabet_size > self.alphabet_size:
-			raise ValueError("Can't add {} with alphabet size {} to generating set with alphabet size {}.".format(
+			raise IndexError("Can't add {} with alphabet size {} to generating set with alphabet size {}.".format(
 			  w, w.alphabet_size, self.alphabet_size))
 		#else: modify the alphabet size?
 		
@@ -142,4 +142,18 @@ class Generators(list):
 		for i in range(1, alphabet_size + 1):
 			output.append(Word([i], arity, alphabet_size))
 		return output
+	
+	def expand(self, index):
+		r"""Replaces the word :math`w` at index *index* with its children, :math:`w\alpha1, \dotsc, w\alpha_n`, where :math`n` is the arity of the generating set.
+		
+			>>> g = Generators.standard_basis(3, 1); g
+			Generators(3, 1, ['x1'])
+			>>> g.expand(0); g
+			Generators(3, 1, ['x1 a1', 'x1 a2', 'x1 a3'])
+			>>> g.expand(1); g
+			Generators(3, 1, ['x1 a1', 'x1 a2 a1', 'x1 a2 a2', 'x1 a2 a3', 'x1 a3'])
+			
+			:raises IndexError: if there is no generator at index *index*.
+		"""
+		self[index: index+1] = [self[index].alpha(i) for i in range(1, self.arity+1)]
 

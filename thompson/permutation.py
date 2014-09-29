@@ -358,9 +358,8 @@ class Permutation:
 	def expand_domain(self, index, to_width):
 		r"""Expands the rule that index -> self[index] into *to_width* different rules: index -> self[index], index + 1 -> self[index] + 1, ...; then adjusts the labels used by the permutation to ensure it is still a bijection. This is used by :meth:`~thompson.tree_pair.TreePair.expand` when expanding a leaf into a caret for multiplication.
 		
-		:raises ValueError:
-		- if *index* is not in the range 1...permutation.size
-		- if *to_width* is less than 2.
+		:raises IndexError: if *index* is not in the range 1...permutation.size
+		:raises ValueError: if *to_width* is less than 2.
 		
 		**Example**. Suppose we begin with ``Permutation("3 4 5 2 1")`` and suppose we expands the image of 2 to a width of 3.
 		We replace the symbol 2 by three copies (colored red) and assign images to them, counting up from the image of 2 (coloured blue). The twos are relabelled by integers, and the other indices are increased by 2 to compensate. To finish, we increase all original images which are greater than 5 by 2 (those in green) so that we have a bijection of {1, ..., 7}.
@@ -404,10 +403,10 @@ class Permutation:
 			>>> z.expand_domain(100, to_width=2)
 			Traceback (most recent call last):
 				...
-			ValueError: Index argument (100) not in range 1 to 8.
+			IndexError: Index argument (100) not in range 1 to 8.
 		"""
 		if not 1 <= index <= self.size:
-			raise ValueError("Index argument ({}) not in range 1 to {}.".format(index, self.size))
+			raise IndexError("Index argument ({}) not in range 1 to {}.".format(index, self.size))
 		if to_width < 2:
 			raise ValueError("Width argument must be at least 2 (received {}).".format(to_width))
 		image = self[index]
@@ -428,7 +427,7 @@ class Permutation:
 			>>> x.expand_range(4, to_width=4); x
 			Permutation('8 4 5 6 7 3 2 1')
 		
-		:raises ValueError: see :meth:`expand_domain`'s error conditions.
+		See :meth:`expand_domain`'s for the exceptions that can be raised.
 		"""
 		index = self.output.index(value) + 1
 		self.expand_domain(index, to_width)

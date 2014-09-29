@@ -40,11 +40,11 @@ def validate(letters, arity, alphabet_size=float('inf')):
 		>>> validate(from_string('x1 a2 x12 a1 a2 L'), arity=2, alphabet_size=4)
 		Traceback (most recent call last):
 			...
-		ValueError: Letter x12 at index 2 is not in the alphabet (maximum is x4).
+		IndexError: Letter x12 at index 2 is not in the alphabet (maximum is x4).
 		>>> validate(from_string('x1 a1 a2 a3 a4 a5 x2 a2 L'), arity=3)
 		Traceback (most recent call last):
 			...
-		ValueError: Letter a4 at index 4 is not in the alphabet (maximum is a3).
+		IndexError: Letter a4 at index 4 is not in the alphabet (maximum is a3).
 		>>> validate(from_string('x1 a2 L'), arity=4)
 		Traceback (most recent call last):
 			...
@@ -55,8 +55,8 @@ def validate(letters, arity, alphabet_size=float('inf')):
 		ValueError: Word is invalid: valency is 2 (should be 1).
 	
 	:raises ValueError: if this word fails the valency test (prop 2.12).
-	:raises ValueError: if this word contains an :math:`x_i` outside of the range 1 ... *alphabet_size*
-	:raises ValueError: if this word contains an :math:`\alpha_i` outside of the range 1 ... *arity*
+	:raises IndexError: if this word contains an :math:`x_i` outside of the range 1 ... *alphabet_size*
+	:raises IndexError: if this word contains an :math:`\alpha_i` outside of the range 1 ... *arity*
 	"""
 	symbol = letters[0]
 	if symbol < 0:
@@ -65,10 +65,10 @@ def validate(letters, arity, alphabet_size=float('inf')):
 	valency = 0
 	for i, symbol in enumerate(letters):
 		if symbol > alphabet_size:
-			raise ValueError("Letter {} at index {} is not in the alphabet (maximum is x{}).".format(
+			raise IndexError("Letter {} at index {} is not in the alphabet (maximum is x{}).".format(
 			  _char(symbol), i, alphabet_size))
 		if symbol < -arity:
-			raise ValueError("Letter {} at index {} is not in the alphabet (maximum is a{}).".format(
+			raise IndexError("Letter {} at index {} is not in the alphabet (maximum is a{}).".format(
 			  _char(symbol), i, arity))
 		valency += _valency_of(symbol, arity)
 		if valency <= 0:
@@ -229,7 +229,7 @@ class Word(tuple):
 			Word('x1 a1 a2 a1', 3, 2)
 		
 		:raises TypeError: if *letters* is neither a string nor a list.
-		:raises ValueError: see the errors raised by :func:`validate`.
+		See also the errors raised by :func:`validate`.
 		"""
 		return cls._internal_new(letters, arity, alphabet_size)
 	
@@ -305,6 +305,20 @@ class Word(tuple):
 			return False #same word
 		return comparison(len(self), len(other))
 	
+	#Modifiers
+	def alpha(self, index):
+		"""Let :math:`w` stand for the current word. This method creates and returns a new word :math:`w\alpha_\text{index}`.
+		
+			>>> Word("x a1 a2", 3, 2).alpha(3)
+			Word('x1 a1 a2 a3', 3, 2)
+		
+		:raises IndexError: if *index* is not in the range 1...*w.arity*
+		"""
+		if not 1 <= index <= self.arity:
+			raise IndexError("Index ({}) is not in the range 1...{}".format(
+			  index, self.arity))
+		return type(self)._internal_new(self + (-index,), self.arity, self.alphabet_size, preprocess=False)
+
 #Actually interesting operations
 def initial_segment(u, v):
 	r"""Let :math:`u, v` be two words in standard form. This function returns True if :math:`u` is an initial segment of :math:`v` or vice versa; otherwise returns False. See definition 3.15.

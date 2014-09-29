@@ -18,7 +18,7 @@ class Automorphism:
 			.. math:: \text{domain}_i \mapsto \text{range}_i \mapsto \text{range}_{\text{perm}(i)}
 		
 		:raises ValueError: if the bases are of different sizes.
-		:raises ValueError: if the bases have different arities or alphabet sizes.
+		:raises IndexError: if the bases have different arities or alphabet sizes.
 		:raises ValueError: if either basis isn't actually a basis, i.e. is not a :meth:`free generating set <Generator.is_free>` or does not :meth:`contract to the standard basis <is_basis>`.
 		"""
 		
@@ -28,11 +28,11 @@ class Automorphism:
 			  len(domain), len(range)))
 		
 		if not(arity == domain.arity == range.arity):
-			raise ValueError("Arities do not match. Expected: {}, Domain: {}, Range: {}".format(
+			raise IndexError("Arities do not match. Expected: {}, Domain: {}, Range: {}".format(
 			  arity, domain.arity, range.arity))
 		
 		if not(alphabet_size == domain.alphabet_size == range.alphabet_size):
-			raise ValueError("Alphabet sizes do not match. Expected: {}, Domain: {}, Range: {}".format(
+			raise IndexError("Alphabet sizes do not match. Expected: {}, Domain: {}, Range: {}".format(
 			  alphabet_size, domain.alphabet_size, range.alphabet_size))
 		
 		#Check to see that the two generating sets given are free
@@ -61,7 +61,7 @@ class Automorphism:
 		self.alphabet_size = alphabet_size
 		self.domain = domain
 		self.range = range
-		
+	
 	def to_quasinormal_form(self):
 		pass
 	
