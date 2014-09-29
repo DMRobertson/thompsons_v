@@ -139,4 +139,34 @@ class Automorphism:
 		"""
 		pass
 		#TODO. next step is to be able to compute psi
+		"""Rough sketch of details
+		1. make word class store the lambda length. Define method is simple-> lambda-length == 0. (Define word.__slots__ maybe?)
+		2. automorphism[word]:
+			try return self._dict[word]
+			otherwise if word is simple: (**)
+				chop it into head, tail
+				reduce length of head until head in self._dict
+				word -> self[head] + tail
+			otherwise go backwards in the string
+				is not simple so has a lambda. Tail can't be lambda <alphas> (word class reduces these).
+				So must end with lambda.
+				create a k-ary tree. (|||)
+					children -> arguments to lambda
+					if image of corresp. word is cached in _dict
+						data -> image
+					else data -> None; mark the node as unmapped 
+			
+			while we have unmapped nodes:
+				if the unmapped node is simple, use the same process as (**) to find its image.
+				else it ends in a lambda. Go to (|||)
+			
+			
+			now all nodes are mapped
+				have a tree of lambda contractions after 
+				try to reduce this tree
+				(or concatenate everything and shove it into Word())
+				(maybe this is how word() should work...)
+			
+		
+		"""
 	
