@@ -14,7 +14,7 @@ class Generators:
 		self._words = []
 	
 	def append(self, word):
-		"""Adds *word* to this generating set. If *word* is a string, it is passed to :meth:`~thompson.word.Word.from_string`to form a :class:`Word`.
+		"""Adds *word* to this generating set. If *word* is a string, a :class:`Word` object is created and assigned the same arity and alphabet_size as the generating set.
 		
 		:raises TypeError: if *word* is neither a string nor a Word.
 		:raises ValueError: if one of the *words* has a different arity to the generating set.
@@ -22,7 +22,7 @@ class Generators:
 		:raises ValueError: if *word* is already contained in this generating set.
 		"""
 		if isinstance(word, str):
-			word = Word.from_string(word)
+			word = Word(word, self.arity, self.size)
 		elif not isinstance(word, Word):
 			raise TypeError("{:r} is neither a string nor a Word.".format(word))
 		
@@ -30,9 +30,9 @@ class Generators:
 			raise ValueError("Can't add {} with arity {} to generating set with arity {}."
 			  .format(word, word.arity, self.arity))
 		
-		if word.alphabet_size > alphabet_size:
-			raise ValueError("Can't add {} with alphabet size {} to generating set with alphabet size {}.".
-			  .format(word, word.alphabet_size, alphabet_size))
+		if word.alphabet_size > self.alphabet_size:
+			raise ValueError("Can't add {} with alphabet size {} to generating set with alphabet size {}.".format(
+			  word, word.alphabet_size, self.alphabet_size))
 		
 		if word not in self._words:
 			self._words.append(word)

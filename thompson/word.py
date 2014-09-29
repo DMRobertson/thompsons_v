@@ -8,9 +8,12 @@ r"""The algebra :math:`V_{n, r}` consists of words written in the alphabet :math
 	
 	from thompson.word import *
 """
+
+import operator
+
 from itertools import chain
 
-__all__ = ["format", "validate", "standardise", "are_contractible", "from_string", "Word"]
+__all__ = ["format", "validate", "standardise", "are_contractible", "from_string", "format", "Word"]
 
 def _char(symbol):
 	if symbol > 0:
@@ -151,11 +154,11 @@ def are_contractible(words):
 	
 	**NB:** If there is a prefix :math:`w`, this function does **not** check to see if x :func:`is a valid word <validate>`.
 	
-		>>> are_contractible([Word("x a1 a2 a3 a1", 3, 1), Word("x a1 a2 a3 a2", 3, 1), Word("x a1 a2 a3 a3", 3, 1)])
-		(1, -1, -2, -3)
+		>>> prefix = are_contractible([Word("x a1 a2 a3 a1", 3, 1), Word("x a1 a2 a3 a2", 3, 1), Word("x a1 a2 a3 a3", 3, 1)])
+		>>> format(prefix)
+		'x1 a1 a2 a3'
 	"""
-	#TODO Slicing a Word gives a tuple. One the one hand, this is saying that "this won't neccesarily be a word", and Word objects are supposed to be fixed in standard form. That makes sense. But it would be convenient for this example to return a word. Then again, this function knows nothing of arity and alphabet size, so it can't generate a word.
-	#Probably best to export word.__str__ to a module function and use this in the example.
+	#REMARK. Slicing a Word gives a tuple. This came about as a consequence of inheriting from tuple, but it makes sense.  Word objects are supposed to be fixed in standard form, and having a tuple instead of a word says that "this won't neccesarily be a word".
 	prefix = words[0][:-1]
 	if len(prefix) == 0:
 		return None
@@ -212,23 +215,21 @@ def format(letters):
 	return " ".join(_char(i) for i in letters)
 
 class Word(tuple):
-	r"""Represents an element of the algebra :math:`V_{n, r}`. This consists of words written in the alphabet :math:`\{x_1,\dotsc, x_r, \alpha_1, \dotsc, \alpha_n, \lambda\}`---see Remark 3.3.
-	
-	Words are implemented as subclasses of :func:`tuple <py3:tuple>` meaning they are immutable.
+	r"""A list of letters, together with a recorded *arity* and *alphabet_size*. Words are implemented as subclasses of :func:`tuple <py3:tuple>` meaning they are immutable.
 	
 	:ivar arity: :math:`n`, the number of operators :math:`\alpha_i`.
 	:ivar alphabet_size: :math:`r`, the number of letters :math:`x_i`.
 	"""
 	#Creation
 	def __new__(cls, letters, arity, alphabet_size):
-		"""Creates a new Word from a list of integers representing letters. The arity and alphabet size are stored. 
+		"""Creates a new Word from a list of letters and stores the *arity* and *alphabet_size*. 
 		The word's *letters* may be given as a list of integers or as a string (which is passed to the :func:from_string: function). Words are :func:`validated <validate>` and :func:`reduced to standard form <standardise>` before they are stored as a tuple.
-		
-		:raises TypeError: if *letters* is neither a string nor a list.
-		:raises ValueError: see the errors raised by :func:`validate`.
 		
 			>>> Word("x2 a1 a2 a3 x1 a1 a2 a1 x2 L a2", 3, 2)
 			Word('x1 a1 a2 a1', 3, 2)
+		
+		:raises TypeError: if *letters* is neither a string nor a list.
+		:raises ValueError: see the errors raised by :func:`validate`.
 		"""
 		return cls._internal_new(letters, arity, alphabet_size)
 	
@@ -257,15 +258,42 @@ class Word(tuple):
 	def __repr__(self):
 		return "Word('{}', {}, {})".format(str(self), self.arity, self.alphabet_size)
 	
-	#Comparison
+	#Comparisons
 	def __lt__(self, other):
 		r"""Words in standard form are compared according to dictionary order. The alphabet :math:`X \cup \Omega` is ordered according to:
 		
-		..math :: \dots < \alpha_2 < \alpha_1 < \lambda < x_1 < x_2 < \dots
+		.. math::
 		
-			>>> Word('x1')
+			&x_1      < x_2      < x_3      < \dots \\
+			&\alpha_1 < \alpha_2 < \alpha_3 < \dots \\
+			&\alpha_i < \lambda  < x_j      \quad(\forall i, j)
+		
+		.. doctest::
+			
+			>>> Word('x1', 2, 2) < Word('x2', 2, 2)
+			True
+			>>> Word('x1 a2', 2, 2) > Word('x1 a1', 2, 2)
+			True
+			>>> Word('x1 a2', 2, 2) < Word('x1 x2 L', 2, 2)
+			True
+			>>> Word('x1 x2 L', 2, 2) > Word('x1 x2 a2 L', 2, 2)
+			True
+			>>> Word('x1 x1 x1 L L', 2, 2) > Word('x1 x1 L', 2, 2)
+			True
 		"""
-		#TODO examples and doctests
+		return self._compare(other, operator.lt)
+	
+	def __gt__(self, other):
+		return self._compare(other, operator.gt)
+	
+	def __le__(self, other):
+		return self == other or self.__lt__(other)
+	
+	def __ge__(self, other):
+		return self == other or self.__gt__(other)
+	
+	def _compare(self, other, comparison):
+		"""Used to test if self < other or other < self."""
 		if not isinstance(other, Word):
 			return NotImplemented
 		
@@ -273,7 +301,10 @@ class Word(tuple):
 			if s == o:
 				continue
 			if s < 0 and o < 0: #two alphas
-				#self < o iff the index for s is less than the index for o
-				return -s < -o
-			return s < o
-		return False
+				return comparison(-s, -o)
+			return comparison(s, o)
+		
+		#Both words start with the same thing.
+		if len(self) == len(other):
+			return False #same word
+		return comparison(len(self), len(other))
