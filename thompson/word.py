@@ -150,7 +150,7 @@ def _extract(letters, subwords, arity, lambda_position, index):
 def are_contractible(words):
 	r"""Let *words* be a list of words, either as lists of integers or as full :class:`Word` objects. This function tests to see if *words* is a list of the form :math:`(w\alpha_1, \dotsc, w\alpha_n)`, where ``n == len(words)``.
 	
-	:return: :math:`w` (as a tuple of integers) if the test passes; ``None`` if the test fails.
+	:return: :math:`w` (as a tuple of integers) if the test passes; the empty tuple if the test fails.
 	
 	**NB:** If there is a prefix :math:`w`, this function does **not** check to see if x :func:`is a valid word <validate>`.
 	
@@ -161,7 +161,7 @@ def are_contractible(words):
 	#REMARK. Slicing a Word gives a tuple. This came about as a consequence of inheriting from tuple, but it makes sense.  Word objects are supposed to be fixed in standard form, and having a tuple instead of a word says that "this won't neccesarily be a word".
 	prefix = words[0][:-1]
 	if len(prefix) == 0:
-		return None
+		return []
 	expected_length = len(prefix) + 1
 	
 	for j, word in enumerate(words):
@@ -169,7 +169,7 @@ def are_contractible(words):
 		  len(word) == expected_length
 		  and word[:len(prefix)] == prefix
 		  and word[-1] == -j - 1): #alpha_{j+1}
-			return None
+			return []
 	return prefix
 
 def _contract(letters, subwords, arity, lambda_position):
@@ -181,7 +181,7 @@ def _contract(letters, subwords, arity, lambda_position):
 	start = lambda_position - sum(len(list) for list in inspected)
 	prefix = are_contractible(inspected)
 	
-	if prefix is not None:
+	if prefix:
 		#TODO: The lambda call is not of the form ua1, ua2, ..., uan, lambda, and the next symbol is NOT an alpha.
 		#I think there's no way this can be reduced further.
 		subwords[-arity] = prefix
@@ -220,6 +220,7 @@ class Word(tuple):
 	:ivar arity: :math:`n`, the number of operators :math:`\alpha_i`.
 	:ivar alphabet_size: :math:`r`, the number of letters :math:`x_i`.
 	"""
+	#TODO - maybe I should define __slots__ to try and save memory? See http://stackoverflow.com/questions/472000/python-slots
 	#Creation
 	def __new__(cls, letters, arity, alphabet_size):
 		"""Creates a new Word from a list of letters and stores the *arity* and *alphabet_size*. 
@@ -307,7 +308,7 @@ class Word(tuple):
 	
 	#Modifiers
 	def alpha(self, index):
-		"""Let :math:`w` stand for the current word. This method creates and returns a new word :math:`w\alpha_\text{index}`.
+		r"""Let :math:`w` stand for the current word. This method creates and returns a new word :math:`w\alpha_\text{index}`.
 		
 			>>> Word("x a1 a2", 3, 2).alpha(3)
 			Word('x1 a1 a2 a3', 3, 2)
@@ -326,17 +327,17 @@ def initial_segment(u, v):
 	>>> #completely different words
 	>>> u = Word("x1 a2 a1 a1 a2", 2, 2)
 	>>> v = Word("x2 a1 a2 a1 a2", 2, 2)
-	>>> Word.initial_segment(u, v)
+	>>> initial_segment(u, v)
 	False
 	>>> #v starts with u
 	>>> u = Word("x a1 a1 x2 a1 a2 L a1 a2", 2, 2)
 	>>> v = Word("x a1 a1 a2 a2 a1", 2, 2)
-	>>> Word.initial_segment(u, v)
+	>>> initial_segment(u, v)
 	True
 	>>> #Before reduction, v starts with u. A later lambda changes this.
 	>>> u = Word("x a1 a2", 2, 2)
 	>>> v = Word("x a1 a2 x a2 a2 L", 2, 2)
-	>>> Word.initial_segment(u, v)
+	>>> initial_segment(u, v)
 	False
 	"""
 	if len(u) > len(v):

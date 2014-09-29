@@ -1,7 +1,10 @@
 """
 .. testsetup::
+	
 	from thompson.automorphism import *
 """
+from .word import Word, are_contractible
+from .generators import Generators
 
 class Automorphism:
 	r"""Represents an automorphism of :math:`V_{n,r}` by specifying two bases. This class keeps track of the mapping between bases.
@@ -13,13 +16,19 @@ class Automorphism:
 	"""
 	
 	def __init__(self, arity, alphabet_size, domain, range):
-		"""Creates an automorphism, given the parameters :math:`n` and :math:`r`. Two bases *domain* and *range* are given. The automorphism maps elements as follows:
+		r"""Creates an automorphism, given the *arity* :math:`n` and *alphabet_size* :math:`r`. Two bases *domain* and *range* are given. The automorphism maps elements so that order is preserved:
 		
-			.. math:: \text{domain}_i \mapsto \text{range}_i \mapsto \text{range}_{\text{perm}(i)}
+			.. math:: \text{domain}_i \mapsto \text{range}_i
+		
+		After creation, the automorphism is reduced. This means that collections of rules like
+		
+			.. math:: u\alpha_1 \mapsto v\alpha_1, \dotsc, u\alpha_n \mapsto v\alpha_n
+		
+		are replaced by simpler rules :math:`u \mapsto v` whenever possible.
 		
 		:raises ValueError: if the bases are of different sizes.
 		:raises IndexError: if the bases have different arities or alphabet sizes.
-		:raises ValueError: if either basis isn't actually a basis, i.e. is not a :meth:`free generating set <Generator.is_free>` or does not :meth:`contract to the standard basis <is_basis>`.
+		:raises ValueError: if either basis isn't actually a basis, i.e. is not a :meth:`free generating set <thompson.generators.Generators.is_free>` or does not :meth:`contract to the standard basis <thompson.generators.Generators.test_generates_algebra>`.
 		"""
 		
 		#The boring checks
@@ -57,11 +66,77 @@ class Automorphism:
 			raise ValueError("Range does not generate V_{},{}. Missing elements are {}.".format(
 			  arity, alphabet_size, [format(x) for x in missing]))
 		
+		#Before saving the domain and range, reduce them to remove any redundancy. This is like reducing tree pairs.
+		Automorphism._reduce(domain, range)
+		
 		self.arity = arity
 		self.alphabet_size = alphabet_size
 		self.domain = domain
 		self.range = range
+		self._map = {}
+		for d, r in zip(self.domain, self.range):
+			self._map[d] = r
+	
+	@staticmethod
+	def _reduce(domain, range):
+		"""Contracts the domain generators whenever the corresponding contraction in range is possible. (This corresponds to reducing a tree pair diagram.)
+			
+			>>> leaves = ["x a1 a1", "x a1 a2 a1", "x a1 a2 a2 a1", "x a1 a2 a2 a2", "x a2 a1", "x a2 a2"]
+			>>> domain = Generators(2, 1, leaves)
+			>>> range = Generators(2, 1, [leaves[0], leaves[3], leaves[4], leaves[5], leaves[2], leaves[1]])
+			>>> Automorphism._reduce(domain, range)
+			>>> for d, r in zip(domain, range):
+			... 	print(d, '->', r)
+			x1 a1 a1 -> x1 a1 a1
+			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
+			x1 a1 a2 a2 -> x1 a2
+			x1 a2 a1 -> x1 a1 a2 a2 a1
+			x1 a2 a2 -> x1 a1 a2 a1
+			>>> #Swaps x1 and x2
+			>>> domain = Generators(2, 2, ["x1", "x2 a1", "x2 a2"])
+			>>> range  = Generators(2, 2, ["x2", "x1 a1", "x1 a2"])
+			>>> Automorphism._reduce(domain, range)
+			>>> for d, r in zip(domain, range):
+			... 	print(d, '->', r)
+			x1 -> x2
+			x2 -> x1
+		"""
+		#similar to word._reduce and Generator.test_generates_algebra
+		i = 0
+		arity = domain.arity
+		while i <= len(domain) - arity:
+			d_pref = are_contractible(domain[i : i + arity])
+			r_pref = are_contractible(range[i : i + arity])
+			if d_pref and r_pref: #are both non-empty tuples
+				domain[i : i + arity] = [Word(d_pref, arity, domain.alphabet_size)]
+				range[ i : i + arity] = [Word(r_pref, arity, range.alphabet_size )]
+				i -= (arity - 1) 
+				i = max(i, 0)
+			else:
+				i += 1
+	
+	def _minimal_expansion(self):
+		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*."""
+		basis = Generators.standard_basis(self.arity, self.alphabet_size)
+		i = 0
+		while i < len(basis):
+			b = basis[i]
+			if b in self.domain or b in self.range:
+				i += 1
+			else:
+				basis.expand(i)
+		return basis
 	
 	def to_quasinormal_form(self):
+		"""The plan.
+		
+		1. Reduce the automorphism (eliminate carets)
+		2. Find elements above (Y union W)
+		3. Expand std basis until it contains all the elements from step 2.
+		4. Test each element of this expanded basis to see if the have nice orbits.
+			a. If an element doesn't, expand it and try again with its children.
+		5. When everything in the basis has nice orbits we are done.
+		"""
 		pass
+		
 	

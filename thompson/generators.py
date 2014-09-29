@@ -104,9 +104,9 @@ class Generators(list):
 		words = sorted(self) #Creates a shallow copy and then sorts it.
 		#This part is very similar to :meth:`~thompson.word._contract`.
 		i = 0
-		while i <= len(words) - (self.arity - 1):
+		while i <= len(words) - self.arity:
 			prefix = word.are_contractible(words[i : i + self.arity])
-			if prefix is not None:
+			if prefix:
 				words[i : i + self.arity] = [prefix]
 				i -= (self.arity - 1) 
 				i = max(i, 0)
@@ -133,7 +133,7 @@ class Generators(list):
 	
 	@classmethod
 	def standard_basis(cls, arity, alphabet_size):
-		"""Creates the standard basis :math:`\boldsymbol{x} = \{x_1, \dotsc, x_r`\}` for :math:`V_{n,r}`, where :math:`n` is the arity and :math`r` is the *alphabet_size*. 
+		r"""Creates the standard basis :math:`\boldsymbol{x} = \{x_1, \dotsc, x_r`\}` for :math:`V_{n,r}`, where :math:`n` is the arity and :math`r` is the *alphabet_size*. 
 		
 			>>> Generators.standard_basis(2, 4)
 			Generators(2, 4, ['x1', 'x2', 'x3', 'x4'])
