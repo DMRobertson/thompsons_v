@@ -305,27 +305,26 @@ class Word(tuple):
 			return False #same word
 		return comparison(len(self), len(other))
 	
-	#Actually interesting operations
-	@staticmethod
-	def initial_segment(u, v):
-		r"""Let :math:`u, v` be two words in standard form. This function returns True if :math:`u` is an initial segment of :math:`v` or vice versa; otherwise returns False. See definition 3.15.
-	
-		>>> #completely different words
-		>>> u = Word("x1 a2 a1 a1 a2", 2, 2)
-		>>> v = Word("x2 a1 a2 a1 a2", 2, 2)
-		>>> Word.initial_segment(u, v)
-		False
-		>>> #v starts with u
-		>>> u = Word("x a1 a1 x2 a1 a2 L a1 a2", 2, 2)
-		>>> v = Word("x a1 a1 a2 a2 a1", 2, 2)
-		>>> Word.initial_segment(u, v)
-		True
-		>>> #Before reduction, v starts with u. A later lambda changes this.
-		>>> u = Word("x a1 a2", 2, 2)
-		>>> v = Word("x a1 a2 x a2 a2 L", 2, 2)
-		>>> Word.initial_segment(u, v)
-		False
-		"""
-		if len(u) > len(v):
-			u, v = v, u
-		return all(a == b for a, b in zip(u, v)) and all(b < 0 for b in v[len(u):])
+#Actually interesting operations
+def initial_segment(u, v):
+	r"""Let :math:`u, v` be two words in standard form. This function returns True if :math:`u` is an initial segment of :math:`v` or vice versa; otherwise returns False. See definition 3.15.
+
+	>>> #completely different words
+	>>> u = Word("x1 a2 a1 a1 a2", 2, 2)
+	>>> v = Word("x2 a1 a2 a1 a2", 2, 2)
+	>>> Word.initial_segment(u, v)
+	False
+	>>> #v starts with u
+	>>> u = Word("x a1 a1 x2 a1 a2 L a1 a2", 2, 2)
+	>>> v = Word("x a1 a1 a2 a2 a1", 2, 2)
+	>>> Word.initial_segment(u, v)
+	True
+	>>> #Before reduction, v starts with u. A later lambda changes this.
+	>>> u = Word("x a1 a2", 2, 2)
+	>>> v = Word("x a1 a2 x a2 a2 L", 2, 2)
+	>>> Word.initial_segment(u, v)
+	False
+	"""
+	if len(u) > len(v):
+		u, v = v, u
+	return all(a == b for a, b in zip(u, v)) and all(b < 0 for b in v[len(u):])
