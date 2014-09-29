@@ -23,7 +23,7 @@ class Automorphism:
 		"""
 		
 		#The boring checks
-		if len(domain) != len(ranges):
+		if len(domain) != len(range):
 			raise ValueError("Domain basis has {} elements, but range basis has {} elements.".format(
 			  len(domain), len(range)))
 		
@@ -50,25 +50,18 @@ class Automorphism:
 		missing = domain.test_generates_algebra()
 		if len(missing) > 0:
 			raise ValueError("Domain does not generate V_{},{}. Missing elements are {}.".format(
-			  arity, alphabet_size, missing))
+			  arity, alphabet_size, [format(x) for x in missing]))
 		
 		missing = range.test_generates_algebra()
 		if len(missing) > 0:
 			raise ValueError("Range does not generate V_{},{}. Missing elements are {}.".format(
-			  arity, alphabet_size, missing))
+			  arity, alphabet_size, [format(x) for x in missing]))
 		
 		self.arity = arity
 		self.alphabet_size = alphabet_size
 		self.domain = domain
 		self.range = range
 		
-		
-		
-		
-		
-
-def quasinormal_basis(phi):
-	"""An implementation of Lemma 4.24.1. Given an automorphism :math:`\phi \in G_{n, r}`, we can construct the quasinormal basis for :math:`\phi` by expanding the :meth:`standard basis <~thompson.generators.standard_basis>`.
-	"""
-	pass
-
+	def to_quasinormal_form(self):
+		pass
+	
