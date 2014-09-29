@@ -130,13 +130,13 @@ class Automorphism:
 	def to_quasinormal_form(self):
 		"""The plan.
 		
-		1. Reduce the automorphism (eliminate carets)
-		2. Find elements above (Y union W)
-		3. Expand std basis until it contains all the elements from step 2.
+		1. Reduce the automorphism (eliminate carets) - DONE 
+		2. Find elements above (Y union W) - DONE indirectly, see 3.
+		3. Expand std basis until it contains all the elements from step 2. DONE
 		4. Test each element of this expanded basis to see if the have nice orbits.
 			a. If an element doesn't, expand it and try again with its children.
 		5. When everything in the basis has nice orbits we are done.
 		"""
 		pass
-		
+		#TODO. next step is to be able to compute psi
 	

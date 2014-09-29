@@ -249,8 +249,6 @@ class BinaryTree:
 		if self.right is not None:
 			yield from self.right.walk_preorder()
 	
-	walk = walk_preorder
-	
 	def walk_in_order(self):
 		"""Yields the current node's left subtree, then the current node itself, then the right subtree."""
 		if self.left is not None:
