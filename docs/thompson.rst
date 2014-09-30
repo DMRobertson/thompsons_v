@@ -9,6 +9,7 @@ Submodules
    thompson.automorphism
    thompson.constants
    thompson.drawing
+   thompson.full_tree
    thompson.generators
    thompson.permutation
    thompson.tree_pair

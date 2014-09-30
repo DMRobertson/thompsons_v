@@ -10,8 +10,9 @@ r"""The algebra :math:`V_{n, r}` consists of words written in the alphabet :math
 """
 
 import operator
-
 from itertools import chain
+
+from .full_tree import FullTree
 
 __all__ = ["format", "validate", "standardise", "are_contractible", "from_string", "format", "Word"]
 
@@ -105,47 +106,82 @@ def standardise(letters, arity):
 		>>> #Something that doesn't simplify all the lambdas away
 		>>> print(Word("x a1 a2 a1 x a1 a2 a1 x a2 a1 L a1 a2 a1 x a1 a2 a1 a2 a2 L L", 2, 1))
 		x1 a1 a2 a1 x1 a1 a2 a1 a2 L
+		>>> #A toughie
+		>>> print(Word("x a2 x a1 L x a1 L a1 a2 a1 a2", 2, 1))
+		x1 a1 a1 a2
 	
-	:raises IndexError: if the list of letters :func:`is not valid <validate>`..
+	:raises IndexError: if the list of letters :func:`is not valid <validate>`.
 	"""
-	#Convert the iterable to a list so that we can modify it in place.
-	letters = list(letters)
-	subwords = []
-	i = 0
-	while i < len(letters):
-		symbol = letters[i]
-		if symbol > 0: #an x -> new subword
-			subwords.append([symbol])
-			i += 1
-		elif symbol < 0: #an alpha
-			subwords[-1].append(symbol)
-			i += 1
-		else: #lambda. Run validate() to ensure it has enough arguments.
-			#Peek ahead: is the lambda immediately followed by an alpha?
+	#Form the tree of lambda calls
+	root = _syntax_tree(letters, arity)
+	
+	#Modify the tree. Find all lambda-alpha nodes and replace them with their extracted child.
+	extractions = []
+	for node in root.walk_postorder():
+		if not node.is_leaf() and node.data:
+			extractions.append(node)
+	
+	while extractions:
+		node = extractions.pop()
+		head, tail = node.data[0], node.data[1:]
+		for child in node:
 			try:
-				next = letters[i+1]
-			except IndexError:
-				next = 0
-			
-			if next < 0:
-				i = _extract(letters, subwords, arity, i, -next)
-			else:
-				i = _contract(letters, subwords, arity, i)
-		#end lambda
+				extractions.remove(child)
+			except ValueError:
+				pass
 		
-	return letters
+		#The extracted child
+		child = node.replace_with_child(-head - 1)
+		child.data += tail
+		if child.data and not child.is_leaf(): #is not empty:
+			extractions.append(child)
+	
+	print("branches have no data?", all(not node.data for node in root.walk() if not node.is_leaf() ))
+	
+	#TODO IMPORTANT NEXT
+	#Now the only lambdas left should be contractions.
+	#Do nothing at leaves
+	#At branches, contract. Use postorder.
+	
+	data = root.data #should be the reduced word.
+	root.discard()
+	return data
 
-def _extract(letters, subwords, arity, lambda_position, index):
-	r"""If we find a substring of the form :math`w_1 \dots w_\text{arity} \lambda \alpha_\text{index}`, replace it by :math:`w_\text{index}`.
+def _syntax_tree(letters, arity):
+	"""Returns a tree representing the composition of lambdas in this word."""
+	alphas = []
+	indices = [0] #the indices of the rightmost unconsidered node on each level.
+	root = node = FullTree(arity)
 	
-	:return: Returns the index in *letters* to move to after extraction."""
-	start = lambda_position - sum(len(list) for list in subwords[-arity:])
-	extracted = subwords[-arity + index - 1]
-	
-	del subwords[-arity + 1:]
-	subwords[-1] = extracted
-	letters[start : lambda_position + 2] = extracted
-	return start + len(extracted)
+	#Break eveything down into a tree of lambda calls.
+	#The leaves are the simple words in x<A>.
+	for symbol in reversed(letters):
+		if symbol < 0: #alphas
+			alphas.append(symbol)
+		
+		elif symbol == 0: #lambda
+			node.data = alphas[::-1]
+			node.expand()
+			indices[-1] -= 1
+			alphas = []
+			indices.append(arity - 1)
+			node = node.children[indices[-1]]
+		
+		elif symbol > 0: #x
+			node.data = [symbol] + alphas[::-1]
+			indices[-1] -= 1
+			alphas = []
+			
+			#Go up the tree if needed
+			while indices and indices[-1] < 0:
+				node = node.parent
+				indices.pop()
+			if indices and indices[-1] >= 0:
+				#move to the left sibling
+				node = node.parent.children[indices[-1]]
+			
+	assert node is None
+	return root
 
 def are_contractible(words):
 	r"""Let *words* be a list of words, either as lists of integers or as full :class:`Word` objects. This function tests to see if *words* is a list of the form :math:`(w\alpha_1, \dotsc, w\alpha_n)`, where ``n == len(words)``.
@@ -172,27 +208,8 @@ def are_contractible(words):
 			return []
 	return prefix
 
-def _contract(letters, subwords, arity, lambda_position):
-	"""Attempts to contract the last *arity* words in *subwords*.
-	
-	Returns the index of the index in *letters* to move to after contraction.
-	"""
-	inspected = subwords[-arity:]
-	start = lambda_position - sum(len(list) for list in inspected)
-	prefix = are_contractible(inspected)
-	
-	if prefix:
-		#TODO: The lambda call is not of the form ua1, ua2, ..., uan, lambda, and the next symbol is NOT an alpha.
-		#I think there's no way this can be reduced further.
-		subwords[-arity] = prefix
-		del subwords[-arity + 1:]
-		letters[start : lambda_position + 1] = prefix
-		return start + len(prefix)
-	else:
-		#We can contract the last *arity* words.
-		subwords[-arity] = list(chain.from_iterable(inspected))
-		del subwords[-arity + 1:]
-		return lambda_position + 1 #plus one: can't do anything to this lambda, move on
+def concat(iterable):
+	return list(chain.from_iterable(iterable))
 
 def from_string(str):
 	"""Converts a string representation of a word to the internal format (a list of integers). Anything which does not denote a basis letter (e.g. ``'x'``, ``'x2'``, ``'x45'``) a descendant operator (e.g.  ``'a1'``, ``'x3'``, ``'x27'``) or a lambda contraction (``'L'``) is ignored.
@@ -307,7 +324,6 @@ class Word(tuple):
 		"""Used to test if self < other or other < self."""
 		if not isinstance(other, Word):
 			return NotImplemented
-		
 		for s, o in zip(self, other):
 			if s == o:
 				continue
