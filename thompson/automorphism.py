@@ -3,9 +3,9 @@
 	
 	from thompson.automorphism import *
 """
-
 from .word import Word, are_contractible
 from .generators import Generators
+from .full_tree import FullTree
 
 class Automorphism:
 	r"""Represents an automorphism of :math:`V_{n,r}` by specifying two bases. This class keeps track of the mapping between bases.
@@ -148,6 +148,7 @@ class Automorphism:
 		pass
 	
 	def __getitem__(self, word):
+		"""Todo. Docstring."""
 		#Need to ensure this always returns a word
 		#need to make sure we store the images of things above the basis after expansion.
 		if not isinstance(word, Word):
@@ -160,6 +161,7 @@ class Automorphism:
 		if word.is_simple():
 			return self._image_of_simple(word)
 		#Else, This word ends with a lambda
+		return self.image_of_complex(word)
 		
 	def image_of_simple(self, word):
 		"""Computes the image of a simple *word*. This method strips off alphas from the end of a string until the reamining string's image is already known. The computation is cached for further usage later.
@@ -185,4 +187,51 @@ class Automorphism:
 		assert len(tail) == 0
 		return image
 		
-	
+	def image_of_complex(self, word):
+		"""Computes the image of a non-simple *word*. This method forms a tree of lambda contractions, and works down the tree until it finds elements which we know the images of. The tree is then collapsed to form one contracted image."""
+		#Consume the lambda at the end of this word
+		assert word[-1] == 0 #is a lambda
+		root = FullTree(self.arity)
+		root.data = [word, None]
+		root.expand()
+		for child in root:
+			root.data = [word, None]
+		i = 1
+		unmapped = [root]
+		
+		# do
+			# (skip on first run)
+			# for node in unmapped:
+				# if node.data[0] is simple:
+					# node.data[1] = image_of_simple;
+					# remove node from unmapped
+				# else expand: 
+					# remove node from unmapped
+					# and add the created children which are unmapped. (maybe use a deque for unmapped?)
+			
+			# if we see a lambda:
+				# expand tree
+				# new children -> arguments to lambda
+				# data[0] -> subword
+				# data[1] -> image if image is in _dict else None; mark as unmapped.
+		# until we have no unmapped nodes.
+				
+		
+		#Once all nodes are mapped:
+		#Do a post-order traveral
+			#At leaves do nothing
+			#At branches:
+				#reduce them. Set data[1] -> contraction of children's data[1].
+				#set _dict[data[0]] = data[1]
+		
+		
+		
+		
+		
+		#Need to ensure that nodes above Y union W are put in the dict too?
+		
+		
+		
+		
+		
+		

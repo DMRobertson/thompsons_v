@@ -73,7 +73,7 @@ class FullTree:
 	
 	def __str__(self):
 		#todo docstring
-		if self.is_leaf()
+		if self.is_leaf():
 			return '0'
 		return '1' + "".join(child.__str__() for child in self)
 	
@@ -87,6 +87,15 @@ class FullTree:
 		child.parent = self
 		self.children[index] = child
 		return child
-
+	
+	def expand(self):
+		"""If called on a leaf, turns this leaf into a branch with *k* newly-created children.
+		
+		:raises ValueError: if called on a node which is not a leaf.
+		"""
+		if not self.is_leaf():
+			raise ValueError("This node has already been expanded.")
+		for i in range(self.airty):
+			self.add_child(i)
 	
 	
