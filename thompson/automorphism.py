@@ -3,6 +3,9 @@
 	
 	from thompson.automorphism import *
 """
+
+from collections import deque
+
 from .word import Word, are_contractible
 from .generators import Generators
 from .full_tree import FullTree
@@ -188,47 +191,42 @@ class Automorphism:
 		return image
 		
 	def image_of_complex(self, word):
-		"""Computes the image of a non-simple *word*. This method forms a tree of lambda contractions, and works down the tree until it finds elements which we know the images of. The tree is then collapsed to form one contracted image."""
+		"""Computes the image of a non-simple *word*. This method forms a tree of lambda contractions, and works down the tree until it finds elements which we know the images of. The tree is then collapsed to form one contracted image.
+		
+		TODO doctest."""
 		#Consume the lambda at the end of this word
-		assert word[-1] == 0 #is a lambda
+		assert word[-1] == 0 #ends with a lambda
 		root = FullTree(self.arity)
 		root.data = [word, None]
 		root.expand()
 		for child in root:
-			root.data = [word, None]
-		i = 1
-		unmapped = [root]
+			root.data = [GET_SUBWORDS_FROM_WORD, None]
 		
-		# do
-			# (skip on first run)
-			# for node in unmapped:
-				# if node.data[0] is simple:
-					# node.data[1] = image_of_simple;
-					# remove node from unmapped
-				# else expand: 
-					# remove node from unmapped
-					# and add the created children which are unmapped. (maybe use a deque for unmapped?)
-			
-			# if we see a lambda:
-				# expand tree
-				# new children -> arguments to lambda
-				# data[0] -> subword
-				# data[1] -> image if image is in _dict else None; mark as unmapped.
-		# until we have no unmapped nodes.
-				
+		#data 0 and data 1 are clunky. change to pre image and post image, remove data from the tree class.
 		
-		#Once all nodes are mapped:
-		#Do a post-order traveral
-			#At leaves do nothing
-			#At branches:
-				#reduce them. Set data[1] -> contraction of children's data[1].
-				#set _dict[data[0]] = data[1]
+		unmapped = deque([root])
+		while len(unmapped) > 0:
+			node = unmapped.popleft()
+			if node.data[0].is_simple():
+				node.data[1] = self.image_of_simple(node.data[0]);
+			else:
+				node.expand()
+				for child in node:
+					child.data = [GET_SUBWORDS_FROM_WORD(node.data[0]), None]
+					try:
+						child.data[1]  = self._dict[child.data[0]]
+					except KeyError:
+						unmapped.append(child)
 		
+		#Now all nodes are mapped:
+		for node in root.walk_postorder():
+			if node.is_leaf():
+				continue
+			#TODO Word.concatenate
+			node.data[1] = Word.concatenate((child.data[1] for child in node), self.arity, self.alphabet_size)
+			self._dict[node.data[0]] = node.data[1]
 		
-		
-		
-		
-		#Need to ensure that nodes above Y union W are put in the dict too?
+		#Need to ensure that nodes above Y union W are put in the dict too. Use a similar contraction idea?
 		
 		
 		

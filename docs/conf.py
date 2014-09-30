@@ -20,6 +20,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 """Begin my additions."""
 #From http://stackoverflow.com/a/5599712 .
+#TODO. If we're running doctests, never skip anything!
 def skip(app, what, name, obj, skip, options):
 	if hasattr(obj, '__call__') and name.endswith("__") and obj.__doc__:
 		return False
