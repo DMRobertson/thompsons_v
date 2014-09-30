@@ -3,6 +3,7 @@
 	
 	from thompson.automorphism import *
 """
+
 from .word import Word, are_contractible
 from .generators import Generators
 
@@ -73,9 +74,9 @@ class Automorphism:
 		self.alphabet_size = alphabet_size
 		self.domain = domain
 		self.range = range
-		self._map = {}
+		self._dict = {}
 		for d, r in zip(self.domain, self.range):
-			self._map[d] = r
+			self._dict[d] = r
 	
 	@staticmethod
 	def _reduce(domain, range):
@@ -115,8 +116,15 @@ class Automorphism:
 			else:
 				i += 1
 	
-	def _minimal_expansion(self):
-		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*."""
+	def minimal_expansion(self):
+		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \union W`. See example 4.25.
+		
+		>>> from thompson.examples import cyclic_order_six, example_4_25
+		>>> cyclic_order_six.minimal_expansion()
+		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
+		>>> example_4_25.minimal_expansion()
+		Generators(2, 1, ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
+		"""
 		basis = Generators.standard_basis(self.arity, self.alphabet_size)
 		i = 0
 		while i < len(basis):
@@ -138,35 +146,43 @@ class Automorphism:
 		5. When everything in the basis has nice orbits we are done.
 		"""
 		pass
-		#TODO. next step is to be able to compute psi
-		"""Rough sketch of details
-		1. make word class store the lambda length. Define method is simple-> lambda-length == 0. (Define word.__slots__ maybe?)
-		2. automorphism[word]:
-			try return self._dict[word]
-			otherwise if word is simple: (**)
-				chop it into head, tail
-				reduce length of head until head in self._dict
-				word -> self[head] + tail
-			otherwise go backwards in the string
-				is not simple so has a lambda. Tail can't be lambda <alphas> (word class reduces these).
-				So must end with lambda.
-				create a k-ary tree. (|||)
-					children -> arguments to lambda
-					if image of corresp. word is cached in _dict
-						data -> image
-					else data -> None; mark the node as unmapped 
-			
-			while we have unmapped nodes:
-				if the unmapped node is simple, use the same process as (**) to find its image.
-				else it ends in a lambda. Go to (|||)
-			
-			
-			now all nodes are mapped
-				have a tree of lambda contractions after 
-				try to reduce this tree
-				(or concatenate everything and shove it into Word())
-				(maybe this is how word() should work...)
-			
+	
+	def __getitem__(self, word):
+		#Need to ensure this always returns a word
+		#need to make sure we store the images of things above the basis after expansion.
+		if not isinstance(word, Word):
+			raise TypeError('{:r} is not a Word instance.'.format(word))
+		try:
+			return self._dict[word]
+		except KeyError:
+			pass
+		#We haven't computed the image of word before.
+		if word.is_simple():
+			return self._image_of_simple(word)
+		#Else, This word ends with a lambda
 		
+	def image_of_simple(self, word):
+		"""Computes the image of a simple *word*. This method strips off alphas from the end of a string until the reamining string's image is already known. The computation is cached for further usage later.
+		
+			>>> from thompson.examples import example_4_25
+			>>> u = Word('x1 a1 a2 a2', 2, 1)
+			>>> v = example_4_25.image_of_simple(u); print(v)
+			x1 a1 a1 a1 a2 a2
 		"""
+		i = 1
+		while True:
+			head, tail = word.split(i)
+			if head in self._dict:
+				break
+			i += 1
+		
+		image = self._dict[head]
+		for j in range(i, 0, -1):
+			alpha, tail = tail[:1], tail[1:]
+			head = head + alpha
+			image = image.alpha(-alpha[0])
+			self._dict[head] = image
+		assert len(tail) == 0
+		return image
+		
 	

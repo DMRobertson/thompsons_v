@@ -215,11 +215,23 @@ def format(letters):
 	return " ".join(_char(i) for i in letters)
 
 class Word(tuple):
-	r"""A list of letters, together with a recorded *arity* and *alphabet_size*. Words are implemented as subclasses of :func:`tuple <py3:tuple>` meaning they are immutable.
+	r"""A list of letters, together with a recorded *arity* and *alphabet_size*. Words are implemented as subclasses of :func:`tuple <py3:tuple>` meaning they are immutable. This means they can be used as dictionary keys. 
+	
+		>>> w = Word('x1 a1', 2, 1)
+		>>> x = {}; x[w] = 'stored value'
+		>>> x[w]
+		'stored value'
+		>>> x[1, -1] #try using the internal representation
+		'stored value'
+		>>> #the reason this works
+		>>> hash(w) == hash((1, -1))
+		True
 	
 	:ivar arity: :math:`n`, the number of operators :math:`\alpha_i`.
 	:ivar alphabet_size: :math:`r`, the number of letters :math:`x_i`.
+	:ivar lambda_length: the number of times the contraction symbol :math:`\lambda` occurs in this word after it has been written in standard form.
 	"""
+	
 	#TODO - maybe I should define __slots__ to try and save memory? See http://stackoverflow.com/questions/472000/python-slots
 	#Creation
 	def __new__(cls, letters, arity, alphabet_size):
@@ -230,13 +242,14 @@ class Word(tuple):
 			Word('x1 a1 a2 a1', 3, 2)
 		
 		:raises TypeError: if *letters* is neither a string nor a list.
+		
 		See also the errors raised by :func:`validate`.
 		"""
 		return cls._internal_new(letters, arity, alphabet_size)
 	
 	@classmethod
 	def _internal_new(cls, letters, arity, alphabet_size, preprocess=True):
-		"""Allows internal methods to bypass the validation checks."""
+		"""Allows internal methods to bypass the validation checks if they know that the word they are creating is vaild and in standard form."""
 		if isinstance(letters, str):
 			letters = from_string(letters)
 		
@@ -250,6 +263,7 @@ class Word(tuple):
 		self = tuple.__new__(cls, letters)
 		self.arity = arity
 		self.alphabet_size = alphabet_size
+		self.lambda_length = sum(i == 0 for i in self)
 		return self
 	
 	#Representation
@@ -306,6 +320,23 @@ class Word(tuple):
 			return False #same word
 		return comparison(len(self), len(other))
 	
+	#Tests
+	def is_simple(self):
+		"""We define a Word to be *simple* if it has a lambda length of zero once it has been reduced to standard form.
+		
+			>>> Word("x1 a1 a2", 2, 1).is_simple()
+			True
+			>>> Word("x1 a1 a2 x2 a2 L", 2, 2).is_simple()
+			False
+			>>> #Simplify a contraction
+			>>> Word("x1 a1 a1 x1 a1 a2 L", 2, 1).is_simple()
+			True
+			>>> #Lambda-alpha extraction
+			>>> Word("x1 x2 L a2", 2, 2).is_simple()
+			True
+		"""
+		return self.lambda_length == 0
+	
 	#Modifiers
 	def alpha(self, index):
 		r"""Let :math:`w` stand for the current word. This method creates and returns a new word :math:`w\alpha_\text{index}`.
@@ -319,6 +350,13 @@ class Word(tuple):
 			raise IndexError("Index ({}) is not in the range 1...{}".format(
 			  index, self.arity))
 		return type(self)._internal_new(self + (-index,), self.arity, self.alphabet_size, preprocess=False)
+	
+	def split(self, index):
+		"""Splits the current word *w* into a pair of tuples *head*, *tail* where ``len(tail) == index``. The segments of the word are returned as tuples of integers (not fully fledged words).
+		
+		:raises IndexError: if *index* is outside of the range ``1 <= index <= len(w) - 1``, i.e. if either head or tail would be empty lists after a split.
+		"""
+		return self[:-index], self[-index:]
 
 #Actually interesting operations
 def initial_segment(u, v):
