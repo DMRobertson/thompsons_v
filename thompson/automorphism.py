@@ -151,9 +151,12 @@ class Automorphism:
 		pass
 	
 	def __getitem__(self, word):
-		"""Todo. Docstring."""
+		"""Computes the image of a *word* under the given automorphism. The computation is cached for further usage later."""
 		#Need to ensure this always returns a word
 		#need to make sure we store the images of things above the basis after expansion.
+		#if it's a tuple but not a word, validate
+		#if it's a tuple and is a word, fine
+		#if it's anything else, typeerror
 		if not isinstance(word, Word):
 			raise TypeError('{:r} is not a Word instance.'.format(word))
 		try:
@@ -166,12 +169,12 @@ class Automorphism:
 		#Else, This word ends with a lambda
 		return self.image_of_complex(word)
 		
-	def image_of_simple(self, word):
-		"""Computes the image of a simple *word*. This method strips off alphas from the end of a string until the reamining string's image is already known. The computation is cached for further usage later.
+	def _image_of_simple(self, word):
+		""". This method strips off alphas from the end of a string until the reamining string's image is already known. The computation is cached for further usage later.
 		
 			>>> from thompson.examples import example_4_25
 			>>> u = Word('x1 a1 a2 a2', 2, 1)
-			>>> v = example_4_25.image_of_simple(u); print(v)
+			>>> v = example_4_25[u]; print(v)
 			x1 a1 a1 a1 a2 a2
 		"""
 		i = 1
@@ -180,9 +183,11 @@ class Automorphism:
 			if head in self._dict:
 				break
 			i += 1
+			#should never loop forever here, provided the bases really are bases
+			#and that everything above the bases has an image.
 		
 		image = self._dict[head]
-		for j in range(i, 0, -1):
+		for _ in range(i):
 			alpha, tail = tail[:1], tail[1:]
 			head = head + alpha
 			image = image.alpha(-alpha[0])

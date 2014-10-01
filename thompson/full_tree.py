@@ -17,7 +17,7 @@ class FullTree:
 	:ivar children:		A list of this node's children. If the node is a leaf, its children is a list of *k* copies of ``None``.
 	:ivar data:			Nodes can carry a reference to any Python object they might stand for. Initially None.
 	"""
-	__slots__ = ("arity", "parent", "children", "data")
+	# __slots__ = ("arity", "parent", "children", "data")
 	
 	#Creation
 	def __init__(self, arity):

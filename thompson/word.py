@@ -21,7 +21,7 @@ import operator
 from itertools import chain
 from .full_tree import FullTree
 
-__all__ = ["format", "from_string", "validate", "standardise", "syntax_tree", "are_contractible", "Word", "initial_segment"]
+__all__ = ["format", "from_string", "validate", "standardise", "syntax_tree", "are_contractible", "lambda_arguments", "Word", "initial_segment"]
 
 def _char(symbol):
 	if symbol > 0:
@@ -162,12 +162,12 @@ def standardise(letters, arity):
 	#Modify the tree. Find all lambda-alpha nodes and replace them with their extracted child.
 	extractions = []
 	for node in root.walk_postorder():
-		if not node.is_leaf() and node.data:
+		if not node.is_leaf() and node.letters:
 			extractions.append(node)
 	
 	while extractions:
 		node = extractions.pop()
-		head, tail = node.data[0], node.data[1:]
+		head, tail = node.letters[0], node.letters[1:]
 		
 		#The extracted child
 		replacement = node.children[-head - 1]
@@ -179,29 +179,29 @@ def standardise(letters, arity):
 		node.replace_with_child(-head - 1)
 		if replacement.is_root():
 			root = replacement 
-		replacement.data += tail
+		replacement.letters += tail
 		
 		if (replacement not in extractions
-		  and replacement.data 
+		  and replacement.letters 
 		  and not replacement.is_leaf()):
 			extractions.append(replacement)
 	
 	#Now the only lambdas left should be contractions.
-	assert all(not node.data for node in root.walk() if not node.is_leaf()), 'branch has data'
+	assert all(not node.letters for node in root.walk() if not node.is_leaf()), 'branch has letters'
 	
 	for node in root.walk_postorder():
 		if node.is_leaf():
 			continue
-		subwords = [child.data for child in node]
+		subwords = [child.letters for child in node]
 		prefix = are_contractible(subwords)
 		if prefix: #is not empty, so can contract
-			node.data = prefix
+			node.letters = prefix
 		else: #we'll just have to concatenate won't we?
-			node.data = concat(subwords) + [0]
+			node.letters = concat(subwords) + [0]
 	
-	data = root.data
+	letters = root.letters
 	root.discard()
-	return data
+	return letters
 
 def syntax_tree(letters, arity):
 	"""Returns a tree representing the composition of lambdas in this word."""
@@ -216,7 +216,7 @@ def syntax_tree(letters, arity):
 			alphas.append(symbol)
 		
 		elif symbol == 0: #lambda
-			node.data = alphas[::-1]
+			node.letters = alphas[::-1]
 			node.expand()
 			indices[-1] -= 1
 			alphas = []
@@ -224,7 +224,7 @@ def syntax_tree(letters, arity):
 			node = node.children[indices[-1]]
 		
 		elif symbol > 0: #x
-			node.data = [symbol] + alphas[::-1]
+			node.letters = [symbol] + alphas[::-1]
 			indices[-1] -= 1
 			alphas = []
 			
@@ -294,22 +294,19 @@ class Word(tuple):
 	
 	#I'd previously thought about defining __slots__ to save memory. But Python doesn't like that on subclasses of builtin or immutable types (I forget which).
 	#Creation
-	def __new__(cls, letters, arity, alphabet_size):
+	def __new__(cls, letters, arity, alphabet_size, preprocess=True):
 		"""Creates a new Word from a list of letters and stores the *arity* and *alphabet_size*. 
 		The word's *letters* may be given as a list of integers or as a string (which is passed to the :func:from_string: function). Words are :func:`validated <validate>` and :func:`reduced to standard form <standardise>` before they are stored as a tuple.
 		
 			>>> Word("x2 a1 a2 a3 x1 a1 a2 a1 x2 L a2", 3, 2)
 			Word('x1 a1 a2 a1', 3, 2)
 		
+		The *preprocess* argument allows internal methods to bypass the validation checks if they know that the word they are creating is already vaild and in standard form. Use ``preprocess=False`` at your own risk! 
+		
 		:raises TypeError: if *letters* is neither a string nor a list.
 		
 		See also the errors raised by :func:`validate`.
 		"""
-		return cls._internal_new(letters, arity, alphabet_size)
-	
-	@classmethod
-	def _internal_new(cls, letters, arity, alphabet_size, preprocess=True):
-		"""Allows internal methods to bypass the validation checks if they know that the word they are creating is vaild and in standard form."""
 		if isinstance(letters, str):
 			letters = from_string(letters)
 		
@@ -408,7 +405,7 @@ class Word(tuple):
 		if not 1 <= index <= self.arity:
 			raise IndexError("Index ({}) is not in the range 1...{}".format(
 			  index, self.arity))
-		return type(self)._internal_new(self + (-index,), self.arity, self.alphabet_size, preprocess=False)
+		return type(self)(self + (-index,), self.arity, self.alphabet_size, preprocess=False)
 	
 	def split(self, index):
 		"""Splits the current word *w* into a pair of tuples *head*, *tail* where ``len(tail) == index``. The segments of the word are returned as tuples of integers (not fully fledged words).
@@ -440,3 +437,52 @@ def initial_segment(u, v):
 	if len(u) > len(v):
 		u, v = v, u
 	return all(a == b for a, b in zip(u, v)) and all(b < 0 for b in v[len(u):])
+
+def lambda_arguments(word):
+	"""This function takes a :class:`Word` (in standard form) which ends in a lambda, and returns the arguments of the rightmost lambda as a list of Words.
+	
+		>>> w = 'x a1 a2 x a2 a2 L x a1 a1 L'
+		>>> subwords = lambda_arguments(Word(w, 2, 1))
+		>>> for subword in subwords: print(subword)
+		x1 a1 a2 x1 a2 a2 L
+		x1 a1 a1
+		>>> w = 'x x x x a1 x L x a1 x a2 x L L x a1 a2 x L x a1 a2 x a2 a1 x L L'
+		>>> subwords = lambda_arguments(Word(w, 3, 1))
+		>>> for subword in subwords: print(format(subword))
+		x1
+		x1 x1 x1 a1 x1 L x1 a1 x1 a2 x1 L L x1 a1 a2 x1 L
+		x1 a1 a2 x1 a2 a1 x1 L
+	
+	:raises ValueError: if the last letter in *word* is not a lambda.
+	:raises TypeError: if *word* is not a :class:`Word` instance.
+	"""
+	if word[-1] != 0:
+		raise ValueError('The last letter of `...{}` is not a lambda.'.format(
+		  format(word[-5:])))
+	#Go backwards through the string. Track the largest partial sum of valencies.
+	#When a new maxmium is found, you have just found the end of a subword.
+	valency = 1 - word.arity
+	max_valency = valency
+	subword_end = -1
+	subwords = []
+	for i, symbol in enumerate(reversed(word[:-1])):
+		valency += _valency_of(symbol, word.arity)
+		if valency > max_valency:
+			max_valency = valency
+			subwords.append(word[-i - 2 : subword_end])
+			subword_end = -i - 2
+	
+	
+	assert i + 2 == len(word)
+	assert len(subwords) == word.arity
+	
+	assert max_valency == valency == 1, (max_valency, valency)
+	subwords.reverse()
+	for i in range(len(subwords)):
+		subwords[i] = Word(subwords[i], word.arity, word.alphabet_size, preprocess=False)
+	
+	return subwords
+
+
+
+
