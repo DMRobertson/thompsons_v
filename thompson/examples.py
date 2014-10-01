@@ -11,5 +11,5 @@ range = Generators(2, 1, [leaves[0], leaves[3], leaves[4], leaves[5], leaves[2],
 cyclic_order_six = Automorphism(2, 1, domain, range)
 
 Y = Generators(2, 1, ["x a1",       "x a2 a1",    "x a2 a2 a1 a1", "x a2 a2 a1 a2", "x a2 a2 a2"])
-W = Generators(2, 1, ["x a1 a1 a1", "x a1 a1 a2", "x a1 a2",       "x a2 a1",       "x a2 a2"   ])
+W = Generators(2, 1, ["x a1 a1 a1", "x a1 a1 a2", "x a2 a2",       "x a1 a2",       "x a2 a1"   ])
 example_4_25 = Automorphism(2, 1, Y, W)

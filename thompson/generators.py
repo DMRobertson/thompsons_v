@@ -2,7 +2,7 @@
 .. testsetup:: 
 	
 	from thompson.generators import *
-	from thompson import word
+	from thompson.word import Word, format
 """
 from . import word
 from .word import Word
@@ -98,7 +98,7 @@ class Generators(list):
 			>>> Y = Generators(2, 3, Y)
 			>>> missing = Y.test_generates_algebra(); missing
 			[[2], [3]]
-			>>> print(", ".join(word.format(x) for x in missing))
+			>>> print(", ".join(format(x) for x in missing))
 			x2, x3
 		"""
 		words = sorted(self) #Creates a shallow copy and then sorts it.
@@ -130,6 +130,24 @@ class Generators(list):
 			True
 		"""
 		return len(self.test_generates_algebra()) == 0
+	
+	def is_above(self, word):
+		"""Returns true if one of the generators *g* is an initial segment of *word*.
+		
+			>>> g = Generators(2, 2, ['x1 a1', 'x1 a2', 'x2'])
+			>>> g.is_above(Word('x1 a1 a1 a2', 2, 2))
+			True
+			>>> g.is_above(Word('x1', 2, 2))
+			False
+			>>> g.is_above(Word('x2', 2, 2))
+			True
+		"""
+		for generator in self:
+			if len(generator) > len(word):
+				continue
+			if word[:len(generator)] == generator:
+				return True
+		return False
 	
 	@classmethod
 	def standard_basis(cls, arity, alphabet_size):

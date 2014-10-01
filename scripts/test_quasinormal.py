@@ -6,7 +6,14 @@ from thompson.generators import Generators
 from thompson.automorphism import Automorphism
 from thompson.examples import *
 
-print(lambda_arguments(from_string('x a1 a2 x a2 a2 L x a1 a1 L'), 2))
+u = Word('x', 2, 1)
+example_4_25[u]
 
-w = Word('x1 a1 a2', 2, 1)
-print(example_4_25[w])
+#Now let's see what we've computed
+from pprint import pprint
+d = example_4_25._dict
+keys = list(sorted(d))
+values = [d[key] for key in keys]
+
+for key, value in zip(keys, values):
+	print("{: <16} -> {:}".format(str(key), str(value)))

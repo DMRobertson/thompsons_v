@@ -5,10 +5,14 @@
 """
 
 from collections import deque
+from itertools import chain
 
 from .word import Word, are_contractible
 from .generators import Generators
 from .full_tree import FullTree
+
+def _concat(words):
+	return list(chain.from_iterable(word for word in words)) + [0]
 
 class Automorphism:
 	r"""Represents an automorphism of :math:`V_{n,r}` by specifying two bases. This class keeps track of the mapping between bases.
@@ -156,6 +160,7 @@ class Automorphism:
 			#if it's anything else, typeerror
 		# if not isinstance(word, Word):
 			# raise TypeError('{:r} is not a Word instance.'.format(word))
+		#todo check word arity is the same and alphabet size not greater
 		try:
 			return self._dict[word]
 		except KeyError:
@@ -164,19 +169,32 @@ class Automorphism:
 		if word.is_simple():
 			if self.domain.is_above(word):
 				return self._image_of_simple(word)
-			#Else return Word(CONCAT(self[child] for child in self.expand())
+			#otherwise, we have a simple word which is above our generators
+			letters = _concat(self[child] for child in word.expand())
+			image = Word(letters, self.arity, self.alphabet_size)
+			self._dict[word] = image
+			return image
 		#else:
 			# the word is complicated and in standard form, so ends with lambda
 			# return Word(CONCAT(self[subword] for subword in lambda_arguments)
 		return self.image_of_complex(word)
 		
 	def _image_of_simple(self, word):
-		""". This method strips off alphas from the end of a string until the reamining string's image is already known. The computation is cached for further usage later.
+		"""This method strips off alphas from the end of a string until the reamining string's image is already known. The computation is cached for further usage later.
 		
 			>>> from thompson.examples import example_4_25
+			>>> #Basis element
+			>>> u = Word('x1 a1', 2, 1)
+			>>> print(example_4_25[u])
+			x1 a1 a1 a1
+			>>> #Below basis element
 			>>> u = Word('x1 a1 a2 a2', 2, 1)
-			>>> v = example_4_25[u]; print(v)
+			>>> print(example_4_25[u])
 			x1 a1 a1 a1 a2 a2
+			>>> #Above basis element - no cancellation
+			>>> u = Word('x1', 2, 1)
+			>>> print(example_4_25[u])
+			x1 a1 a1 a1 x1 a1 a1 a2 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L L
 		"""
 		i = 1
 		while True:

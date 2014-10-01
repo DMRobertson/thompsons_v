@@ -407,6 +407,10 @@ class Word(tuple):
 			  index, self.arity))
 		return type(self)(self + (-index,), self.arity, self.alphabet_size, preprocess=False)
 	
+	def expand(self):
+		#TODO docstring and examples
+		return (self.alpha(i) for i in range(1, self.arity + 1))
+	
 	def split(self, index):
 		"""Splits the current word *w* into a pair of tuples *head*, *tail* where ``len(tail) == index``. The segments of the word are returned as tuples of integers (not fully fledged words).
 		
@@ -456,6 +460,8 @@ def lambda_arguments(word):
 	:raises ValueError: if the last letter in *word* is not a lambda.
 	:raises TypeError: if *word* is not a :class:`Word` instance.
 	"""
+	if not isinstance(word, Word):
+		raise TypeError("The argument word is not a Word instance.")
 	if word[-1] != 0:
 		raise ValueError('The last letter of `...{}` is not a lambda.'.format(
 		  format(word[-5:])))
