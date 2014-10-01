@@ -1,8 +1,18 @@
-r"""The algebra :math:`V_{n, r}` consists of words written in the alphabet :math:`\{x_1,\dotsc, x_r, \alpha_1, \dotsc, \alpha_n, \lambda\}`, as defined in remark 3.3. In the workings of this module, we represent a word as a list (or any iterable) of integers, where:
+r"""The algebra :math:`V_{n, r}` consists of words written in the alphabet :math: X \cup \Omega = `\{x_1,\dotsc, x_r\} \cup \{\alpha_1, \dotsc, \alpha_n, \lambda\}`, as defined in remark 3.3. There are three different algebras of words, however. Using the notation of [Cohn]_:
+
+	1. :math:`W(\Omega; X)`, the set of finite strings written using letters in  :math:`X \cup \Omega`;
+	2. :math:`W_\Omega(x)\, the subset of :math:`W(\Omega; X)` whose strings:
+		- begin with an :math:`x_i`, and
+		- are :func:`valid <validate>`, meaning that they represent a legitimate series of operations.
+	3. :math:`V_{n, r}(X) = `W_\Omega(x) / \mathfrak{q}`. We can think of this as the set of words in :math:`W_\Omega(x)` which are in Higman's standard form (see remark 3.3).
+
+In the workings of this module, we represent a word as a list (or any iterable) of integers, where:
 
 - :math:`x_i` is represented by :math:`i`,
 - :math:`\alpha_i` is represented by :math:`-i`, and
 - :math:`\lambda` is represented by :math:`0`.
+
+This format represent words of all types, but we're only interested in the standard forms of type 3. To this end, the :func`validate` detects those which are of type 2, and :func:`standardise` reduces type 2 words to type 3.
 
 .. testsetup:: 
 	
@@ -11,10 +21,9 @@ r"""The algebra :math:`V_{n, r}` consists of words written in the alphabet :math
 
 import operator
 from itertools import chain
-
 from .full_tree import FullTree
 
-__all__ = ["format", "validate", "standardise", "are_contractible", "from_string", "format", "Word"]
+__all__ = ["format", "from_string", "validate", "standardise", "syntax_tree", "are_contractible", "Word", "initial_segment"]
 
 def _char(symbol):
 	if symbol > 0:
@@ -23,6 +32,35 @@ def _char(symbol):
 		return 'a' + str(-symbol)
 	elif symbol == 0:
 		return 'L'
+
+def format(letters):
+	"""Turns a list of integers representing a word into a nicely formatted string. Can be thought of as an inverse to :func:`from_string`. No processing is applied to the word.
+	
+		>>> format([2, -1, 2, -2, 0])
+		'x2 a1 x2 a2 L'
+	"""
+	return " ".join(_char(i) for i in letters)
+
+def from_string(str):
+	"""Converts a string representation of a word to the internal format (a list of integers). Anything which does not denote a basis letter (e.g. ``'x'``, ``'x2'``, ``'x45'``) a descendant operator (e.g.  ``'a1'``, ``'x3'``, ``'x27'``) or a lambda contraction (``'L'``) is ignored.
+	
+		>>> x = from_string('x2 a1 x2 a2 L')
+		>>> print(x); print(format(x))
+		[2, -1, 2, -2, 0]
+		x2 a1 x2 a2 L
+	"""
+	output = str.lower().split()
+	for i, string in enumerate(output):
+		char = string[0]
+		if char == 'x':
+			value = 1 if len(string) == 1 else int(string[1:])
+			output[i] = value
+		elif char == 'a':
+			value = int(string[1:])
+			output[i] = -value
+		elif char == ('l'):
+			output[i] = 0
+	return output
 
 def validate(letters, arity, alphabet_size=float('inf')):
 	r"""Checks that the given list of *letters* makes sense as a word. If no errors are raised when running this function, then we know that *letters* represents a valid word. Specifically, we know that:
@@ -92,28 +130,30 @@ def standardise(letters, arity):
 	
 	In the examples below, the :class:`Word` class standardises its input before creating a Word.
 	
-		>>> #Extraction
+		>>> #Extraction only
 		>>> print(Word("x a1 a2 a1 x a2 a1 L a1 a2", 2, 1))
 		x1 a1 a2 a1 a2
-		>>> #Contraction
+		>>> #Contraction only
 		>>> print(Word("x2 a2 a2 a1 x2 a2 a2 a2 L", 2, 2))
 		x2 a2 a2
+		>>> #Contraction only, arity 3
 		>>> print(Word("x1 a1 a1 x1 a1 a2 x1 a1 a3 L", 3, 2))
 		x1 a1
 		>>> #Both extraction and contraction
 		>>> print(Word("x a1 a2 a1 a1 x a1 a2 a1 x a2 a1 L a1 a2 a1 x a1 a2 a1 a2 a2 L L", 2, 1))
 		x1 a1 a2 a1
-		>>> #Something that doesn't simplify all the lambdas away
+		>>> #Lambda concatenation
 		>>> print(Word("x a1 a2 a1 x a1 a2 a1 x a2 a1 L a1 a2 a1 x a1 a2 a1 a2 a2 L L", 2, 1))
 		x1 a1 a2 a1 x1 a1 a2 a1 a2 L
-		>>> #A toughie
+		>>> #A mix of concatenation and extraction
 		>>> print(Word("x a2 x a1 L x a1 L a1 a2 a1 a2", 2, 1))
 		x1 a1 a1 a2
 	
 	:raises IndexError: if the list of letters :func:`is not valid <validate>`.
+	:raises TypeError: if *letters* is not a list of integers or a Word.
 	"""
 	#Form the tree of lambda calls
-	root = _syntax_tree(letters, arity)
+	root = syntax_tree(letters, arity)
 	
 	#Modify the tree. Find all lambda-alpha nodes and replace them with their extracted child.
 	extractions = []
@@ -124,30 +164,41 @@ def standardise(letters, arity):
 	while extractions:
 		node = extractions.pop()
 		head, tail = node.data[0], node.data[1:]
-		for child in node:
-			try:
-				extractions.remove(child)
-			except ValueError:
-				pass
 		
 		#The extracted child
-		child = node.replace_with_child(-head - 1)
-		child.data += tail
-		if child.data and not child.is_leaf(): #is not empty:
-			extractions.append(child)
+		replacement = node.replace_with_child(-head - 1)
+		if replacement.is_root():
+			root = replacement 
+		replacement.data += tail
+		
+		#Remove the discarded children from the extractions list if they're in there.
+		for child in node:
+			if child is not replacement:
+				_remove_with_descendants(child, extractions)
+		
+		if (replacement not in extractions
+		  and replacement.data 
+		  and not replacement.is_leaf()):
+			extractions.append(replacement)
 	
-	print("branches have no data?", all(not node.data for node in root.walk() if not node.is_leaf() ))
-	
-	#TODO IMPORTANT NEXT
 	#Now the only lambdas left should be contractions.
-	#Do nothing at leaves
-	#At branches, contract. Use postorder.
+	assert all(not node.data for node in root.walk() if not node.is_leaf()), 'branch has data'
 	
-	data = root.data #should be the reduced word.
+	for node in root.walk_postorder():
+		if node.is_leaf():
+			continue
+		subwords = [child.data for child in node]
+		prefix = are_contractible(subwords)
+		if prefix: #is not empty, so can contract
+			node.data = prefix
+		else: #we'll just have to concatenate won't we?
+			node.data = concat(subwords) + [0]
+	
+	data = root.data
 	root.discard()
 	return data
 
-def _syntax_tree(letters, arity):
+def syntax_tree(letters, arity):
 	"""Returns a tree representing the composition of lambdas in this word."""
 	alphas = []
 	indices = [0] #the indices of the rightmost unconsidered node on each level.
@@ -210,26 +261,6 @@ def are_contractible(words):
 
 def concat(iterable):
 	return list(chain.from_iterable(iterable))
-
-def from_string(str):
-	"""Converts a string representation of a word to the internal format (a list of integers). Anything which does not denote a basis letter (e.g. ``'x'``, ``'x2'``, ``'x45'``) a descendant operator (e.g.  ``'a1'``, ``'x3'``, ``'x27'``) or a lambda contraction (``'L'``) is ignored.
-	"""
-	output = str.lower().split()
-	for i, string in enumerate(output):
-		char = string[0]
-		if char == 'x':
-			value = 1 if len(string) == 1 else int(string[1:])
-			output[i] = value
-		elif char == 'a':
-			value = int(string[1:])
-			output[i] = -value
-		elif char == ('l'):
-			output[i] = 0
-	return output
-
-def format(letters):
-	"""Turns a list of letters into a string. Can be thought of as an inverse to :func:`from_string`."""
-	return " ".join(_char(i) for i in letters)
 
 class Word(tuple):
 	r"""A list of letters, together with a recorded *arity* and *alphabet_size*. Words are implemented as subclasses of :func:`tuple <py3:tuple>` meaning they are immutable. This means they can be used as dictionary keys. 
@@ -374,7 +405,7 @@ class Word(tuple):
 		"""
 		return self[:-index], self[-index:]
 
-#Actually interesting operations
+#Operations on words in standard form
 def initial_segment(u, v):
 	r"""Let :math:`u, v` be two words in standard form. This function returns True if :math:`u` is an initial segment of :math:`v` or vice versa; otherwise returns False. See definition 3.15.
 
