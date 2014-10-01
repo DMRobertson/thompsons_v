@@ -320,7 +320,7 @@ class Word(tuple):
 		self = tuple.__new__(cls, letters)
 		self.arity = arity
 		self.alphabet_size = alphabet_size
-		self.lambda_length = sum(i == 0 for i in self)
+		self.lambda_length = self.count(0)
 		return self
 	
 	#Representation
@@ -475,7 +475,6 @@ def lambda_arguments(word):
 	
 	assert i + 2 == len(word)
 	assert len(subwords) == word.arity
-	
 	assert max_valency == valency == 1, (max_valency, valency)
 	subwords.reverse()
 	for i in range(len(subwords)):

@@ -85,11 +85,8 @@ class Automorphism:
 	def _reduce(domain, range):
 		"""Contracts the domain generators whenever the corresponding contraction in range is possible. (This corresponds to reducing a tree pair diagram.)
 			
-			>>> leaves = ["x a1 a1", "x a1 a2 a1", "x a1 a2 a2 a1", "x a1 a2 a2 a2", "x a2 a1", "x a2 a2"]
-			>>> domain = Generators(2, 1, leaves)
-			>>> range = Generators(2, 1, [leaves[0], leaves[3], leaves[4], leaves[5], leaves[2], leaves[1]])
-			>>> Automorphism._reduce(domain, range)
-			>>> for d, r in zip(domain, range):
+			>>> from thompson.examples import cyclic_order_six as cyclic
+			>>> for d, r in zip(cyclic.domain, cyclic.range):
 			... 	print(d, '->', r)
 			x1 a1 a1 -> x1 a1 a1
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
@@ -153,20 +150,24 @@ class Automorphism:
 	def __getitem__(self, word):
 		"""Computes the image of a *word* under the given automorphism. The computation is cached for further usage later."""
 		#Need to ensure this always returns a word
-		#need to make sure we store the images of things above the basis after expansion.
-		#if it's a tuple but not a word, validate
-		#if it's a tuple and is a word, fine
-		#if it's anything else, typeerror
-		if not isinstance(word, Word):
-			raise TypeError('{:r} is not a Word instance.'.format(word))
+		#TODO:
+			#if it's a tuple but not a word, validate
+			#if it's a tuple and is a word, fine
+			#if it's anything else, typeerror
+		# if not isinstance(word, Word):
+			# raise TypeError('{:r} is not a Word instance.'.format(word))
 		try:
 			return self._dict[word]
 		except KeyError:
 			pass
-		#We haven't computed the image of word before.
+		
 		if word.is_simple():
-			return self._image_of_simple(word)
-		#Else, This word ends with a lambda
+			if self.domain.is_above(word):
+				return self._image_of_simple(word)
+			#Else return Word(CONCAT(self[child] for child in self.expand())
+		#else:
+			# the word is complicated and in standard form, so ends with lambda
+			# return Word(CONCAT(self[subword] for subword in lambda_arguments)
 		return self.image_of_complex(word)
 		
 	def _image_of_simple(self, word):
