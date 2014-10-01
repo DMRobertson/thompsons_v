@@ -20,7 +20,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 """Begin my additions."""
 #From http://stackoverflow.com/a/5599712 .
-#TODO. If we're running doctests, never skip anything!
+#TODO. Instance variables defined in __slots__ are being picked up by the html builder.
 def skip(app, what, name, obj, skip, options):
 	if 'doctest' in sys.argv:
 		#don't skip any doctests under any _private methods

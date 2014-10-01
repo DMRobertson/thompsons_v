@@ -115,7 +115,17 @@ class FullTree:
 		yield self
 	
 	def __str__(self):
-		#todo docstring
+		"""Returns a string representing the pattern of branches and leaves in this tree in pre-order traversal. ``'1'`` represents a branch and ``'0'`` represents a leaf.
+		
+			>>> x = FullTree(3); str(x)
+			'0'
+			>>> x.expand(); str(x)
+			'1000'
+			>>> x.children[2].expand(); str(x)
+			'1001000'
+			>>> x.children[0].expand(); str(x)
+			'1100001000'
+		"""
 		if self.is_leaf():
 			return '0'
 		return '1' + "".join(child.__str__() for child in self)
@@ -142,13 +152,15 @@ class FullTree:
 			self._add_child(i)
 	
 	def replace_with_child(self, index):
-		"""Let *S* (for self) stand for the current node. This method:
-		- removes the child node *C* with index *index* from *S*;
+		r"""Let *S* (for self) stand for the current node. This method:
+		
+		- removes the child node *C* with index *index* from *S* ;
 		- removes all other children from *S*.
-		- if *S* has a parent *P*:
+		- if *S* has a parent *P* :
+		
 			- replaces *S* with *C* in *P*'s list of children;
 			- sets the parent of *C* to be *P*.
-		- then returns *C*.
+		- Finally, the method returns *C*.
 		
 		:raises IndexError: if *index* is outside of the range :math:`0, \dotsc, \text{arity} - 1`.
 		:raises ValueError: if *S* is a leaf.
@@ -177,9 +189,9 @@ class FullTree:
 		- from any descendant of this node to their children, and
 		- from this node to its children.
 		
-		This isn't strictly necessary but it's good bookkeeping. See the note about :meth:`<py3:object.__del__>` in the Python documentation.
+		This isn't strictly necessary but it's good bookkeeping. See the note about :meth:`__del__ <py3:object.__del__>` in the Python documentation.
 		
-		*NB:* this method does NOT remove the reference from ``self.parent`` to ``self in self.parent.children``.
+		*NB:* this method does NOT remove the reference from ``self.parent`` to ``self`` in ``self.parent.children``.
 		"""
 		self.parent = None
 		for child in self:

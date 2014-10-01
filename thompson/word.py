@@ -292,7 +292,7 @@ class Word(tuple):
 	:ivar lambda_length: the number of times the contraction symbol :math:`\lambda` occurs in this word after it has been written in standard form.
 	"""
 	
-	#TODO - maybe I should define __slots__ to try and save memory? See http://stackoverflow.com/questions/472000/python-slots
+	#I'd previously thought about defining __slots__ to save memory. But Python doesn't like that on subclasses of builtin or immutable types (I forget which).
 	#Creation
 	def __new__(cls, letters, arity, alphabet_size):
 		"""Creates a new Word from a list of letters and stores the *arity* and *alphabet_size*. 
