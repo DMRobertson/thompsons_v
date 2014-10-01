@@ -145,9 +145,15 @@ def standardise(letters, arity):
 		>>> #Lambda concatenation
 		>>> print(Word("x a1 a2 a1 x a1 a2 a1 x a2 a1 L a1 a2 a1 x a1 a2 a1 a2 a2 L L", 2, 1))
 		x1 a1 a2 a1 x1 a1 a2 a1 a2 L
-		>>> #A mix of concatenation and extraction
+		>>> #A mix of contraction and extraction
 		>>> print(Word("x a2 x a1 L x a1 L a1 a2 a1 a2", 2, 1))
 		x1 a1 a1 a2
+		>>> #Can't contract different x-es
+		>>> print(Word('x1 a1 x2 a2 L', 2, 2))
+		x1 a1 x2 a2 L
+		>>> #Something meaty, arity 3
+		>>> print(Word('x1 a1 x1 a2 x1 a3 L a2 a1 a3 x1 a2 a1 x2 a1 x1 a1 a1 x1 a1 a2 x2 L x1 a2 L a2 a1 a1 L a3 a3 a2', 3, 2))
+		x1 a1 a1 a1 a3 a2
 	
 	:raises IndexError: if the list of letters :func:`is not valid <validate>`.
 	:raises TypeError: if *letters* is not a list of integers or a Word.
@@ -166,15 +172,16 @@ def standardise(letters, arity):
 		head, tail = node.data[0], node.data[1:]
 		
 		#The extracted child
-		replacement = node.replace_with_child(-head - 1)
-		if replacement.is_root():
-			root = replacement 
-		replacement.data += tail
-		
+		replacement = node.children[-head - 1]
 		#Remove the discarded children from the extractions list if they're in there.
 		for child in node:
 			if child is not replacement:
 				_remove_with_descendants(child, extractions)
+		
+		node.replace_with_child(-head - 1)
+		if replacement.is_root():
+			root = replacement 
+		replacement.data += tail
 		
 		if (replacement not in extractions
 		  and replacement.data 
@@ -233,6 +240,13 @@ def syntax_tree(letters, arity):
 			
 	assert node is None
 	return root
+
+def _remove_with_descendants(node, list):
+	for descendant in node.walk_postorder():
+		try:
+			list.remove(descendant)
+		except ValueError:
+			pass
 
 def are_contractible(words):
 	r"""Let *words* be a list of words, either as lists of integers or as full :class:`Word` objects. This function tests to see if *words* is a list of the form :math:`(w\alpha_1, \dotsc, w\alpha_n)`, where ``n == len(words)``.
