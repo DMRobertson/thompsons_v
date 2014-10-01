@@ -1,10 +1,8 @@
-r"""The algebra :math:`V_{n, r}` consists of words written in the alphabet :math: X \cup \Omega = `\{x_1,\dotsc, x_r\} \cup \{\alpha_1, \dotsc, \alpha_n, \lambda\}`, as defined in remark 3.3. There are three different algebras of words, however. Using the notation of [Cohn]_:
+r"""The algebra :math:`V_{n, r}` consists of words written in the alphabet :math:`X \cup \Omega = \{x_1,\dotsc, x_r\} \cup \{\alpha_1, \dotsc, \alpha_n, \lambda\}`, as defined in remark 3.3. There are three different algebras of words, however. Using the notation of [Cohn]_:
 
 	1. :math:`W(\Omega; X)`, the set of finite strings written using letters in  :math:`X \cup \Omega`;
-	2. :math:`W_\Omega(x)\, the subset of :math:`W(\Omega; X)` whose strings:
-		- begin with an :math:`x_i`, and
-		- are :func:`valid <validate>`, meaning that they represent a legitimate series of operations.
-	3. :math:`V_{n, r}(X) = `W_\Omega(x) / \mathfrak{q}`. We can think of this as the set of words in :math:`W_\Omega(x)` which are in Higman's standard form (see remark 3.3).
+	2. :math:`W_\Omega(X)`, the subset of :math:`W(\Omega; X)` whose strings begin with an :math:`x_i`, and represent a :func:`valid <validate>` series of operations.
+	3. :math:`V_{n, r}(X) = W_\Omega(X) / \mathfrak{q}`. We can think of this as the set of words in :math:`W_\Omega(x)` which are in Higman's standard form (see remark 3.3).
 
 In the workings of this module, we represent a word as a list (or any iterable) of integers, where:
 
@@ -12,7 +10,7 @@ In the workings of this module, we represent a word as a list (or any iterable) 
 - :math:`\alpha_i` is represented by :math:`-i`, and
 - :math:`\lambda` is represented by :math:`0`.
 
-This format represent words of all types, but we're only interested in the standard forms of type 3. To this end, the :func`validate` detects those which are of type 2, and :func:`standardise` reduces type 2 words to type 3.
+This format represent words of all types, but we're only interested in the standard forms of type 3. To this end, the :func:`validate` detects those which are of type 2, and :func:`standardise` reduces type 2 words to type 3.
 
 .. testsetup:: 
 	
