@@ -148,17 +148,21 @@ class Automorphism:
 		
 			>>> from thompson.examples import example_4_25
 			>>> #An element of the domain---just a lookup
-			>>> u = Word('x1 a1', 2, 1)
-			>>> print(example_4_25[u])
+			>>> print(example_4_25['x1 a1'])
 			x1 a1 a1 a1
-			>>> #A word below a basis element
-			>>> u = Word('x1 a1 a2 a2', 2, 1)
-			>>> print(example_4_25[u])
+			>>> #A word below a the domain words
+			>>> print(example_4_25['x1 a1 a2 a2'])
 			x1 a1 a1 a1 a2 a2
-			>>> #Above basis element---have to expand.
-			>>> u = Word('x1', 2, 1)
-			>>> print(example_4_25[u])
+			>>> #Above domain words---have to expand.
+			>>> print(example_4_25['x1'])
 			x1 a1 a1 a1 x1 a1 a1 a2 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L L
+			>>> #Let's try some words not in standard form
+			>>> print(example_4_25['x1 a1 a1 x1 a1 a2 L'])
+			x1 a1 a1 a1
+			>>> print(example_4_25['x1 a1 a1 x1 a1 a2 L a2 a1'])
+			x1 a1 a1 a1 a2 a1
+			>>> print(example_4_25['x1 a1 a1 x1 a2 a2 L'])
+			x1 a1 a1 a1 a1 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L
 		
 		:rtype: a Word instance (which are always in standard form).
 		"""
@@ -324,4 +328,6 @@ class Automorphism:
 			value = self[key]
 			print(prefix + fmt.format(key, value), **kwargs)
 		
+
+#TODO. Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
 
