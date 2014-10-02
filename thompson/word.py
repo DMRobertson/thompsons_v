@@ -40,11 +40,11 @@ def format(letters):
 	return " ".join(_char(i) for i in letters)
 
 def from_string(str):
-	"""Converts a string representation of a word to the internal format (a list of integers). Anything which does not denote a basis letter (e.g. ``'x'``, ``'x2'``, ``'x45'``) a descendant operator (e.g.  ``'a1'``, ``'x3'``, ``'x27'``) or a lambda contraction (``'L'``) is ignored.
+	"""Converts a string representation of a word to the internal format (a tuple of integers). Anything which does not denote a basis letter (e.g. ``'x'``, ``'x2'``, ``'x45'``) a descendant operator (e.g.  ``'a1'``, ``'x3'``, ``'x27'``) or a lambda contraction (``'L'``) is ignored.
 	
 		>>> x = from_string('x2 a1 x2 a2 L')
 		>>> print(x); print(format(x))
-		[2, -1, 2, -2, 0]
+		(2, -1, 2, -2, 0)
 		x2 a1 x2 a2 L
 	"""
 	output = str.lower().split()
@@ -58,7 +58,7 @@ def from_string(str):
 			output[i] = -value
 		elif char == ('l'):
 			output[i] = 0
-	return output
+	return tuple(output)
 
 def validate(letters, arity, alphabet_size=float('inf')):
 	r"""Checks that the given list of *letters* makes sense as a word. If no errors are raised when running this function, then we know that *letters* represents a valid word. Specifically, we know that:
@@ -201,7 +201,7 @@ def standardise(letters, arity):
 	
 	letters = root.letters
 	root.discard()
-	return letters
+	return tuple(letters)
 
 def syntax_tree(letters, arity):
 	"""Returns a tree representing the composition of lambdas in this word."""
@@ -331,6 +331,7 @@ class Word(tuple):
 		return "Word('{}', {}, {})".format(str(self), self.arity, self.alphabet_size)
 	
 	#Comparisons
+	#TODO rethink how I should sort words with a lambda 
 	def __lt__(self, other):
 		r"""Words in standard form are compared according to dictionary order. The alphabet :math:`X \cup \Omega` is ordered according to:
 		
@@ -408,7 +409,17 @@ class Word(tuple):
 		return type(self)(self + (-index,), self.arity, self.alphabet_size, preprocess=False)
 	
 	def expand(self):
-		#TODO docstring and examples
+		"""Returns an iterator that yeilds the *arity* descandants of this word.
+		
+			>>> w = Word("x a1", 5, 1)
+			>>> for child in w.expand():
+			... 	print(child)
+			x1 a1 a1
+			x1 a1 a2
+			x1 a1 a3
+			x1 a1 a4
+			x1 a1 a5
+		"""
 		return (self.alpha(i) for i in range(1, self.arity + 1))
 	
 	def split(self, index):
@@ -461,7 +472,7 @@ def lambda_arguments(word):
 	:raises TypeError: if *word* is not a :class:`Word` instance.
 	"""
 	if not isinstance(word, Word):
-		raise TypeError("The argument word is not a Word instance.")
+		raise TypeError("The argument {} is not a Word instance".format(repr(word)))
 	if word[-1] != 0:
 		raise ValueError('The last letter of `...{}` is not a lambda.'.format(
 		  format(word[-5:])))
@@ -477,7 +488,6 @@ def lambda_arguments(word):
 			max_valency = valency
 			subwords.append(word[-i - 2 : subword_end])
 			subword_end = -i - 2
-	
 	
 	assert i + 2 == len(word)
 	assert len(subwords) == word.arity

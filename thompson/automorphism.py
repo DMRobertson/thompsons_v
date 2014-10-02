@@ -2,18 +2,25 @@
 .. testsetup::
 	
 	from thompson.automorphism import *
+	from thompson.generators import Generators
+	from thompson.word import Word
 """
+
+__all__ = ["Automorphism"]
 
 from collections import deque
 from itertools import chain
+from io import StringIO
 
-from .word import Word, are_contractible
+from .word import *
 from .generators import Generators
 from .full_tree import FullTree
 
 def _concat(words):
-	return list(chain.from_iterable(word for word in words)) + [0]
+	"""Takes an iterable *words* which yields lists of integers representing words. Returns a tuple containing all the *words* concatenated together, with a zero (lambda) added on the end."""
+	return tuple(chain.from_iterable(words)) + (0,)
 
+#TODO. Check the assumption that the bases consist of simple words only (no lambdas)
 class Automorphism:
 	r"""Represents an automorphism of :math:`V_{n,r}` by specifying two bases. This class keeps track of the mapping between bases.
 	
@@ -75,6 +82,7 @@ class Automorphism:
 			  arity, alphabet_size, [format(x) for x in missing]))
 		
 		#Before saving the domain and range, reduce them to remove any redundancy. This is like reducing tree pairs.
+		#TODO: is this really 100% neccesary?
 		Automorphism._reduce(domain, range)
 		
 		self.arity = arity
@@ -84,6 +92,9 @@ class Automorphism:
 		self._dict = {}
 		for d, r in zip(self.domain, self.range):
 			self._dict[d] = r
+		#Compute and cache the images of any element in X<A> above self.domain
+		for root in Generators.standard_basis(self.arity, self.alphabet_size):
+			self._image_simple_above_domain(root)
 	
 	@staticmethod
 	def _reduce(domain, range):
@@ -120,8 +131,130 @@ class Automorphism:
 			else:
 				i += 1
 	
+	#Finding images of words
+	def __getitem__(self, key):
+		"""Computes the image of a *key* under the given automorphism. The result is cached for further usage later.
+		
+		The word must be given as one of:
+		
+		- a list of integers (see the :mod:`~thompson.word` module), or
+		- a :class:`~thompson.word.Word` instance.
+		
+		The input need not be in standard form. This method
+		
+		1. Checks if the image of *key* has been cached, and returns the image if so.
+		2. Checks if the image of the standard form of *key* has been cached, and returns the image if so.
+		3. Computes the image of *key* under the automorphism, then caches and returns the result.
+		
+			>>> from thompson.examples import example_4_25
+			>>> #An element of the domain---just a lookup
+			>>> u = Word('x1 a1', 2, 1)
+			>>> print(example_4_25[u])
+			x1 a1 a1 a1
+			>>> #A word below a basis element
+			>>> u = Word('x1 a1 a2 a2', 2, 1)
+			>>> print(example_4_25[u])
+			x1 a1 a1 a1 a2 a2
+			>>> #Above basis element---have to expand.
+			>>> u = Word('x1', 2, 1)
+			>>> print(example_4_25[u])
+			x1 a1 a1 a1 x1 a1 a1 a2 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L L
+		
+		:rtype: a Word instance (which are always in standard form).
+		"""
+		try:
+			return self._dict[key]
+		except KeyError:
+			if isinstance(key, Word):
+				word = key
+			elif isinstance(key, (str, tuple)):
+				word = Word(key, self.arity, self.alphabet_size)
+			image = self._get_image(word)
+			#TODO. Is this the right decision?
+			# self._dict[key] = image
+			return image
+	
+	def _get_image(self, word):
+		"""This is the meat and bones which computes or looks up the images of a *word* in standard form. This method sets ``self._dict[word] = image``, where *image* is the image of *word* and returns *image*. 
+		
+		If *word* is came from tuple of *letters* not in standard form, the caller of this method may then set ``self._dict[letters] = image`` if it wishes."""
+		try:
+			return self._dict[word]
+		except KeyError:
+			pass
+		
+		#1. First deal with the easy words (no lambdas).
+		if word.is_simple():
+			#During initialisation we compute the image of everything above the domain.
+			#Thus *word* must be below the domain, so we remove alphas until we find something we know the image of.
+			return self._image_simple_below_domain(word)
+		#2. Words with lambdas in them are going to be a bit trickier.
+		return self._image_of_lambda(word)
+	
+	def _image_simple_above_domain(self, word):
+		r"""Finds the image of a *word* in standard form above *self.domain* by expansion.
+		
+		.. math:: w\phi = w\alpha\lambda\phi &= w\alpha_1     \dots w\alpha_n \lambda \phi \\
+		                                     &= w\alpha_1\phi \dots w\alpha_n \phi \lambda
+		
+		Images are cached once computed.
+		"""
+		try: 
+			return self._dict[word]
+		except KeyError:
+			img_letters = _concat(self._image_simple_above_domain(child) for child in word.expand())
+			#NOT in standard form.
+			img_letters = standardise(img_letters, self.arity)
+			image = Word(img_letters, self.arity, self.alphabet_size, preprocess=False)
+			self._dict[word] = image
+			return image
+	
+	def _image_simple_below_domain(self, word):
+		r"""This method takes a :meth:`simple <Word.is_simple>` *word* of the form :math:`d \alpha_i_1 \dots \alpha_i_m` where :math:`d` is the largest such word whose image has already been computed. The images of the words
+		
+		.. math:: d \alpha_i_1, d \alpha_i_1 \alpha_i_2, \dotsc, d\alpha_i_1 \alpha i_2 \dots \alpha i_m
+		
+		are then computed and cached. The final image in this list (i.e. that of the original *word* is returned).
+		"""
+		i = 1
+		while True:
+			head, tail = word.split(i)
+			if head in self._dict:
+				break
+			i += 1
+		head = Word(head, self.arity, self.alphabet_size, preprocess=False)
+		image = self._dict[head] #is a word
+		for _ in range(i):
+			alpha, tail = tail[0], tail[1:]
+			head = head.alpha(-alpha) #.alpha() returns a word
+			image = image.alpha(-alpha) #.alpha() returns a word
+			self._dict[head] = image
+		assert len(tail) == 0
+		return image
+		
+	def _image_of_lambda(self, letters, in_standard_form=True):
+		r"""Let *letters* be a list of integers describing a word which ends in a lambda. If *in_standard_form* is True, then the *letters* should describe a word in standard form. Otherwise, with the exception that words of the form
+		
+		.. math:: w\alpha\lambda = w \alpha_1 w \alpha_2 \dots w\alpha_n \lambda
+		
+		are permitted.
+		
+		This method expands the word into the arguments of the lambda, then calls :meth:`_get_image` on each subword; the process continues recursively. Once we have computed/retreived all of the images we need, the images are concatenated and standardised, forming the image of *letters*.
+		
+		If *letters* is *in_standard_form*, then the image is cached before returning. If not, it is the responsibility of the caller to set ``self._dict[word] = image``, where *word* is the standardised form of *letters*.
+		
+		:raises ValueError: if the last letter in *word* is not a lambda.
+		"""
+		subwords = lambda_arguments(letters)
+		letters = _concat(self._get_image(word) for word in subwords)
+		letters = Word(letters, self.arity, self.alphabet_size)
+		image = Word(letters, self.arity, self.alphabet_size, preprocess=False)
+		if in_standard_form:
+			self._dict[letters] = image
+		return image
+	
 	def minimal_expansion(self):
-		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \union W`. See example 4.25.
+		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \cup W`. See example 4.25.
 		
 		>>> from thompson.examples import cyclic_order_six, example_4_25
 		>>> cyclic_order_six.minimal_expansion()
@@ -144,116 +277,51 @@ class Automorphism:
 		
 		1. Reduce the automorphism (eliminate carets) - DONE 
 		2. Find elements above (Y union W) - DONE indirectly, see 3.
-		3. Expand std basis until it contains all the elements from step 2. DONE
+		3. Expand std basis until it contains none of the elements from step 2. DONE
 		4. Test each element of this expanded basis to see if the have nice orbits.
 			a. If an element doesn't, expand it and try again with its children.
 		5. When everything in the basis has nice orbits we are done.
 		"""
 		pass
 	
-	def __getitem__(self, word):
-		"""Computes the image of a *word* under the given automorphism. The computation is cached for further usage later."""
-		#Need to ensure this always returns a word
-		#TODO:
-			#if it's a tuple but not a word, validate
-			#if it's a tuple and is a word, fine
-			#if it's anything else, typeerror
-		# if not isinstance(word, Word):
-			# raise TypeError('{:r} is not a Word instance.'.format(word))
-		#todo check word arity is the same and alphabet size not greater
-		try:
-			return self._dict[word]
-		except KeyError:
-			pass
+	#Printing
+	def __str__(self):
+		"""Printing an automorphism gives its arity, alphabet_size, and lists the images of its domain elements.
 		
-		if word.is_simple():
-			if self.domain.is_above(word):
-				return self._image_of_simple(word)
-			#otherwise, we have a simple word which is above our generators
-			letters = _concat(self[child] for child in word.expand())
-			image = Word(letters, self.arity, self.alphabet_size)
-			self._dict[word] = image
-			return image
-		#else:
-			# the word is complicated and in standard form, so ends with lambda
-			# return Word(CONCAT(self[subword] for subword in lambda_arguments)
-		return self.image_of_complex(word)
-		
-	def _image_of_simple(self, word):
-		"""This method strips off alphas from the end of a string until the reamining string's image is already known. The computation is cached for further usage later.
-		
-			>>> from thompson.examples import example_4_25
-			>>> #Basis element
-			>>> u = Word('x1 a1', 2, 1)
-			>>> print(example_4_25[u])
-			x1 a1 a1 a1
-			>>> #Below basis element
-			>>> u = Word('x1 a1 a2 a2', 2, 1)
-			>>> print(example_4_25[u])
-			x1 a1 a1 a1 a2 a2
-			>>> #Above basis element - no cancellation
-			>>> u = Word('x1', 2, 1)
-			>>> print(example_4_25[u])
-			x1 a1 a1 a1 x1 a1 a1 a2 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L L
+			>>> from thompson.examples import cyclic_order_six
+			>>> print(cyclic_order_six)
+			Automorphism of V_2,1 specified by 5 generators (after reduction):
+			x1 a1 a1    -> x1 a1 a1
+			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
+			x1 a1 a2 a2 -> x1 a2
+			x1 a2 a1    -> x1 a1 a2 a2 a1
+			x1 a2 a2    -> x1 a1 a2 a1
 		"""
-		i = 1
-		while True:
-			head, tail = word.split(i)
-			if head in self._dict:
-				break
-			i += 1
-			#should never loop forever here, provided the bases really are bases
-			#and that everything above the bases has an image.
+		output = StringIO()
+		output.write("Automorphism of V_{},{} specified by {} generators (after reduction):".format(
+		  self.arity, self.alphabet_size, len(self.domain)))
+		max_len = 0
+		for key in self.domain:
+			max_len = max(max_len, len(str(key)))
+		fmt = "\n{!s: <" + str(max_len) + "} -> {!s}"
+		for key in sorted(self.domain):
+			value = self[key]
+			output.write(fmt.format(key, value))
+		return output.getvalue()
+	
+	def dump_mapping(self, **kwargs):
+		print('Automorphism of V_{},{} specified by {} generators (after reduction).'.format(
+		  self.arity, self.alphabet_size, len(self.domain)), **kwargs)
+		print('The generators are marked by an asterisk.', **kwargs)
+		print('Following from the above {} rules, the following computations have been cached.'.format(
+		  len(self.domain)), **kwargs)
+		max_len = 0
+		for key in self._dict:
+			max_len = max(max_len, len(str(key)))
+		fmt = "{!s: <" + str(max_len) + "} -> {!s}"
+		for key in sorted(self._dict):
+			prefix = " * " if key in self.domain else "   "
+			value = self[key]
+			print(prefix + fmt.format(key, value), **kwargs)
 		
-		image = self._dict[head]
-		for _ in range(i):
-			alpha, tail = tail[:1], tail[1:]
-			head = head + alpha
-			image = image.alpha(-alpha[0])
-			self._dict[head] = image
-		assert len(tail) == 0
-		return image
-		
-	def image_of_complex(self, word):
-		"""Computes the image of a non-simple *word*. This method forms a tree of lambda contractions, and works down the tree until it finds elements which we know the images of. The tree is then collapsed to form one contracted image.
-		
-		TODO doctest."""
-		#Consume the lambda at the end of this word
-		assert word[-1] == 0 #ends with a lambda
-		root = FullTree(self.arity)
-		root.data = [word, None]
-		root.expand()
-		for child in root:
-			root.data = [GET_SUBWORDS_FROM_WORD, None]
-		
-		#data 0 and data 1 are clunky. change to pre image and post image, remove data from the tree class.
-		
-		unmapped = deque([root])
-		while len(unmapped) > 0:
-			node = unmapped.popleft()
-			if node.data[0].is_simple():
-				node.data[1] = self.image_of_simple(node.data[0]);
-			else:
-				node.expand()
-				for child in node:
-					child.data = [GET_SUBWORDS_FROM_WORD(node.data[0]), None]
-					try:
-						child.data[1]  = self._dict[child.data[0]]
-					except KeyError:
-						unmapped.append(child)
-		
-		#Now all nodes are mapped:
-		for node in root.walk_postorder():
-			if node.is_leaf():
-				continue
-			#TODO Word.concatenate
-			node.data[1] = Word.concatenate((child.data[1] for child in node), self.arity, self.alphabet_size)
-			self._dict[node.data[0]] = node.data[1]
-		
-		#Need to ensure that nodes above Y union W are put in the dict too. Use a similar contraction idea?
-		
-		
-		
-		
-		
-		
+
