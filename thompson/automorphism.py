@@ -113,6 +113,7 @@ class Automorphism:
 		#Compute and cache the images of any element in X<A> above self.domain
 		for root in Generators.standard_basis(self.arity, self.alphabet_size):
 			self._image_simple_above_domain(root)
+			self._image_simple_above_domain(root, inverse=True)
 	
 	@staticmethod
 	def _reduce(domain, range):
@@ -153,9 +154,11 @@ class Automorphism:
 		assert isinstance(d, Word), repr(d)
 		assert isinstance(r, Word), repr(r)
 		if inverse:
-			d, r = r, d
-		self._map[d] = r
-		self._inv[r] = d
+			self._map[r] = d
+			self._inv[d] = r
+		else:
+			self._map[d] = r
+			self._inv[r] = d
 	
 	#Finding images of words
 	#todo tests for inverse
@@ -227,7 +230,7 @@ class Automorphism:
 		try: 
 			return dict[word]
 		except KeyError:
-			img_letters = _concat(self._image_simple_above_domain(child) for child in word.expand())
+			img_letters = _concat(self._image_simple_above_domain(child, inverse) for child in word.expand())
 			#NOT in standard form.
 			img_letters = standardise(img_letters, self.arity)
 			image = Word(img_letters, self.arity, self.alphabet_size, preprocess=False)
@@ -317,66 +320,23 @@ class Automorphism:
 			print(prefix + fmt.format(key, value), **kwargs)
 	
 	#Operations on automorphisms
-	def quasinormal_form_basis(self):
+	def quasinormal_basis(self):
 		r"""An implementation of Lemma 4.24.1. In [Hig]_ (section 9) Higman defines when an automorphism :math:`\phi` is in *quasinormal form* with respect to a given basis :math:`X`.  We return the basis :math:`X` w.r.t which the current automorphism is in quasinormal form. 
 		"""
 		#TODO finish me and test me to high heaven.
 		basis = self._minimal_expansion()
+		print(basis)
 		#expand basis until each no element's orbit has finite intersection with X<A>
 		i = 0
 		while i < len(basis):
-			if self._orbit_type(basis[i], basis) is Orbit.incomplete:
+			type = self._orbit_type(basis[i], basis)
+			print("Orbit type:", type, '\n')
+			if type is Orbit.incomplete:
+				print('expand basis')
 				basis.expand(i)
 			else:
 				i += 1
 		return basis
-	
-	def _orbit_type(self, y, basis):
-		"""Returns the orbit type of *y* with respect to the given *basis*."""
-		#TODO. Tests from the examples
-		right_infinite = self._test_semi_infinite(y, basis, forward=True)
-		if isinstance(right_infinite, Orbit):
-			return right_infinite #periodic
-		
-		left_infinite = self._test_semi_infinite(y, basis, forward=False)
-		assert not isinstance(left_infinite, Orbit), "Orbit is not periodic going forward but is going backward."
-		
-		if right_infinite and left_infinite:
-			return Orbit.complete_infinite
-		elif right_infinite and not left_infinite:
-			return Orbit.right_semi_infinite
-		elif not right_infinite and left_infinite:
-			return Orbit.left_semi_infinite
-		else:
-			return Orbit.incomplete
-	
-	def _test_semi_infinite(self, y, basis, forward=True):
-		"""Computes the orbit type of *y* with respect to *basis* in the forward direction. (Use ``forward=False`` to go backwards."""
-		image = y
-		images = [y]
-		while True:
-			#Compute the image y\phi^i as y\phi^{i-1} \phi
-			image = self.image(image, inverse=forward)
-			
-			#1. Is this image in X<A>?
-			if not basis.is_above(image): #not in X<A>
-				return False #NOT semi_infinite in the given direction
-			
-			#2. Look for basis elements which are prefixes of the new image
-			prefixes = [gen for gen in basis if gen.is_above(image)]
-			
-			#3. For each previous image:
-			for previous in images:
-				#Is this the same as the word we've just computed?
-				if previous == image:
-					return Orbit.complete_finite #Perodic and infinite in both directions.
-				#Otherwise, is there a generator which is an initial segment of both the previous and current images? 
-				for generator in prefixes:
-					tail = generator.test_above(image)
-					if tail is not None:
-						#We've found a match: both *image* and *previous* start with *generator*
-						return True #IS semi_infinite in the given direction
-			images.append(y)
 	
 	def _minimal_expansion(self):
 		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \cup W`. See example 4.25.
@@ -401,6 +361,63 @@ class Automorphism:
 			else:
 				basis.expand(i)
 		return basis
+	
+	def _orbit_type(self, y, basis):
+		"""Returns the orbit type of *y* with respect to the given *basis*.
+		
+		>>> from thompson.examples import example_4_25 as ex
+		>>> basis = ex._minimal_expansion()
+		>>> #ex._orbit_type(Word("x a1", 2, 1), basis)
+		"""
+		#TODO. Tests from the examples
+		print('Forward Orbit for', y)
+		right_infinite = self._test_semi_infinite(y, basis, forward=True)
+		if isinstance(right_infinite, Orbit):
+			return right_infinite #periodic
+		print('right_infinite:', right_infinite)
+		
+		print('Backward orbit for', y)
+		left_infinite = self._test_semi_infinite(y, basis, forward=False)
+		assert not isinstance(left_infinite, Orbit), "Orbit is not periodic going forward but is going backward."
+		
+		if right_infinite and left_infinite:
+			return Orbit.complete_infinite
+		elif right_infinite and not left_infinite:
+			return Orbit.right_semi_infinite
+		elif not right_infinite and left_infinite:
+			return Orbit.left_semi_infinite
+		else:
+			return Orbit.incomplete
+	
+	def _test_semi_infinite(self, y, basis, forward=True):
+		"""Computes the orbit type of *y* with respect to *basis* in the forward direction. (Use ``forward=False`` to go backwards."""
+		i = 0
+		image = y
+		images = [y]
+		while True:
+			#Compute the image y\phi^i as y\phi^{i-1} \phi
+			image = self.image(image, inverse=not forward)
+			print('power #', len(images), 'is', image)
+			#1. Is this image in X<A>?
+			if not basis.is_above(image): #not in X<A>
+				return False #NOT semi_infinite in the given direction
+			
+			#2. Look for basis elements which are prefixes of the new image
+			prefixes = [gen for gen in basis if gen.is_above(image)]
+			
+			#3. For each previous image:
+			for previous in images:
+				#Is this the same as the word we've just computed?
+				if previous == image:
+					return Orbit.complete_finite #Perodic and infinite in both directions.
+				#Otherwise, is there a generator which is an initial segment of both the previous and current images? 
+				for generator in prefixes:
+					tail = generator.test_above(image)
+					if tail is not None:
+						#We've found a match: both *image* and *previous* start with *generator*
+						return True #IS semi_infinite in the given direction
+			images.append(y)
+
 
 #TODO. Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
 #TODO method to decide if the automorphism is in (the equivalent of) F, T, or V.
