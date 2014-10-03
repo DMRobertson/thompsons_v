@@ -293,6 +293,7 @@ class Word(tuple):
 	"""
 	
 	#I'd previously thought about defining __slots__ to save memory. But Python doesn't like that on subclasses of builtin or immutable types (I forget which).
+	#TODO. Should I prevent creating the empty word?
 	#Creation
 	def __new__(cls, letters, arity, alphabet_size, preprocess=True):
 		"""Creates a new Word from a list of letters and stores the *arity* and *alphabet_size*. 
@@ -332,6 +333,9 @@ class Word(tuple):
 	
 	#Comparisons
 	#TODO rethink how I should sort words with a lambda 
+	#How about:
+		#u < v if lambda_length(u) < lambda_length(v)
+		#u1..unL < v1...vnL according to dictionary order on the subwords u_i, v_j
 	def __lt__(self, other):
 		r"""Words in standard form are compared according to dictionary order. The alphabet :math:`X \cup \Omega` is ordered according to:
 		
@@ -394,6 +398,44 @@ class Word(tuple):
 		"""
 		return self.lambda_length == 0
 	
+	def is_above(self, word):
+		"""Tests to see if the current word *self* is an initial segment of *word*. Returns True if the test passes and False if the test fails.
+		
+			>>> w = Word('x1 a1', 2, 2)
+			>>> w.is_above(Word('x1 a1 a1 a2', 2, 2))
+			True
+			>>> w.is_above(Word('x1', 2, 2))
+			False
+			>>> w.is_above(w)
+			True
+			>>> w.is_above(Word('x1 a1 x1 a2 L', 2, 2))
+			False
+		"""
+		return self.test_above(word) is not None
+	
+	def test_above(self, word):
+		"""Tests to see if the current word *self* is an initial segment of *word*. In symbols, we're testing if :math:`\text{word} = \text{self}\Gamma`, where :math:`\Gamma` is some string of alphas only.
+		
+		:returns: :math:`\Gamma` (as a tuple of integers) if the test passes. Note that :math:`\Gamma` could be empty (if ``self == word``). If the test fails, returns ``None``.
+		
+			>>> w = Word('x1 a1', 2, 2)
+			>>> w.test_above(Word('x1 a1 a1 a2', 2, 2))
+			(Word('x1 a1', 2, 2), (-1, -2))
+			>>> w.test_above(Word('x1', 2, 2)) is None
+			True
+			>>> w.test_above(w)
+			(Word('x1 a1', 2, 2), ())
+			>>> w.test_above(Word('x1 a1 x1 a2 L', 2, 2)) is None
+			True
+		"""
+		if word.is_simple() and len(self) > len(word):
+			return None
+		head, tail = word.split(len(self))
+		above = (head == self and all(symbol < 0 for symbol in tail))
+		if above:
+			return self, tail
+		return None
+	
 	#Modifiers
 	def alpha(self, index):
 		r"""Let :math:`w` stand for the current word. This method creates and returns a new word :math:`w\alpha_\text{index}`.
@@ -423,11 +465,22 @@ class Word(tuple):
 		return (self.alpha(i) for i in range(1, self.arity + 1))
 	
 	def split(self, index):
-		"""Splits the current word *w* into a pair of tuples *head*, *tail* where ``len(tail) == index``. The segments of the word are returned as tuples of integers (not fully fledged words).
+		"""Splits the current word *w* into a pair of tuples *head*, *tail* where ``len(head) == index``. The segments of the word are returned as tuples of integers (not fully fledged words).
 		
 		:raises IndexError: if *index* is outside of the range ``1 <= index <= len(w) - 1``, i.e. if either head or tail would be empty lists after a split.
+		
+			>>> Word('x1 a1 a2 a3 a1 a2', 3, 1).split(4)
+			((1, -1, -2, -3), (-1, -2))
 		"""
-		return self[:-index], self[-index:]
+		return self[:index], self[index:]
+	
+	def rsplit(self, index):
+		"""The same as :meth:`split`, but this time *index* counts from the right hand side. This means that ``len(tail) == index``.
+		
+			>>> Word('x1 a1 a2 a3 a1 a2', 3, 1).rsplit(4)
+			((1, -1), (-2, -3, -1, -2))
+		"""
+		return self.split(-index)
 
 #Operations on words in standard form
 def initial_segment(u, v):

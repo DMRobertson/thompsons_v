@@ -132,7 +132,7 @@ class Generators(list):
 		return len(self.test_generates_algebra()) == 0
 	
 	def is_above(self, word):
-		"""Returns true if one of the generators *g* is an initial segment of *word*.
+		"""Returns True if any generator :meth:`~thompson.word.Word.is_above` the given *word*.
 		
 			>>> g = Generators(2, 2, ['x1 a1', 'x1 a2', 'x2'])
 			>>> g.is_above(Word('x1 a1 a1 a2', 2, 2))
@@ -141,13 +141,10 @@ class Generators(list):
 			False
 			>>> g.is_above(Word('x2', 2, 2))
 			True
+			>>> g.is_above(Word('x1 a1 x1 a2 L', 2, 2))
+			False
 		"""
-		for generator in self:
-			if len(generator) > len(word):
-				continue
-			if word[:len(generator)] == generator:
-				return True
-		return False
+		return any(gen.is_above(word) for gen in self)
 	
 	@classmethod
 	def standard_basis(cls, arity, alphabet_size):

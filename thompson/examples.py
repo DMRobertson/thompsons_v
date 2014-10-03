@@ -3,7 +3,8 @@
 from .automorphism import Automorphism
 from .generators import Generators
 
-__all__ = ["cyclic_order_six", "example_4_25"]
+__all__ = ["cyclic_order_six",
+           "example_4_5", "example_4_11", "example_4_12", "example_4_25"]
 
 #Example 4.5
 domain = Generators(2, 1, ["x1 a1 a1 a1", "x1 a1 a1 a2", "x1 a1 a2",    "x1 a2 a1", "x1 a2 a2"])
