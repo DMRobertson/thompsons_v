@@ -21,16 +21,20 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 """Begin my additions."""
 #From http://stackoverflow.com/a/5599712 .
 #TODO. Instance variables defined in __slots__ are being picked up by the html builder.
-def skip(app, what, name, obj, skip, options):
-	if 'doctest' in sys.argv:
+if 'doctest' in sys.argv:
+	def skip(app, what, name, obj, skip, options):
 		#don't skip any doctests under any _private methods
 		return False
-	if hasattr(obj, '__call__') and name.endswith("__") and obj.__doc__:
-		return False
-	return skip
+
+else:
+	def skip(app, what, name, obj, skip, options):
+		#include any magic methods which have a docstring
+		if hasattr(obj, '__call__') and name.endswith("__") and obj.__doc__:
+			return False
+		return skip
 
 def setup(app):
-	 app.connect("autodoc-skip-member", skip)
+	app.connect("autodoc-skip-member", skip)
 
 #Methods and attributes which are documented are displayed in the same order as their docstrings are defined.
 autodoc_member_order = 'bysource'

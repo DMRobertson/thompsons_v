@@ -1,16 +1,16 @@
-r"""The algebra :math:`V_{n, r}` consists of words written in the alphabet :math:`X \cup \Omega = \{x_1,\dotsc, x_r\} \cup \{\alpha_1, \dotsc, \alpha_n, \lambda\}`, as defined in remark 3.3. There are three different algebras of words, however. Using the notation of [Cohn]_:
+r"""The algebra :math:`V_{n, r}(X)` consists of words written in the alphabet :math:`X \cup \Omega = \{x_1, \dotsc, x_r\} \cup \{\alpha_1, \dotsc, \alpha_n, \lambda\}`, with certain restrictions (defined in remark 3.3). In fact, there are three different algebras of words. Using the notation of [Cohn]_:
 
 	1. :math:`W(\Omega; X)`, the set of finite strings written using letters in  :math:`X \cup \Omega`;
 	2. :math:`W_\Omega(X)`, the subset of :math:`W(\Omega; X)` whose strings begin with an :math:`x_i`, and represent a :func:`valid <validate>` series of operations.
-	3. :math:`V_{n, r}(X) = W_\Omega(X) / \mathfrak{q}`. We can think of this as the set of words in :math:`W_\Omega(x)` which are in Higman's standard form (see remark 3.3).
+	3. :math:`V_{n, r}(X) = W_\Omega(X) / \mathfrak{q}`. We can think of this as the set of words in :math:`W_\Omega(X)` which are in Higman's :func:`standard form <standardise>` (see remark 3.3).
 
-In the workings of this module, we represent a word as a list (or any iterable) of integers, where:
+In the workings of this module, we represent a word as a :class:`tuple <py3:tuple>` (or any type of sequence) of integers, where:
 
 - :math:`x_i` is represented by :math:`i`,
 - :math:`\alpha_i` is represented by :math:`-i`, and
 - :math:`\lambda` is represented by :math:`0`.
 
-This format represent words of all types, but we're only interested in the standard forms of type 3. To this end, the :func:`validate` detects those which are of type 2, and :func:`standardise` reduces type 2 words to type 3.
+We can write words of all types in this format, but we're only interested in the standard forms (type 3). To this end, the :func:`validate` detects those which are of type 2, and :func:`standardise` reduces type 2 words to type 3.
 
 .. testsetup:: 
 	
@@ -21,7 +21,7 @@ import operator
 from itertools import chain
 from .full_tree import FullTree
 
-__all__ = ["format", "from_string", "validate", "standardise", "syntax_tree", "are_contractible", "lambda_arguments", "Word", "initial_segment"]
+__all__ = ["format", "from_string", "validate", "standardise", "are_contractible", "lambda_arguments", "Word", "initial_segment"]
 
 def _char(symbol):
 	if symbol > 0:
@@ -40,7 +40,7 @@ def format(letters):
 	return " ".join(_char(i) for i in letters)
 
 def from_string(str):
-	"""Converts a string representation of a word to the internal format (a tuple of integers). Anything which does not denote a basis letter (e.g. ``'x'``, ``'x2'``, ``'x45'``) a descendant operator (e.g.  ``'a1'``, ``'x3'``, ``'x27'``) or a lambda contraction (``'L'``) is ignored.
+	"""Converts a string representing word to the internal format---a tuple of integers. Anything which does not denote a basis letter (e.g. ``'x'``, ``'x2'``, ``'x45'``) a descendant operator (e.g.  ``'a1'``, ``'x3'``, ``'x27'``) or a lambda contraction (``'L'``) is ignored.
 	
 		>>> x = from_string('x2 a1 x2 a2 L')
 		>>> print(x); print(format(x))
@@ -61,14 +61,14 @@ def from_string(str):
 	return tuple(output)
 
 def validate(letters, arity, alphabet_size=float('inf')):
-	r"""Checks that the given list of *letters* makes sense as a word. If no errors are raised when running this function, then we know that *letters* represents a valid word. Specifically, we know that:
+	r"""Checks that the given *letters* describes a valid word (type 2), using the *valency test* of proposition 2.12 (due to [Cohn]_). If no errors are raised when running this function, then we know that *letters* represents a valid word. Specifically, we know that:
 	
-	- The first letter is an x.
+	- The first letter is an :math:`x_i`.
 	- Every :math:`\lambda`-contraction has *arity* arguments to its left.
 	- No :math:`\alpha_i` appears with :math:`i >` *arity*.
-	- No :math:`x_i` occurs with  :math:`i >` *alphabet_size*. This last check occurs only when *alphabet_size* is given.
+	- No :math:`x_i` occurs with  :math:`i >` *alphabet_size*. *NB:* this last check occurs only when *alphabet_size* is given.
 	
-	The *letters* may not describe a word in standard form---for that, use :func:`standardise`.
+	Calling this function does not modfiy *letters*, and thus *letters* many not be in standard form (type 3).
 	
 		>>> validate(from_string('a1 x a2 L'), arity=2)
 		Traceback (most recent call last):
@@ -157,7 +157,7 @@ def standardise(letters, arity):
 	:raises TypeError: if *letters* is not a list of integers or a Word.
 	"""
 	#Form the tree of lambda calls
-	root = syntax_tree(letters, arity)
+	root = _syntax_tree(letters, arity)
 	
 	#Modify the tree. Find all lambda-alpha nodes and replace them with their extracted child.
 	extractions = []
@@ -203,7 +203,7 @@ def standardise(letters, arity):
 	root.discard()
 	return tuple(letters)
 
-def syntax_tree(letters, arity):
+def _syntax_tree(letters, arity):
 	"""Returns a tree representing the composition of lambdas in this word."""
 	alphas = []
 	indices = [0] #the indices of the rightmost unconsidered node on each level.
@@ -251,7 +251,7 @@ def are_contractible(words):
 	
 	:return: :math:`w` (as a tuple of integers) if the test passes; the empty tuple if the test fails.
 	
-	**NB:** If there is a prefix :math:`w`, this function does **not** check to see if x :func:`is a valid word <validate>`.
+	**NB:** If there is a prefix :math:`w`, this function does **not** check to see if :math:`w` :func:`is a valid word <validate>`.
 	
 		>>> prefix = are_contractible([Word("x a1 a2 a3 a1", 3, 1), Word("x a1 a2 a3 a2", 3, 1), Word("x a1 a2 a3 a3", 3, 1)])
 		>>> format(prefix)
@@ -275,13 +275,14 @@ def concat(iterable):
 	return list(chain.from_iterable(iterable))
 
 class Word(tuple):
-	r"""A list of letters, together with a recorded *arity* and *alphabet_size*. Words are implemented as subclasses of :func:`tuple <py3:tuple>` meaning they are immutable. This means they can be used as dictionary keys. 
+	r"""A tuple of letters (stored as integers), together with a recorded *arity* and *alphabet_size*. Words are implemented as subclasses of :class:`tuple <py3:tuple>`, meaning they are `immutable <https://docs.python.org/3/glossary.html#term-immutable>`_. This means they can be used as dictionary keys. 
 	
 		>>> w = Word('x1 a1', 2, 1)
 		>>> x = {}; x[w] = 'stored value'
 		>>> x[w]
 		'stored value'
-		>>> x[1, -1] #try using the internal representation
+		>>> #Try using the underlying tuple as a key
+		>>> x[1, -1]
 		'stored value'
 		>>> #the reason this works
 		>>> hash(w) == hash((1, -1))
@@ -296,17 +297,16 @@ class Word(tuple):
 	#TODO. Should I prevent creating the empty word?
 	#Creation
 	def __new__(cls, letters, arity, alphabet_size, preprocess=True):
-		"""Creates a new Word from a list of letters and stores the *arity* and *alphabet_size*. 
-		The word's *letters* may be given as a list of integers or as a string (which is passed to the :func:from_string: function). Words are :func:`validated <validate>` and :func:`reduced to standard form <standardise>` before they are stored as a tuple.
+		"""Creates a new Word from a sequence of letters and stores the *arity* and *alphabet_size*. 
+		The word's *letters* may be given as a list of integers or as a string (which is passed to the :func:`from_string` function).
 		
 			>>> Word("x2 a1 a2 a3 x1 a1 a2 a1 x2 L a2", 3, 2)
 			Word('x1 a1 a2 a1', 3, 2)
 		
-		The *preprocess* argument allows internal methods to bypass the validation checks if they know that the word they are creating is already vaild and in standard form. Use ``preprocess=False`` at your own risk! 
+		By default, the argument *preprocess* is True. THis means that words are :func:`validated <validate>` and :func:`reduced to standard form <standardise>` before they are stored as a tuple. These steps can be disabled by using ``preprocess=False``; this is used internally when we know we have letters which are already vaild and in standard form.
 		
 		:raises TypeError: if *letters* is neither a string nor a list.
-		
-		See also the errors raised by :func:`validate`.
+		:raises ValueError: See the errors raised by :func:`validate`.
 		"""
 		if isinstance(letters, str):
 			letters = from_string(letters)
@@ -315,7 +315,7 @@ class Word(tuple):
 			#1. Check to see that this has the right pattern of subwords and lambdas.
 			#   Check that the letters are within the range -arity .... alphabet_size inclusive.
 			validate(letters, arity, alphabet_size)
-			#2. Standardise the list of symbols: remove as many lambdas as possible.
+			#2. Standardise the letters: remove as many lambdas as possible.
 			letters = standardise(letters, arity)
 		
 		self = tuple.__new__(cls, letters)
@@ -337,9 +337,13 @@ class Word(tuple):
 		#u < v if lambda_length(u) < lambda_length(v)
 		#u1..unL < v1...vnL according to dictionary order on the subwords u_i, v_j
 	def __lt__(self, other):
-		r"""Words in standard form are compared according to dictionary order. The alphabet :math:`X \cup \Omega` is ordered according to:
+		r"""The alphabet :math:`X \cup \Omega` is ordered according to:
 		
 		.. math:: \alpha_1 < \alpha_2 < \alpha_3 < \dots < \lambda < x_1 < x_2 < x_3 < \dots
+		
+		This extends to words in standard form by using dictionary (i.e. alphabetical) order.
+		
+		.. todo:: This ordering makes sense for simple words (those without lambdas) and makes for nice output when printing a sorted list of words. But it also means that :math:`x \alpha_2 x \alpha_1 \lambda < x \alpha_2`, which doesn't seem to be so useful. Maybe we should use a scheme where ``u.lambda_length < v.lambda_length`` implies ``u < v``? But that'd mean deciding when one tree of lambda calls is less than another. Hmmm.
 		
 		.. doctest::
 			
@@ -383,7 +387,7 @@ class Word(tuple):
 	
 	#Tests
 	def is_simple(self):
-		"""We define a Word to be *simple* if it has a lambda length of zero once it has been reduced to standard form.
+		"""Let us call a Word *simple* if it has a lambda length of zero once it has been reduced to standard form.
 		
 			>>> Word("x1 a1 a2", 2, 1).is_simple()
 			True
@@ -399,7 +403,7 @@ class Word(tuple):
 		return self.lambda_length == 0
 	
 	def is_above(self, word):
-		"""Tests to see if the current word *self* is an initial segment of *word*. Returns True if the test passes and False if the test fails.
+		"""Tests to see if the current word is an initial segment of *word*. Returns True if the test passes and False if the test fails.
 		
 			>>> w = Word('x1 a1', 2, 2)
 			>>> w.is_above(Word('x1 a1 a1 a2', 2, 2))
@@ -408,15 +412,16 @@ class Word(tuple):
 			False
 			>>> w.is_above(w)
 			True
-			>>> w.is_above(Word('x1 a1 x1 a2 L', 2, 2))
+			>>> v = Word('x1 a1 x1 a2 L', 2, 2)
+			>>> w.is_above(v)
 			False
+			>>> v.is_above(w)
+			True
 		"""
 		return self.test_above(word) is not None
 	
 	def test_above(self, word):
-		"""Tests to see if the current word *self* is an initial segment of *word*. In symbols, we're testing if :math:`\text{word} = \text{self}\Gamma`, where :math:`\Gamma` is some string of alphas only.
-		
-		:returns: :math:`\Gamma` (as a tuple of integers) if the test passes. Note that :math:`\Gamma` could be empty (if ``self == word``). If the test fails, returns ``None``.
+		r"""Tests to see if the current word :math:`c` is an initial segment of the given word :math:`w`. In symbols, we're testing if :math:`w = c \Gamma`, where :math:`\Gamma \in \langle A \rangle` is some string of alphas only.
 		
 			>>> w = Word('x1 a1', 2, 2)
 			>>> w.test_above(Word('x1 a1 a1 a2', 2, 2))
@@ -425,8 +430,14 @@ class Word(tuple):
 			True
 			>>> w.test_above(w)
 			(Word('x1 a1', 2, 2), ())
-			>>> w.test_above(Word('x1 a1 x1 a2 L', 2, 2)) is None
-			True
+			>>> v = Word('x1 a1 x1 a2 L', 2, 2)
+			>>> print(w.test_above(v))
+			None
+			>>> v.test_above(w)
+			
+		.. todo:: This does not take into account the fact that :math:`c` and :math:`s` could involve lambda contractions. Needs a rewrite.
+		
+		:returns: :math:`\Gamma` (as a tuple of integers) if the test passes. Note that :math:`\Gamma` could be empty (if ``self == word``). If the test fails, returns ``None``.
 		"""
 		if word.is_simple() and len(self) > len(word):
 			return None
@@ -443,7 +454,7 @@ class Word(tuple):
 			>>> Word("x a1 a2", 3, 2).alpha(3)
 			Word('x1 a1 a2 a3', 3, 2)
 		
-		:raises IndexError: if *index* is not in the range 1...*w.arity*
+		:raises IndexError: if *index* is not in the range 1... *arity*.
 		"""
 		if not 1 <= index <= self.arity:
 			raise IndexError("Index ({}) is not in the range 1...{}".format(
@@ -451,7 +462,7 @@ class Word(tuple):
 		return type(self)(self + (-index,), self.arity, self.alphabet_size, preprocess=False)
 	
 	def expand(self):
-		"""Returns an iterator that yeilds the *arity* descandants of this word.
+		"""Returns an iterator that yields the *arity* descendants of this word.
 		
 			>>> w = Word("x a1", 5, 1)
 			>>> for child in w.expand():
@@ -464,23 +475,25 @@ class Word(tuple):
 		"""
 		return (self.alpha(i) for i in range(1, self.arity + 1))
 	
-	def split(self, index):
-		"""Splits the current word *w* into a pair of tuples *head*, *tail* where ``len(head) == index``. The segments of the word are returned as tuples of integers (not fully fledged words).
+	def split(self, head_width):
+		"""Splits the current word *w* into a pair of tuples *head*, *tail* where ``len(head) == head_width``. The segments of the word are returned as tuples of integers (not fully fledged words).
 		
-		:raises IndexError: if *index* is outside of the range ``1 <= index <= len(w) - 1``, i.e. if either head or tail would be empty lists after a split.
-		
-			>>> Word('x1 a1 a2 a3 a1 a2', 3, 1).split(4)
-			((1, -1, -2, -3), (-1, -2))
+		>>> Word('x1 a1 a2 a3 a1 a2', 3, 1).split(4)
+		((1, -1, -2, -3), (-1, -2))
+		>>> Word('x1 a1 a2 a3 a1 a2', 3, 1).split(10)
+		((1, -1, -2, -3, -1, -2), ())
 		"""
-		return self[:index], self[index:]
+		return self[:head_width], self[head_width:]
 	
-	def rsplit(self, index):
-		"""The same as :meth:`split`, but this time *index* counts from the right hand side. This means that ``len(tail) == index``.
+	def rsplit(self, tail_width):
+		"""The same as :meth:`split`, but this time *tail_width* counts from the right hand side. This means that ``len(tail) == tail_width``.
 		
 			>>> Word('x1 a1 a2 a3 a1 a2', 3, 1).rsplit(4)
 			((1, -1), (-2, -3, -1, -2))
+			>>> Word('x1 a1 a2 a3 a1 a2', 3, 1).rsplit(10)
+			((), (1, -1, -2, -3, -1, -2))
 		"""
-		return self.split(-index)
+		return self.split(-tail_width)
 
 #Operations on words in standard form
 def initial_segment(u, v):

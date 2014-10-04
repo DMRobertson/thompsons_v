@@ -1,4 +1,5 @@
-"""
+r"""Informally, a set :math:`S` of words in :math:`V_{n,r}` is a *generating set* for :math:`V_{n,r}` if every word in standard form can be obtained by applying the operations :math:`\alpha_i` and :math:`\lambda` repeatedly to elements of :math:`S`. Of particular interest are *bases*, which we can think of as generating sets which do not contain any redundant elements.
+
 .. testsetup:: 
 	
 	from thompson.generators import *
@@ -10,7 +11,9 @@ from .word import Word
 __all__ = ["Generators"]
 
 class Generators(list):
-	r"""An ordered subset of :math:`V_{n, r}`, together with methods which treat such sets as generating sets and bases. Internally, this is a subclass of :class:`list <py3:list>`, so it is possible to reorder the generating set.
+	r"""An ordered subset of :math:`V_{n, r}`, together with methods which treat such sets as generating sets and bases. 
+	
+	Internally, this is a subclass of :class:`list <py3:list>`, so it is possible to reorder and otherwise modify collections of Generators.
 	
 	:ivar arity: :math:`n`, the number of operators :math:`\alpha_i`.
 	:ivar alphabet_size: :math:`r`, the number of letters :math:`x_i`.
@@ -25,7 +28,7 @@ class Generators(list):
 				self.append(g)
 	
 	def append(self, w):
-		"""Adds *w* to this generating set. If *w* is a string, a :class:`Word` object is created and assigned the same arity and alphabet_size as the generating set.
+		"""Adds *w* to this generating set. If *w* is a string, a :class:`Word` object is created and assigned the same *arity* and *alphabet_size* as the generating set.
 		
 		:raises TypeError: if *w* is neither a string nor a Word.
 		:raises IndexError: if *w* has a different arity to the generating set.
@@ -59,7 +62,7 @@ class Generators(list):
 		  self.arity, self.alphabet_size, ", ".join(repr(format(w)) for w in self))
 	
 	def test_free(self):
-		"""Tests to see if this is a free generating set. If the test fails, returns the first pair of indices (i, j) found for which one of ``self[i]`` and ``self[j]`` is an initial segment of the other. If the test passes, returns (-1, -1). See lemma 3.16.3.
+		"""Tests to see if this is a free generating set. If the test fails, returns the first pair of indices :math:`(i, j)` found for which one of ``self[i]`` and ``self[j]`` is an initial segment of the other. If the test passes, returns (-1, -1). See lemma 3.16.3.
 		
 			>>> Generators(2, 3, ["x1 a1", "x1 a2 a1", "x1 a2 a1 a1", "x1 a2 a2"]).test_free()
 			(1, 2)
@@ -86,9 +89,9 @@ class Generators(list):
 		return self.test_free() == (-1, -1)
 	
 	def test_generates_algebra(self):
-		"""Tests to see if this set generates all of :math:`V_{n,r}`. The generating set is sorted, and then contracted as much as possible. Then we check to see which elements of the standard basis :math:`\boldsymbol{x} = \{x_1, \dotsc, x_r\}` are not included in the contraction.
+		r"""Tests to see if this set generates all of :math:`V_{n,r}`. The generating set is sorted, and then contracted as much as possible. Then we check to see which elements of the :meth:`standard basis <standard_basis>` :math:`\boldsymbol{x} = \{x_1, \dotsc, x_r\}` are not included in the contraction.
 		
-		The test fails if there is at least one such element; in this case, the list of all such elements is returned. (The elements of this list are lists of integers, not fully-fledged :class:`Words <Word>`.) Otherwise the test passes, and an empty list is returned.
+		The test fails if there is at least one such element; in this case, the list of all such elements is returned. Otherwise the test passes, and an empty list is returned.
 		
 			>>> #A basis for V_2,1
 			>>> Y = Generators(2, 1, ["x a1", "x a2 a1", "x a2 a2 a1 a1", "x a2 a2 a1 a2", "x a2 a2 a2"])
@@ -97,12 +100,15 @@ class Generators(list):
 			>>> #The same words do not generate V_2,3
 			>>> Y = Generators(2, 3, Y)
 			>>> missing = Y.test_generates_algebra(); missing
-			[[2], [3]]
-			>>> print(", ".join(format(x) for x in missing))
-			x2, x3
-		"""
+			[Word('x2', 2, 3), Word('x3', 2, 3)]
+			>>> for x in missing: print(x)
+			x2
+			x3
+		
+		:rtype: a list of :class:`Words <thompson.word.Word>`."""
+		
 		words = sorted(self) #Creates a shallow copy and then sorts it.
-		#This part is very similar to :meth:`~thompson.word._contract`.
+		#Todo maybe this should be part of a generators.contract method
 		i = 0
 		while i <= len(words) - self.arity:
 			prefix = word.are_contractible(words[i : i + self.arity])
@@ -114,10 +120,8 @@ class Generators(list):
 				i += 1
 		
 		#At the end, should contract to (something which includes) [x1, x2, ..., x_r]
-		missing = []
-		for i in range(1, self.alphabet_size + 1):
-			if (i,) not in words:
-				missing.append([i])
+		expected = Generators.standard_basis(self.arity, self.alphabet_size)
+		missing = [x for x in expected if x not in words]
 		return missing
 	
 	def generates_algebra(self):
@@ -148,7 +152,7 @@ class Generators(list):
 	
 	@classmethod
 	def standard_basis(cls, arity, alphabet_size):
-		r"""Creates the standard basis :math:`\boldsymbol{x} = \{x_1, \dotsc, x_r`\}` for :math:`V_{n,r}`, where :math:`n` is the arity and :math`r` is the *alphabet_size*. 
+		r"""Creates the standard basis :math:`\boldsymbol{x} = \{x_1, \dotsc, x_r\}` for :math:`V_{n,r}`, where :math:`n` is the arity and :math`r` is the *alphabet_size*. 
 		
 			>>> Generators.standard_basis(2, 4)
 			Generators(2, 4, ['x1', 'x2', 'x3', 'x4'])
@@ -159,7 +163,7 @@ class Generators(list):
 		return output
 	
 	def expand(self, index):
-		r"""Replaces the word :math`w` at index *index* with its children, :math:`w\alpha1, \dotsc, w\alpha_n`, where :math`n` is the arity of the generating set.
+		r"""Replaces the word :math:`w` at index *index* in the current generating set with its children, :math:`w\alpha1, \dotsc, w\alpha_n`, where :math:`n` is the arity of the generating set.
 		
 			>>> g = Generators.standard_basis(3, 1); g
 			Generators(3, 1, ['x1'])
