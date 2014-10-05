@@ -339,11 +339,13 @@ class Word(tuple):
 	def __lt__(self, other):
 		r"""The alphabet :math:`X \cup \Omega` is ordered according to:
 		
-		.. math:: \alpha_1 < \alpha_2 < \alpha_3 < \dots < \lambda < x_1 < x_2 < x_3 < \dots
+		.. math:: \alpha_1 < \alpha_2 < \alpha_3 < \dots < x_1 < x_2 < x_3 < \dots < \lambda 
 		
 		This extends to words in standard form by using dictionary (i.e. alphabetical) order.
 		
 		.. todo:: This ordering makes sense for simple words (those without lambdas) and makes for nice output when printing a sorted list of words. But it also means that :math:`x \alpha_2 x \alpha_1 \lambda < x \alpha_2`, which doesn't seem to be so useful. Maybe we should use a scheme where ``u.lambda_length < v.lambda_length`` implies ``u < v``? But that'd mean deciding when one tree of lambda calls is less than another. Hmmm.
+			
+			Need to test this and ensure I implemented it properly.
 		
 		.. doctest::
 			
@@ -369,13 +371,38 @@ class Word(tuple):
 	def __ge__(self, other):
 		return self == other or self.__gt__(other)
 	
+	#TODO tests and better docstrings
 	def _compare(self, other, comparison):
-		"""Used to test if self < other or other < self."""
 		if not isinstance(other, Word):
 			return NotImplemented
+		#Simple words are less than words with 1 lambda; they are less than words with 2 lambdas, etc.
+		if self.lambda_length != other.lambda_length:
+			return comparison(self.lambda_length, other.lambda_length)
+		
+		#Simple words are done with dictionary order.
+		if self.lambda_length == 0:
+			return self._compare_simple(other, comparison)
+		
+		#otherwise we have two words 
+		self_args  = lambda_arguments(self)
+		other_args = lambda_arguments(other)
+		for s, o in zip(self_args, other_args):
+			if s == o:
+				continue
+			else:
+				return s._compare(o, comparison)
+	
+	def _compare_simple(self, other, comparison):
+		"""Used to test if self < other or other < self."""
+		assert self.lambda_length == other.lambda_length == 0
 		for s, o in zip(self, other):
 			if s == o:
 				continue
+			#Else s and o are differnet
+			if s == 0:
+				return comparison is operator.gt #Lambda is greater than everything else
+			if o == 0:
+				return comparison is operator.lt #Everything else is less than lambda
 			if s < 0 and o < 0: #two alphas
 				return comparison(-s, -o)
 			return comparison(s, o)
