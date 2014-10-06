@@ -48,7 +48,8 @@ def _concat(words):
 	"""Takes an iterable *words* which yields lists of integers representing words. Returns a tuple containing all the *words* concatenated together, with a zero (lambda) added on the end."""
 	return tuple(chain.from_iterable(words)) + (0,)
 
-#TODO. Check the assumption that the bases consist of simple words only (no lambdas)
+#TODO. Check the assumption that the bases consist of simple words only (no lambdas).
+#Expand until all the words are simple
 class Automorphism:
 	r"""Represents an automorphism of :math:`V_{n,r}` by specifying two bases. This class keeps track of the mapping between bases.
 	
@@ -104,8 +105,8 @@ class Automorphism:
 			  arity, alphabet_size, [format(x) for x in missing]))
 		
 		#Before saving the domain and range, reduce them to remove any redundancy. This is like reducing tree pairs.
-		#TODO: is this really 100% necessary? Seem to remember the big lemma/algorithm for QNF needed it.
-		#How do you know that you've found the smallest possible nice basis if you haven't kept everything as small as possible throughout?
+		#Is this really 100% necessary? Seem to remember the big lemma/algorithm for QNF needed it.
+		#Yes, it is: how do you know that you've found the smallest possible nice basis if you haven't kept everything as small as possible throughout?
 		Automorphism._reduce(domain, range)
 		
 		self.arity = arity
@@ -379,13 +380,13 @@ class Automorphism:
 		"""
 		#TODO. Tests from the examples
 		print('Forward Orbit for', y)
-		right_infinite = self._test_semi_infinite(y, basis, forward=True)
+		right_infinite = self._test_semi_infinite(y, basis, backward=False)
 		if isinstance(right_infinite, Orbit):
 			return right_infinite #periodic
 		print('right_infinite:', right_infinite)
 		
 		print('Backward orbit for', y)
-		left_infinite = self._test_semi_infinite(y, basis, forward=False)
+		left_infinite = self._test_semi_infinite(y, basis, backward=True)
 		assert not isinstance(left_infinite, Orbit), "Orbit is not periodic going forward but is going backward."
 		
 		if right_infinite and left_infinite:
@@ -397,14 +398,15 @@ class Automorphism:
 		else:
 			return Orbit.incomplete
 	
-	def _test_semi_infinite(self, y, basis, forward=True):
-		"""Computes the orbit type of *y* with respect to *basis* in the forward direction. (Use ``forward=False`` to go backwards."""
+	#TODO maybe this should return characteristics as well
+	def _test_semi_infinite(self, y, basis, backward=False):
+		"""Computes the orbit type of *y* with respect to *basis* in the forward direction. (Use ``backward=True`` to go backwards.)"""
 		i = 0
 		image = y
 		images = [y]
 		while True:
 			#Compute the image y\phi^i as y\phi^{i-1} \phi
-			image = self.image(image, inverse=not forward)
+			image = self.image(image, inverse=backward)
 			print('power #', len(images), 'is', image)
 			#1. Is this image in X<A>?
 			if not basis.is_above(image): #not in X<A>
