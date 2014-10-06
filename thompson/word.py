@@ -1,8 +1,8 @@
 r"""The algebra :math:`V_{n, r}(X)` consists of words written in the alphabet :math:`X \cup \Omega = \{x_1, \dotsc, x_r\} \cup \{\alpha_1, \dotsc, \alpha_n, \lambda\}`, with certain restrictions (defined in remark 3.3). In fact, there are three different algebras of words. Using the notation of [Cohn]_:
 
-	1. :math:`W(\Omega; X)`, the set of finite strings written using letters in  :math:`X \cup \Omega`;
-	2. :math:`W_\Omega(X)`, the subset of :math:`W(\Omega; X)` whose strings begin with an :math:`x_i`, and represent a :func:`valid <validate>` series of operations.
-	3. :math:`V_{n, r}(X) = W_\Omega(X) / \mathfrak{q}`. We can think of this as the set of words in :math:`W_\Omega(X)` which are in Higman's :func:`standard form <standardise>` (see remark 3.3).
+	1. :math:`W(\Omega; X)`, the set of finite strings written using letters in  :math:`X \cup \Omega`. Cohn calls these :math:`\Omega` *-rows*.
+	2. :math:`W_\Omega(X)`, the subset of :math:`W(\Omega; X)` whose strings begin with an :math:`x_i`, and represent a :func:`valid <validate>` series of operations. Cohn calls these :math:`\Omega` *-words*.
+	3. :math:`V_{n, r}(X) = W_\Omega(X) / \mathfrak{q}`. This is (equivalent to) the set of words in :math:`W_\Omega(X)` which are in Higman's :func:`standard form <standardise>` (see remark 3.3 and lemma 3.4).
 
 In the workings of this module, we represent a word as a :class:`tuple <py3:tuple>` (or any type of sequence) of integers, where:
 
@@ -332,47 +332,80 @@ class Word(tuple):
 		return "Word('{}', {}, {})".format(str(self), self.arity, self.alphabet_size)
 	
 	#Comparisons
-	#TODO rethink how I should sort words with a lambda 
-	#How about:
-		#u < v if lambda_length(u) < lambda_length(v)
-		#u1..unL < v1...vnL according to dictionary order on the subwords u_i, v_j
 	def __lt__(self, other):
-		r"""The alphabet :math:`X \cup \Omega` is ordered according to:
+		r"""Let us assign a total order to the alphabet :math:`X \cup \Omega` by:
 		
 		.. math:: \alpha_1 < \alpha_2 < \alpha_3 < \dots < x_1 < x_2 < x_3 < \dots < \lambda 
 		
-		This extends to words in standard form by using dictionary (i.e. alphabetical) order.
+		We can use this to order :meth:`simple words <is_simple>` by using `dictionary order <http://en.wikipedia.org/wiki/Lexicographical_order#Motivation_and_uses>`_.
 		
-		.. todo:: This ordering makes sense for simple words (those without lambdas) and makes for nice output when printing a sorted list of words. But it also means that :math:`x \alpha_2 x \alpha_1 \lambda < x \alpha_2`, which doesn't seem to be so useful. Maybe we should use a scheme where ``u.lambda_length < v.lambda_length`` implies ``u < v``? But that'd mean deciding when one tree of lambda calls is less than another. Hmmm.
-			
-			Need to test this and ensure I implemented it properly.
+		>>> Word('x1', 2, 2) < Word('x1', 2, 2)
+		False
+		>>> Word('x1', 2, 2) < Word('x2', 2, 2)
+		True
+		>>> Word('x1 a2', 2, 2) < Word('x1 a1', 2, 2)
+		False
+		>>> Word('x1 a1 a2 a3 a4', 4, 1) < Word('x1 a1 a2 a3 a3', 4, 1)
+		False
 		
-		.. doctest::
-			
-			>>> Word('x1', 2, 2) < Word('x2', 2, 2)
-			True
-			>>> Word('x1 a2', 2, 2) > Word('x1 a1', 2, 2)
-			True
-			>>> Word('x1 a2', 2, 2) < Word('x1 x2 L', 2, 2)
-			True
-			>>> Word('x1 x2 L', 2, 2) > Word('x1 x2 a2 L', 2, 2)
-			True
-			>>> Word('x1 x1 x1 L L', 2, 2) > Word('x1 x1 L', 2, 2)
-			True
+		We extend this to words :func:`in standard form <standardise>` involving lambda-contractions in the following way. Let :math:`\lambda(u)` denote the lambda-length of :math:`u`.
+		
+		1. :math:`\lambda(u) < \lambda(v) \implies u < v`.
+		
+		>>> Word('x2 x1 L', 2, 2) < Word('x1 x2 x1 L L', 2, 2)
+		True
+		
+		2. If :math:`u` and :math:`v` are equal, then neither is strictly less than the other.
+		
+		>>> Word('x1 x2 L', 2, 2) < Word('x1 x2 L', 2, 2)
+		False
+		
+		3. Else, :math:`\lambda(u) \neq \lambda(v)`. Break :math:`u` and :math:`v` into the :math:`n` arguments of the outmost lambda, so that :math:`u = u_1 \dots u_n \lambda` and :math:`v = v_1 \dots v_n \lambda`, where each subword is in standard form. Let :math:`i` be the first index for which :math:`\lambda(u_i) \neq \lambda(v_i)`. 
+		4. Test if :math:`\lambda(u_i) < \lambda(v_i)` by applying this definition recursively. If this is the case, then :math:`\lambda(u) < \lambda(v)`; otherwise, :math:`\lambda(u) > \lambda(v)`.
+		
+		>>> #True, because x2 < x2 a2
+		>>> Word('x1 x2 L', 2, 2) < Word('x1 x2 a2 L', 2, 2)
+		True
+		>>> #True, because words of lambda-length 1 are less than those of lamba-length 2.
+		>>> Word('x1 x2 L x3 x4 L L', 2, 4) < Word('x1 x2 L x3 L x4 L', 2, 4)
+		True
+		
+		The other three comparison operators (``<=, >, >=``) are also implemented.
+		
+		>>> Word('x1 x2 L', 2, 2) <= Word('x1 x2 L', 2, 2)
+		True
+		>>> Word('x1 a1', 2, 2) <= Word('x1 a1', 2, 2) <= Word('x1 a1 a2', 2, 2)
+		True
+		>>> Word('x1', 2, 2) > Word('x1', 2, 2)
+		False
+		>>> Word('x1', 2, 2) >= Word('x1', 2, 2)
+		True
+		>>> Word('x1 a2', 2, 2) > Word('x1', 2, 2)
+		True
+		>>> Word('x1 a2', 2, 2) >= Word('x1', 2, 2)
+		True
+		
+		.. todo:: I think this is a total order. I based the idea on [Zaks]_ (section 2, definition 1) which describes a total order on *k*-ary trees. TODO: prove that this is (hopefully) a total order on *labelled* *k*-ary trees.
 		"""
-		return self._compare(other, operator.lt)
+		return self._compare(other, operator.lt, False)
 	
 	def __gt__(self, other):
-		return self._compare(other, operator.gt)
+		return self._compare(other, operator.gt, False)
 	
 	def __le__(self, other):
-		return self == other or self.__lt__(other)
+		return self._compare(other, operator.lt, True)
 	
 	def __ge__(self, other):
-		return self == other or self.__gt__(other)
+		return self._compare(other, operator.gt, True)
 	
 	#TODO tests and better docstrings
-	def _compare(self, other, comparison):
+	def _compare(self, other, comparison, nonstrict):
+		"""The recursive part of the less than/greater than test. See the docstring for __lt__.
+		
+		Comparison should be one of operator.lt and operator.gt.
+		For strict inequality, pass nonstrict = False
+		For nonstrict inequality, pass nonstrict = True
+		"""
 		if not isinstance(other, Word):
 			return NotImplemented
 		#Simple words are less than words with 1 lambda; they are less than words with 2 lambdas, etc.
@@ -381,7 +414,7 @@ class Word(tuple):
 		
 		#Simple words are done with dictionary order.
 		if self.lambda_length == 0:
-			return self._compare_simple(other, comparison)
+			return self._compare_simple(other, comparison, nonstrict)
 		
 		#otherwise we have two words 
 		self_args  = lambda_arguments(self)
@@ -390,26 +423,32 @@ class Word(tuple):
 			if s == o:
 				continue
 			else:
-				return s._compare(o, comparison)
+				return s._compare(o, comparison, nonstrict)
+		return nonstrict
 	
-	def _compare_simple(self, other, comparison):
-		"""Used to test if self < other or other < self."""
-		assert self.lambda_length == other.lambda_length == 0
+	def _compare_simple(self, other, comparison, nonstrict):
+		"""The basis for the induction of the less than/greater than test. See the docstring for __lt__.
+		
+		>>> Word('x1', 2, 2) < Word('x2', 2, 2)
+		True
+		>>> Word('x1 a1', 2, 2) < Word('x1', 2, 2)
+		False
+		>>> Word('x1 a1', 2, 2) < Word('x1 a2', 2, 2)
+		True
+		"""
+		assert self.lambda_length == other.lambda_length == 0, "_compare_simple called on non-simple arguments"
 		for s, o in zip(self, other):
 			if s == o:
 				continue
-			#Else s and o are differnet
-			if s == 0:
-				return comparison is operator.gt #Lambda is greater than everything else
-			if o == 0:
-				return comparison is operator.lt #Everything else is less than lambda
+			#Else s and o are different and not lambdas
 			if s < 0 and o < 0: #two alphas
 				return comparison(-s, -o)
 			return comparison(s, o)
 		
-		#Both words start with the same thing.
+		#If we reach here, then both words start with the same thing.
 		if len(self) == len(other):
-			return False #same word
+			return nonstrict
+		#Otherwise, one is longer than the other.
 		return comparison(len(self), len(other))
 	
 	#Tests
@@ -525,7 +564,7 @@ class Word(tuple):
 #Operations on words in standard form
 def initial_segment(u, v):
 	r"""Let :math:`u, v` be two words in standard form. This function returns True if :math:`u` is an initial segment of :math:`v` or vice versa; otherwise returns False. See definition 3.15.
-
+	
 	>>> #completely different words
 	>>> u = Word("x1 a2 a1 a1 a2", 2, 2)
 	>>> v = Word("x2 a1 a2 a1 a2", 2, 2)
@@ -541,6 +580,8 @@ def initial_segment(u, v):
 	>>> v = Word("x a1 a2 x a2 a2 L", 2, 2)
 	>>> initial_segment(u, v)
 	False
+	
+	.. seealso:: :meth:`Word.is_above` does the same thing without the 'vice versa' part.
 	"""
 	if len(u) > len(v):
 		u, v = v, u
