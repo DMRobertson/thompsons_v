@@ -94,6 +94,7 @@ def validate(letters, arity, alphabet_size=float('inf')):
 	:raises ValueError: if this word fails the valency test (prop 2.12).
 	:raises IndexError: if this word contains an :math:`x_i` outside of the range 1 ... *alphabet_size*
 	:raises IndexError: if this word contains an :math:`\alpha_i` outside of the range 1 ... *arity*
+	:raises IndexError: if this word is empty (i.e. consists of 0 letters).
 	"""
 	symbol = letters[0]
 	if symbol < 0:
@@ -294,7 +295,6 @@ class Word(tuple):
 	"""
 	
 	#I'd previously thought about defining __slots__ to save memory. But Python doesn't like that on subclasses of builtin or immutable types (I forget which).
-	#TODO. Should I prevent creating the empty word?
 	#Creation
 	def __new__(cls, letters, arity, alphabet_size, preprocess=True):
 		"""Creates a new Word from a sequence of letters and stores the *arity* and *alphabet_size*. 
@@ -366,7 +366,7 @@ class Word(tuple):
 		>>> #True, because x2 < x2 a2
 		>>> Word('x1 x2 L', 2, 2) < Word('x1 x2 a2 L', 2, 2)
 		True
-		>>> #True, because words of lambda-length 1 are less than those of lamba-length 2.
+		>>> #True, because words of lambda-length 1 are less than those of lambda-length 2.
 		>>> Word('x1 x2 L x3 x4 L L', 2, 4) < Word('x1 x2 L x3 L x4 L', 2, 4)
 		True
 		
@@ -385,7 +385,7 @@ class Word(tuple):
 		>>> Word('x1 a2', 2, 2) >= Word('x1', 2, 2)
 		True
 		
-		.. todo:: I think this is a total order. I based the idea on [Zaks]_ (section 2, definition 1) which describes a total order on *k*-ary trees. TODO: prove that this is (hopefully) a total order on *labelled* *k*-ary trees.
+		.. todo:: I think this is a total order. I based the idea on [Zaks]_ (section 2, definition 1) which describes a total order on *k*-ary trees. I should try to prove that this is (hopefully) a total order on *labelled* *k*-ary trees.
 		"""
 		return self._compare(other, operator.lt, False)
 	
@@ -398,13 +398,12 @@ class Word(tuple):
 	def __ge__(self, other):
 		return self._compare(other, operator.gt, True)
 	
-	#TODO tests and better docstrings
 	def _compare(self, other, comparison, nonstrict):
 		"""The recursive part of the less than/greater than test. See the docstring for __lt__.
 		
-		Comparison should be one of operator.lt and operator.gt.
-		For strict inequality, pass nonstrict = False
-		For nonstrict inequality, pass nonstrict = True
+		- Comparison should be one of operator.lt and operator.gt.
+		- For strict inequality, pass nonstrict = False
+		- For nonstrict inequality, pass nonstrict = True
 		"""
 		if not isinstance(other, Word):
 			return NotImplemented
@@ -489,29 +488,50 @@ class Word(tuple):
 	def test_above(self, word):
 		r"""Tests to see if the current word :math:`c` is an initial segment of the given word :math:`w`. In symbols, we're testing if :math:`w = c \Gamma`, where :math:`\Gamma \in \langle A \rangle` is some string of alphas only.
 		
-			>>> w = Word('x1 a1', 2, 2)
-			>>> w.test_above(Word('x1 a1 a1 a2', 2, 2))
-			(Word('x1 a1', 2, 2), (-1, -2))
-			>>> w.test_above(Word('x1', 2, 2)) is None
-			True
-			>>> w.test_above(w)
-			(Word('x1 a1', 2, 2), ())
-			>>> v = Word('x1 a1 x1 a2 L', 2, 2)
-			>>> print(w.test_above(v))
-			None
-			>>> v.test_above(w)
-			
-		.. todo:: This does not take into account the fact that :math:`c` and :math:`s` could involve lambda contractions. Needs a rewrite.
+		The test returns :math:`\Gamma` (as a tuple of integers) if the test passes; note that :math:`\Gamma` could be empty (if :math:`c = s`). If the test fails, returns ``None``.
 		
-		:returns: :math:`\Gamma` (as a tuple of integers) if the test passes. Note that :math:`\Gamma` could be empty (if ``self == word``). If the test fails, returns ``None``.
+			>>> c = Word('x1 a1', 2, 2)
+			>>> c.test_above(Word('x1 a1 a1 a2', 2, 2))
+			(-1, -2)
+			>>> c.test_above(Word('x1', 2, 2)) is None
+			True
+			>>> c.test_above(c)
+			()
+			>>> w = Word('x1 a2 x1 a1 L', 2, 2)
+			>>> print(c.test_above(w))
+			None
+			>>> w.test_above(c)
+			(-2,)
+			>>> v = Word('x1 a2 x1 a1 L x1 a2 a2 L x1 a2 x1 a1 L L', 2, 2)
+			>>> print(c.test_above(v))
+			None
+			>>> #There are two possible \Gamma values here; only one is returned.
+			>>> v.test_above(c)
+			(-1, -1, -2)
+			
+		.. note:: There may be many different values of :math:`\Gamma` for which :math:`w = c \Gamma`; this method simply returns the first such :math:`\Gamma` that it finds.
 		"""
-		if word.is_simple() and len(self) > len(word):
+		if self.lambda_length < word.lambda_length:
 			return None
-		head, tail = word.split(len(self))
-		above = (head == self and all(symbol < 0 for symbol in tail))
-		if above:
-			return self, tail
-		return None
+		
+		if self.lambda_length == word.lambda_length > 0:
+			#self above word iff self == word
+			return tuple() if self == word else None
+		
+		if self.lambda_length == word.lambda_length == 0:
+			if len(self) >  len(word):
+				return None
+			if len(self) <= len(word):
+				head, tail = word.split(len(self))
+				return tail if head == self else None
+		
+		if self.lambda_length > word.lambda_length:
+			subwords = lambda_arguments(self)
+			for i, subword in enumerate(subwords):
+				tail = subword.test_above(word)
+				if tail is not None:
+					return (-(i + 1),) + tail
+			return None
 	
 	#Modifiers
 	def alpha(self, index):
@@ -544,22 +564,36 @@ class Word(tuple):
 	def split(self, head_width):
 		"""Splits the current word *w* into a pair of tuples *head*, *tail* where ``len(head) == head_width``. The segments of the word are returned as tuples of integers (not fully fledged words).
 		
+		:raises IndexError: if *head_width* is outside of the range ``0 <= head_width <= len(w)``.
+		
 		>>> Word('x1 a1 a2 a3 a1 a2', 3, 1).split(4)
 		((1, -1, -2, -3), (-1, -2))
 		>>> Word('x1 a1 a2 a3 a1 a2', 3, 1).split(10)
-		((1, -1, -2, -3, -1, -2), ())
+		Traceback (most recent call last):
+			...
+		IndexError: The head width 10 is not in the range 0 to 6.
 		"""
+		if not 0 <= head_width <= len(self):
+			raise IndexError('The head width {} is not in the range 0 to {}'.format(
+			  head_width, len(self)))
 		return self[:head_width], self[head_width:]
 	
 	def rsplit(self, tail_width):
 		"""The same as :meth:`split`, but this time *tail_width* counts from the right hand side. This means that ``len(tail) == tail_width``.
 		
+		:raises IndexError: if *tail_width* is outside of the range ``0 <= tail_width <= len(w)``.
+		
 			>>> Word('x1 a1 a2 a3 a1 a2', 3, 1).rsplit(4)
 			((1, -1), (-2, -3, -1, -2))
 			>>> Word('x1 a1 a2 a3 a1 a2', 3, 1).rsplit(10)
-			((), (1, -1, -2, -3, -1, -2))
+			Traceback (most recent call last):
+				...
+			IndexError: The tail width 10 is not in the range 0 to 6.
 		"""
-		return self.split(-tail_width)
+		if not 0 <= tail_width <= len(self):
+			raise IndexError('The tail width {} is not in the range 0 to {}'.format(
+			  tail_width, len(self)))
+		return self[:-tail_width], self[-tail_width:]
 
 #Operations on words in standard form
 def initial_segment(u, v):
