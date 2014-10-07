@@ -127,6 +127,7 @@ class Automorphism:
 		"""Contracts the domain generators whenever the corresponding contraction in range is possible. (This corresponds to reducing a tree pair diagram.)
 			
 			>>> from thompson.examples import cyclic_order_six as cyclic
+			>>> #This is given by 6 generators, but after reduction consists of 5:
 			>>> for d, r in zip(cyclic.domain, cyclic.range):
 			... 	print(d, '->', r)
 			x1 a1 a1 -> x1 a1 a1
@@ -329,18 +330,22 @@ class Automorphism:
 	
 	#Operations on automorphisms
 	def quasinormal_basis(self):
-		r"""An implementation of Lemma 4.24.1. In [Hig]_ (section 9) Higman defines when an automorphism :math:`\phi` is in *quasinormal form* with respect to a given basis :math:`X`.  We return the basis :math:`X` w.r.t which the current automorphism is in quasinormal form. 
+		r"""An implementation of Lemma 4.24.1. In [Hig]_ (section 9) Higman defines when an automorphism :math:`\phi` is in *quasinormal form* with respect to a given basis :math:`X`.  We return the basis :math:`X` w.r.t which the current automorphism is in quasinormal form.
+		
+		>>> from thompson.examples import *
+		>>> example_4_5.quasinormal_basis()
+		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
 		"""
 		#TODO finish me and test me to high heaven.
 		basis = self._minimal_expansion()
-		print(basis)
+		# print(basis)
 		#expand basis until each no element's orbit has finite intersection with X<A>
 		i = 0
 		while i < len(basis):
 			type = self._orbit_type(basis[i], basis)
-			print("Orbit type:", type, '\n')
+			# print("Orbit type:", type, '\n')
 			if type is Orbit.incomplete:
-				print('expand basis')
+				# print('expand basis')
 				basis.expand(i)
 			else:
 				i += 1
@@ -350,14 +355,16 @@ class Automorphism:
 		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \cup W`. See example 4.25.
 		
 		>>> from thompson.examples import *
-		>>> cyclic_order_six._minimal_expansion()
-		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
+		>>> example_4_5._minimal_expansion()
+		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
 		>>> example_4_11._minimal_expansion()
 		Generators(2, 1, ['x1 a1', 'x1 a2'])
 		>>> example_4_12._minimal_expansion()
 		Generators(2, 1, ['x1 a1', 'x1 a2'])
 		>>> example_4_25._minimal_expansion()
 		Generators(2, 1, ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
+		>>> cyclic_order_six._minimal_expansion()
+		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
 		"""
 		#TODO arity 3 example, alphabet size > 1 example.
 		basis = Generators.standard_basis(self.arity, self.alphabet_size)
@@ -373,19 +380,61 @@ class Automorphism:
 	def _orbit_type(self, y, basis):
 		"""Returns the orbit type of *y* with respect to the given *basis*.
 		
-		>>> from thompson.examples import example_4_25 as ex
-		>>> basis = ex._minimal_expansion()
-		>>> ex._orbit_type(Word("x a1", 2, 1), basis)
-		<Orbit.right_semi_infinite: 3>
+		>>> from thompson.examples import *
+		>>> def f(word, aut, basis=None):
+		... 	if basis is None:
+		... 		basis = aut._minimal_expansion()
+		... 	print(aut._orbit_type(word, basis))
+		
+		>>> #Example 4.5.
+		>>> for w in ["x", "x a1", "x a1 a1", "x a1 a1 a1", "x a1 a1 a2", "x a1 a2", "x a2", "x a1 a1 a1 a1 a2 a2 a1 a2 a1"]:
+		... 	f(Word(w, 2, 1), example_4_5, example_4_5.domain)
+		Orbit.incomplete
+		Orbit.incomplete
+		Orbit.left_semi_infinite
+		Orbit.left_semi_infinite
+		Orbit.complete_infinite
+		Orbit.right_semi_infinite
+		Orbit.incomplete
+		Orbit.complete_infinite
+		
+		>>> #Example 4.11
+		>>> for w in ["x1 a1", "x1 a2"]:
+		... 	f(Word(w, 2, 1), example_4_11)
+		Orbit.left_semi_infinite
+		Orbit.right_semi_infinite
+		
+		>>> #Example 4.12
+		>>> basis = example_4_12._minimal_expansion()
+		>>> for w in basis:
+		... 	print(w, ':', sep='', end=' ')
+		... 	f(Word(w, 2, 1), example_4_12, basis)
+		Orbit.incomplete
+		Orbit.incomplete
+		>>> basis.expand(0)
+		>>> for w in basis:
+		... 	print(w, ':', sep='', end=' ')
+		... 	f(Word(w, 2, 1), example_4_12, basis)
+		x1 a1 a1: Orbit.complete_infinite
+		x1 a1 a2: Orbit.complete_infinite
+		x1 a2: Orbit.incomplete
+		>>> basis.expand(2)
+		>>> for w in basis:
+		... 	print(w, ':', sep='', end=' ')
+		... 	f(Word(w, 2, 1), example_4_12, basis)
+		x1 a1 a1: Orbit.complete_infinite
+		x1 a1 a2: Orbit.complete_infinite
+		x1 a2 a1: Orbit.complete_infinite
+		x1 a2 a2: Orbit.complete_infinite
 		"""
 		#TODO. Tests from the examples
-		print('Forward Orbit for', y)
+		# print('Forward Orbit for', y)
 		right_infinite = self._test_semi_infinite(y, basis, backward=False)
 		if isinstance(right_infinite, Orbit):
 			return right_infinite #periodic
-		print('right_infinite:', right_infinite)
+		# print('right_infinite:', right_infinite)
 		
-		print('Backward orbit for', y)
+		# print('Backward orbit for', y)
 		left_infinite = self._test_semi_infinite(y, basis, backward=True)
 		assert not isinstance(left_infinite, Orbit), "Orbit is not periodic going forward but is going backward."
 		
@@ -407,7 +456,7 @@ class Automorphism:
 		while True:
 			#Compute the image y\phi^i as y\phi^{i-1} \phi
 			image = self.image(image, inverse=backward)
-			print('power #', len(images), 'is', image)
+			# print('power #', len(images), 'is', image)
 			#1. Is this image in X<A>?
 			if not basis.is_above(image): #not in X<A>
 				return False #NOT semi_infinite in the given direction
