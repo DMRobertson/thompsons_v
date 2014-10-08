@@ -14,7 +14,7 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 	from thompson.word import Word
 """
 
-__all__ = ["Automorphism", "Orbit"]
+__all__ = ["Automorphism", "Orbit", "orbit_types"]
 
 from collections import deque
 from enum import Enum
@@ -381,62 +381,58 @@ class Automorphism:
 		"""Returns the orbit type of *y* with respect to the given *basis*.
 		
 		>>> from thompson.examples import *
-		>>> def f(word, aut, basis=None):
-		... 	if basis is None:
-		... 		basis = aut._minimal_expansion()
-		... 	print(aut._orbit_type(word, basis))
-		
 		>>> #Example 4.5.
-		>>> for w in ["x", "x a1", "x a1 a1", "x a1 a1 a1", "x a1 a1 a2", "x a1 a2", "x a2", "x a1 a1 a1 a1 a2 a2 a1 a2 a1"]:
-		... 	f(Word(w, 2, 1), example_4_5, example_4_5.domain)
-		Orbit.incomplete
-		Orbit.incomplete
-		Orbit.left_semi_infinite
-		Orbit.left_semi_infinite
-		Orbit.complete_infinite
-		Orbit.right_semi_infinite
-		Orbit.incomplete
-		Orbit.complete_infinite
+		>>> orbit_types(example_4_5, example_4_5.domain)
+		x1 a1 a1 a1: Orbit.left_semi_infinite
+		x1 a1 a1 a2: Orbit.complete_infinite
+		x1 a1 a2: Orbit.right_semi_infinite
+		x1 a2 a1: Orbit.complete_finite
+		x1 a2 a2: Orbit.complete_finite
+		with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
+		>>> orbit_types(example_4_5, basis=example_4_5.domain, words=['x', 'x a1', 'x a2'])
+		x: Orbit.incomplete
+		x a1: Orbit.incomplete
+		x a2: Orbit.incomplete
+		with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 		
 		>>> #Example 4.11
-		>>> for w in ["x1 a1", "x1 a2"]:
-		... 	f(Word(w, 2, 1), example_4_11)
-		Orbit.left_semi_infinite
-		Orbit.right_semi_infinite
+		>>> orbit_types(example_4_11)
+		x1 a1: Orbit.left_semi_infinite
+		x1 a2: Orbit.right_semi_infinite
+		with respect to the basis [x1 a1, x1 a2]
 		
 		>>> #Example 4.12
 		>>> basis = example_4_12._minimal_expansion()
-		>>> for w in basis:
-		... 	print(w, ':', sep='', end=' ')
-		... 	f(Word(w, 2, 1), example_4_12, basis)
-		Orbit.incomplete
-		Orbit.incomplete
+		>>> orbit_types(example_4_12, basis)
+		x1 a1: Orbit.incomplete
+		x1 a2: Orbit.incomplete
+		with respect to the basis [x1 a1, x1 a2]
 		>>> basis.expand(0)
-		>>> for w in basis:
-		... 	print(w, ':', sep='', end=' ')
-		... 	f(Word(w, 2, 1), example_4_12, basis)
+		>>> orbit_types(example_4_12, basis)
 		x1 a1 a1: Orbit.complete_infinite
 		x1 a1 a2: Orbit.complete_infinite
 		x1 a2: Orbit.incomplete
+		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2]
 		>>> basis.expand(2)
-		>>> for w in basis:
-		... 	print(w, ':', sep='', end=' ')
-		... 	f(Word(w, 2, 1), example_4_12, basis)
-		x1 a1 a1: Orbit.complete_infinite
-		x1 a1 a2: Orbit.complete_infinite
-		x1 a2 a1: Orbit.complete_infinite
-		x1 a2 a2: Orbit.complete_infinite
+		>>> orbit_types(example_4_12, basis)
+		x1 a1 a1: Orbit.complete_finite
+		x1 a1 a2: Orbit.complete_finite
+		x1 a2 a1: Orbit.complete_finite
+		x1 a2 a2: Orbit.complete_finite
+		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 		"""
-		#TODO. Tests from the examples
 		# print('Forward Orbit for', y)
+		# input()
 		right_infinite = self._test_semi_infinite(y, basis, backward=False)
 		if isinstance(right_infinite, Orbit):
 			return right_infinite #periodic
 		# print('right_infinite:', right_infinite)
 		
 		# print('Backward orbit for', y)
+		# input()
 		left_infinite = self._test_semi_infinite(y, basis, backward=True)
 		assert not isinstance(left_infinite, Orbit), "Orbit is not periodic going forward but is going backward."
+		# print('left_infinite:', left_infinite)
 		
 		if right_infinite and left_infinite:
 			return Orbit.complete_infinite
@@ -449,10 +445,12 @@ class Automorphism:
 	
 	#TODO maybe this should return characteristics as well
 	def _test_semi_infinite(self, y, basis, backward=False):
-		"""Computes the orbit type of *y* with respect to *basis* in the forward direction. (Use ``backward=True`` to go backwards.)"""
-		i = 0
+		"""Computes the orbit type of *y* with respect to *basis* in the forward direction. (Use ``backward=True`` to go backwards.) Returns Orbit.complete_finite if a periodic orbit in X<A> is found; otherwise returns True or false to say if the orbit in X<A> is semi-infinite in the given direction."""
 		image = y
 		images = [y]
+		#y is the starting element
+		#image is the ith image under self of y
+		#images is the list of previous images, starting at y = image #0 and ending at image #i-1
 		while True:
 			#Compute the image y\phi^i as y\phi^{i-1} \phi
 			image = self.image(image, inverse=backward)
@@ -463,22 +461,36 @@ class Automorphism:
 			
 			#2. Look for basis elements which are prefixes of the new image
 			prefixes = [gen for gen in basis if gen.is_above(image)]
-			
+			# print('From the basis, we found potential {} prefix(es) for ``image``'.format(len(prefixes)))
+			# print(prefixes)
+			# print('Previous images were', images)
 			#3. For each previous image:
 			for previous in images:
+				# print('previous image', previous)
 				#Is this the same as the word we've just computed?
 				if previous == image:
 					return Orbit.complete_finite #Perodic and infinite in both directions.
-				#Otherwise, is there a generator which is an initial segment of both the previous and current images? 
+				#Check all the basis elements above the current image.
+				#Is there a generator above any previous images? 
 				for generator in prefixes:
-					tail = generator.test_above(image)
+					tail = generator.test_above(previous)
 					if tail is not None:
 						#We've found a match: both *image* and *previous* start with *generator*
 						return True #IS semi_infinite in the given direction
-			images.append(y)
+			images.append(image)
 
 
 #TODO. Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
 #TODO method to decide if the automorphism is in (the equivalent of) F, T, or V.
 #TODO the named elements A, B, C, X_n of Thompson's V.
 
+def orbit_types(aut, basis=None, words=None):
+	r"""Prints the classification of the orbits under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the minimal expansion given by :meth:`~thompson.automorphism._minimal_expansion`. If *words* is omited, it is taken to be the same as *basis*. See the docstring for :meth:`~thompson.automorphism._orbit_type`"""
+	if basis is None:
+		basis = aut._minimal_expansion()
+	if words is None:
+		words = basis
+	for w in words:
+		print(w, ':', sep='', end=' ')
+		print(aut._orbit_type(w, basis))
+	print('with respect to the basis', basis)
