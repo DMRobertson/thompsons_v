@@ -20,13 +20,12 @@ range  = Generators(2, 1, ["x a1",    "x a2 a1", "x a2 a2"])
 example_4_11 = Automorphism(2, 1, domain, range)
 
 #Example 4.12
-#TODO minimal expansion and orbit types, semi-normal form (in progress)
 domain = Generators(2, 1, ["x a1 a1", "x a1 a2", "x a2"])
 range  = Generators(2, 1, ["x a2 a2", "x a2 a1", "x a1"])
 example_4_12 = Automorphism(2, 1, domain, range)
 
 #Example 4.25
-#Gives: reduced form, minimal expansion for QNF basis start, orbits and characteristics
+#Todo. Characteristics?
 domain = Generators(2, 1, ["x a1",       "x a2 a1",    "x a2 a2 a1 a1", "x a2 a2 a1 a2", "x a2 a2 a2"])
 range  = Generators(2, 1, ["x a1 a1 a1", "x a1 a1 a2", "x a2 a2",       "x a1 a2",       "x a2 a1"   ])
 example_4_25 = Automorphism(2, 1, domain, range)

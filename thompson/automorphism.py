@@ -420,6 +420,13 @@ class Automorphism:
 		x1 a2 a1: Orbit.complete_finite
 		x1 a2 a2: Orbit.complete_finite
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
+		
+		>>> #Example 4.25
+		>>> orbit_types(example_4_25)
+		x1 a1: Orbit.right_semi_infinite
+		x1 a2 a1: Orbit.complete_infinite
+		x1 a2 a2: Orbit.left_semi_infinite
+		with respect to the basis [x1 a1, x1 a2 a1, x1 a2 a2]
 		"""
 		# print('Forward Orbit for', y)
 		# input()
