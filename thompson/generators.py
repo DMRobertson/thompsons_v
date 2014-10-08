@@ -167,12 +167,13 @@ class Generators(list):
 		
 			>>> g = Generators.standard_basis(3, 1); g
 			Generators(3, 1, ['x1'])
-			>>> g.expand(0); g
+			>>> g.expand(0)
 			Generators(3, 1, ['x1 a1', 'x1 a2', 'x1 a3'])
-			>>> g.expand(1); g
+			>>> g.expand(1)
 			Generators(3, 1, ['x1 a1', 'x1 a2 a1', 'x1 a2 a2', 'x1 a2 a3', 'x1 a3'])
 			
 			:raises IndexError: if there is no generator at index *index*.
 		"""
 		self[index: index+1] = [self[index].alpha(i) for i in range(1, self.arity+1)]
+		return self #allows chaining
 

@@ -408,12 +408,14 @@ class Automorphism:
 		x1 a2: Orbit.incomplete
 		with respect to the basis [x1 a1, x1 a2]
 		>>> basis.expand(0)
+		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2'])
 		>>> orbit_types(example_4_12, basis)
 		x1 a1 a1: Orbit.complete_infinite
 		x1 a1 a2: Orbit.complete_infinite
 		x1 a2: Orbit.incomplete
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2]
 		>>> basis.expand(2)
+		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
 		>>> orbit_types(example_4_12, basis)
 		x1 a1 a1: Orbit.complete_finite
 		x1 a1 a2: Orbit.complete_finite
@@ -492,7 +494,16 @@ class Automorphism:
 #TODO the named elements A, B, C, X_n of Thompson's V.
 
 def orbit_types(aut, basis=None, words=None):
-	r"""Prints the classification of the orbits under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the minimal expansion given by :meth:`~thompson.automorphism._minimal_expansion`. If *words* is omited, it is taken to be the same as *basis*. See the docstring for :meth:`~thompson.automorphism._orbit_type`"""
+	r"""Prints the classification of the orbits under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the minimal expansion given by :meth:`~thompson.automorphism._minimal_expansion`. If *words* is omited, it is taken to be the same as *basis*. See the docstring for :meth:`~thompson.automorphism._orbit_type`.
+	
+		>>> orbit_types(arity_three_order_inf)
+		x1 a1: Orbit.left_semi_infinite
+		x1 a2: Orbit.complete_infinite
+		x1 a3 a1: Orbit.complete_infinite
+		x1 a3 a2: Orbit.complete_infinite
+		x1 a3 a3: Orbit.right_semi_infinite
+		with respect to the basis [x1 a1, x1 a2, x1 a3 a1, x1 a3 a2, x1 a3 a3]
+	"""
 	if basis is None:
 		basis = aut._minimal_expansion()
 	if words is None:
