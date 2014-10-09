@@ -5,6 +5,6 @@
 
 from .word import Word
 from .generators import Generators
-from .automorphism import Automorphism, orbit_types
+from .automorphism import Automorphism
 from . import examples
 

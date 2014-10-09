@@ -10,39 +10,24 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 .. testsetup::
 	
 	from thompson.automorphism import *
-	from thompson.generators import Generators
 	from thompson.word import Word
+	from thompson.generators import Generators
+	from thompson.orbits import dump_orbit_types
 """
 
-__all__ = ["Automorphism", "Orbit", "orbit_types"]
+__all__ = ["Automorphism"]#, "OrbitType", "orbit_types"]
 
 from collections import deque
-from enum import Enum
 from itertools import chain
 from io import StringIO
 
 from .word import *
 from .generators import Generators
+from .orbits import *
 from .full_tree import FullTree
 
-class Orbit(Enum):
-	r"""Let :math:`y` be a word, and let :math:`X` be an expansion of the standard basis :math:`\boldsymbol{x}=\{x_1, \dotsc, x_n\}`; finally let :math:`\phi` be an  :class:`Automorphism`.
-	
-	We call the set :math:`\{ y \phi^i\}_{i\in \mathbb Z}` the :math:`\phi`-orbit of :math:`y`. In [Hig]_ (section 9), Higman showed that these :math:`\phi`-orbits could only intersect with :math:`X\langle A \rangle` in certain ways. Here, :math:`X\langle A \rangle` is the set of :meth:`simple <thompson.word.Word.is_simple>` words starting with an :math:`x \in X`.
-	
-	Let us refer to the intersection of the :math:`\phi`-orbit of :math:`y` as just the *orbit* of :math:`y`. This class is an :mod:`enumeration <py3:enum>` type which labels Higman's five orbit types; see section 4.1 of the paper.
-	
-	 1. *Complete infinite.* The orbit exists for all :math:`i \in \mathbb Z` and each element of the orbit is different.
-	 2. *Complete finite.* The orbit exists for all :math:`i \in \mathbb Z`, but eventually it repeats itself.
-	 3. *Right semi-infinite.* The forward orbit :math:`\{ y \phi^n\}_{n\in \mathbb N}` exists and does not repeat itself; however no part of the backward orbit :math:`\{ y \phi^{-n}\}_{n\in \mathbb N}` exists.
-	 4. *Left semi-infinite.* The backward orbit exists and does not repeat itself; but no part of the forward orbit exists.
-	 5. *Incomplete*. Only a finite number of images :math:`y\phi^{-n}, \dotsc, y\phi^{-1}, y, y\phi, \dotsc, y\phi^m` exist and all others do not.
-	"""
-	complete_infinite = 1
-	complete_finite = 2
-	right_semi_infinite = 3
-	left_semi_infinite = 4
-	incomplete = 5
+
+
 
 def _concat(words):
 	"""Takes an iterable *words* which yields lists of integers representing words. Returns a tuple containing all the *words* concatenated together, with a zero (lambda) added on the end."""
@@ -113,6 +98,7 @@ class Automorphism:
 		self.alphabet_size = alphabet_size
 		self.domain = domain
 		self.range = range
+		
 		self._map = {}
 		self._inv = {}
 		for d, r in zip(self.domain, self.range):
@@ -121,6 +107,15 @@ class Automorphism:
 		for root in Generators.standard_basis(self.arity, self.alphabet_size):
 			self._image_simple_above_domain(root)
 			self._image_simple_above_domain(root, inverse=True)
+		
+		self._qnf_basis = None
+		self._qnf_orbit_types = {}
+		
+		#Cache attributes
+		#_map
+		#_inv
+		#_qnf_basis
+		#_qnf_orbit_types
 	
 	@staticmethod
 	def _reduce(domain, range):
@@ -283,6 +278,17 @@ class Automorphism:
 		self._set_image(word, image, inverse)
 		return image
 	
+	def repeated_image(self, key, power):
+		r"""If :math:`\psi` is the current automorphism, returns :math`\text{key}\psi^\text{power}`."""
+		#TODO doctests.
+		if power == 0:
+			return key
+		inverse = power < 0
+		power = abs(power)
+		image = key
+		for _ in range(power):
+			image = self.image(image, inverse)
+		
 	#Printing
 	def __str__(self):
 		"""Printing an automorphism gives its arity, alphabet_size, and lists the images of its domain elements.
@@ -336,6 +342,9 @@ class Automorphism:
 		>>> example_4_5.quasinormal_basis()
 		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
 		"""
+		if self._qnf_basis is not None:
+			return self._qnf_basis
+		
 		#TODO finish me and test me to high heaven.
 		basis = self._minimal_expansion()
 		# print(basis)
@@ -344,11 +353,12 @@ class Automorphism:
 		while i < len(basis):
 			type = self._orbit_type(basis[i], basis)
 			# print("Orbit type:", type, '\n')
-			if type is Orbit.incomplete:
+			if type is OrbitType.incomplete:
 				# print('expand basis')
 				basis.expand(i)
 			else:
 				i += 1
+		self._qnf_basis = basis
 		return basis
 	
 	def _minimal_expansion(self):
@@ -382,133 +392,121 @@ class Automorphism:
 		
 		>>> from thompson.examples import *
 		>>> #Example 4.5.
-		>>> orbit_types(example_4_5, example_4_5.domain)
-		x1 a1 a1 a1: Orbit.left_semi_infinite
-		x1 a1 a1 a2: Orbit.complete_infinite
-		x1 a1 a2: Orbit.right_semi_infinite
-		x1 a2 a1: Orbit.complete_finite
-		x1 a2 a2: Orbit.complete_finite
+		>>> dump_orbit_types(example_4_5, example_4_5.domain)
+		x1 a1 a1 a1: OrbitType.left_semi_infinite
+		x1 a1 a1 a2: OrbitType.complete_infinite
+		x1 a1 a2: OrbitType.right_semi_infinite
+		x1 a2 a1: OrbitType.complete_finite
+		x1 a2 a2: OrbitType.complete_finite
 		with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
-		>>> orbit_types(example_4_5, basis=example_4_5.domain, words=['x', 'x a1', 'x a2'])
-		x: Orbit.incomplete
-		x a1: Orbit.incomplete
-		x a2: Orbit.incomplete
+		>>> dump_orbit_types(example_4_5, basis=example_4_5.domain, words=['x', 'x a1', 'x a2'])
+		x: OrbitType.incomplete
+		x a1: OrbitType.incomplete
+		x a2: OrbitType.incomplete
 		with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 		
 		>>> #Example 4.11
-		>>> orbit_types(example_4_11)
-		x1 a1: Orbit.left_semi_infinite
-		x1 a2: Orbit.right_semi_infinite
+		>>> dump_orbit_types(example_4_11)
+		x1 a1: OrbitType.left_semi_infinite
+		x1 a2: OrbitType.right_semi_infinite
 		with respect to the basis [x1 a1, x1 a2]
 		
 		>>> #Example 4.12
 		>>> basis = example_4_12._minimal_expansion()
-		>>> orbit_types(example_4_12, basis)
-		x1 a1: Orbit.incomplete
-		x1 a2: Orbit.incomplete
+		>>> dump_orbit_types(example_4_12, basis)
+		x1 a1: OrbitType.incomplete
+		x1 a2: OrbitType.incomplete
 		with respect to the basis [x1 a1, x1 a2]
 		>>> basis.expand(0)
 		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2'])
-		>>> orbit_types(example_4_12, basis)
-		x1 a1 a1: Orbit.complete_infinite
-		x1 a1 a2: Orbit.complete_infinite
-		x1 a2: Orbit.incomplete
+		>>> dump_orbit_types(example_4_12, basis)
+		x1 a1 a1: OrbitType.complete_infinite
+		x1 a1 a2: OrbitType.complete_infinite
+		x1 a2: OrbitType.incomplete
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2]
 		>>> basis.expand(2)
 		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
-		>>> orbit_types(example_4_12, basis)
-		x1 a1 a1: Orbit.complete_finite
-		x1 a1 a2: Orbit.complete_finite
-		x1 a2 a1: Orbit.complete_finite
-		x1 a2 a2: Orbit.complete_finite
+		>>> dump_orbit_types(example_4_12, basis)
+		x1 a1 a1: OrbitType.complete_finite
+		x1 a1 a2: OrbitType.complete_finite
+		x1 a2 a1: OrbitType.complete_finite
+		x1 a2 a2: OrbitType.complete_finite
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 		
 		>>> #Example 4.25
-		>>> orbit_types(example_4_25)
-		x1 a1: Orbit.right_semi_infinite
-		x1 a2 a1: Orbit.complete_infinite
-		x1 a2 a2: Orbit.left_semi_infinite
+		>>> dump_orbit_types(example_4_25)
+		x1 a1: OrbitType.right_semi_infinite
+		x1 a2 a1: OrbitType.complete_infinite
+		x1 a2 a2: OrbitType.left_semi_infinite
 		with respect to the basis [x1 a1, x1 a2 a1, x1 a2 a2]
 		"""
 		# print('Forward Orbit for', y)
 		# input()
 		right_infinite = self._test_semi_infinite(y, basis, backward=False)
-		if isinstance(right_infinite, Orbit):
+		if isinstance(right_infinite, OrbitType):
 			return right_infinite #periodic
 		# print('right_infinite:', right_infinite)
 		
 		# print('Backward orbit for', y)
 		# input()
 		left_infinite = self._test_semi_infinite(y, basis, backward=True)
-		assert not isinstance(left_infinite, Orbit), "Orbit is not periodic going forward but is going backward."
+		assert not isinstance(left_infinite, OrbitType), "Orbit is not periodic going forward but is going backward."
 		# print('left_infinite:', left_infinite)
 		
 		if right_infinite and left_infinite:
-			return Orbit.complete_infinite
+			return OrbitType.complete_infinite
 		elif right_infinite and not left_infinite:
-			return Orbit.right_semi_infinite
+			return OrbitType.right_semi_infinite
 		elif not right_infinite and left_infinite:
-			return Orbit.left_semi_infinite
+			return OrbitType.left_semi_infinite
 		else:
-			return Orbit.incomplete
+			return OrbitType.incomplete
 	
 	#TODO maybe this should return characteristics as well
 	def _test_semi_infinite(self, y, basis, backward=False):
-		"""Computes the orbit type of *y* with respect to *basis* in the forward direction. (Use ``backward=True`` to go backwards.) Returns Orbit.complete_finite if a periodic orbit in X<A> is found; otherwise returns True or false to say if the orbit in X<A> is semi-infinite in the given direction."""
+		"""Computes the orbit type of *y* with respect to *basis* in the forward direction. (Use ``backward=True`` to go backwards.) Returns OrbitType.complete_finite if a periodic orbit in X<A> is found; otherwise returns True or false to say if the orbit in X<A> is semi-infinite in the given direction."""
 		image = y
 		images = [y]
-		#y is the starting element
-		#image is the ith image under self of y
-		#images is the list of previous images, starting at y = image #0 and ending at image #i-1
+		m = 0
+		
 		while True:
-			#Compute the image y\phi^i as y\phi^{i-1} \phi
-			image = self.image(image, inverse=backward)
-			# print('power #', len(images), 'is', image)
-			#1. Is this image in X<A>?
-			if not basis.is_above(image): #not in X<A>
-				return False #NOT semi_infinite in the given direction
+			m += 1
+			image = self.image(image, inverse=backward) #this is y\phi^{\pm m}
+			#1. Is image in X<A>?
+			if not basis.is_above(image):
+				#NOT semi infinite in the given direction
+				return False 
 			
-			#2. Look for basis elements which are prefixes of the new image
-			prefixes = [gen for gen in basis if gen.is_above(image)]
-			# print('From the basis, we found potential {} prefix(es) for ``image``'.format(len(prefixes)))
-			# print(prefixes)
-			# print('Previous images were', images)
-			#3. For each previous image:
-			for previous in images:
-				# print('previous image', previous)
-				#Is this the same as the word we've just computed?
-				if previous == image:
-					return Orbit.complete_finite #Perodic and infinite in both directions.
-				#Check all the basis elements above the current image.
-				#Is there a generator above any previous images? 
-				for generator in prefixes:
-					tail = generator.test_above(previous)
-					if tail is not None:
-						#We've found a match: both *image* and *previous* start with *generator*
-						return True #IS semi_infinite in the given direction
+			#2. Is this be a periodic orbit?
+			if image == y:
+				return OrbitType.periodic(m+1)
+			
+			#3a. Is there a generator is above the current image?
+			for gen in basis:
+				result = gen.test_above(image)
+				if result is not None:
+					prefix = gen
+					image_tail = result
+					#Because *basis* is a basis, there is at most one such prefix.
+					break
+			#3b. if so, is that generator above any previous image?
+			if prefix is not None:
+				for ell, previous in enumerate(images):
+					previous_tail = prefix.test_above(previous)
+					if previous_tail is not None:
+						return self._extract_characteristic(prefix, m, image_tail, ell, previous_tail)
+			#Otherwise, continue with the next power of \psi
 			images.append(image)
-
+	
+	def _extract_characteristic(self, prefix, m, image_tail, ell, previous_tail):
+		r"""Uses Lemma 4.14(B) to compute the characteristic :math:`(m, \Gamma)` of the orbit containing ``prefix + image_tail``."""
+		#todo doctests
+		image = self.repeated_image(prefix, m - ell)
+		tail = prefix.test_above(image)
+		assert tail is not None
+		return i, tail
 
 #TODO. Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
 #TODO method to decide if the automorphism is in (the equivalent of) F, T, or V.
 #TODO the named elements A, B, C, X_n of Thompson's V.
 
-def orbit_types(aut, basis=None, words=None):
-	r"""Prints the classification of the orbits under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the minimal expansion given by :meth:`~thompson.automorphism._minimal_expansion`. If *words* is omited, it is taken to be the same as *basis*. See the docstring for :meth:`~thompson.automorphism._orbit_type`.
-	
-		>>> orbit_types(arity_three_order_inf)
-		x1 a1: Orbit.left_semi_infinite
-		x1 a2: Orbit.complete_infinite
-		x1 a3 a1: Orbit.complete_infinite
-		x1 a3 a2: Orbit.complete_infinite
-		x1 a3 a3: Orbit.right_semi_infinite
-		with respect to the basis [x1 a1, x1 a2, x1 a3 a1, x1 a3 a2, x1 a3 a3]
-	"""
-	if basis is None:
-		basis = aut._minimal_expansion()
-	if words is None:
-		words = basis
-	for w in words:
-		print(w, ':', sep='', end=' ')
-		print(aut._orbit_type(w, basis))
-	print('with respect to the basis', basis)

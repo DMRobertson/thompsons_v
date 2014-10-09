@@ -11,6 +11,7 @@ Submodules
    thompson.drawing
    thompson.full_tree
    thompson.generators
+   thompson.orbits
    thompson.permutation
    thompson.tree_pair
    thompson.trees
