@@ -282,12 +282,15 @@ class Automorphism:
 		r"""If :math:`\psi` is the current automorphism, returns :math`\text{key}\psi^\text{power}`."""
 		#TODO doctests.
 		if power == 0:
+			#TODO make sure this returns a wor dhere
 			return key
 		inverse = power < 0
+		# print(inverse)
 		power = abs(power)
 		image = key
 		for _ in range(power):
-			image = self.image(image, inverse)
+			image = self.image(image, inverse=inverse)
+		return image
 		
 	#Printing
 	def __str__(self):
@@ -393,78 +396,96 @@ class Automorphism:
 		>>> from thompson.examples import *
 		>>> #Example 4.5.
 		>>> dump_orbit_types(example_4_5, example_4_5.domain)
-		x1 a1 a1 a1: OrbitType.left_semi_infinite
-		x1 a1 a1 a2: OrbitType.complete_infinite
-		x1 a1 a2: OrbitType.right_semi_infinite
-		x1 a2 a1: OrbitType.complete_finite
-		x1 a2 a2: OrbitType.complete_finite
+		x1 a1 a1 a1: Left semi-infinite orbit with characteristic (-1, a1)
+		x1 a1 a1 a2: Bi-infinite orbit
+		x1 a1 a2: Right semi-infinite orbit with characteristic (1, a2)
+		x1 a2 a1: Periodic orbit of order 2
+		x1 a2 a2: Periodic orbit of order 2
 		with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 		>>> dump_orbit_types(example_4_5, basis=example_4_5.domain, words=['x', 'x a1', 'x a2'])
-		x: OrbitType.incomplete
-		x a1: OrbitType.incomplete
-		x a2: OrbitType.incomplete
+		x: Incomplete orbit
+		x a1: Incomplete orbit
+		x a2: Incomplete orbit
 		with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 		
 		>>> #Example 4.11
 		>>> dump_orbit_types(example_4_11)
-		x1 a1: OrbitType.left_semi_infinite
-		x1 a2: OrbitType.right_semi_infinite
+		x1 a1: Left semi-infinite orbit with characteristic (-1, a1)
+		x1 a2: Right semi-infinite orbit with characteristic (1, a2)
 		with respect to the basis [x1 a1, x1 a2]
 		
 		>>> #Example 4.12
 		>>> basis = example_4_12._minimal_expansion()
 		>>> dump_orbit_types(example_4_12, basis)
-		x1 a1: OrbitType.incomplete
-		x1 a2: OrbitType.incomplete
+		x1 a1: Incomplete orbit
+		x1 a2: Incomplete orbit
 		with respect to the basis [x1 a1, x1 a2]
 		>>> basis.expand(0)
 		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2'])
 		>>> dump_orbit_types(example_4_12, basis)
-		x1 a1 a1: OrbitType.complete_infinite
-		x1 a1 a2: OrbitType.complete_infinite
-		x1 a2: OrbitType.incomplete
+		x1 a1 a1: Bi-infinite orbit
+		x1 a1 a2: Bi-infinite orbit
+		x1 a2: Incomplete orbit
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2]
 		>>> basis.expand(2)
 		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
 		>>> dump_orbit_types(example_4_12, basis)
-		x1 a1 a1: OrbitType.complete_finite
-		x1 a1 a2: OrbitType.complete_finite
-		x1 a2 a1: OrbitType.complete_finite
-		x1 a2 a2: OrbitType.complete_finite
+		x1 a1 a1: Periodic orbit of order 4
+		x1 a1 a2: Periodic orbit of order 4
+		x1 a2 a1: Periodic orbit of order 4
+		x1 a2 a2: Periodic orbit of order 4
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 		
 		>>> #Example 4.25
 		>>> dump_orbit_types(example_4_25)
-		x1 a1: OrbitType.right_semi_infinite
-		x1 a2 a1: OrbitType.complete_infinite
-		x1 a2 a2: OrbitType.left_semi_infinite
+		x1 a1: Right semi-infinite orbit with characteristic (1, a1 a1)
+		x1 a2 a1: Bi-infinite orbit
+		x1 a2 a2: Left semi-infinite orbit with characteristic (-1, a1 a1)
 		with respect to the basis [x1 a1, x1 a2 a1, x1 a2 a2]
 		"""
 		# print('Forward Orbit for', y)
-		# input()
-		right_infinite = self._test_semi_infinite(y, basis, backward=False)
-		if isinstance(right_infinite, OrbitType):
-			return right_infinite #periodic
-		# print('right_infinite:', right_infinite)
-		
+		right_result = self._test_semi_infinite(y, basis, backward=False)
+		# print('right_result:', right_result)
 		# print('Backward orbit for', y)
-		# input()
-		left_infinite = self._test_semi_infinite(y, basis, backward=True)
-		assert not isinstance(left_infinite, OrbitType), "Orbit is not periodic going forward but is going backward."
-		# print('left_infinite:', left_infinite)
+		left_result  = self._test_semi_infinite(y, basis, backward=True)
+		# print('left_result:', left_result)
 		
-		if right_infinite and left_infinite:
-			return OrbitType.complete_infinite
-		elif right_infinite and not left_infinite:
-			return OrbitType.right_semi_infinite
-		elif not right_infinite and left_infinite:
-			return OrbitType.left_semi_infinite
-		else:
-			return OrbitType.incomplete
+		#Suppose we fall out of the tree going right.
+		if right_result is False:
+			if left_result is False:
+				return OrbitType.incomplete
+			
+			assert left_result.type != OrbitType._complete_finite, "Falls out of the tree on the right, but periodic to the left."
+			assert left_result.type != OrbitType._complete_infinite, "Falls out of the tree on the right, but infinite with no characteristic to the left."
+			#Must have left semi-infinite remaining
+			return left_result
+		
+		if right_result.type == OrbitType._complete_infinite:
+			assert left_result.type == OrbitType._complete_infinite
+			return right_result
+		
+		if right_result.type == OrbitType._right_semi_infinite:
+			assert left_result is False
+			return right_result
+		
+		if right_result.type == OrbitType._complete_finite:
+			assert left_result.type == OrbitType._complete_finite
+			assert left_result.power == right_result.power
+			return right_result
+		
 	
 	#TODO maybe this should return characteristics as well
 	def _test_semi_infinite(self, y, basis, backward=False):
-		"""Computes the orbit type of *y* with respect to *basis* in the forward direction. (Use ``backward=True`` to go backwards.) Returns OrbitType.complete_finite if a periodic orbit in X<A> is found; otherwise returns True or false to say if the orbit in X<A> is semi-infinite in the given direction."""
+		"""Computes the orbit type of *y* with respect to *basis* in the forward direction. (Use ``backward=True`` to go backwards.)
+		
+		- If a periodic orbit is found, returns OrbitType.complete_finite.
+		- If an incomplete orbit is found, returns False. (Cannot conclude incomplete without examining the other direction.)
+		- If an infinite orbit is found:
+			- if a characteristic was found, returns the appropriate semi-infinite OrbitType.
+			- if no characteristic was found, returns OrbitType.complete_infinite.
+		
+		
+		if a periodic orbit in X<A> is found; otherwise returns True or false to say if the orbit in X<A> is semi-infinite in the given direction."""
 		image = y
 		images = [y]
 		m = 0
@@ -472,6 +493,7 @@ class Automorphism:
 		while True:
 			m += 1
 			image = self.image(image, inverse=backward) #this is y\phi^{\pm m}
+			# print('image #', m, image) 
 			#1. Is image in X<A>?
 			if not basis.is_above(image):
 				#NOT semi infinite in the given direction
@@ -479,7 +501,7 @@ class Automorphism:
 			
 			#2. Is this be a periodic orbit?
 			if image == y:
-				return OrbitType.periodic(m+1)
+				return OrbitType.periodic(m)
 			
 			#3a. Is there a generator is above the current image?
 			for gen in basis:
@@ -487,24 +509,42 @@ class Automorphism:
 				if result is not None:
 					prefix = gen
 					image_tail = result
+					# print('prefix', prefix, 'image_tail', format(image_tail))
 					#Because *basis* is a basis, there is at most one such prefix.
 					break
+			
 			#3b. if so, is that generator above any previous image?
 			if prefix is not None:
 				for ell, previous in enumerate(images):
 					previous_tail = prefix.test_above(previous)
 					if previous_tail is not None:
-						return self._extract_characteristic(prefix, m, image_tail, ell, previous_tail)
+						# print('previous', previous, 'previous_tail', format(previous_tail))
+						# print(m, ell)
+						if previous is y:
+							return self._extract_characteristic(prefix, m, ell, backward)
+						else:
+							return OrbitType.complete_infinite
 			#Otherwise, continue with the next power of \psi
 			images.append(image)
 	
-	def _extract_characteristic(self, prefix, m, image_tail, ell, previous_tail):
-		r"""Uses Lemma 4.14(B) to compute the characteristic :math:`(m, \Gamma)` of the orbit containing ``prefix + image_tail``."""
+	def _extract_characteristic(self, prefix, m, ell, backward):
+		r"""Uses Lemma 4.14(B) to compute the characteristic :math:`(m, \Gamma)` of the orbit containing ``prefix + image_tail``.
+		
+		..warning:: This method is 
+		"""
 		#todo doctests
-		image = self.repeated_image(prefix, m - ell)
+		# print(prefix, m, ell, backward)
+		i = m - ell
+		if backward:
+			i = -i
+		image = self.repeated_image(prefix, i)
+		# print(image)
 		tail = prefix.test_above(image)
-		assert tail is not None
-		return i, tail
+		if tail is not None:
+			#we have successfully found a characteristic
+			return OrbitType.semi_infinite('left' if backward else 'right', i, tail)
+		else:
+			return OrbitType.complete_infinite
 
 #TODO. Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
 #TODO method to decide if the automorphism is in (the equivalent of) F, T, or V.

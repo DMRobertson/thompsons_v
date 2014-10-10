@@ -37,6 +37,8 @@ def format(letters):
 		>>> format([2, -1, 2, -2, 0])
 		'x2 a1 x2 a2 L'
 	"""
+	if len(letters) == 0:
+		return "<the empty word>"
 	return " ".join(_char(i) for i in letters)
 
 def from_string(str):

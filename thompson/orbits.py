@@ -1,7 +1,14 @@
-"""Tools for classifying the X<A> orbits of elements of V_n,r."""
+"""Tools for classifying the X<A> orbits of elements of V_n,r.
+
+.. testsetup::
+	
+	from thompson.orbits import *
+"""
 
 from collections import namedtuple
 # from enum import Enum
+
+from . import word
 
 __all__ = ["OrbitType", "dump_orbit_types"]
 
@@ -26,11 +33,18 @@ class OrbitType(BaseOrbitType):
 	
 	 See definition 4.15 for details on characteristics.
 	"""
-	complete_infinite = 1
-	complete_finite = 2
-	right_semi_infinite = 3
-	left_semi_infinite = 4
-	incomplete = 5
+	_complete_infinite = 1
+	_complete_finite = 2
+	_right_semi_infinite = 3
+	_left_semi_infinite = 4
+	_incomplete = 5
+	_names = {
+		1: "Bi-infinite",
+		2: "Periodic",
+		3: "Right semi-infinite",
+		4: "Left semi-infinite",
+		5: "Incomplete"
+	}
 	
 	#Like vanilla namedtuples, do not allow Coord instances to have any instance attributes.
 	__slots__ = ()
@@ -39,7 +53,7 @@ class OrbitType(BaseOrbitType):
 	@classmethod
 	def periodic(cls, power):
 		"""Shortcut for representing complete finite (i.e. periodic) orbits. Arguments are the characteristic of the orbit."""
-		return cls(cls.complete_finite, power, None)
+		return cls(cls._complete_finite, power, None)
 	
 	@classmethod
 	def semi_infinite(cls, direction, power, multiplier):
@@ -48,28 +62,41 @@ class OrbitType(BaseOrbitType):
 		:raises ValueError: if direction is neither ``'left'`` nor ``'right'``.
 		"""
 		if direction == 'right':
-			type = cls.right_semi_infinite
+			type = cls._right_semi_infinite
 		elif direction == 'left':
-			type = cls.left_semi_infinite
+			type = cls._left_semi_infinite
 		else:
 			raise ValueError("Must specify direction as either 'left' or 'right'.")
+			
+		assert (power > 0) == (direction == 'right')
+		
 		return cls(type, power, multiplier)
 	
-	@classmethod
-	def bi_infinite(cls):
-		"""Shortcut for representing orbits which are infinite in both directions."""
-		return cls(OrbitType.complete_infinite, None, None)
+	def __str__(self):
+		output = "{} orbit".format(self._names[self.type])
+		if self.type is self._complete_finite:
+			output += " of order {}".format(self.power)
+		elif self.type == self._right_semi_infinite or self.type == self._left_semi_infinite:
+			output += " with characteristic ({}, {})".format(self.power, word.format(self.multiplier))
+		return output
+
+OrbitType.complete_infinite = OrbitType(OrbitType._complete_infinite, None, None)
+"""Instance for representing orbits which are infinite in both directions."""
+
+OrbitType.incomplete = OrbitType(OrbitType._incomplete, None, None)
+"""Instance for incomplete orbits."""
 
 #todo renameme
 def dump_orbit_types(aut, basis=None, words=None):
 	r"""Prints the classification of the orbits under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the minimal expansion given by :meth:`~thompson.automorphism._minimal_expansion`. If *words* is omited, it is taken to be the same as *basis*. See the docstring for :meth:`~thompson.automorphism._orbit_type`.
 	
+		>>> from thompson.examples import *
 		>>> dump_orbit_types(arity_three_order_inf)
-		x1 a1: OrbitType.left_semi_infinite
-		x1 a2: OrbitType.complete_infinite
-		x1 a3 a1: OrbitType.complete_infinite
-		x1 a3 a2: OrbitType.complete_infinite
-		x1 a3 a3: OrbitType.right_semi_infinite
+		x1 a1: Left semi-infinite orbit with characteristic (-1, a1)
+		x1 a2: Bi-infinite orbit
+		x1 a3 a1: Bi-infinite orbit
+		x1 a3 a2: Bi-infinite orbit
+		x1 a3 a3: Right semi-infinite orbit with characteristic (1, a1)
 		with respect to the basis [x1 a1, x1 a2, x1 a3 a1, x1 a3 a2, x1 a3 a3]
 	"""
 	if basis is None:
@@ -77,6 +104,6 @@ def dump_orbit_types(aut, basis=None, words=None):
 	if words is None:
 		words = basis
 	for w in words:
-		print(w, ':', sep='', end=' ')
-		print(aut._orbit_type(w, basis))
+		print("{}: {}".format(
+		  w, aut._orbit_type(w, basis)))
 	print('with respect to the basis', basis)
