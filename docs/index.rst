@@ -19,6 +19,7 @@ Contents:
    :maxdepth: 4
 
    thompson
+   references
 
 
 Indices and tables
