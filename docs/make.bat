@@ -40,11 +40,11 @@ if "%1" == "help" (
 	goto end
 )
 
-REM if "%1" == "clean" (
+if "%1" == "clean" (
 	for /d %%i in (%BUILDDIR%\*) do rmdir /q /s %%i
 	del /q /s %BUILDDIR%\*
-	REM goto end
-REM )
+	goto end
+)
 
 
 %SPHINXBUILD% 2> nul
