@@ -5,9 +5,6 @@ from thompson import *
 from thompson.examples import *
 from thompson.orbits import *
 
-# arity_three_order_inf.dump_mapping()
-# basis = example_4_12._minimal_expansion()
-# basis.expand(0)
-# print(basis)
-# dump_orbit_types(example_4_12, basis)
-dump_orbit_types(example_4_5, example_4_5.domain)
+from thompson.generators import Generators
+basis = Generators.standard_basis(2, 1).expand(0).expand(0).expand(0)
+Word('x a2 x a1 L', 2, 1).max_depth_to(basis)

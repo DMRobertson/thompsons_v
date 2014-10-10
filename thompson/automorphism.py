@@ -18,7 +18,7 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 __all__ = ["Automorphism"]#, "OrbitType", "orbit_types"]
 
 from collections import deque
-from itertools import chain
+from itertools import chain, product
 from io import StringIO
 
 from .word import *
@@ -348,18 +348,16 @@ class Automorphism:
 		if self._qnf_basis is not None:
 			return self._qnf_basis
 		
-		#TODO finish me and test me to high heaven.
+		#TODO test me to high heaven.
 		basis = self._minimal_expansion()
-		# print(basis)
 		#expand basis until each no element's orbit has finite intersection with X<A>
 		i = 0
 		while i < len(basis):
 			type = self._orbit_type(basis[i], basis)
-			# print("Orbit type:", type, '\n')
 			if type is OrbitType.incomplete:
-				# print('expand basis')
 				basis.expand(i)
 			else:
+				self._qnf_orbit_types[basis[i]] = type
 				i += 1
 		self._qnf_basis = basis
 		return basis
@@ -545,6 +543,61 @@ class Automorphism:
 			return OrbitType.semi_infinite('left' if backward else 'right', i, tail)
 		else:
 			return OrbitType.complete_infinite
+	
+	def share_orbit(self, u, v):
+		r"""Uses lemma 4.25 part (2) to determine if :math:`u` and :math`v` are in the same orbit of the current automorphism :math:\psi`.
+		
+		:returns: the set of powers :math:`m` such that :math:`u\psi^m = v`.
+		"""
+		if u == v:
+			return TODO_ALL_INTEGERS  #TODO
+		basis = self.quasinormal_basis()
+		
+		if not basis.is_above(u):
+			u = u._as_contraction()
+		if not basis.is_above(v):
+			v = v._as_contraction()
+			
+		if not (u.is_simple() and v.is_simple()):
+			depth = max(u.max_depth_to(basis), v.max_depth_to(basis))
+			alphas = range(-1, -self.arity, -1)
+			solution_set = TODO_ALL_INTEGERS #TODO
+			#For all strings of length *depth* \Gamma made only from alphas:
+			for tail in product(alphas, repeat=depth):
+				u_desc = u.descend(tail)
+				v_desc = v.descend(tail)
+				solution_set &= share_orbit(u_desc, v_desc)
+				if solution_set is EMPTY: #TODO
+					return solution_set
+			return solution_set
+		
+		#Now we're dealing with simple words below the basis.
+		u_head, u_tail = basis.test_above(u)
+		v_head, v_tail = basis.test_above(v)
+		
+		u_head_type = self._qnf_orbit_types[u_head]
+		v_head_type = self._qnf_orbit_types[v_head]
+		
+		# My version of lem 4.20. Spse u = y Gamma with y in X, gamma in A.
+		# If psi is in semi normal form, then 
+		# - u has the same orbit type (1--4) as y (wrt psi)
+		if u_head_type.type != v_head_type.type:
+			return TODO_EMPTY_SET
+			
+		# - if u is periodic, u has the same period as y
+		if u_head_type == OrbitType._complete_finite:
+			if u_head_type.power != v_head_type.power:
+				return TODO_EMPTY_SET
+			image = u
+			for m in range(1, u_head_type.power - 1):
+				image = self.image(u)
+				if image == v:
+					return m #TODO + period * Z
+			return TODO_EMPTY_SET
+		
+		#replace u v with semi-infinite equivalents such that u, v share orbit iff their equivalents do
+		#remove copies of characteristic multipliers from u, v
+		# proceed with the rest of the lemma?
 
 #TODO. Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
 #TODO method to decide if the automorphism is in (the equivalent of) F, T, or V.

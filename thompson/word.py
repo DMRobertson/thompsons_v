@@ -535,6 +535,35 @@ class Word(tuple):
 					return (-(i + 1),) + tail
 			return None
 	
+	def max_depth_to(self, basis):
+		"""Suppose that the current word :math:`w` is above the given basis :math:`X` of simple words. Choose a string of alphas :math:`\Gamma` of length :math:`s \geq 0` at random. What is the smallest value of :math:`s` for which we can guarantee that :math:`w\Gamma` is in or below :math:`X`, i.e. in :math:`X<A>`?
+		
+			>>> from thompson.generators import Generators
+			>>> basis = Generators.standard_basis(2, 1).expand(0).expand(0).expand(0)
+			>>> basis
+			Generators(2, 1, ['x1 a1 a1 a1', 'x1 a1 a1 a2', 'x1 a1 a2', 'x1 a2'])
+			>>> Word('x', 2, 1).max_depth_to(basis)
+			3
+			>>> Word('x a1', 2, 1).max_depth_to(basis)
+			2
+			>>> Word('x a2 x a1 L x1 a1 L', 2, 1).max_depth_to(basis)
+			4
+			>>> Word('x a2', 2, 1).max_depth_to(basis)
+			0
+		"""
+		#Assumption: basis consists of simple words and self is above basis
+		max_length = 0
+		dict = {self: 0}
+		while dict:
+			word, expansions = dict.popitem()
+			if word in basis:
+				max_length = max(max_length, expansions)
+				continue
+			else:
+				for child in word.expand():
+					dict[child] = expansions + 1
+		return max_length
+	
 	#Modifiers
 	def alpha(self, index):
 		r"""Let :math:`w` stand for the current word. This method creates and returns a new word :math:`w\alpha_\text{index}`.
@@ -547,7 +576,13 @@ class Word(tuple):
 		if not 1 <= index <= self.arity:
 			raise IndexError("Index ({}) is not in the range 1...{}".format(
 			  index, self.arity))
-		return type(self)(self + (-index,), self.arity, self.alphabet_size, preprocess=False)
+		preprocess = not self.is_simple()
+		return type(self)(self + (-index,), self.arity, self.alphabet_size, preprocess)
+	
+	def descend(self, tail):
+		"""Concatenates the current word with the series of letters *tail* to form a new word. This is validated, standardised, and then returned."""
+		#TODO example
+		return Word(self + tail, self.arity, self.alphabet_size)
 	
 	def expand(self):
 		"""Returns an iterator that yields the *arity* descendants of this word.
@@ -561,7 +596,20 @@ class Word(tuple):
 			x1 a1 a4
 			x1 a1 a5
 		"""
-		return (self.alpha(i) for i in range(1, self.arity + 1))
+		if self.is_simple():
+			return (self.alpha(i) for i in range(1, self.arity + 1))
+		return ( type(self)(subword, self.arity, self.alphabet_size, preprocess=False)
+		  for subword in lambda_arguments(self))
+	
+	def _as_contraction(self):
+		r"""Converts a Word :math:`w` in standard form to the equivalent word :math:`w \alpha_1 \dots w \alpha_n \lambda`. The new word **is not** in standard form, though it is valid. This is *reaaaaaalllly naughty*, because Word instances are meant to be always in standard form. But it has some uses, honest. Just be careful with this one.
+		"""
+		letters = []
+		for i in range(self.arity):
+			letters.extend(self)
+			letters.append(-(i + 1))
+		letters.append(0)
+		return type(self)(letters, self.arity, self.alphabet_size, preprocess=False)
 	
 	def split(self, head_width):
 		"""Splits the current word *w* into a pair of tuples *head*, *tail* where ``len(head) == head_width``. The segments of the word are returned as tuples of integers (not fully fledged words).

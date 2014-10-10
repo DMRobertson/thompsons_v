@@ -150,6 +150,14 @@ class Generators(list):
 		"""
 		return any(gen.is_above(word) for gen in self)
 	
+	def test_above(self, word):
+		"""Returns a pair (gen, tail) where gen belongs to the current basis and gen + tail = word. If no such pair exists, returns None."""
+		for gen in self:
+			result = gen.test_above(word)
+			if result is not None:
+				return gen, result
+		return None
+	
 	@classmethod
 	def standard_basis(cls, arity, alphabet_size):
 		r"""Creates the standard basis :math:`\boldsymbol{x} = \{x_1, \dotsc, x_r\}` for :math:`V_{n,r}`, where :math:`n` is the arity and :math`r` is the *alphabet_size*. 
