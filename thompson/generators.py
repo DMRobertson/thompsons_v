@@ -152,6 +152,7 @@ class Generators(list):
 	
 	def test_above(self, word):
 		"""Returns a pair (gen, tail) where gen belongs to the current basis and gen + tail = word. If no such pair exists, returns None."""
+		#TODO doctest
 		for gen in self:
 			result = gen.test_above(word)
 			if result is not None:
