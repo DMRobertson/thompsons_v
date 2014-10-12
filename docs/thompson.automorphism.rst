@@ -1,5 +1,5 @@
-thompson.automorphism module
-============================
+Automorphisms
+=============
 
 .. automodule:: thompson.automorphism
     :members:

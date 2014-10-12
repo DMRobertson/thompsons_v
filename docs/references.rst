@@ -1,6 +1,8 @@
 References
 ==========
 
+.. [AS] Anshel, M., Stebe, P. (1974). "`The solvability of the conjugacy problem for certain HNN groups <http://projecteuclid.org/download/pdf_1/euclid.bams/1183535397>`_". *Bulletin of the American Mathematical Society,* **80** (2) pp. 266-270.
+
 .. [CFP] Cannon, J.W., Floyd, W.J., & Parry, W.R. (1996). "`Introductory notes on Richard Thompsons's groups <http://www.math.binghamton.edu/matt/thompson/cfp.pdf>`_". *L'Enseignment Mathématique*, **42** (3), 215-256.
 
 .. [Cohn] Cohn, P.M. (1991). "`Algebra (2nd ed.) <http://www.maths.ed.ac.uk/~aar/papers/cohnalg3.pdf>`_". London: Wiley.

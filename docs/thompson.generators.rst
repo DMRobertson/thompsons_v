@@ -1,5 +1,5 @@
-thompson.generators module
-==========================
+Generating sets and bases 
+=========================
 
 .. automodule:: thompson.generators
     :members:

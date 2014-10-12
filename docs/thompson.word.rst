@@ -1,5 +1,5 @@
-thompson.word module
-=====================
+Words and standard forms
+========================
 
 .. automodule:: thompson.word
     :members:

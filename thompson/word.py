@@ -21,7 +21,7 @@ import operator
 from itertools import chain
 from .full_tree import FullTree
 
-__all__ = ["format", "from_string", "validate", "standardise", "are_contractible", "lambda_arguments", "Word", "initial_segment"]
+__all__ = ["format", "from_string", "validate", "standardise", "are_contractible", "lambda_arguments", "Word", "initial_segment", "_concat"]
 
 def _char(symbol):
 	if symbol > 0:
@@ -126,8 +126,8 @@ def _valency_of(symbol, arity):
 	if symbol == 0:#contractor lambda
 		return 1 - arity
 
-def standardise(letters, arity):
-	"""Accepts a word (as a list of letters) and reduces it to standard form. The result (a new list of letters) is then returned. See also remark 3.3.
+def standardise(letters, arity, tail=()):
+	"""Accepts a valid word (as a tuple of letters) and reduces it to standard form. The result (a new tuple of letters) is then returned. See also remark 3.3.
 	
 	In the examples below, the :class:`Word` class standardises its input before creating a Word.
 	
@@ -156,98 +156,86 @@ def standardise(letters, arity):
 		>>> print(Word('x1 a1 x1 a2 x1 a3 L a2 a1 a3 x1 a2 a1 x2 a1 x1 a1 a1 x1 a1 a2 x2 L x1 a2 L a2 a1 a1 L a3 a3 a2', 3, 2))
 		x1 a1 a1 a1 a3 a2
 	
-	:raises IndexError: if the list of letters :func:`is not valid <validate>`.
-	:raises TypeError: if *letters* is not a list of integers or a Word.
+	:raises TypeError: if *letters* is not a tuple of integers or Word instance.
+	:raises IndexError: if *letters* describes an :func:`invalid <validate>` word.
 	"""
-	#Form the tree of lambda calls
-	root = _syntax_tree(letters, arity)
+	if not isinstance(letters, tuple):
+		raise TypeError('Letters should be a tuple or Word instance.')
+	#0. Assume that *letters* describes a valid word, possibly not in standard form.
+	#1. Find the rightmost lambda in the string.
+	for i, symbol in enumerate(reversed(letters)):
+		if symbol == 0:
+			if i != 0:
+				tail = letters[-i:] + tail
+				letters = letters[:-i]
+			break
+	else:
+		# If there is no such lambda, we have a simple word.
+		return tuple(letters + tail)
 	
-	#Modify the tree. Find all lambda-alpha nodes and replace them with their extracted child.
-	extractions = []
-	for node in root.walk_postorder():
-		if not node.is_leaf() and node.letters:
-			extractions.append(node)
+	#2. Otherwise, break into the arguments of the lambda.
+	subwords = lambda_arguments(letters, arity)
 	
-	while extractions:
-		node = extractions.pop()
-		head, tail = node.letters[0], node.letters[1:]
-		
-		#The extracted child
-		replacement = node.children[-head - 1]
-		#Remove the discarded children from the extractions list if they're in there.
-		for child in node:
-			if child is not replacement:
-				_remove_with_descendants(child, extractions)
-		
-		node.replace_with_child(-head - 1)
-		if replacement.is_root():
-			root = replacement 
-		replacement.letters += tail
-		
-		if (replacement not in extractions
-		  and replacement.letters 
-		  and not replacement.is_leaf()):
-			extractions.append(replacement)
+	#3. If the lambda is followed by alphas, extract subword and append any remaining alphas.
+	if tail:
+		alpha, tail = -tail[0], tail[1:]
+		letters = subwords[alpha-1]
+		return standardise(letters, arity, tail)
 	
-	#Now the only lambdas left should be contractions.
-	assert all(not node.letters for node in root.walk() if not node.is_leaf()), 'branch has letters'
-	
-	for node in root.walk_postorder():
-		if node.is_leaf():
-			continue
-		subwords = [child.letters for child in node]
-		prefix = are_contractible(subwords)
-		if prefix: #is not empty, so can contract
-			node.letters = prefix
-		else: #we'll just have to concatenate won't we?
-			node.letters = concat(subwords) + [0]
-	
-	letters = root.letters
-	root.discard()
-	return tuple(letters)
+	#4. Otherwise, standardise each subword and attempt a lambda contraction.
+	subwords = [standardise(subword, arity) for subword in subwords]
+	prefix = are_contractible(subwords)
+	if prefix:
+		return prefix
+	return _concat(subwords)
 
-def _syntax_tree(letters, arity):
-	"""Returns a tree representing the composition of lambdas in this word."""
-	alphas = []
-	indices = [0] #the indices of the rightmost unconsidered node on each level.
-	root = node = FullTree(arity)
+def lambda_arguments(word, arity=None):
+	"""This function takes a :class:`Word` (in standard form) which ends in a lambda, and returns the arguments of the rightmost lambda as a list of Words.
 	
-	#Break eveything down into a tree of lambda calls.
-	#The leaves are the simple words in x<A>.
-	for symbol in reversed(letters):
-		if symbol < 0: #alphas
-			alphas.append(symbol)
-		
-		elif symbol == 0: #lambda
-			node.letters = alphas[::-1]
-			node.expand()
-			indices[-1] -= 1
-			alphas = []
-			indices.append(arity - 1)
-			node = node.children[indices[-1]]
-		
-		elif symbol > 0: #x
-			node.letters = [symbol] + alphas[::-1]
-			indices[-1] -= 1
-			alphas = []
-			
-			#Go up the tree if needed
-			while indices and indices[-1] < 0:
-				node = node.parent
-				indices.pop()
-			if indices and indices[-1] >= 0:
-				#move to the left sibling
-				node = node.parent.children[indices[-1]]
-			
-	assert node is None
-	return root
-
-def _remove_with_descendants(node, list):
-	for descendant in node.walk_postorder():
-		try:
-			list.remove(descendant)
-		except ValueError:
-			pass
+		>>> w = 'x a1 a2 x a2 a2 L x a1 a1 L'
+		>>> subwords = lambda_arguments(Word(w, 2, 1))
+		>>> for subword in subwords: print(subword)
+		x1 a1 a2 x1 a2 a2 L
+		x1 a1 a1
+		>>> w = 'x x x x a1 x L x a1 x a2 x L L x a1 a2 x L x a1 a2 x a2 a1 x L L'
+		>>> subwords = lambda_arguments(Word(w, 3, 1))
+		>>> for subword in subwords: print(format(subword))
+		x1
+		x1 x1 x1 a1 x1 L x1 a1 x1 a2 x1 L L x1 a1 a2 x1 L
+		x1 a1 a2 x1 a2 a1 x1 L
+	
+	:raises IndexError: if *word* is an empty list of letters.
+	:raises ValueError: if the last letter in *word* is not a lambda.
+	:raises TypeError: if no arity is provided and *word* has no arity attribute.
+	"""
+	is_Word_instance = isinstance(word, Word)
+	if is_Word_instance and arity is None:
+		arity = word.arity
+	if word[-1] != 0:
+		raise ValueError('The last letter of `...{}` is not a lambda.'.format(
+		  format(word[-5:])))
+	#Go backwards through the string. Track the largest partial sum of valencies.
+	#When a new maxmium is found, you have just found the end of a subword.
+	valency = 1 - arity
+	max_valency = valency
+	subword_end = -1
+	subwords = []
+	for i, symbol in enumerate(reversed(word[:-1])):
+		valency += _valency_of(symbol, arity)
+		if valency > max_valency:
+			max_valency = valency
+			subwords.append(word[-i - 2 : subword_end])
+			subword_end = -i - 2
+	
+	assert i + 2 == len(word)
+	assert len(subwords) == arity
+	assert max_valency == valency == 1, (max_valency, valency)
+	subwords.reverse()
+	if is_Word_instance:
+		for i in range(len(subwords)):
+			subwords[i] = Word(subwords[i], word.arity, word.alphabet_size, preprocess=False)
+	
+	return subwords
 
 def are_contractible(words):
 	r"""Let *words* be a list of words, either as lists of integers or as full :class:`Word` objects. This function tests to see if *words* is a list of the form :math:`(w\alpha_1, \dotsc, w\alpha_n)`, where ``n == len(words)``.
@@ -260,10 +248,10 @@ def are_contractible(words):
 		>>> format(prefix)
 		'x1 a1 a2 a3'
 	"""
-	#REMARK. Slicing a Word gives a tuple. This came about as a consequence of inheriting from tuple, but it makes sense.  Word objects are supposed to be fixed in standard form, and having a tuple instead of a word says that "this won't neccesarily be a word".
+	#REMARK. Slicing a Word gives a tuple. This came about as a consequence of inheriting from tuple, but it makes sense.  Word objects are supposed to be fixed in standard form, and having a tuple instead of a word says that "this won't necessarily be a word".
 	prefix = words[0][:-1]
 	if len(prefix) == 0:
-		return []
+		return ()
 	expected_length = len(prefix) + 1
 	
 	for j, word in enumerate(words):
@@ -271,11 +259,12 @@ def are_contractible(words):
 		  len(word) == expected_length
 		  and word[:len(prefix)] == prefix
 		  and word[-1] == -j - 1): #alpha_{j+1}
-			return []
+			return ()
 	return prefix
 
-def concat(iterable):
-	return list(chain.from_iterable(iterable))
+def _concat(words):
+	"""Takes an iterable *words* which yields lists of integers representing words. Returns a tuple containing all the *words* concatenated together, with a zero (lambda) added on the end."""
+	return tuple(chain.from_iterable(words)) + (0,)
 
 class Word(tuple):
 	r"""A tuple of letters (stored as integers), together with a recorded *arity* and *alphabet_size*. Words are implemented as subclasses of :class:`tuple <py3:tuple>`, meaning they are `immutable <https://docs.python.org/3/glossary.html#term-immutable>`_. This means they can be used as dictionary keys. 
@@ -312,6 +301,8 @@ class Word(tuple):
 		"""
 		if isinstance(letters, str):
 			letters = from_string(letters)
+		elif not isinstance(letters, tuple):
+			letters = tuple(letters)
 		
 		if preprocess:
 			#1. Check to see that this has the right pattern of subwords and lambdas.
@@ -671,50 +662,7 @@ def initial_segment(u, v):
 		u, v = v, u
 	return all(a == b for a, b in zip(u, v)) and all(b < 0 for b in v[len(u):])
 
-def lambda_arguments(word):
-	"""This function takes a :class:`Word` (in standard form) which ends in a lambda, and returns the arguments of the rightmost lambda as a list of Words.
-	
-		>>> w = 'x a1 a2 x a2 a2 L x a1 a1 L'
-		>>> subwords = lambda_arguments(Word(w, 2, 1))
-		>>> for subword in subwords: print(subword)
-		x1 a1 a2 x1 a2 a2 L
-		x1 a1 a1
-		>>> w = 'x x x x a1 x L x a1 x a2 x L L x a1 a2 x L x a1 a2 x a2 a1 x L L'
-		>>> subwords = lambda_arguments(Word(w, 3, 1))
-		>>> for subword in subwords: print(format(subword))
-		x1
-		x1 x1 x1 a1 x1 L x1 a1 x1 a2 x1 L L x1 a1 a2 x1 L
-		x1 a1 a2 x1 a2 a1 x1 L
-	
-	:raises ValueError: if the last letter in *word* is not a lambda.
-	:raises TypeError: if *word* is not a :class:`Word` instance.
-	"""
-	if not isinstance(word, Word):
-		raise TypeError("The argument {} is not a Word instance".format(repr(word)))
-	if word[-1] != 0:
-		raise ValueError('The last letter of `...{}` is not a lambda.'.format(
-		  format(word[-5:])))
-	#Go backwards through the string. Track the largest partial sum of valencies.
-	#When a new maxmium is found, you have just found the end of a subword.
-	valency = 1 - word.arity
-	max_valency = valency
-	subword_end = -1
-	subwords = []
-	for i, symbol in enumerate(reversed(word[:-1])):
-		valency += _valency_of(symbol, word.arity)
-		if valency > max_valency:
-			max_valency = valency
-			subwords.append(word[-i - 2 : subword_end])
-			subword_end = -i - 2
-	
-	assert i + 2 == len(word)
-	assert len(subwords) == word.arity
-	assert max_valency == valency == 1, (max_valency, valency)
-	subwords.reverse()
-	for i in range(len(subwords)):
-		subwords[i] = Word(subwords[i], word.arity, word.alphabet_size, preprocess=False)
-	
-	return subwords
+
 
 
 

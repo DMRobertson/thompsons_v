@@ -18,17 +18,12 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 __all__ = ["Automorphism"]#, "OrbitType", "orbit_types"]
 
 from collections import deque
-from itertools import chain, product
+from itertools import product
 from io import StringIO
 
 from .word import *
 from .generators import Generators
 from .orbits import *
-from .full_tree import FullTree
-
-def _concat(words):
-	"""Takes an iterable *words* which yields lists of integers representing words. Returns a tuple containing all the *words* concatenated together, with a zero (lambda) added on the end."""
-	return tuple(chain.from_iterable(words)) + (0,)
 
 #TODO. Check the assumption that the bases consist of simple words only (no lambdas).
 #Expand until all the words are simple

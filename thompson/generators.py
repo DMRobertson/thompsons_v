@@ -168,7 +168,7 @@ class Generators(list):
 		"""
 		output = Generators(arity, alphabet_size)
 		for i in range(1, alphabet_size + 1):
-			output.append(Word([i], arity, alphabet_size))
+			output.append(Word((i,), arity, alphabet_size, preprocess=False))
 		return output
 	
 	def expand(self, index):

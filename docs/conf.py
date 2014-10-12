@@ -66,10 +66,10 @@ intersphinx_mapping = {
 }
 
 """Pro- and Epilogue"""
-with open('prologue.txt', 'r') as f:
-	rst_prolog = f.read()
-with open('epilogue.txt', 'r') as f:
-	rst_epilog = f.read()
+# with open('prologue.txt', 'r') as f:
+	# rst_prolog = f.read()
+# with open('epilogue.txt', 'r') as f:
+	# rst_epilog = f.read()
 
 """End my additions"""
 # -- General configuration ------------------------------------------------
@@ -126,7 +126,7 @@ release = ''
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', "_old"]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
