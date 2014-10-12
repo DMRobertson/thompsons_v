@@ -570,9 +570,20 @@ class Word(tuple):
 		preprocess = not self.is_simple()
 		return type(self)(self + (-index,), self.arity, self.alphabet_size, preprocess)
 	
-	def descend(self, tail):
-		"""Concatenates the current word with the series of letters *tail* to form a new word. This is validated, standardised, and then returned."""
-		#TODO example
+	def extend(self, tail):
+		"""Concatenates the current word with the series of letters *tail* to form a new word. This is validated, standardised, and then returned. The argument *tail* can be given as either a string or a tuple of integers.
+		
+			>>> Word('x1 a2 a1', 2, 1).extend('a2 a2')
+			Word('x1 a2 a1 a2 a2', 2, 1)
+			>>> Word('x1 a2 a1', 2, 1).extend('x1 a2 a2')
+			Traceback (most recent call last):
+				...
+			ValueError: Word is invalid: valency is 2 (should be 1).
+			>>> Word('x1 a2 a1', 2, 1).extend('x1 a2 a2 L')
+			Word('x1 a2', 2, 1)
+		"""
+		if isinstance(tail, str):
+			tail = from_string(tail)
 		return Word(self + tail, self.arity, self.alphabet_size)
 	
 	def expand(self):

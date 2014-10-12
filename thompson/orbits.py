@@ -82,7 +82,7 @@ class OrbitType(BaseOrbitType):
 			  self.data[0], word.format(self.data[1]))
 		elif self.type == self._complete_infinite:
 			output += " containing [{}] {}".format(
-			  str(self.data[0]), word.format(self.data[1]))
+			  str(self.data[1]), word.format(self.data[2]))
 		return output
 	
 	def is_type(self, letter):

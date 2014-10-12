@@ -10,12 +10,13 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 .. testsetup::
 	
 	from thompson.automorphism import *
-	from thompson.word import Word
+	from thompson.word import Word, from_string
+	from thompson import word
 	from thompson.generators import Generators
 	from thompson.orbits import dump_orbit_types
 """
 
-__all__ = ["Automorphism"]#, "OrbitType", "orbit_types"]
+__all__ = ["Automorphism"]
 
 from collections import deque
 from itertools import product
@@ -504,9 +505,10 @@ class Automorphism:
 						characteristic = self._extract_characteristic(prefix, m, ell, backward)
 						return OrbitType.semi_infinite(characteristic, backward)
 					else:
-						type_b_data = prefix, previous_tail
+						type_b_data = ell, prefix, previous_tail
 						return OrbitType.complete_infinite(type_b_data)
 						#At this point we know what the type of prefix is, too.
+						#Could maybe be clever and use this information?
 			#Otherwise, continue with the next power of \psi
 			images.append(image)
 	
@@ -526,7 +528,16 @@ class Automorphism:
 		return i, tail
 	
 	def share_orbit(self, u, v):
-		r"""Uses lemma 4.25 part (2) to determine if :math:`u` and :math`v` are in the same orbit of the current automorphism :math:\psi`.
+		r"""Uses lemma 4.25 part (2) to determine if :math:`u` and :math:`v` are in the same orbit of the current automorphism :math:`\psi`.
+		
+			>>> u  = Word('x a2 a2 a1 a1 a2', 2, 1)
+			>>> v1 = Word('x a1 a2', 2, 1)
+			>>> v2 = Word('x a1 a1 a2', 2, 1)
+			>>> example_4_25.share_orbit(u, v1)
+			TODO_EMPTY_SET
+			>>> example_4_25.share_orbit(u, v2)
+			3
+			
 		
 		:returns: the set of powers :math:`m` such that :math:`u\psi^m = v`.
 		"""
@@ -545,22 +556,85 @@ class Automorphism:
 			solution_set = TODO_ALL_INTEGERS #TODO
 			#For all strings of length *depth* \Gamma made only from alphas:
 			for tail in product(alphas, repeat=depth):
-				u_desc = u.descend(tail)
-				v_desc = v.descend(tail)
+				u_desc = u.extend(tail)
+				v_desc = v.extend(tail)
 				solution_set &= share_orbit(u_desc, v_desc)
 				if solution_set is EMPTY: #TODO
 					return solution_set
 			return solution_set
 		
 		#Now we're dealing with simple words below the basis.
-		u_head, u_tail = basis.test_above(u) #y, gamma
-		v_head, v_tail = basis.test_above(v) #z, delta
+		#Replace them with nicer versions from the same orbits.
+		#Track how many positions in the orbit we moved.
 		
+		u_head, u_tail = basis.test_above(u)
+		v_head, v_tail = basis.test_above(u)
 		
+		u_head_type = self._qnf_orbit_types[u_head]
+		v_head_type = self._qnf_orbit_types[v_head]
 		
-		#replace u v with semi-infinite equivalents such that u, v share orbit iff their equivalents do
-		#remove copies of characteristic multipliers from u, v
-		# proceed with the rest of the lemma?
+		#Is either element periodic?
+		if u_head_type.is_type('A') or v_head_type.is_type('A'):
+			#Are they both periodic with the same periods?
+			if u_head_type != v_head_type:
+				return TODO_EMPTY_SET
+			
+			period = u_head_type.data
+			image = u
+			for i in range(1, period):
+				image = self.image(image)
+				if image == v:
+					return i + period*Z #TOD
+			return TODO_EMPTY_SET
+		
+		u_shift, u_head, u_tail = self._preprocess(u_head, u_tail)
+		v_shift, v_head, v_tail = self._preprocess(v_head, v_tail)
+		print(u_shift, u_head, u_tail) #TODO checkme
+		print(v_shift, v_head, v_tail)
+		
+	def _preprocess(self, head, tail):
+		r"""Takes a pair :math:`(y, \Gamma)` below the quasi-normal basis :math:`X` and returns a triple :math:`(\widetilde{y}, \widetilde{\Gamma}, k) where
+		* The orbit of :math:`\widetilde{y}` is semi-infinite;
+		* :math:`\widetilde{y}\widetilde{\Gamma}` is in the same orbit as :math:`y\Gamma`.
+		* :math:`\widetilde{\Gamma}` does not start with the characteristic multiplier of :math:`\widetilde{y}`.
+		
+			>>> example_4_25.quasinormal_basis()
+			Generators(2, 1, ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
+			>>> example_4_25._preprocess(Word('x a2 a2', 2, 1), from_string('a1 a1 a2'))
+			(1, Word('x1 a2 a2', 2, 1), (-2,))
+		"""
+		head_type = self._qnf_orbit_types[head]
+		if head_type.is_type('C'):
+			shift_1, head, prefix = head_type.data
+			tail = prefix + tail
+		else:
+			shift_1 = 0
+		
+		head_type = self._qnf_orbit_types[head]
+		assert head_type.is_type('B')
+		characteristic = head_type.data
+		shift_2, tail = self._remove_from_start(tail, characteristic)
+		return (shift_1 + shift_2), head, tail
+	
+	@staticmethod
+	def _remove_from_start(tail, characteristic):
+		"""Makes a copy of *tail* and removes as many copies of *multiplier* from the start of the copy as possible. Returns the copy.
+			
+			>>> tail = from_string('a1 a2 a1 a2 a1 a2 a3')
+			>>> multiplier = from_string('a1 a2')
+			>>> Automorphism._remove_from_start(tail, (2, multiplier))
+			(-6, (-3,))
+			>>> multiplier = from_string('a1')
+			>>> Automorphism._remove_from_start(tail, (2, multiplier))
+			(-2, (-2, -1, -2, -1, -2, -3))
+		"""
+		power, multiplier = characteristic
+		i = 0
+		n = len(multiplier)
+		while tail[i*n : i*n + n] == multiplier:
+			i += 1
+		
+		return -power*i, tail[i*n:]
 
 #TODO. Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
 #TODO method to decide if the automorphism is in (the equivalent of) F, T, or V.
