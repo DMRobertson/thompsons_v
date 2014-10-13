@@ -14,4 +14,6 @@ or download [the ZIPped version](https://github.com/DMRobertson/thompsons_v/arch
 Documentation
 -------------
 
+Documentation is automatically built by [Read the Docs](http://thompsons-v.readthedocs.org/en/latest/).
+
 The HTML documentation is generated using [Sphinx](https://pypi.python.org/pypi/Sphinx). To build, ensure that Sphinx is installed (``pip install sphinx``), then navigate to [the docs folder](/docs) and run ``make html``. More interestingly, I'm using Sphinx's [doctest extension](http://sphinx-doc.org/ext/doctest.html) to run some simple automated tests. To use it, ensure Sphinx is installed and run ``make doctest`` from the docs directory.
