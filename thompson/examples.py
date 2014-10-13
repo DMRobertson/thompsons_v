@@ -2,8 +2,9 @@
 
 from .automorphism import Automorphism
 from .generators import Generators
+from .word import Word
 
-__all__ = ["cyclic_order_six", "arity_three_order_inf",
+__all__ = ["cyclic_order_six", "arity_three_order_inf", "arity_four",
            "example_4_5", "example_4_11", "example_4_12", "example_4_25"]
 
 #Example 4.5
@@ -41,3 +42,9 @@ d = Generators.standard_basis(3, 1).expand(0).expand(2).expand(0)
 r = Generators.standard_basis(3, 1).expand(0).expand(2).expand(4)
 r[-3:] = reversed(r[-3:])
 arity_three_order_inf = Automorphism(3, 1, d, r)
+
+#An example with arity n=4. 
+d = Generators.standard_basis(4, 1).expand(0).expand(3).expand(0)
+r = ["x a1 a2", "x a1 a4", "x a1 a1", "x a1 a3", "x a3 a2", "x a3 a3", "x a3 a4", "x a2", "x a3 a1", "x a4"]
+r = Generators(4, 1, (Word(s, 4, 1) for s in r))
+arity_four = Automorphism(4, 1, d, r)

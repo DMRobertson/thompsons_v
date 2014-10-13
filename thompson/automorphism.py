@@ -529,8 +529,22 @@ class Automorphism:
 			>>> example_4_25.share_orbit(u, v2)
 			3
 			
+			>>> u1 = Word('x a2 a3 a1', 4, 1)
+			>>> v1 = Word('x a3 a3 a3 a3 a3 a3 a3 a3 a3 a2 a3 a1', 4, 1)
+			>>> v2 = Word('x a1 a2 a3 a4', 4, 1)
+			>>> u2 = Word('x a3 a4 a1', 4, 1)
+			>>> v3 = Word('x a4 a1 a1', 4, 1)
+			>>> v4 = Word('x a4 a3 a2 a1', 4, 1)
+			>>> arity_four.share_orbit(u1, v1)
+			9
+			>>> repr(arity_four.share_orbit(u1, v2))
+			'None'
+			>>> arity_four.share_orbit(u2, v3)
+			-1
+			>>> repr(arity_four.share_orbit(u2, v4))
+			'None'
 		
-		:returns: An integer :math:`n` if it exists; otherwise ``None``. In particular if :math:`u = v` then this method returns ``0``. 
+		:returns: An integer :math:`n` if such an integer exists; otherwise ``None``. Note that if :math:`u = v` then this method returns ``0``. 
 		"""
 		# print('u = {}\nv = {}'.format(u, v))
 		if u == v:
@@ -618,7 +632,6 @@ class Automorphism:
 		"""
 		head_type = self._qnf_orbit_types[head]
 		if head_type.is_type('C'):
-			print('infinite orbit: have to find type B child')
 			shift_1, head, prefix = head_type.data
 			tail = prefix + tail
 		else:

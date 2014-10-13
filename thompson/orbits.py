@@ -116,6 +116,16 @@ def dump_orbit_types(aut, basis=None, words=None):
 		x1 a3 a2: Bi-infinite orbit containing [x1 a3 a3] a2
 		x1 a3 a3: Right semi-infinite orbit with characteristic (1, a1)
 		with respect to the basis [x1 a1, x1 a2, x1 a3 a1, x1 a3 a2, x1 a3 a3]
+		
+		>>> dump_orbit_types(arity_four)
+		x1 a1 a1: Periodic orbit of order 4
+		x1 a1 a2: Periodic orbit of order 4
+		x1 a1 a3: Periodic orbit of order 4
+		x1 a1 a4: Periodic orbit of order 4
+		x1 a2: Bi-infinite orbit containing [x1 a3] a2
+		x1 a3: Right semi-infinite orbit with characteristic (1, a3)
+		x1 a4: Left semi-infinite orbit with characteristic (-1, a4)
+		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a1 a3, x1 a1 a4, x1 a2, x1 a3, x1 a4]
 	"""
 	if basis is None:
 		basis = aut._minimal_expansion()
