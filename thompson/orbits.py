@@ -119,5 +119,5 @@ def dump_orbit_types(aut, basis=None, words=None):
 		words = basis
 	for w in words:
 		print("{}: {}".format(
-		  w, aut._orbit_type(w, basis)))
+		  w, aut._orbit_type(w, basis)[0]))
 	print('with respect to the basis', basis)
