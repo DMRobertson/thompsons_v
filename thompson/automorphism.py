@@ -437,56 +437,66 @@ class Automorphism:
 		x1 a2 a2: Left semi-infinite orbit with characteristic (-1, a1 a1)
 		with respect to the basis [x1 a1, x1 a2 a1, x1 a2 a2]
 		"""
-		print('Forward Orbit for', y)
-		right_result, right_images = self._test_semi_infinite(y, basis, backward=False)
-		print('right_result:', right_result)
-		print('Backward orbit for', y)
-		left_result,  left_images  = self._test_semi_infinite(y, basis, backward=True)
-		print('left_result:', left_result)
+		# print('Computing the orbit type of', y)
+		rsi, rpow1, rpow2, rimages = self._test_semi_infinite(y, basis, backward=False)
+		# print('RIGHT:', rsi, rpow1, rpow2, [str(x) for x in rimages])
+		lsi, lpow1, lpow2, limages  = self._test_semi_infinite(y, basis, backward=True)
+		# print('LEFT: ', lsi, lpow1, lpow2, [str(x) for x in limages])
 		
 		images = {}
-		for i, image in enumerate(right_images):
+		for i, image in enumerate(rimages):
 			images[i] = image
-		for i, image in enumerate(left_images):
+		for i, image in enumerate(limages):
 			images[-i] = image
-		from pprint import pprint
-		pprint(images)
 		
-		#A bunch of sanity checks. 
-		#Suppose we fall out of the tree on the right.
-		if right_result is False:
-			if left_result is False:
-				return OrbitType.incomplete, images
+		if not (lsi or rsi):
+			otype = OrbitType.incomplete
 			
-			assert left_result.type != OrbitType._complete_finite
-			assert left_result.type != OrbitType._complete_infinite
-			return left_result, images #Must have left semi-infinite remaining
+		elif lsi and not rsi:
+			tail = y.test_above(limages[-1])
+			assert tail is not None
+			assert len(tail) > 0
+			assert lpow1 == 0
+			characteristic = -lpow2, tail
+			otype = OrbitType.semi_infinite(characteristic, backward=True)
 		
-		#Else right_result is an OrbitType instance
-		# if right_result.type == OrbitType._complete_infinite:
-			# assert left_result.type == OrbitType._complete_infinite, left_result.type
+		elif rsi and not lsi:
+			tail = y.test_above(rimages[-1])
+			assert tail is not None
+			assert len(tail) > 0
+			assert rpow1 == 0
+			characteristic = (rpow2, tail)
+			otype = OrbitType.semi_infinite(characteristic, backward=False)
+			
+		elif lsi and rsi:
+			if limages[-1] == y:
+				assert rimages[-1] == y
+				assert lpow1 == rpow1 == 0
+				assert lpow2 == rpow2
+				otype = OrbitType.periodic(lpow2)
+			
+			else:
+				type_b, tail = basis.test_above(rimages[rpow1])
+				type_b_data = rpow1, type_b, tail
+				otype = OrbitType.complete_infinite(type_b_data)
 		
-		if right_result.type == OrbitType._right_semi_infinite:
-			assert left_result is False
-		
-		if right_result.type == OrbitType._complete_finite:
-			assert left_result.type == OrbitType._complete_finite
-			assert left_result.data == right_result.data #check they have the same period
-		
-		return right_result, images
-		
+		return otype, images
 	
-	#TODO maybe this should return characteristics as well
 	def _test_semi_infinite(self, y, basis, backward=False):
-		"""Computes the orbit type of *y* with respect to *basis* in the forward direction. (Use ``backward=True`` to go backwards.)
+		r"""Computes the orbit type of *y* under the current automorphism :math:`\psi` with respect to *basis* in the given direction. The process stops when either:
 		
-		- If an incomplete orbit is found, returns False. Note we cannot conclude the orbit is incomplete without examining the other direction.
-		- If a periodic orbit is found, returns an OrbitType containing the period.
-		- If an infinite orbit is found:
-			- if a characteristic was found, returns the appropriate semi-infinite OrbitType.
-			- if no characteristic was found, returns OrbitType.complete_infinite.
+			1. an image :math:`y\psi^m` is computed which is not below the basis.
+				- infinite: ``False``
+				- start: ``0``
+				- end: ``m``
+				- images: :math:`y, y\psi, \dotsc, y\psi^m`.
+			2. two images :math:`y\psi^l, y\psi^m` have been computed, and both start with the same basis element.
+				- infinite: ``True``
+				- start: ``l``
+				- end: ``m``
+				- images: :math:`y, y\psi, \dotsc, y\psi^l`.
 		
-		The return value above and the list of images computed is returned.
+		Returns the tuple *(infinite, start, end, images)*.
 		"""
 		image = y
 		images = [y]
@@ -495,45 +505,18 @@ class Automorphism:
 		while True:
 			m += 1
 			image = self.image(image, inverse=backward) #Compute y\phi^{\pm m}
+			images.append(image)
 			#1. Did we fall out of X<A>?
 			if not basis.is_above(image):
-				return False, images
+				return False, 0, m, images
 			
-			#2. Is this a periodic orbit?
-			if image == y:
-				return OrbitType.periodic(m), images
-			
-			#3. Is this an infinite orbit?
+			#2. Is this an infinite orbit?
 			#Find the generator *prefix* above the current image.
 			prefix, image_tail = basis.test_above(image)
-			for ell, previous in enumerate(images):
-				previous_tail = prefix.test_above(previous)
-				if previous_tail is not None:
-					if previous is y:
-						characteristic = self._extract_characteristic(prefix, m, ell, backward)
-						return OrbitType.semi_infinite(characteristic, backward), images
-					else:
-						type_b_data = ell, prefix, previous_tail
-						return OrbitType.complete_infinite(type_b_data), images
-						#At this point we know what the type of prefix is, too.
-						#Could maybe be clever and use this information?
-			#Otherwise, continue with the next power of \psi
-			images.append(image)
-	
-	def _extract_characteristic(self, prefix, m, ell, backward):
-		r"""Uses Lemma 4.14(B) to compute the characteristic :math:`(m, \Gamma)` of the orbit containing ``prefix + image_tail``.
-		
-		..warning:: This method is 
-		"""
-		#todo doctests
-		i = m - ell
-		if backward:
-			i = -i
-		image = self.repeated_image(prefix, i)
-		# print(image)
-		tail = prefix.test_above(image)
-		assert tail is not None
-		return i, tail
+			# print(image, ':', prefix, '|', image_tail)
+			for ell, previous in enumerate(images[:-1]):
+				if prefix.is_above(previous):
+					return True, ell, m, images
 	
 	def share_orbit(self, u, v):
 		r"""Uses lemma 4.25 part (2) to determine if :math:`u` and :math:`v` are in the same orbit of the current automorphism :math:`\psi`. Specifically, does there exist an integer :math:`n` such that :math:`u\psi^n = v`?
@@ -549,11 +532,11 @@ class Automorphism:
 		
 		:returns: An integer :math:`n` if it exists; otherwise ``None``. In particular if :math:`u = v` then this method returns ``0``. 
 		"""
-		print('u = {}\nv = {}'.format(u, v))
+		# print('u = {}\nv = {}'.format(u, v))
 		if u == v:
 			return 0
 		basis = self.quasinormal_basis()
-		print('QNF basis is', basis)
+		# print('QNF basis is', basis)
 		if not basis.is_above(u):
 			# u = u._as_contraction()
 			raise ValueError('todo')
@@ -563,7 +546,7 @@ class Automorphism:
 			
 		if not (u.is_simple() and v.is_simple()):
 			raise ValueError('todo')
-			depth = max(u.max_depth_to(basis), v.max_depth_to(basis))
+			'''depth = max(u.max_depth_to(basis), v.max_depth_to(basis))
 			alphas = range(-1, -self.arity, -1)
 			solution_set = TODO_ALL_INTEGERS #TODO
 			# For all strings of length *depth* \Gamma made only from alphas:
@@ -573,37 +556,37 @@ class Automorphism:
 				solution &= share_orbit(u_desc, v_desc)
 				if solution_set is not EMPTY: #TODO
 					return solution_set
-			return solution_set
+			return solution_set'''
 		
 		#Now we're dealing with simple words below the basis.
 		u_head, u_tail = basis.test_above(u)
 		v_head, v_tail = basis.test_above(v)
 		u_head_type = self._qnf_orbit_types[u_head]
 		v_head_type = self._qnf_orbit_types[v_head]
-		print('u = {} | {}\nhead type: {}'.format(
-		  u_head, format(u_tail), u_head_type))
-		print('v = {} | {}\nhead type: {}'.format(
-		  v_head, format(v_tail), v_head_type))
+		# print('u = {} | {}\nhead type: {}'.format(
+		  # u_head, format(u_tail), u_head_type))
+		# print('v = {} | {}\nhead type: {}'.format(
+		  # v_head, format(v_tail), v_head_type))
 		
 		#Is either element periodic?
 		if u_head_type.is_type('A') or v_head_type.is_type('A'):
 			#Are they both periodic with the same periods?
 			if u_head_type != v_head_type:
-				print('Not both periodic with same period.')
+				# print('Not both periodic with same period.')
 				return None
 			
 			period = u_head_type.data
 			image = u
-			print('Testing the orbit of u.')
+			# print('Testing the orbit of u.')
 			for i in range(1, period):
 				image = self.image(image)
 				if image == v:
-					print('Found a match.')
+					# print('Found a match.')
 					return i
-			print('No match found.')
+			# print('No match found.')
 			return None
 		
-		print('Neither u nor v is periodic.')
+		# print('Neither u nor v is periodic.')
 		#Replace them with nicer versions from the same orbits.
 		#Track how many positions in the orbit we moved.
 		u_shift, u_head, u_tail = self._preprocess(u_head, u_tail)
@@ -611,10 +594,10 @@ class Automorphism:
 		
 		u = u_head.extend(u_tail)
 		v = v_head.extend(v_tail)
-		print("Shifted u by {} positions.\nNow u is {} | {}".format(
-		  u_shift, u_head, format(u_tail)))
-		print("Shifted v by {} positions.\nNow v is {} | {}".format(
-		  v_shift, v_head, format(v_tail)))
+		# print("Shifted u by {} positions.\nNow u is {} | {}".format(
+		  # u_shift, u_head, format(u_tail)))
+		# print("Shifted v by {} positions.\nNow v is {} | {}".format(
+		  # v_shift, v_head, format(v_tail)))
 		
 		type, images = self._orbit_type(u, basis)
 		for i, image in images.items():
@@ -664,7 +647,6 @@ class Automorphism:
 		n = len(multiplier)
 		while tail[i*n : i*n + n] == multiplier:
 			i += 1
-		print('removing', i, 'copies of characteristic from tail')
 		return -power*i, tail[i*n:]
 
 #TODO. Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.

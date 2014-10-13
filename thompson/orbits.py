@@ -70,7 +70,11 @@ class OrbitType(BaseOrbitType):
 	
 	@classmethod
 	def complete_infinite(cls, type_b_data):
-		"""Instance for representing orbits which are infinite in both directions. The argument *type_b_data* is a pair :math:`(z, \Delta)` as described in lemma 4.14(C)."""
+		"""Instance for representing orbits which are infinite in both directions. The argument *type_b_data* is a triple :math:`(n, z, \Delta)` where:
+		- :math:`z belongs to the orbit being described`; 
+		- we had to move :math:`n` steps forward in the orbit to find :math:`z\Delta`;
+		- :math:`z` is a semi-infinite basis element.
+		"""
 		return cls(cls._complete_infinite, type_b_data)
 	
 	def __str__(self):
