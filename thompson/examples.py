@@ -4,7 +4,7 @@ from .automorphism import Automorphism
 from .generators import Generators
 from .word import Word
 
-__all__ = ["cyclic_order_six", "arity_three_order_inf", "arity_four",
+__all__ = ["cyclic_order_six", "arity_three_order_inf", "arity_four", "alphabet_size_two",
            "example_4_5", "example_4_11", "example_4_12", "example_4_25"]
 
 #Example 4.5
@@ -26,7 +26,6 @@ range  = Generators(2, 1, ["x a2 a2", "x a2 a1", "x a1"])
 example_4_12 = Automorphism(2, 1, domain, range)
 
 #Example 4.25
-#Todo. Characteristics?
 domain = Generators(2, 1, ["x a1",       "x a2 a1",    "x a2 a2 a1 a1", "x a2 a2 a1 a2", "x a2 a2 a2"])
 range  = Generators(2, 1, ["x a1 a1 a1", "x a1 a1 a2", "x a2 a2",       "x a1 a2",       "x a2 a1"   ])
 example_4_25 = Automorphism(2, 1, domain, range)
@@ -48,3 +47,9 @@ d = Generators.standard_basis(4, 1).expand(0).expand(3).expand(0)
 r = ["x a1 a2", "x a1 a4", "x a1 a1", "x a1 a3", "x a3 a2", "x a3 a3", "x a3 a4", "x a2", "x a3 a1", "x a4"]
 r = Generators(4, 1, (Word(s, 4, 1) for s in r))
 arity_four = Automorphism(4, 1, d, r)
+
+#Two trees! Alphabet size r=2.
+d = Generators.standard_basis(3, 2).expand(1).expand(0)
+r = ["x1 a1", "x1 a2 a3", "x2", "x1 a3", "x1 a2 a2", "x1 a2 a1"]
+r = Generators(3, 2, (Word(s, 3, 2) for s in r))
+alphabet_size_two = Automorphism(3, 2, d, r)

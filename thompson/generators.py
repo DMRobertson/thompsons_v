@@ -151,8 +151,15 @@ class Generators(list):
 		return any(gen.is_above(word) for gen in self)
 	
 	def test_above(self, word):
-		"""Returns a pair (gen, tail) where gen belongs to the current basis and gen + tail = word. If no such pair exists, returns None."""
-		#TODO doctest
+		"""Returns a pair (gen, tail) where gen belongs to the current basis and gen + tail = word. If no such pair exists, returns None.
+		
+			>>> basis = Generators.standard_basis(2, 1).expand(0).expand(0).expand(0)
+			>>> basis
+			Generators(2, 1, ['x1 a1 a1 a1', 'x1 a1 a1 a2', 'x1 a1 a2', 'x1 a2'])
+			>>> gen, tail = basis.test_above(Word('x1 a2 a2 a1', 2, 1))
+			>>> print(gen, '|', format(tail))
+			x1 a2 | a2 a1
+		"""
 		for gen in self:
 			result = gen.test_above(word)
 			if result is not None:

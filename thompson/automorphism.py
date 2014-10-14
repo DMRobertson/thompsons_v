@@ -46,7 +46,6 @@ class Automorphism:
 		:raises IndexError: if the bases have different arities or alphabet sizes.
 		:raises ValueError: if either basis isn't actually a basis, i.e. is not a :meth:`free generating set <thompson.generators.Generators.is_free>` or does not :meth:`contract to the standard basis <thompson.generators.Generators.test_generates_algebra>`.
 		"""
-		
 		#The boring checks
 		if len(domain) != len(range):
 			raise ValueError("Domain basis has {} elements, but range basis has {} elements.".format(
@@ -158,7 +157,6 @@ class Automorphism:
 			self._inv[r] = d
 	
 	#Finding images of words
-	#todo tests for inverse
 	def image(self, key, inverse=False):
 		"""Computes the image of a *key* under the given automorphism. The result is cached for further usage later. If *inverse* is True, the inverse of the current automorphism is used to map *key* instead.
 		
@@ -190,6 +188,17 @@ class Automorphism:
 			x1 a1 a1 a1 a2 a1
 			>>> print(example_4_25.image('x1 a1 a1 x1 a2 a2 L'))
 			x1 a1 a1 a1 a1 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L
+		
+		Examples of finding inverse images:
+		
+			>>> print(example_4_25.image('x1 a2 a2', inverse=True))
+			x1 a2 a2 a1 a1
+			>>> print(example_4_25.image('x1 a1 a1 a2 a2 a1', inverse=True))
+			x1 a2 a1 a2 a1
+			>>> print(example_4_25.image('x a2', inverse=True))
+			x1 a2 a2 a2 x1 a2 a2 a1 a1 L
+			>>> print(example_4_25.image('x a2 a2 x a1 a2 L', inverse=True))
+			x1 a2 a2 a1
 		
 		:rtype: a Word instance (which are always in standard form).
 		"""
@@ -275,8 +284,16 @@ class Automorphism:
 		r"""If :math:`\psi` is the current automorphism, returns :math`\text{key}\psi^\text{power}`.
 		
 		:rtype: a :class:`~thompson.word.Word` instance.
+		
+			>>> from thompson.examples import *
+			>>> print(example_4_25.repeated_image('x1 a1', 10))
+			x1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
+			>>> print(example_4_25.repeated_image('x1 a1 a1 a1 a1 a1 a1 a1', -3))
+			x1 a1
+			>>> print(arity_four.repeated_image('x a4 a4 a2', 4))
+			x1 a3 a3 a2
+		
 		"""
-		#TODO doctests.
 		if power == 0:
 			if not isinstance(key, Word):
 				key = Word(key, self.arity, self.alphabet_size)
@@ -340,6 +357,8 @@ class Automorphism:
 		>>> from thompson.examples import *
 		>>> example_4_5.quasinormal_basis()
 		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
+		>>> alphabet_size_two.quasinormal_basis()
+		Generators(3, 2, ['x1 a1', 'x1 a2', 'x1 a3', 'x2'])
 		"""
 		if self._qnf_basis is not None:
 			return self._qnf_basis
@@ -373,7 +392,6 @@ class Automorphism:
 		>>> cyclic_order_six._minimal_expansion()
 		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
 		"""
-		#TODO arity 3 example, alphabet size > 1 example.
 		basis = Generators.standard_basis(self.arity, self.alphabet_size)
 		i = 0
 		while i < len(basis):
@@ -543,6 +561,14 @@ class Automorphism:
 			-1
 			>>> repr(arity_four.share_orbit(u2, v4))
 			'None'
+			
+			>>> u = Word('x1 a2 a3 a1 a2', 3, 2)
+			>>> v1  = Word('x1 a1 a2 a2 a3 a1', 3, 2)
+			>>> v2 = Word('x2 a3 a2', 3, 2)
+			>>> print(alphabet_size_two.share_orbit(u, v1))
+			None
+			>>> alphabet_size_two.share_orbit(u, v2)
+			-2
 		
 		:returns: An integer :math:`n` if such an integer exists; otherwise ``None``. Note that if :math:`u = v` then this method returns ``0``. 
 		"""
