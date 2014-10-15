@@ -543,9 +543,9 @@ class Automorphism:
 			>>> v1 = Word('x a1 a2', 2, 1)
 			>>> v2 = Word('x a1 a1 a2', 2, 1)
 			>>> print(example_4_25.share_orbit(u, v1))
-			None
-			>>> example_4_25.share_orbit(u, v2)
-			3
+			{}
+			>>> print(example_4_25.share_orbit(u, v2))
+			{3}
 			
 			>>> u1 = Word('x a2 a3 a1', 4, 1)
 			>>> v1 = Word('x a3 a3 a3 a3 a3 a3 a3 a3 a3 a2 a3 a1', 4, 1)
@@ -553,28 +553,33 @@ class Automorphism:
 			>>> u2 = Word('x a3 a4 a1', 4, 1)
 			>>> v3 = Word('x a4 a1 a1', 4, 1)
 			>>> v4 = Word('x a4 a3 a2 a1', 4, 1)
-			>>> arity_four.share_orbit(u1, v1)
-			9
-			>>> repr(arity_four.share_orbit(u1, v2))
-			'None'
-			>>> arity_four.share_orbit(u2, v3)
-			-1
-			>>> repr(arity_four.share_orbit(u2, v4))
-			'None'
+			>>> print(arity_four.share_orbit(u1, v1))
+			{9}
+			>>> print(arity_four.share_orbit(u1, v2))
+			{}
+			>>> print(arity_four.share_orbit(u2, v3))
+			{-1}
+			>>> print(arity_four.share_orbit(u2, v4))
+			{}
 			
-			>>> u = Word('x1 a2 a3 a1 a2', 3, 2)
-			>>> v1  = Word('x1 a1 a2 a2 a3 a1', 3, 2)
+			>>> u  = Word('x1 a2 a3 a1 a2', 3, 2)
+			>>> v1 = Word('x1 a1 a2 a2 a3 a1', 3, 2)
 			>>> v2 = Word('x2 a3 a2', 3, 2)
 			>>> print(alphabet_size_two.share_orbit(u, v1))
-			None
-			>>> alphabet_size_two.share_orbit(u, v2)
-			-2
+			{}
+			>>> print(alphabet_size_two.share_orbit(u, v2))
+			{-2}
+			>>> print(alphabet_size_two.share_orbit(u, u))
+			{..., -1, 0, 1, 2, 3, ...}
+			
+			>>> #TODO example of periodic solutions using cyclic_order_six 
 		
-		:returns: An integer :math:`n` if such an integer exists; otherwise ``None``. Note that if :math:`u = v` then this method returns ``0``. 
+		:returns: The (possibly empty) :class:~thompson.orbits.SolutionSet: of all integers :math:`m` for which :math:`u\psi^m = v`. Note that if :math:`u = v` this method returns :math:`\mathbb{Z}`. 
 		"""
+		#TODO a script which randomly checks examples to verify.
 		# print('u = {}\nv = {}'.format(u, v))
 		if u == v:
-			return 0
+			return SolutionSet.all_integers
 		basis = self.quasinormal_basis()
 		# print('QNF basis is', basis)
 		if not basis.is_above(u):
@@ -613,7 +618,7 @@ class Automorphism:
 			#Are they both periodic with the same periods?
 			if u_head_type != v_head_type:
 				# print('Not both periodic with same period.')
-				return None
+				return SolutionSet.empty_set
 			
 			period = u_head_type.data
 			image = u
@@ -622,9 +627,9 @@ class Automorphism:
 				image = self.image(image)
 				if image == v:
 					# print('Found a match.')
-					return i
+					return SolutionSet(i, period)
 			# print('No match found.')
-			return None
+			return SolutionSet.empty_set
 		
 		# print('Neither u nor v is periodic.')
 		#Replace them with nicer versions from the same orbits.
@@ -642,8 +647,8 @@ class Automorphism:
 		type, images = self._orbit_type(u, basis)
 		for i, image in images.items():
 			if image == v:
-				return u_shift + i - v_shift
-		return None
+				return SolutionSet.singleton(u_shift + i - v_shift)
+		return SolutionSet.empty_set
 		
 	def _preprocess(self, head, tail):
 		r"""Takes a pair :math:`(y, \Gamma)` below the quasi-normal basis :math:`X` and returns a triple :math:`(\widetilde{y}, \widetilde{\Gamma}, k) where
