@@ -136,17 +136,6 @@ def dump_orbit_types(aut, basis=None, words=None):
 		  w, aut._orbit_type(w, basis)[0]))
 	print('with respect to the basis', basis)
 
-def extended_gcd(a,b):
-	"""From `this exposition of the extended gcd algorithm <http://anh.cs.luc.edu/331/notes/xgcd.pdf>`. Computes :math:`d = \gcd(a, b)` and returns a triple :math:`(d, x, y)` where :math:`d = ax + by`.
-	"""
-	prevx, x = 1, 0; prevy, y = 0, 1
-	while b:
-		q = a//b
-		x, prevx = prevx - q*x, x
-		y, prevy = prevy - q*y, y
-		a, b = b, a % b
-	return a, prevx, prevy
-
 BaseSolutionSet = namedtuple('BaseSolutionSet', 'base increment')
 class SolutionSet(BaseSolutionSet):
 	r"""Solutions to the equation :math:`u\psi^m = v` come in specific instances. If there are no solutions, the solution set is :math:`\emptyset`. If :math:`u = v`, then the solution set is :math:`\mathbb{Z}`. Otherwise :math:`u` and :math:`v` share an orbit. If this orbit is periodic, then the solution set is :math:`m + p\mathbb{Z}`, where :math:`p` is the period of the orbit. Otherwise the solution set is a single integer :math:`m`.
@@ -155,14 +144,17 @@ class SolutionSet(BaseSolutionSet):
 	
 	Create solution sets as follows:
 	
+	.. doctest::
+		:options: -ELLIPSIS
+		
 		>>> print(SolutionSet(5, 2))
-		{..., 3, 5, 7, 9, 11, ...}
+		{..., 3, 5, 7, 9, 11, 13, ...}
 		>>> print(SolutionSet.singleton(4))
 		{4}
 		>>> print(SolutionSet.empty_set)
 		{}
 		>>> print(SolutionSet.all_integers)
-		{..., -1, 0, 1, 2, 3, ...}
+		{..., -1, 0, 1, 2, 3, 4, ...}
 	"""
 	__slots__ = ()
 	
@@ -256,6 +248,9 @@ class SolutionSet(BaseSolutionSet):
 	def __and__(self, other): #self = self & other
 		"""The ``&`` operator (usually used for bitwise and) stands for intersection of sets.
 		
+		.. doctest::
+			:options: -ELLIPSIS
+			
 			>>> phi = SolutionSet.empty_set
 			>>> Z = SolutionSet.all_integers
 			>>> singleton = SolutionSet.singleton
@@ -275,6 +270,10 @@ class SolutionSet(BaseSolutionSet):
 			{}
 			>>> print(SolutionSet(1, 3) & SolutionSet(1, 2))
 			{..., -5, 1, 7, 13, 19, 25, ...}
+			>>> print(SolutionSet(1, 18) & SolutionSet(5, 24))
+			{}
+			>>> print(SolutionSet(1, 18) & SolutionSet(13, 24))
+			{..., -107, -35, 37, 109, 181, 253, ...}
 			>>> print(SolutionSet(1, 3) & Z)
 			{..., -2, 1, 4, 7, 10, 13, ...}
 			>>> print(Z & Z)
@@ -306,20 +305,15 @@ class SolutionSet(BaseSolutionSet):
 		a = self.increment
 		b = -other.increment
 		c = other.base - self.base
-		#Equation above it equiv to ax + by = c --- a linear Diophantine equation.
-		d, x, y = extended_gcd(a, b)
-		if c % d != 0:
-			#Solution exists iff d divides c
+		#Equation above is equiv to ax + by = c --- a linear Diophantine equation.
+		result = solve_linear_diophantine(a, b, c)
+		if result is None:
 			return SolutionSet.empty_set
-		scale = c // d
-		x *= scale
-		y *= scale
-		assert a*x + b*y == c
-		new_base = self.base + x * self.increment
+		base, inc, lcm = result
+		new_base = self.base + base[0] * self.increment
 		assert new_base in self and new_base in other
-		lcm = a * b // d
 		return SolutionSet(new_base, lcm)
-		
+	
 	def __str__(self):
 		if self.is_empty():
 			return '{}'
@@ -332,5 +326,32 @@ class SolutionSet(BaseSolutionSet):
 SolutionSet.all_integers = SolutionSet(base=0, increment=1)
 SolutionSet.empty_set = SolutionSet(base=None, increment=None)
 
+def extended_gcd(a,b):
+	"""From `this exposition of the extended gcd algorithm <http://anh.cs.luc.edu/331/notes/xgcd.pdf>`. Computes :math:`d = \gcd(a, b)` and returns a triple :math:`(d, x, y)` where :math:`d = ax + by`.
+	"""
+	prevx, x = 1, 0; prevy, y = 0, 1
+	while b:
+		q = a//b
+		x, prevx = prevx - q*x, x
+		y, prevy = prevy - q*y, y
+		a, b = b, a % b
+	return a, prevx, prevy
 
+def solve_linear_diophantine(a, b, c):
+	r"""Solves the equation :math:`ax + by = c` for integers :math:`x, y \in\mathbb{Z}`.
+	
+	:rtype: ``None`` if no solution exists; otherwise a triple (base, inc, lcm).
+	"""
+	d, x, y = extended_gcd(a, b)
+	if c % d != 0:
+		#Solution exists iff d divides c
+		return None
+	scale = c // d
+	x *= scale
+	y *= scale
+	assert a*x + b*y == c
+	base = (x, y)
+	inc = (b // d, a // d)
+	lcm = a * b // d
+	return base, inc, lcm
 

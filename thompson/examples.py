@@ -34,6 +34,10 @@ example_4_25 = Automorphism(2, 1, domain, range)
 leaves = ["x a1 a1", "x a1 a2 a1", "x a1 a2 a2 a1", "x a1 a2 a2 a2", "x a2 a1", "x a2 a2"]
 domain = Generators(2, 1, leaves)
 range = Generators(2, 1, [leaves[0], leaves[3], leaves[4], leaves[5], leaves[2], leaves[1]])
+"""Reduced forms are 
+domain = Generators(2, 1, ["x a1 a1", "x a1 a2 a1",    "x a1 a2 a2", "x a2 a1",       "x a2 a2"])
+range  = Generators(2, 1, ["x a1 a1", "x a1 a2 a2 a2", "x a2",       "x a1 a2 a2 a1", "x a1 a2 a1"])
+but let's leave the defn unreduced to test the _reduce method."""
 cyclic_order_six = Automorphism(2, 1, domain, range)
 
 #An example with arity n=3. 

@@ -292,7 +292,6 @@ class Automorphism:
 			x1 a1
 			>>> print(arity_four.repeated_image('x a4 a4 a2', 4))
 			x1 a3 a3 a2
-		
 		"""
 		if power == 0:
 			if not isinstance(key, Word):
@@ -583,25 +582,27 @@ class Automorphism:
 		basis = self.quasinormal_basis()
 		# print('QNF basis is', basis)
 		if not basis.is_above(u):
-			# u = u._as_contraction()
-			raise ValueError('todo')
+			#This writes u as u a1 ... u an Lambda and puts the result in a Word instance.
+			#This is naughty b/c Words are always meant to be in standard form.
+			#However if we do so, we only ever examine descendants of this word which will be in standard form.
+			u = u._as_contraction()
 		if not basis.is_above(v):
-			raise ValueError('todo')
-			# v = v._as_contraction()
+			v = v._as_contraction()
 			
 		if not (u.is_simple() and v.is_simple()):
-			raise ValueError('todo')
-			'''depth = max(u.max_depth_to(basis), v.max_depth_to(basis))
+			#TODO test me
+			depth = max(u.max_depth_to(basis), v.max_depth_to(basis))
 			alphas = range(-1, -self.arity, -1)
-			solution_set = TODO_ALL_INTEGERS #TODO
+			solution_set = SolutionSet.all_integers
+			
 			# For all strings of length *depth* \Gamma made only from alphas:
 			for tail in product(alphas, repeat=depth):
 				u_desc = u.extend(tail)
 				v_desc = v.extend(tail)
 				solution &= share_orbit(u_desc, v_desc)
-				if solution_set is not EMPTY: #TODO
+				if solution_set.is_empty():
 					return solution_set
-			return solution_set'''
+			return solution_set
 		
 		#Now we're dealing with simple words below the basis.
 		u_head, u_tail = basis.test_above(u)
