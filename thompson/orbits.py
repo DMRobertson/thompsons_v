@@ -128,7 +128,7 @@ def dump_orbit_types(aut, basis=None, words=None):
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a1 a3, x1 a1 a4, x1 a2, x1 a3, x1 a4]
 	"""
 	if basis is None:
-		basis = aut._minimal_expansion()
+		basis = aut._seminormal_form_start_point()
 	if words is None:
 		words = basis
 	for w in words:

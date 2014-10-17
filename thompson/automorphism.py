@@ -132,6 +132,7 @@ class Automorphism:
 			x2 -> x1
 		"""
 		#similar to word._reduce and Generator.test_generates_algebra
+		#This method ensures that self.domain.minimal_expansion(self) == self.domain after initialisation.
 		i = 0
 		arity = domain.arity
 		while i <= len(domain) - arity:
@@ -364,8 +365,7 @@ class Automorphism:
 		if self._qnf_basis is not None:
 			return self._qnf_basis
 		
-		#TODO test me to high heaven.
-		basis = self._minimal_expansion()
+		basis = self._seminormal_form_start_point()
 		#expand basis until each no element's orbit has finite intersection with X<A>
 		i = 0
 		while i < len(basis):
@@ -378,21 +378,23 @@ class Automorphism:
 		self._qnf_basis = basis
 		return basis
 	
-	def _minimal_expansion(self):
-		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \cup W`. See example 4.25.
+	def _seminormal_form_start_point(self):
+		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \cup W`. See remark 4.10 and example 4.25. This basis that this method produces is the smallest possible which *might* be semi-normal.
 		
 		>>> from thompson.examples import *
-		>>> example_4_5._minimal_expansion()
+		>>> example_4_5._seminormal_form_start_point()
 		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
-		>>> example_4_11._minimal_expansion()
+		>>> example_4_11._seminormal_form_start_point()
 		Generators(2, 1, ['x1 a1', 'x1 a2'])
-		>>> example_4_12._minimal_expansion()
+		>>> example_4_12._seminormal_form_start_point()
 		Generators(2, 1, ['x1 a1', 'x1 a2'])
-		>>> example_4_25._minimal_expansion()
+		>>> example_4_25._seminormal_form_start_point()
 		Generators(2, 1, ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
-		>>> cyclic_order_six._minimal_expansion()
+		>>> cyclic_order_six._seminormal_form_start_point()
 		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
+		
 		"""
+		#TODO this method may need renaming. Not sure what 'minimal expansion' means in the paper.
 		basis = Generators.standard_basis(self.arity, self.alphabet_size)
 		i = 0
 		while i < len(basis):
@@ -428,7 +430,7 @@ class Automorphism:
 		with respect to the basis [x1 a1, x1 a2]
 		
 		>>> #Example 4.12
-		>>> basis = example_4_12._minimal_expansion()
+		>>> basis = example_4_12._seminormal_form_start_point()
 		>>> dump_orbit_types(example_4_12, basis)
 		x1 a1: Incomplete orbit
 		x1 a2: Incomplete orbit

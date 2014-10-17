@@ -5,6 +5,8 @@ r"""Informally, a set :math:`S` of words in :math:`V_{n,r}` is a *generating set
 	from thompson.generators import *
 	from thompson.word import Word, format
 """
+from copy import copy
+
 from . import word
 from .word import Word
 
@@ -61,6 +63,7 @@ class Generators(list):
 		return "Generators({}, {}, [{}])".format(
 		  self.arity, self.alphabet_size, ", ".join(repr(format(w)) for w in self))
 	
+	#Tests on generating sets
 	def test_free(self):
 		r"""Tests to see if this is a free generating set. If the test fails, returns the first pair of indices :math:`(i, j)` found for which one of ``self[i]`` and ``self[j]`` is an initial segment of the other. If the test passes, returns (-1, -1). See lemma 3.16.3.
 		
@@ -169,6 +172,10 @@ class Generators(list):
 				return gen, result
 		return None
 	
+	def is_basis(self):
+		return self.is_free() and self.generates_algebra()
+	
+	#Creating generating sets
 	@classmethod
 	def standard_basis(cls, arity, alphabet_size):
 		r"""Creates the standard basis :math:`\boldsymbol{x} = \{x_1, \dotsc, x_r\}` for :math:`V_{n,r}`, where :math:`n` is the arity and :math`r` is the *alphabet_size*. 
@@ -181,6 +188,53 @@ class Generators(list):
 			output.append(Word((i,), arity, alphabet_size, preprocess=False))
 		return output
 	
+	def minimal_expansion_for(self, *auts):
+		"""Let *auts* contain at least one :class:`~thompson.automorphism.Automorphism` of :math:`V_{n,r}`, and suppose that the current generaeting set is a basis :math:`X` for :math:`V_{n,r}`. According to lemma 4.2, there is a unique minimal expansion :math:`Y` of :math:`X` for which each automorphism :math:`\phi` maps :math:`Y` into :math:`X\langle A\rangle`. This method produces and returns that expansion.
+		
+		If *basis* is not provided, it is taken to be the :meth:`standard_basis` :math:`\{x_1, \dotsc, x_r\}` for :math:`V_{n,r}`.
+		
+		:raises ValueError: if no automorphisms are passed to this method.
+		:raises ValueError: if the automorphisms or basis do not all belong to the same group :math:`G_{n,r}`.
+		:raises ValueError: if the given basis does not generate :math:`V_{n,r}`.
+		
+			>>> from thompson.examples import *
+			>>> std_basis = Generators.standard_basis(2, 1)
+			>>> std_basis.minimal_expansion_for(example_4_5) == example_4_5.domain
+			True
+			>>> std_basis.minimal_expansion_for(example_4_11) == example_4_11.domain
+			True
+			>>> qnf_basis = example_4_12.quasinormal_basis()
+			>>> qnf_basis.minimal_expansion_for(example_4_12) == qnf_basis
+			True
+			>>> std_basis.minimal_expansion_for(example_4_25) == example_4_25.domain
+			True
+			>>> reduced_domain = Generators(2, 1, ["x a1 a1", "x a1 a2 a1", "x a1 a2 a2", "x a2 a1", "x a2 a2"])
+			>>> std_basis.minimal_expansion_for(cyclic_order_six) == reduced_domain
+			True
+		"""
+		#0. Pre-flight checks.
+		if len(auts) == 0:
+			raise ValueError('Must provide at least one automorphism.')
+		
+		basis = copy(self)
+		if not basis.is_free():
+			raise ValueError('The given generating set does not freely generate V_{n,r}.')
+		
+		for aut in auts:
+			if not (aut.arity == self.arity and aut.alphabet_size == self.alphabet_size):
+				raise ValueError('At least one automorphism belongs to a different G_{n,r} than the basis.')
+		
+		#1. Expand until all images belong to X<A>.
+		i = 0
+		while i < len(basis):
+			b = basis[i]
+			if all(self.is_above(aut.image(b)) for aut in auts):
+				i += 1
+			else:
+				basis.expand(i)
+		return basis
+	
+	#Modifiers
 	def expand(self, index):
 		r"""Replaces the word :math:`w` at index *index* in the current generating set with its children, :math:`w\alpha1, \dotsc, w\alpha_n`, where :math:`n` is the arity of the generating set.
 		
