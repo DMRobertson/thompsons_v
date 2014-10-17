@@ -27,7 +27,7 @@ from .generators import Generators
 from .orbits import *
 
 #TODO. Check the assumption that the bases consist of simple words only (no lambdas).
-#Expand until all the words are simple
+#TODO. Is this even a problem any more? Will depend on how is_above() functions work I imagine.
 class Automorphism:
 	r"""Represents an automorphism of :math:`V_{n,r}` by specifying two bases. This class keeps track of the mapping between bases.
 	
@@ -218,6 +218,7 @@ class Automorphism:
 			pass
 		
 		#1. First deal with the easy words (no lambdas).
+		#TODO. I have a feeling that this ought to be ``if self.domain.is_above(word) or something similar...
 		if word.is_simple():
 			#During initialisation we compute the image of everything above the domain.
 			#Thus *word* must be below the domain, so we remove alphas until we find something we know the image of.
@@ -394,7 +395,6 @@ class Automorphism:
 		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
 		
 		"""
-		#TODO this method may need renaming. Not sure what 'minimal expansion' means in the paper.
 		basis = Generators.standard_basis(self.arity, self.alphabet_size)
 		i = 0
 		while i < len(basis):
@@ -701,7 +701,7 @@ class Automorphism:
 	
 	@staticmethod
 	def _remove_from_start(tail, characteristic):
-		"""Makes a copy of *tail* and removes as many copies of *multiplier* from the start of the copy as possible. Returns the copy.
+		"""Makes a copy of *tail* and removes as many copies of *multiplier* from the start of the copy as possible. Returns a tuple *(k, tail copy)* where *k* is the number of steps forward into the orbit we made.
 			
 			>>> tail = from_string('a1 a2 a1 a2 a1 a2 a3')
 			>>> multiplier = from_string('a1 a2')
@@ -717,6 +717,40 @@ class Automorphism:
 		while tail[i*n : i*n + n] == multiplier:
 			i += 1
 		return -power*i, tail[i*n:]
+	
+	def is_conjugate_to(self, other):
+		r"""Implements algorithm 5.6 to determine if the current automorphism :math:`\psi` is conjugate to the *other* automorphism :math:`\phi`.
+		
+		:returns: if it exists, a conjugating element :math:`\rho` such that :math:`\rho^{-1}\psi\rho = \phi`. If no such :math:`\rho` exists, returns ``None``.
+		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
+		"""
+		if not(self.arity == other.arity and self.alphabet_size == other.alphabet_size):
+			raise ValueError('Both automorphisms must have the same arity and alphabet size.')
+		
+		o_qnf, s_p, s_ri = self.partition_qnf_basis()
+		o_qnf, o_p, o_ri = other.partition_qnf_basis()
+		
+		modulus = self.arity - 1
+		if not (len(s_p) % modulus == len(o_p)  % modulus
+		  and  len(s_ri) % modulus == len(o_ri) % modulus):
+			return None
+		
+		#TODO implementme
+		#todo doctests
+	
+	def partition_qnf_basis(self):
+		"""Paritions the quasinormal basis elements into two lists *(periodic, infinite)* depending on their orbit type. Returns a triple *(qnf_basis, periodic, infinite)*."""
+		#todo doctests
+		basis = self.quasinormal_basis()
+		periodic = []
+		for gen in basis:
+			type = self._qnf_orbit_types[gen]
+			if gen.is_type("A"):
+				periodic.append(gen)
+			else:
+				infinite.append(gen)
+		return basis, periodic, infinite
+
 
 #TODO. Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
 #TODO method to decide if the automorphism is in (the equivalent of) F, T, or V.

@@ -527,7 +527,7 @@ class Word(tuple):
 			return None
 	
 	def max_depth_to(self, basis):
-		"""Suppose that the current word :math:`w` is not below the given a basis :math:`X`. Choose a string of alphas :math:`\Gamma` of length :math:`s \geq 0` at random. What is the smallest value of :math:`s` for which we can guarantee that :math:`w\Gamma` is below :math:`X`, i.e. in :math:`X<A>`?
+		"""Let :math:`w` be the current word and let :math:`X` be a basis. Choose a (possibly empty) string of alphas :math:`\Gamma` of length :math:`s \geq 0` at random. What is the smallest value of :math:`s` for which we can guarantee that :math:`w\Gamma` is below :math:`X`, i.e. in :math:`X<A>`?
 		
 			>>> from thompson.generators import Generators
 			>>> basis = Generators.standard_basis(2, 1).expand(0).expand(0).expand(0)
@@ -542,8 +542,6 @@ class Word(tuple):
 			>>> Word('x a2', 2, 1).max_depth_to(basis)
 			0
 		"""
-		#Assumption: basis consists of simple words and self is above basis
-		#TODO check these assumptions. Something doesn't seem right here.
 		max_depth = 0
 		dict = {self: 0}
 		while dict:

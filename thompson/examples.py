@@ -15,7 +15,7 @@ example_4_5 = Automorphism(2, 1, domain, range)
 
 #Example 4.11
 #TODO. I think this is a special element of one of Thompson's groups.
-#I should put those examples in the automorphism module.
+#TODO? I should put those examples in the automorphism module.
 domain = Generators(2, 1, ["x a1 a1", "x a1 a2", "x a2"])
 range  = Generators(2, 1, ["x a1",    "x a2 a1", "x a2 a2"])
 example_4_11 = Automorphism(2, 1, domain, range)
