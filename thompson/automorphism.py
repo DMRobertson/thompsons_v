@@ -281,10 +281,12 @@ class Automorphism:
 		return image
 	
 	def repeated_image(self, key, power):
-		r"""If :math:`\psi` is the current automorphism, returns :math`\text{key}\psi^\text{power}`.
+		r"""If :math:`\psi` is the current automorphism, returns :math:`\text{key}\psi^\text{ power}`.
 		
 		:rtype: a :class:`~thompson.word.Word` instance.
 		
+		.. doctest::
+			
 			>>> from thompson.examples import *
 			>>> print(example_4_25.repeated_image('x1 a1', 10))
 			x1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
@@ -538,6 +540,23 @@ class Automorphism:
 	def share_orbit(self, u, v):
 		r"""Uses lemma 4.25 part (2) to determine if :math:`u` and :math:`v` are in the same orbit of the current automorphism :math:`\psi`. Specifically, does there exist an integer :math:`n` such that :math:`u\psi^n = v`?
 		
+		.. doctest::
+			:options: -ELLIPSIS
+			
+			>>> u  = Word('x1 a2 a3 a1 a2', 3, 2)
+			>>> v1 = Word('x1 a1 a2 a2 a3 a1', 3, 2)
+			>>> v2 = Word('x2 a3 a2', 3, 2)
+			>>> print(alphabet_size_two.share_orbit(u, v1))
+			{}
+			>>> print(alphabet_size_two.share_orbit(u, v2))
+			{-2}
+			>>> print(alphabet_size_two.share_orbit(u, u))
+			{..., -1, 0, 1, 2, 3, 4, ...}
+		
+		.. doctest::
+			:hide:
+			:options: -ELLIPSIS
+			
 			>>> u  = Word('x a2 a2 a1 a1 a2', 2, 1)
 			>>> v1 = Word('x a1 a2', 2, 1)
 			>>> v2 = Word('x a1 a1 a2', 2, 1)
@@ -545,7 +564,18 @@ class Automorphism:
 			{}
 			>>> print(example_4_25.share_orbit(u, v2))
 			{3}
-			
+			>>> u  = Word('x a2 a2 x a1 a2 L x a2 a1 L x a1 a1 a1 a2 L', 2, 1)
+			>>> vs = [
+			... 	Word('x a2 a2 a1 a1 a1 a1 a1', 2, 1),
+			... 	Word('x a2 a2 a2', 2, 1),
+			... 	Word('x a2 a2 x a1 a2 L', 2, 1),
+			... 	Word('x a1 a1 x a1 a2 x a2 a2 L L', 2, 1)]
+			... 
+			>>> for v in vs: print(example_4_25.share_orbit(u, v))
+			{-4}
+			{}
+			{-1}
+			{}
 			>>> u1 = Word('x a2 a3 a1', 4, 1)
 			>>> v1 = Word('x a3 a3 a3 a3 a3 a3 a3 a3 a3 a2 a3 a1', 4, 1)
 			>>> v2 = Word('x a1 a2 a3 a4', 4, 1)
@@ -560,49 +590,41 @@ class Automorphism:
 			{-1}
 			>>> print(arity_four.share_orbit(u2, v4))
 			{}
-			
-			>>> u  = Word('x1 a2 a3 a1 a2', 3, 2)
-			>>> v1 = Word('x1 a1 a2 a2 a3 a1', 3, 2)
-			>>> v2 = Word('x2 a3 a2', 3, 2)
-			>>> print(alphabet_size_two.share_orbit(u, v1))
+			>>> u = Word("x a1 a2 a1 a2 a1", 2, 1)
+			>>> v = Word("x a2 a2 a2 a1", 2, 1)
+			>>> print(cyclic_order_six.share_orbit(u, v))
+			{..., -1, 2, 5, 8, 11, 14, ...}
+			>>> u = Word("x a1 a1 x a1 a2 a1 x a1 a2 a2 a1 L L", 2, 1)
+			>>> v1 = Word("x a1 a1 x a2 a2 x a2 a1 L L", 2, 1)
+			>>> v2 = Word("x a1 a1 x a1 a2 a1 x a1 a1 L L", 2, 1)
+			>>> print(cyclic_order_six.share_orbit(u, v1))
+			{..., -1, 5, 11, 17, 23, 29, ...}
+			>>> print(cyclic_order_six.share_orbit(u, v2))
 			{}
-			>>> print(alphabet_size_two.share_orbit(u, v2))
-			{-2}
-			>>> print(alphabet_size_two.share_orbit(u, u))
-			{..., -1, 0, 1, 2, 3, ...}
 			
-			>>> #TODO example of periodic solutions using cyclic_order_six 
 		
-		:returns: The (possibly empty) :class:~thompson.orbits.SolutionSet: of all integers :math:`m` for which :math:`u\psi^m = v`. Note that if :math:`u = v` this method returns :math:`\mathbb{Z}`. 
+		:returns: The (possibly empty) :class:`~thompson.orbits.SolutionSet:` of all integers :math:`m` for which :math:`u\psi^m = v`. Note that if :math:`u = v` this method returns :math:`\mathbb{Z}`. 
 		"""
 		#TODO a script which randomly checks examples to verify.
-		# print('u = {}\nv = {}'.format(u, v))
 		if u == v:
 			return SolutionSet.all_integers
 		basis = self.quasinormal_basis()
 		# print('QNF basis is', basis)
-		if not basis.is_above(u):
-			#This writes u as u a1 ... u an Lambda and puts the result in a Word instance.
-			#This is naughty b/c Words are always meant to be in standard form.
-			#However if we do so, we only ever examine descendants of this word which will be in standard form.
-			u = u._as_contraction()
-		if not basis.is_above(v):
-			v = v._as_contraction()
-			
-		if not (u.is_simple() and v.is_simple()):
-			#TODO test me
+		
+		if not (basis.is_above(u) and basis.is_above(v)):
 			depth = max(u.max_depth_to(basis), v.max_depth_to(basis))
-			alphas = range(-1, -self.arity, -1)
+			alphas = range(-1, -self.arity-1, -1)
 			solution_set = SolutionSet.all_integers
 			
 			# For all strings of length *depth* \Gamma made only from alphas:
 			for tail in product(alphas, repeat=depth):
 				u_desc = u.extend(tail)
 				v_desc = v.extend(tail)
-				solution &= share_orbit(u_desc, v_desc)
+				solution_set &= self.share_orbit(u_desc, v_desc)
 				if solution_set.is_empty():
 					return solution_set
 			return solution_set
+			#A recursive alternative: intersect and return the results of tests on only the children of u, v.
 		
 		#Now we're dealing with simple words below the basis.
 		u_head, u_tail = basis.test_above(u)

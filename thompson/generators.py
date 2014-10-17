@@ -62,11 +62,14 @@ class Generators(list):
 		  self.arity, self.alphabet_size, ", ".join(repr(format(w)) for w in self))
 	
 	def test_free(self):
-		"""Tests to see if this is a free generating set. If the test fails, returns the first pair of indices :math:`(i, j)` found for which one of ``self[i]`` and ``self[j]`` is an initial segment of the other. If the test passes, returns (-1, -1). See lemma 3.16.3.
+		r"""Tests to see if this is a free generating set. If the test fails, returns the first pair of indices :math:`(i, j)` found for which one of ``self[i]`` and ``self[j]`` is an initial segment of the other. If the test passes, returns (-1, -1). See lemma 3.16.3.
 		
-			>>> Generators(2, 3, ["x1 a1", "x1 a2 a1", "x1 a2 a1 a1", "x1 a2 a2"]).test_free()
+			>>> g = Generators(2, 3, ["x1 a1", "x1 a2 a1", "x1 a2 a1 a1", "x1 a2 a2"])
+			>>> g.test_free()
 			(1, 2)
-		
+			>>> print(g[1], g[2], sep='\n')
+			x1 a2 a1
+			x1 a2 a1 a1
 		"""
 		for i in range(len(self)):
 			for j in range(i+1, len(self)):
