@@ -764,6 +764,8 @@ class Automorphism:
 		
 		:returns: a triple *(basis, periodic, infinite)*.
 		
+		.. doctest::
+			
 			>>> def print_triple(triple):
 			... 	for list in triple:
 			... 		print(Generators.__str__(list))

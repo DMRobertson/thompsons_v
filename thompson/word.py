@@ -1,4 +1,4 @@
-r"""By a *word*, we mean a string wrtitten using the symbols
+r"""By a *word*, we mean a string written using the symbols
 
 .. math:: X \cup \Omega = \{x_1, \dotsc, x_r\} \cup \{\alpha_1, \dotsc, \alpha_n, \lambda\}.
 
