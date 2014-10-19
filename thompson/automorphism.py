@@ -3,6 +3,8 @@ r"""The algebra of :mod:`words <thompson.word>` has its own structure, and just 
 .. math:: w \alpha_i \phi = w \phi \alpha_i \qquad \text{and} \qquad
           w_1 \dots w_n \lambda \phi = w_1 \phi \dots w_n \phi \lambda.
 
+In other words, a homomorphism is a function which 'commutes' with the algebra operations :math:`\alpha_i` and :math:`\lambda`.
+
 As usual, a bijective homomorphism is called an *isomorphism*, and an isomorphism from an algebra to itself is called an *automorphism*. A collection of automorphisms of an object :math:`O` forms a group :math:`\mathrm{Aut}(O)` under composition. 
 
 This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The group of automorphisms :math:`\mathrm{Aut}(V_{n,r})` is known as :math:`G_{n,r}`.
@@ -14,11 +16,13 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 	from thompson import word
 	from thompson.generators import Generators
 	from thompson.orbits import dump_orbit_types
+
+The Automorphism class
+----------------------
 """
 
 __all__ = ["Automorphism"]
 
-from collections import deque
 from itertools import product
 from io import StringIO
 
@@ -38,13 +42,13 @@ class Automorphism:
 	"""
 	
 	def __init__(self, arity, alphabet_size, domain, range):
-		r"""Creates an automorphism, given the *arity* :math:`n` and *alphabet_size* :math:`r`. Two bases *domain* and *range* are given. The automorphism maps elements so that the given order of generators is preserved:
+		r"""Creates an automorphism, given the *arity* :math:`n` and *alphabet_size* :math:`r`. Two bases *domain* and *range* are also given. The automorphism maps elements so that the given order of generators is preserved:
 		
-			.. math:: \text{domain}_i \mapsto \text{range}_i
+			.. math:: \text{domain}_{\,i} \mapsto \text{range}_{\,i}
 		
 		:raises ValueError: if the bases are of different sizes.
 		:raises IndexError: if the bases have different arities or alphabet sizes.
-		:raises ValueError: if either basis isn't actually a basis, i.e. is not a :meth:`free generating set <thompson.generators.Generators.is_free>` or does not :meth:`contract to the standard basis <thompson.generators.Generators.test_generates_algebra>`.
+		:raises ValueError: if either basis :meth:`isn't actually a basis <thompson.generators.Generators.is_basis>`.
 		"""
 		#The boring checks
 		if len(domain) != len(range):
@@ -82,8 +86,7 @@ class Automorphism:
 			  arity, alphabet_size, [format(x) for x in missing]))
 		
 		#Before saving the domain and range, reduce them to remove any redundancy. This is like reducing tree pairs.
-		#Is this really 100% necessary? Seem to remember the big lemma/algorithm for QNF needed it.
-		#Yes, it is: how do you know that you've found the smallest possible nice basis if you haven't kept everything as small as possible throughout?
+		#How do you know that you've found the smallest possible nice basis if you haven't kept everything as small as possible throughout?
 		Automorphism._reduce(domain, range)
 		
 		self.arity = arity
@@ -95,7 +98,7 @@ class Automorphism:
 		self._inv = {}
 		for d, r in zip(self.domain, self.range):
 			self._set_image(d, r)
-		#Compute and cache the images of any element in X<A> above self.domain.
+		#Compute and cache the images of any simple word above self.domain.
 		for root in Generators.standard_basis(self.arity, self.alphabet_size):
 			self._image_simple_above_domain(root)
 			self._image_simple_above_domain(root, inverse=True)
@@ -111,7 +114,7 @@ class Automorphism:
 	
 	@staticmethod
 	def _reduce(domain, range):
-		"""Contracts the domain generators whenever the corresponding contraction in range is possible. (This corresponds to reducing a tree pair diagram.)
+		"""Contracts the domain generators whenever the corresponding contraction in range is possible. This corresponds to reducing a tree pair diagram.
 			
 			>>> from thompson.examples import cyclic_order_six as cyclic
 			>>> #This is given by 6 generators, but after reduction consists of 5:
@@ -172,23 +175,23 @@ class Automorphism:
 		2. Checks if the image of the standard form of *key* has been cached, and returns the image if so.
 		3. Computes the image of *key* under the automorphism, then caches and returns the result.
 		
-			>>> from thompson.examples import example_4_25
-			>>> #An element of the domain---just a lookup
-			>>> print(example_4_25.image('x1 a1'))
-			x1 a1 a1 a1
-			>>> #A word below a the domain words
-			>>> print(example_4_25.image('x1 a1 a2 a2'))
-			x1 a1 a1 a1 a2 a2
-			>>> #Above domain words---have to expand.
-			>>> print(example_4_25.image('x1'))
-			x1 a1 a1 a1 x1 a1 a1 a2 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L L
-			>>> #Let's try some words not in standard form
-			>>> print(example_4_25.image('x1 a1 a1 x1 a1 a2 L'))
-			x1 a1 a1 a1
-			>>> print(example_4_25.image('x1 a1 a1 x1 a1 a2 L a2 a1'))
-			x1 a1 a1 a1 a2 a1
-			>>> print(example_4_25.image('x1 a1 a1 x1 a2 a2 L'))
-			x1 a1 a1 a1 a1 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L
+		>>> from thompson.examples import example_4_25
+		>>> #An element of the domain---just a lookup
+		>>> print(example_4_25.image('x1 a1'))
+		x1 a1 a1 a1
+		>>> #A word below a the domain words
+		>>> print(example_4_25.image('x1 a1 a2 a2'))
+		x1 a1 a1 a1 a2 a2
+		>>> #Above domain words---have to expand.
+		>>> print(example_4_25.image('x1'))
+		x1 a1 a1 a1 x1 a1 a1 a2 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L L
+		>>> #Let's try some words not in standard form
+		>>> print(example_4_25.image('x1 a1 a1 x1 a1 a2 L'))
+		x1 a1 a1 a1
+		>>> print(example_4_25.image('x1 a1 a1 x1 a1 a2 L a2 a1'))
+		x1 a1 a1 a1 a2 a1
+		>>> print(example_4_25.image('x1 a1 a1 x1 a2 a2 L'))
+		x1 a1 a1 a1 a1 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L
 		
 		Examples of finding inverse images:
 		
@@ -201,7 +204,7 @@ class Automorphism:
 			>>> print(example_4_25.image('x a2 a2 x a1 a2 L', inverse=True))
 			x1 a2 a2 a1
 		
-		:rtype: a Word instance (which are always in standard form).
+		:rtype: a :class:`~thompson.word.Word` instance (which are always in standard form).
 		"""
 		dict = self._inv if inverse else self._map
 		try:
@@ -353,15 +356,21 @@ class Automorphism:
 			value = self.image(key, inverse)
 			print(prefix + fmt.format(key, value), **kwargs)
 	
-	#Operations on automorphisms
+	#Generating the quasinormal basis
 	def quasinormal_basis(self):
-		r"""An implementation of Lemma 4.24.1. In [Hig]_ (section 9) Higman defines when an automorphism :math:`\phi` is in *quasinormal form* with respect to a given basis :math:`X`.  We return the basis :math:`X` w.r.t which the current automorphism is in quasinormal form.
+		r"""We say that :math:`\phi` is *in semi-normal form* with respect to the basis :math:`X` if no element of :math:`X` lies in an incomplete :math:`X`-component of a :math:`\phi` orbit. See the :mod:`~thompson.orbits` module for more details.
 		
-		>>> from thompson.examples import *
-		>>> example_4_5.quasinormal_basis()
-		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
-		>>> alphabet_size_two.quasinormal_basis()
-		Generators(3, 2, ['x1 a1', 'x1 a2', 'x1 a3', 'x2'])
+		There is a minimal such basis, :math:`X_\phi` say, and we say that :math:`\phi` is *in quasi-normal form* with respect to :math:`X_\phi`. This method determines and returns the basis :math:`X_\phi` where :math:`\phi` denotes the current automorphism. The result is cached so that further calls to this method perform no additional computation. 
+		
+			>>> from thompson.examples import *
+			>>> example_4_5.quasinormal_basis()
+			Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
+			>>> alphabet_size_two.quasinormal_basis()
+			Generators(3, 2, ['x1 a1', 'x1 a2', 'x1 a3', 'x2'])
+		
+		:rtype: a :class:`~thompson.generators.Generators` instance.
+		
+		.. seealso:: Quasi-normal forms are introduced in section 4.2 of the paper. In particular, this method implements Lemma 4.24.1. Higman first described the idea of quasi-normal forms in section 9 of [Hig]_.
 		"""
 		if self._qnf_basis is not None:
 			return self._qnf_basis
@@ -382,18 +391,17 @@ class Automorphism:
 	def _seminormal_form_start_point(self):
 		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \cup W`. See remark 4.10 and example 4.25. This basis that this method produces is the smallest possible which *might* be semi-normal.
 		
-		>>> from thompson.examples import *
-		>>> example_4_5._seminormal_form_start_point()
-		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
-		>>> example_4_11._seminormal_form_start_point()
-		Generators(2, 1, ['x1 a1', 'x1 a2'])
-		>>> example_4_12._seminormal_form_start_point()
-		Generators(2, 1, ['x1 a1', 'x1 a2'])
-		>>> example_4_25._seminormal_form_start_point()
-		Generators(2, 1, ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
-		>>> cyclic_order_six._seminormal_form_start_point()
-		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
-		
+			>>> from thompson.examples import *
+			>>> example_4_5._seminormal_form_start_point()
+			Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
+			>>> example_4_11._seminormal_form_start_point()
+			Generators(2, 1, ['x1 a1', 'x1 a2'])
+			>>> example_4_12._seminormal_form_start_point()
+			Generators(2, 1, ['x1 a1', 'x1 a2'])
+			>>> example_4_25._seminormal_form_start_point()
+			Generators(2, 1, ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
+			>>> cyclic_order_six._seminormal_form_start_point()
+			Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
 		"""
 		basis = Generators.standard_basis(self.arity, self.alphabet_size)
 		i = 0
@@ -541,7 +549,7 @@ class Automorphism:
 					return True, ell, m, images
 	
 	def share_orbit(self, u, v):
-		r"""Uses lemma 4.25 part (2) to determine if :math:`u` and :math:`v` are in the same orbit of the current automorphism :math:`\psi`. Specifically, does there exist an integer :math:`n` such that :math:`u\psi^n = v`?
+		r"""Determines if :math:`u` and :math:`v` are in the same orbit of the current automorphism :math:`\psi`. Specifically, does there exist an integer :math:`m` such that :math:`u\psi^m = v`?
 		
 		.. doctest::
 			:options: -ELLIPSIS
@@ -606,7 +614,9 @@ class Automorphism:
 			{}
 			
 		
-		:returns: The (possibly empty) :class:`~thompson.orbits.SolutionSet:` of all integers :math:`m` for which :math:`u\psi^m = v`. Note that if :math:`u = v` this method returns :math:`\mathbb{Z}`. 
+		:returns: The (possibly empty) :class:`~thompson.orbits.SolutionSet` of all integers :math:`m` for which :math:`u\psi^m = v`. Note that if :math:`u = v` this method returns :math:`m \in \mathbb{Z}`. 
+		
+		.. seealso:: The implementation is due to lemma 4.24.2 of the paper.
 		"""
 		#TODO a script which randomly checks examples to verify.
 		if u == v:

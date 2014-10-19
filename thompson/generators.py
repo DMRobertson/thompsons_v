@@ -236,14 +236,14 @@ class Generators(list):
 		.. seealso:: Lemma 4.2 of the paper proves that this expansion exists, is of minimal size, and is unique with this that property.
 		"""
 		#0. Pre-flight checks.
-		if len(auts) == 0:
+		if len(automorphisms) == 0:
 			raise ValueError('Must provide at least one automorphism to minimal_expansion_for().')
 		
 		basis = copy(self)
 		if not basis.is_free():
 			raise ValueError('The generating set does not freely generate V_{n,r}.')
 		
-		for aut in auts:
+		for aut in automorphisms:
 			if not (aut.arity == self.arity and aut.alphabet_size == self.alphabet_size):
 				raise ValueError('At least one automorphism belongs to a different G_{n,r} than the basis.')
 		
@@ -251,7 +251,7 @@ class Generators(list):
 		i = 0
 		while i < len(basis):
 			b = basis[i]
-			if all(self.is_above(aut.image(b)) for aut in auts):
+			if all(self.is_above(aut.image(b)) for aut in automorphisms):
 				i += 1
 			else:
 				basis.expand(i)
