@@ -10,3 +10,5 @@ from .generators import Generators
 from .automorphism import Automorphism
 from . import examples
 
+#GLOBAL TODO
+#Read through documentation and ensure that useful error messages are being raised, including for assertions.

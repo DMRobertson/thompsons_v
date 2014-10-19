@@ -8,7 +8,7 @@
 from collections import namedtuple
 from numbers import Number
 
-from . import word
+from .word import format
 
 __all__ = ["OrbitType", "dump_orbit_types", "SolutionSet"]
 
@@ -83,10 +83,10 @@ class OrbitType(BaseOrbitType):
 			output += " of order {}".format(self.data)
 		elif self.type == self._right_semi_infinite or self.type == self._left_semi_infinite:
 			output += " with characteristic ({}, {})".format(
-			  self.data[0], word.format(self.data[1]))
+			  self.data[0], format(self.data[1]))
 		elif self.type == self._complete_infinite:
 			output += " containing [{}] {}".format(
-			  str(self.data[1]), word.format(self.data[2]))
+			  str(self.data[1]), format(self.data[2]))
 		return output
 	
 	def is_type(self, letter):

@@ -1,13 +1,13 @@
 Documentation for thompsons_v
 =============================
 
-`Nathan Barker <https://www.dpmms.cam.ac.uk/~nb443/research.html>`_ and `Andrew Duncan <http://www.mas.ncl.ac.uk/~najd2/>`_ are currently preparing a paper entitled *The power conjugacy problem in Thompson's group* :math:`V`, which describes an algorithm to solve the power conjugacy problem in the Higman-Thompson groups :math:`G_{n,r}`.
+`Nathan Barker <https://www.dpmms.cam.ac.uk/~nb443/research.html>`_ and `Andrew Duncan <http://www.mas.ncl.ac.uk/~najd2/>`_ are currently preparing a paper entitled *The power conjugacy problem in Higman-Thompson groups* which addresses the following problem in the groups named :math:`G_{n,r}`.
 
 .. epigraph::
 	
 	[AS]_ Given two elements :math:`x` and :math:`y` of a group, are there integers :math:`a` and :math:`b` and a third element :math:`z` for which :math:`x^a = zy^bz^{-1}`? If so, provide them.
 
-This package aims to implement that algorithm; to do so it provides tools for with the algebra :math:`V_{n,r}`, a certain set of :mod:`words <thompson.word>`.
+This package aims to implement the algorithm described in the paper. To do so it provides tools for with the algebra :math:`V_{n,r}`, a certain set of :mod:`words <thompson.word>`.
 
 .. warning::
 	
@@ -17,7 +17,7 @@ This package aims to implement that algorithm; to do so it provides tools for wi
 Package contents
 ----------------
 
-This package began as a series of tools to represent tree pair diagrams in `Thompson's group <http://en.wikipedia.org/wiki/Thompson_groups>`_ :math:`V = G_{2,1}`, hence the name. The focus has moved away from trees and dyadic partitions, and more towards mappings between bases of words.
+This package began as a series of tools to represent tree pair diagrams in `Thompson's group <http://en.wikipedia.org/wiki/Thompson_groups>`_ :math:`V = G_{2,1}`, hence the name. The focus has moved away from trees and dyadic partitions, and more towards bijections between bases of words.
 
 .. toctree::
    :maxdepth: 1

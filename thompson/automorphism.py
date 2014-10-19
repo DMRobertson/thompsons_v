@@ -458,6 +458,7 @@ class Automorphism:
 		x1 a2 a2: Left semi-infinite orbit with characteristic (-1, a1 a1)
 		with respect to the basis [x1 a1, x1 a2 a1, x1 a2 a2]
 		"""
+		
 		# print('Computing the orbit type of', y)
 		rsi, rpow1, rpow2, rimages = self._test_semi_infinite(y, basis, backward=False)
 		# print('RIGHT:', rsi, rpow1, rpow2, [str(x) for x in rimages])
@@ -718,7 +719,7 @@ class Automorphism:
 			i += 1
 		return -power*i, tail[i*n:]
 	
-	def is_conjugate_to(self, other):
+	def test_conjugate_to(self, other):
 		r"""Implements algorithm 5.6 to determine if the current automorphism :math:`\psi` is conjugate to the *other* automorphism :math:`\phi`.
 		
 		:returns: if it exists, a conjugating element :math:`\rho` such that :math:`\rho^{-1}\psi\rho = \phi`. If no such :math:`\rho` exists, returns ``None``.
@@ -727,28 +728,70 @@ class Automorphism:
 		if not(self.arity == other.arity and self.alphabet_size == other.alphabet_size):
 			raise ValueError('Both automorphisms must have the same arity and alphabet size.')
 		
-		o_qnf, s_p, s_ri = self.partition_qnf_basis()
-		o_qnf, o_p, o_ri = other.partition_qnf_basis()
+		#1a. Find quasi-normal bases and extract the list of periodic and infinite elements.
+		#S for self, O for other, P for periodic, I for infinite
+		s_basis, s_basis_p, s_basis_i = self.partition_basis()
+		o_basis, o_basis_p, o_basis_i = other.partition_basis()
 		
+		#2. Before going any further, check that the number of periodic and infinite elements are compatible.
 		modulus = self.arity - 1
-		if not (len(s_p) % modulus == len(o_p)  % modulus
-		  and  len(s_ri) % modulus == len(o_ri) % modulus):
+		if not (len(s_periodic) % modulus == len(o_periodic) % modulus
+		  and   len(s_infinite) % modulus == len(o_infinite) % modulus):
 			return None
+		
+		#3. Find the minimal expansion of qnf bases and partition into periodic and infinite parts.
+		s_exp = s_qnf_basis.minimal_expansion_for(self)
+		o_exp = o_qnf_basis.minimal_expansion_for(other)
+		
+		s_exp, s_exp_periodic, s_exp_infinite = self.partition_basis(s_exp)
+		o_exp, o_exp_periodic, o_exp_infinite = other.partition_basis(o_exp)
 		
 		#TODO implementme
 		#todo doctests
 	
-	def partition_qnf_basis(self):
-		"""Paritions the quasinormal basis elements into two lists *(periodic, infinite)* depending on their orbit type. Returns a triple *(qnf_basis, periodic, infinite)*."""
-		#todo doctests
-		basis = self.quasinormal_basis()
+	def partition_basis(self, basis=None):
+		r"""Let the current automorphism be in semi-normal form with respect to the given *basis*. This method places the elements of *basis* into two lists *(periodic, infinite)* depending on their orbit type. If *basis* is not given, the :meth:`quasinormal_basis` is used.
+		
+		:returns: a triple *(basis, periodic, infinite)*.
+		
+			>>> def print_triple(triple):
+			... 	for list in triple:
+			... 		print(Generators.__str__(list))
+			...
+			>>> print_triple(example_4_25.partition_basis())
+			[x1 a1, x1 a2 a1, x1 a2 a2]
+			[]
+			[x1 a1, x1 a2 a1, x1 a2 a2]
+			>>> print_triple(example_4_5.partition_basis())
+			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
+			[x1 a2 a1, x1 a2 a2]
+			[x1 a1 a1, x1 a1 a2]
+			>>> print_triple(example_5_3.partition_basis())
+			[x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2 a1, x1 a1 a2 a2, x1 a2 a1, x1 a2 a2]
+			[x1 a1 a2 a1, x1 a1 a2 a2]
+			[x1 a1 a1 a1, x1 a1 a1 a2, x1 a2 a1, x1 a2 a2]
+			>>> basis = example_5_3.quasinormal_basis()
+			>>> basis = basis.minimal_expansion_for(example_5_3)
+			>>> print_triple(example_5_3.partition_basis(basis))
+			[x1 a1 a1 a1 a1, x1 a1 a1 a1 a2, x1 a1 a1 a2, x1 a1 a2 a1, x1 a1 a2 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2]
+			[x1 a1 a2 a1, x1 a1 a2 a2]
+			[x1 a1 a1 a1 a1, x1 a1 a1 a1 a2, x1 a1 a1 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2]
+		"""
+		if basis is None:
+			basis = self.quasinormal_basis()
 		periodic = []
+		infinite = []
 		for gen in basis:
-			type = self._qnf_orbit_types[gen]
-			if gen.is_type("A"):
+			try:
+				type = self._qnf_orbit_types[gen]
+			except KeyError:
+				type, _ = self._orbit_type(gen, basis)
+			if type.is_type("A"):
 				periodic.append(gen)
-			else:
+			elif type.is_type("B") or type.is_type("C"):
 				infinite.append(gen)
+			else:
+				raise ValueError('Automorphism was not in semi-normal form with respect to the given basis.')
 		return basis, periodic, infinite
 
 

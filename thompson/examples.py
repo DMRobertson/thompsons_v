@@ -5,7 +5,12 @@ from .generators import Generators
 from .word import Word
 
 __all__ = ["cyclic_order_six", "arity_three_order_inf", "arity_four", "alphabet_size_two",
-           "example_4_5", "example_4_11", "example_4_12", "example_4_25"]
+           "example_4_5", "example_4_11", "example_4_12", "example_4_25",
+           "example_5_3"]
+
+#TODO. Have a method that reads automorphisms in from a file. Writing the Python syntax around all this is boring.
+#TODO. Allow powers in the definition of words e.g. a1^4?
+#TODO. Allow chaining of subscripts? e.g. a121 == a1 a2 a1?
 
 #Example 4.5
 domain = Generators(2, 1, ["x1 a1 a1 a1", "x1 a1 a1 a2", "x1 a1 a2",    "x1 a2 a1", "x1 a2 a2"])
@@ -29,6 +34,13 @@ example_4_12 = Automorphism(2, 1, domain, range)
 domain = Generators(2, 1, ["x a1",       "x a2 a1",    "x a2 a2 a1 a1", "x a2 a2 a1 a2", "x a2 a2 a2"])
 range  = Generators(2, 1, ["x a1 a1 a1", "x a1 a1 a2", "x a2 a2",       "x a1 a2",       "x a2 a1"   ])
 example_4_25 = Automorphism(2, 1, domain, range)
+
+#Example 5.3
+domain = ["x a1 a1 a1 a1", "x a1 a1 a1 a2", "x a1 a1 a2",    "x a1 a2 a1", "x a1 a2 a2", "x a2 a1",    "x a2 a2 a1", "x a2 a2 a2"]
+range  = ["x a1 a1 a1",    "x a1 a1 a2 a1", "x a1 a1 a2 a2", "x a1 a2 a2", "x a1 a2 a1", "x a2 a1 a1", "x a2 a1 a2", "x a2 a2"]
+d = Generators(2, 1, (Word(w, 2, 1) for w in domain))
+r = Generators(2, 1, (Word(w, 2, 1) for w in range))
+example_5_3 = Automorphism(2, 1, d, r)
 
 #A completely periodic element of order six
 leaves = ["x a1 a1", "x a1 a2 a1", "x a1 a2 a2 a1", "x a1 a2 a2 a2", "x a2 a1", "x a2 a2"]
