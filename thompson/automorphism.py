@@ -17,14 +17,13 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 	from thompson.generators import Generators
 	from thompson.orbits import dump_orbit_types
 
-The Automorphism class
-----------------------
 """
 
 __all__ = ["Automorphism"]
 
-from itertools import product
+from collections import defaultdict
 from io import StringIO
+from itertools import product
 
 from .word import *
 from .generators import Generators
@@ -732,11 +731,15 @@ class Automorphism:
 	
 	#Testing conjugacy
 	def test_conjugate_to(self, other):
-		r"""Implements algorithm 5.6 to determine if the current automorphism :math:`\psi` is conjugate to the *other* automorphism :math:`\phi`.
+		r"""Determines if the current automorphism :math:`\psi` is conjugate to the *other* automorphism :math:`\phi`.
 		
 		:returns: if it exists, a conjugating element :math:`\rho` such that :math:`\rho^{-1}\psi\rho = \phi`. If no such :math:`\rho` exists, returns ``None``.
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
+		
+		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27. See also :meth:`PeriodicAutomorphism.is_conjugate_to` and :meth:`InfiniteAutomorphism.is_conjugate_to`.
 		"""
+		#todo doctests
+		#TODO broken links.
 		if not(self.arity == other.arity and self.alphabet_size == other.alphabet_size):
 			raise ValueError('Both automorphisms must have the same arity and alphabet size.')
 		
@@ -757,11 +760,21 @@ class Automorphism:
 			return None
 		
 		#Steps 2 and 3: construct the free factors.
-		s_p, s_i =  self._free_factors(s_qnf, s_qnf_p, s_qnf_i)
-		o_p, o_i = other._free_factors(o_qnf, o_qnf_p, o_qnf_i)
+		s_p, s_i =  self.free_factors()
+		o_p, o_i = other.free_factors()
 		
-		#TODO implementme
-		#todo doctests
+		#Step 4. Test the periodic factors.
+		rho_p = s_p.test_conjugate_to(o_p)
+		if rho_p is None:
+			return None
+		
+		#Step 5. Test the infinite factors
+		rho_i = s_i.test_conjugate_to(o_i)
+		if rho_i is None:
+			return None
+		
+		#Step 6. TODO need to be able to compute this free product(???)
+		return rho_p * rho_i
 	
 	def _partition_basis(self, basis):
 		r"""Let the current automorphism be in semi-normal form with respect to the given *basis*. This method places the elements of *basis* into two lists *(periodic, infinite)* depending on their orbit type. 
@@ -805,12 +818,10 @@ class Automorphism:
 		infinite = Generators(self.arity, self.alphabet_size, infinite)
 		return periodic, infinite
 	
-	def _free_factors(self, basis, basis_p, basis_i):
+	def free_factors(self):
 		r"""Let :math:`\phi` denote the current automorphism. This map produces the 'free factors' :math:`\phi_P` and :math:`\phi_{RI}` which are completely periodic and completely infinite, respectively.
 		
-			>>> basis = example_5_3.quasinormal_basis()
-			>>> basis_p, basis_i = example_5_3._partition_basis(basis)
-			>>> s_p, s_i = example_5_3._free_factors(basis, basis_p, basis_i)
+			>>> s_p, s_i = example_5_3.free_factors()
 			>>> print(s_p)
 			PeriodicAutomorphism of V_2,2 specified by 2 generators (after reduction):
 			x1 -> x2
@@ -831,7 +842,11 @@ class Automorphism:
 			x2  ~~> x1 a1 a1 a2
 			x3  ~~> x1 a2 a1
 			x4  ~~> x1 a2 a2
+			>>> print(*example_5_9.free_factors(), sep='\n')
 		"""
+		basis = self.quasinormal_basis()
+		basis_p, basis_i = self._partition_basis(basis)
+		
 		expansion = basis.minimal_expansion_for(self)
 		expansion_p, expansion_i = self._partition_basis(expansion)
 		
@@ -840,7 +855,8 @@ class Automorphism:
 		
 		alphabet_size, domain, range = self._rewrite_mapping(expansion_i, basis_i)
 		s_i = InfiniteAutomorphism(self.arity, alphabet_size, domain, range, basis_i)
-		
+		#TODO. Need to deal with what happens if either automorphism is trivial.
+		#      Look to see if expansion_T or basis_T is empty.
 		return s_p, s_i
 	
 	def _rewrite_mapping(self, words, basis):
@@ -958,7 +974,61 @@ class AutomorphismComponent(Automorphism):
 		return output.getvalue()
 
 class PeriodicAutomorphism(AutomorphismComponent):
-	pass
-
+	r"""
+	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)` where :math:`\phi` is the current automorphism and :math:`X_\phi` is the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.quasinormal_basis>` for :math:`\phi`.
+	"""
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		
+		self.quasinormal_basis()
+		
+		#See discussion before lemma 5.3
+		assert self.quasinormal_basis() == Generators.standard_basis(self.arity, self.alphabet_size)
+		assert self.quasinormal_basis().minimal_expansion_for(self) == self.domain
+		
+		self._setup_multiplicities()
+	
+	def _setup_multiplicities(self):
+		counts = defaultdict(int)
+		for type in self._qnf_orbit_types.values():
+			period = type.data
+			counts[period] += 1
+		for key, value in counts.items():
+			assert value % key == 0
+			counts[key] = value // key
+		self.multiplicity = dict(counts)
+	
+	def is_conjugate_to(self, other):
+		#todo docstring and doctest
+		#see sec 5.3 and alg 5.13
+		if not isinstance(other, PeriodicAutomorphism):
+			raise TypeError('Other automorphism must be Periodic.')
+		
+		#1. The quasi-normal bases are constructed in initialisation.
+		#   Note that they should simply be the *r* root words *x1, ..., xr*.
+		
+		#2. Check that the cycle types are the same.
+		s_cycles = self.cycle_type()
+		o_cycles = other.cycle_type()
+		if self.cycle_types() != other.cycle_types():
+			return None
+		
+		#3. Check that the multiplicites are congruent.
+		modulus = self.arity - 1
+		for d in s_cycles:
+			if self.multiplicity[d] % modulus != other.multiplicity[d] % modulus:
+				return None
+		
+		#4. Construct bases X'?
+		#5. Choose a map rho.???
+	
+	def cycle_type(self):
+		#see def 5.8
+		return {type.data for type in self._qnf_orbit_types.values()}
+	
+	
 class InfiniteAutomorphism(AutomorphismComponent):
-	pass
+	def equivalence_classes(self):
+		pass
+	
+	

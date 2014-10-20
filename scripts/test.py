@@ -11,6 +11,6 @@ def setup_script(__file__):
 	except IndexError:
 		parent = str(Path('..').resolve())
 	sys.path.insert(0, parent)
-	svg_file = path.stem + ".svg"
-	from thompson.drawing import new_drawing
-	return new_drawing(filename=svg_file)
+	# svg_file = path.stem + ".svg"
+	# from thompson.drawing import new_drawing
+	# return new_drawing(filename=svg_file)

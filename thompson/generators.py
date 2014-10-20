@@ -25,7 +25,18 @@ class Generators(list):
 	"""
 	
 	def __init__(self, arity, alphabet_size, generators=None):
-		"""When creating a generating set, you must specify the algebra :math:`V_{n, r}` it is a subset of. A list of generators can optionally be provided. Each generator is passed to :meth:`append`."""
+		"""When creating a generating set, you must specify the algebra :math:`V_{n, r}` it is a subset of. A list of generators can optionally be provided. Each generator is passed to :meth:`append`.
+		
+		:raises ValueError: if either of *arity* and *alphabet_size* is not a natural number.
+		"""
+		if not arity > 0:
+			raise ValueError('Arity should be a natural number (received {}).'.format(
+			  arity))
+		
+		if not alphabet_size > 0:
+			raise ValueError('Alphabet size should be a natural number (received {}).'.format(
+			  alphabet_size))
+		
 		self.arity = arity
 		self.alphabet_size = alphabet_size
 		if generators is not None:

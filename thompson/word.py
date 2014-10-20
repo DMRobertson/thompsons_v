@@ -118,6 +118,7 @@ def validate(letters, arity, alphabet_size=float('inf')):
 			...
 		ValueError: Word is invalid: valency is 2 (should be 1).
 	
+	:raises ValueError: if either *arity* or *alphabet_size* is not at least 1.
 	:raises ValueError: if this word fails the valency test.
 	:raises IndexError: if this word contains an :math:`x_i` outside of the range 1 ... *alphabet_size*
 	:raises IndexError: if this word contains an :math:`\alpha_i` outside of the range 1 ... *arity*
@@ -125,6 +126,15 @@ def validate(letters, arity, alphabet_size=float('inf')):
 	
 	.. seealso:: Proposition 2.12 of the paper for the *valency test*.
 	"""
+	if not arity > 0:
+		raise ValueError('Arity should be a natural number (received {}).'.format(
+		  arity))
+	
+	if not alphabet_size > 0:
+		raise ValueError('Alphabet size should be a natural number (received {}).'.format(
+		  alphabet_size))
+	
+	
 	symbol = letters[0]
 	if symbol < 0:
 		raise ValueError("The first letter ({}) should be an x.".format(

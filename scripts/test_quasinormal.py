@@ -5,6 +5,4 @@ from thompson import *
 from thompson.examples import *
 from thompson.orbits import *
 
-from thompson.examples import example_4_5
-basis = Generators.standard_basis(2, 1)
-basis.minimal_expansion(example_4_5) == example_4_5.domain
+example_5_3.test_conjugate_to(example_5_3)
