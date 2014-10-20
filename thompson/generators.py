@@ -146,8 +146,10 @@ class Generators(list):
 		"""
 		return len(self.test_generates_algebra()) == 0
 		
-	def test_above(self, word):
-		"""Returns a pair (gen, tail) where gen belongs to the current basis and gen + tail = word. If no such pair exists, returns None.
+	def test_above(self, word, return_index=False):
+		"""Searches for a pair (gen, tail) where gen belongs to the current basis and gen + tail = word. If no such pair exists, returns None.
+		
+		If *return_index* is False, returns the pair *(gen, tail)*. Otherwise, returns the pair *(i, tail)* where *i* is the index of *gen* in the current basis.
 		
 			>>> basis = Generators.standard_basis(2, 1).expand(0).expand(0).expand(0)
 			>>> basis
@@ -155,10 +157,15 @@ class Generators(list):
 			>>> gen, tail = basis.test_above(Word('x1 a2 a2 a1', 2, 1))
 			>>> print(gen, '|', format(tail))
 			x1 a2 | a2 a1
+			>>> i, tail = basis.test_above(Word('x1 a2 a2 a1', 2, 1), return_index=True)
+			>>> print(basis[i])
+			x1 a2
 		"""
-		for gen in self:
+		for i, gen in enumerate(self):
 			result = gen.test_above(word)
 			if result is not None:
+				if return_index:
+					return i, result
 				return gen, result
 		return None
 	

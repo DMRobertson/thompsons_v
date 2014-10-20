@@ -325,8 +325,8 @@ class Automorphism:
 			x1 a2 a2    -> x1 a1 a2 a1
 		"""
 		output = StringIO()
-		output.write("Automorphism of V_{},{} specified by {} generators (after reduction):".format(
-		  self.arity, self.alphabet_size, len(self.domain)))
+		output.write("{} of V_{},{} specified by {} generators (after reduction):".format(
+		  type(self).__name__, self.arity, self.alphabet_size, len(self.domain)))
 		max_len = 0
 		for key in self.domain:
 			max_len = max(max_len, len(str(key)))
@@ -339,8 +339,8 @@ class Automorphism:
 	def dump_mapping(self, inverse=False, **kwargs):
 		r"""A tool for debugging. Prints all the mapping rules :math:`w \mapsto \phi(w)` that have been stored. If *inverse* is True, the rules for the inverse are printed. Any keyword arguments *kwargs* are passed to the :func:`print <py3:print>` function."""
 		dict = self._inv if inverse else self._map
-		print('Automorphism of V_{},{} specified by {} generators (after reduction).'.format(
-		  self.arity, self.alphabet_size, len(self.domain)), **kwargs)
+		print('{} of V_{},{} specified by {} generators (after reduction).'.format(
+		  type(self).__name__, self.arity, self.alphabet_size, len(self.domain)), **kwargs)
 		if inverse:
 			print('Printing the inverse mapping.', **kwargs)
 		print('The generators are marked by an asterisk.', **kwargs)
@@ -686,6 +686,7 @@ class Automorphism:
 				return SolutionSet.singleton(u_shift + i - v_shift)
 		return SolutionSet.empty_set
 		
+		#TODO needs a better name
 	def _preprocess(self, head, tail):
 		r"""Takes a pair :math:`(y, \Gamma)` below the quasi-normal basis :math:`X` and returns a triple :math:`(\widetilde{y}, \widetilde{\Gamma}, k) where
 		* The orbit of :math:`\widetilde{y}` is semi-infinite;
@@ -729,6 +730,7 @@ class Automorphism:
 			i += 1
 		return -power*i, tail[i*n:]
 	
+	#Testing conjugacy
 	def test_conjugate_to(self, other):
 		r"""Implements algorithm 5.6 to determine if the current automorphism :math:`\psi` is conjugate to the *other* automorphism :math:`\phi`.
 		
@@ -738,59 +740,54 @@ class Automorphism:
 		if not(self.arity == other.arity and self.alphabet_size == other.alphabet_size):
 			raise ValueError('Both automorphisms must have the same arity and alphabet size.')
 		
-		#1a. Find quasi-normal bases and extract the list of periodic and infinite elements.
-		#S for self, O for other, P for periodic, I for infinite
-		s_basis, s_basis_p, s_basis_i = self.partition_basis()
-		o_basis, o_basis_p, o_basis_i = other.partition_basis()
+		#1a. Find quasi-normal bases.
+		#S for self, O for other
+		s_qnf = self.quasinormal_basis()
+		o_qnf = other.quasinormal_basis()
 		
-		#2. Before going any further, check that the number of periodic and infinite elements are compatible.
+		#1b. and extract the list of periodic and infinite elements.
+		#P for periodic, I for infinite
+		s_qnf_p, s_qnf_i = self._partition_basis(s_qnf)
+		o_qnf_p, o_qnf_i = other._partition_basis(o_qnf)
+		
+		#1c. Before going any further, check that the number of periodic and infinite elements are compatible.
 		modulus = self.arity - 1
-		if not (len(s_periodic) % modulus == len(o_periodic) % modulus
-		  and   len(s_infinite) % modulus == len(o_infinite) % modulus):
+		if not (len(s_qnf_p) % modulus == len(o_qnf_p) % modulus
+		  and   len(s_qnf_i) % modulus == len(o_qnf_i) % modulus):
 			return None
 		
-		#3. Find the minimal expansion of qnf bases and partition into periodic and infinite parts.
-		s_exp = s_qnf_basis.minimal_expansion_for(self)
-		o_exp = o_qnf_basis.minimal_expansion_for(other)
-		
-		s_exp, s_exp_periodic, s_exp_infinite = self.partition_basis(s_exp)
-		o_exp, o_exp_periodic, o_exp_infinite = other.partition_basis(o_exp)
+		#Steps 2 and 3: construct the free factors.
+		s_p, s_i =  self._free_factors(s_qnf, s_qnf_p, s_qnf_i)
+		o_p, o_i = other._free_factors(o_qnf, o_qnf_p, o_qnf_i)
 		
 		#TODO implementme
 		#todo doctests
 	
-	def partition_basis(self, basis=None):
-		r"""Let the current automorphism be in semi-normal form with respect to the given *basis*. This method places the elements of *basis* into two lists *(periodic, infinite)* depending on their orbit type. If *basis* is not given, the :meth:`quasinormal_basis` is used.
+	def _partition_basis(self, basis):
+		r"""Let the current automorphism be in semi-normal form with respect to the given *basis*. This method places the elements of *basis* into two lists *(periodic, infinite)* depending on their orbit type. 
 		
-		:returns: a triple *(basis, periodic, infinite)*.
+		:returns: the pair *(periodic, infinite)*. Both entries are sets of :class:`~thompson.generators.Generators`.
 		
 		.. doctest::
 			
-			>>> def print_triple(triple):
-			... 	for list in triple:
-			... 		print(Generators.__str__(list))
-			...
-			>>> print_triple(example_4_25.partition_basis())
-			[x1 a1, x1 a2 a1, x1 a2 a2]
+			>>> basis = example_4_25.quasinormal_basis()
+			>>> print(*example_4_25._partition_basis(basis), sep='\n')
 			[]
 			[x1 a1, x1 a2 a1, x1 a2 a2]
-			>>> print_triple(example_4_5.partition_basis())
-			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
+			>>> basis = example_4_5.quasinormal_basis()
+			>>> print(*example_4_5._partition_basis(basis), sep='\n')
 			[x1 a2 a1, x1 a2 a2]
 			[x1 a1 a1, x1 a1 a2]
-			>>> print_triple(example_5_3.partition_basis())
-			[x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2 a1, x1 a1 a2 a2, x1 a2 a1, x1 a2 a2]
+			>>> basis = example_5_3.quasinormal_basis()
+			>>> print(*example_5_3._partition_basis(basis), sep='\n')
 			[x1 a1 a2 a1, x1 a1 a2 a2]
 			[x1 a1 a1 a1, x1 a1 a1 a2, x1 a2 a1, x1 a2 a2]
 			>>> basis = example_5_3.quasinormal_basis()
 			>>> basis = basis.minimal_expansion_for(example_5_3)
-			>>> print_triple(example_5_3.partition_basis(basis))
-			[x1 a1 a1 a1 a1, x1 a1 a1 a1 a2, x1 a1 a1 a2, x1 a1 a2 a1, x1 a1 a2 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2]
+			>>> print(*example_5_3._partition_basis(basis), sep='\n')
 			[x1 a1 a2 a1, x1 a1 a2 a2]
 			[x1 a1 a1 a1 a1, x1 a1 a1 a1 a2, x1 a1 a1 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2]
 		"""
-		if basis is None:
-			basis = self.quasinormal_basis()
 		periodic = []
 		infinite = []
 		for gen in basis:
@@ -804,10 +801,164 @@ class Automorphism:
 				infinite.append(gen)
 			else:
 				raise ValueError('Automorphism was not in semi-normal form with respect to the given basis.')
-		return basis, periodic, infinite
-
+		periodic = Generators(self.arity, self.alphabet_size, periodic)
+		infinite = Generators(self.arity, self.alphabet_size, infinite)
+		return periodic, infinite
+	
+	def _free_factors(self, basis, basis_p, basis_i):
+		r"""Let :math:`\phi` denote the current automorphism. This map produces the 'free factors' :math:`\phi_P` and :math:`\phi_{RI}` which are completely periodic and completely infinite, respectively.
+		
+			>>> basis = example_5_3.quasinormal_basis()
+			>>> basis_p, basis_i = example_5_3._partition_basis(basis)
+			>>> s_p, s_i = example_5_3._free_factors(basis, basis_p, basis_i)
+			>>> print(s_p)
+			PeriodicAutomorphism of V_2,2 specified by 2 generators (after reduction):
+			x1 -> x2
+			x2 -> x1
+			This is embedded in a parent automorphism by the following rules.
+			x1  ~~> x1 a1 a2 a1
+			x2  ~~> x1 a1 a2 a2
+			>>> print(s_i)
+			InfiniteAutomorphism of V_2,4 specified by 6 generators (after reduction):
+			x1 a1 -> x1
+			x1 a2 -> x2 a1
+			x2    -> x2 a2
+			x3    -> x3 a1
+			x4 a1 -> x3 a2
+			x4 a2 -> x4
+			This is embedded in a parent automorphism by the following rules.
+			x1  ~~> x1 a1 a1 a1
+			x2  ~~> x1 a1 a1 a2
+			x3  ~~> x1 a2 a1
+			x4  ~~> x1 a2 a2
+		"""
+		expansion = basis.minimal_expansion_for(self)
+		expansion_p, expansion_i = self._partition_basis(expansion)
+		
+		alphabet_size, domain, range = self._rewrite_mapping(expansion_p, basis_p)
+		s_p = PeriodicAutomorphism(self.arity, alphabet_size, domain, range, basis_p)
+		
+		alphabet_size, domain, range = self._rewrite_mapping(expansion_i, basis_i)
+		s_i = InfiniteAutomorphism(self.arity, alphabet_size, domain, range, basis_i)
+		
+		return s_p, s_i
+	
+	def _rewrite_mapping(self, words, basis):
+		r"""Takes the set of rules {w -> self[w] for w in words} and rewrites them as map between bases. Note that *words* must be an expansion of *basis*.
+		
+		:returns: a triple *(alphabet_size, domain, range)*.
+		
+			>>> def test_rewrite(aut, infinite=False):
+			... 	basis = aut.quasinormal_basis()
+			... 	basis_p, basis_i = aut._partition_basis(basis)
+			... 	expanded = basis.minimal_expansion_for(aut)
+			... 	expanded_p, expanded_i = aut._partition_basis(expanded)
+			... 	if infinite:
+			... 		old_domain = expanded_i
+			... 		basis = basis_i
+			... 	else:
+			... 		old_domain = expanded_p
+			... 		basis = basis_p
+			... 	_, new_domain, new_range = aut._rewrite_mapping(old_domain, basis)
+			... 	old_range = [aut.image(x) for x in old_domain]
+			... 	print('Infinite' if infinite else 'Periodic', 'part')
+			... 	print(old_domain)
+			... 	print('becomes:', new_domain)
+			... 	print(Generators.__str__(old_range))
+			... 	print('becomes:', new_range)
+			... 
+			>>> test_rewrite(example_5_3)
+			Periodic part
+			[x1 a1 a2 a1, x1 a1 a2 a2]
+			becomes: [x1, x2]
+			[x1 a1 a2 a2, x1 a1 a2 a1]
+			becomes: [x2, x1]
+			>>> test_rewrite(example_5_3, infinite=True)
+			Infinite part
+			[x1 a1 a1 a1 a1, x1 a1 a1 a1 a2, x1 a1 a1 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2]
+			becomes: [x1 a1, x1 a2, x2, x3, x4 a1, x4 a2]
+			[x1 a1 a1 a1, x1 a1 a1 a2 a1, x1 a1 a1 a2 a2, x1 a2 a1 a1, x1 a2 a1 a2, x1 a2 a2]
+			becomes: [x1, x2 a1, x2 a2, x3 a1, x3 a2, x4]
+		"""
+		#todo example doctest, better description
+		alphabet_size = len(basis)
+		domain = Generators(self.arity, alphabet_size)
+		range = Generators(self.arity, alphabet_size)
+		
+		for word in words:
+			preimage = self._rewrite(word, basis)
+			image = self._rewrite(self.image(word), basis)
+			domain.append(preimage)
+			range.append(image)
+		
+		return alphabet_size, domain, range
+	
+	def _rewrite(self, word, basis):
+		r"""Suppose that we have a *word* which is below a given *basis*. Then we can rewrite word as :math:`\text{word} = \text{basis}_{\,i} \Gamma`, for some :math:`\Gamma \in \langle A\rangle`.
+		
+			>>> basis = example_5_3.quasinormal_basis()
+			>>> basis_p, basis_i = example_5_3._partition_basis(basis)
+			>>> expanded = basis.minimal_expansion_for(example_5_3)
+			>>> expanded_p, expanded_i = example_5_3._partition_basis(expanded)
+			>>> for word in expanded_p:
+			... 	print(word, '->', example_5_3._rewrite(word, basis_p))
+			... 
+			x1 a1 a2 a1 -> x1
+			x1 a1 a2 a2 -> x2
+			>>> for word in expanded_i:
+			... 	print(word, '->', example_5_3._rewrite(word, basis_i))
+			... 
+			x1 a1 a1 a1 a1 -> x1 a1
+			x1 a1 a1 a1 a2 -> x1 a2
+			x1 a1 a1 a2 -> x2
+			x1 a2 a1 -> x3
+			x1 a2 a2 a1 -> x4 a1
+			x1 a2 a2 a2 -> x4 a2
+		"""
+		result = basis.test_above(word, return_index=True)
+		if result is None:
+			raise ValueError('The word {} is not below the basis {}'.format(
+			  word, basis))
+		
+		alphabet_size = len(basis)
+		index, tail = result
+		letters = (index + 1,) + tail
+		rewritten = Word(letters, self.arity, alphabet_size)
+		return rewritten
 
 #TODO. Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
 #TODO method to decide if the automorphism is in (the equivalent of) F, T, or V.
 #TODO the named elements A, B, C, X_n of Thompson's V.
 
+class AutomorphismComponent(Automorphism):
+	"""An automorphism derived from a larger parent automorphism.
+	
+	:ivar root_sources: a list of words which tells us where each root :math:`x_i` originally came from.
+	"""
+	#TODO use .. autoclass:: in the rst file so that I can insert a header here
+	def __init__(self, arity, alphabet_size, domain, range, root_sources):
+		"""In addition to creating an automorphism, we store a list of *root_sources* to keep track of the mapping between this automorphism's roots and the corresponding words of the parnet automorphism.
+		
+		:raises ValueError: if ``len(root_sources) != alphabet_size``.
+		"""
+		#todo example
+		if not len(root_sources) == alphabet_size:
+			raise ValueError('Each root must be associated to a word. Found {} associations but expected {}'.format(
+			  len(root_sources), alphabet_size))
+		super().__init__(arity, alphabet_size, domain, range)
+		self.root_sources = root_sources
+	
+	def __str__(self):
+		output = StringIO()
+		output.write(super().__str__())
+		output.write("\nThis is embedded in a parent automorphism by the following rules.")
+		for i, source in enumerate(self.root_sources):
+			output.write("\nx{: <2} ~~> {!s}".format(
+			  i + 1, source))
+		return output.getvalue()
+
+class PeriodicAutomorphism(AutomorphismComponent):
+	pass
+
+class InfiniteAutomorphism(AutomorphismComponent):
+	pass
