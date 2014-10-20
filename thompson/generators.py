@@ -120,7 +120,6 @@ class Generators(list):
 		:rtype: a list of :class:`Words <thompson.word.Word>`."""
 		
 		words = sorted(self) #Creates a shallow copy and then sorts it.
-		#Todo maybe this should be part of a generators.contract method
 		i = 0
 		while i <= len(words) - self.arity:
 			prefix = word.are_contractible(words[i : i + self.arity])

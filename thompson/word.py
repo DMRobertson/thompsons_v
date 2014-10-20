@@ -37,7 +37,6 @@ Functions and the Word class
 
 import operator
 from itertools import chain
-from .full_tree import FullTree
 
 __all__ = ["format", "from_string", "validate", "standardise", "are_contractible", "lambda_arguments", "Word", "_concat"]
 
