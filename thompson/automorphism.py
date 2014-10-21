@@ -29,6 +29,17 @@ from .word import *
 from .generators import Generators
 from .orbits import *
 
+def modulo_non_zero(x, n):
+	r"""Returns the unique integer :math:`s` such that :math:`1 \le s \le n` and :math:`s \equiv x \pmod{n}`.
+	
+		>>> [modulo_non_zero(x, 10) for x in range(20)]
+		[10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+	"""
+	x %= n
+	if x == 0:
+		return n
+	return x
+
 #TODO. Check the assumption that the bases consist of simple words only (no lambdas).
 #TODO. Is this even a problem any more? Will depend on how is_above() functions work I imagine.
 class Automorphism:
@@ -547,6 +558,7 @@ class Automorphism:
 				if prefix.is_above(previous):
 					return True, ell, m, images
 	
+	#Orbit sharing test
 	def share_orbit(self, u, v):
 		r"""Determines if :math:`u` and :math:`v` are in the same orbit of the current automorphism :math:`\psi`. Specifically, does there exist an integer :math:`m` such that :math:`u\psi^m = v`?
 		
@@ -684,8 +696,8 @@ class Automorphism:
 			if image == v:
 				return SolutionSet.singleton(u_shift + i - v_shift)
 		return SolutionSet.empty_set
-		
-		#TODO needs a better name
+	
+	#TODO needs a better name
 	def _preprocess(self, head, tail):
 		r"""Takes a pair :math:`(y, \Gamma)` below the quasi-normal basis :math:`X` and returns a triple :math:`(\widetilde{y}, \widetilde{\Gamma}, k) where
 		* The orbit of :math:`\widetilde{y}` is semi-infinite;
@@ -850,54 +862,62 @@ class Automorphism:
 		expansion = basis.minimal_expansion_for(self)
 		expansion_p, expansion_i = self._partition_basis(expansion)
 		
-		alphabet_size, domain, range = self._rewrite_mapping(expansion_p, basis_p)
-		s_p = PeriodicAutomorphism(self.arity, alphabet_size, domain, range, basis_p)
+		#Shouldn't need to expand periodic parts
+		assert expansion_p == basis_p
 		
-		alphabet_size, domain, range = self._rewrite_mapping(expansion_i, basis_i)
-		s_i = InfiniteAutomorphism(self.arity, alphabet_size, domain, range, basis_i)
+		modulus = self.arity - 1
+		#TODO. If basis_p == 0, we have a completly infintie automorphism. Need to deal with that somehow.
+		alphabet_size = modulo_non_zero(len(basis_p), modulus)
+		img_basis_p = Generators.standard_basis(self.arity, alphabet_size)
+		img_basis_p.expand_to_size(len(basis_p))
+		
+		domain, range = self._rewrite_mapping(expansion_p, basis_p, img_basis_p)
+		# s_p = PeriodicAutomorphism(self.arity, alphabet_size, domain, range, basis_p)
+		
+		# alphabet_size, domain, range = self._rewrite_mapping(expansion_i, basis_i)
+		# s_i = InfiniteAutomorphism(self.arity, alphabet_size, domain, range, basis_i)
 		#TODO. Need to deal with what happens if either automorphism is trivial.
 		#      Look to see if expansion_T or basis_T is empty.
 		return s_p, s_i
 	
-	def _rewrite_mapping(self, words, basis):
-		r"""Takes the set of rules {w -> self[w] for w in words} and rewrites them as map between bases. Note that *words* must be an expansion of *basis*.
+	def _rewrite_mapping(self, words, basis, img_basis):
+		r"""Given a *basis*, a set of *words* below that *basis*, and a bijective image *img_basis* of *basis*, this method rewrites the list of rules ``w -> self[w] for w in words`` in terms of the new *img_basis*.
 		
-		:returns: a triple *(alphabet_size, domain, range)*.
-		
-			>>> def test_rewrite(aut, infinite=False):
-			... 	basis = aut.quasinormal_basis()
-			... 	basis_p, basis_i = aut._partition_basis(basis)
-			... 	expanded = basis.minimal_expansion_for(aut)
-			... 	expanded_p, expanded_i = aut._partition_basis(expanded)
-			... 	if infinite:
-			... 		old_domain = expanded_i
-			... 		basis = basis_i
-			... 	else:
-			... 		old_domain = expanded_p
-			... 		basis = basis_p
-			... 	_, new_domain, new_range = aut._rewrite_mapping(old_domain, basis)
-			... 	old_range = [aut.image(x) for x in old_domain]
-			... 	print('Infinite' if infinite else 'Periodic', 'part')
-			... 	print(old_domain)
-			... 	print('becomes:', new_domain)
-			... 	print(Generators.__str__(old_range))
-			... 	print('becomes:', new_range)
-			... 
-			>>> test_rewrite(example_5_3)
-			Periodic part
-			[x1 a1 a2 a1, x1 a1 a2 a2]
-			becomes: [x1, x2]
-			[x1 a1 a2 a2, x1 a1 a2 a1]
-			becomes: [x2, x1]
-			>>> test_rewrite(example_5_3, infinite=True)
-			Infinite part
-			[x1 a1 a1 a1 a1, x1 a1 a1 a1 a2, x1 a1 a1 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2]
-			becomes: [x1 a1, x1 a2, x2, x3, x4 a1, x4 a2]
-			[x1 a1 a1 a1, x1 a1 a1 a2 a1, x1 a1 a1 a2 a2, x1 a2 a1 a1, x1 a2 a1 a2, x1 a2 a2]
-			becomes: [x1, x2 a1, x2 a2, x3 a1, x3 a2, x4]
+		:returns: a pair *(domain, range)* where *domain* and *range* are both below *img_basis*.
 		"""
+			# >>> def test_rewrite(aut, infinite=False):
+			# ... 	basis = aut.quasinormal_basis()
+			# ... 	basis_p, basis_i = aut._partition_basis(basis)
+			# ... 	expanded = basis.minimal_expansion_for(aut)
+			# ... 	expanded_p, expanded_i = aut._partition_basis(expanded)
+			# ... 	if infinite:
+			# ... 		old_domain = expanded_i
+			# ... 		basis = basis_i
+			# ... 	else:
+			# ... 		old_domain = expanded_p
+			# ... 		basis = basis_p
+			# ... 	_, new_domain, new_range = aut._rewrite_mapping(old_domain, basis)
+			# ... 	old_range = [aut.image(x) for x in old_domain]
+			# ... 	print('Infinite' if infinite else 'Periodic', 'part')
+			# ... 	print(old_domain)
+			# ... 	print('becomes:', new_domain)
+			# ... 	print(Generators.__str__(old_range))
+			# ... 	print('becomes:', new_range)
+			# ... 
+			# >>> test_rewrite(example_5_3)
+			# Periodic part
+			# [x1 a1 a2 a1, x1 a1 a2 a2]
+			# becomes: [x1, x2]
+			# [x1 a1 a2 a2, x1 a1 a2 a1]
+			# becomes: [x2, x1]
+			# >>> test_rewrite(example_5_3, infinite=True)
+			# Infinite part
+			# [x1 a1 a1 a1 a1, x1 a1 a1 a1 a2, x1 a1 a1 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2]
+			# becomes: [x1 a1, x1 a2, x2, x3, x4 a1, x4 a2]
+			# [x1 a1 a1 a1, x1 a1 a1 a2 a1, x1 a1 a1 a2 a2, x1 a2 a1 a1, x1 a2 a1 a2, x1 a2 a2]
+			# becomes: [x1, x2 a1, x2 a2, x3 a1, x3 a2, x4]
 		#todo example doctest, better description
-		alphabet_size = len(basis)
+		alphabet_size = mod_len(basis)
 		domain = Generators(self.arity, alphabet_size)
 		range = Generators(self.arity, alphabet_size)
 		
@@ -909,8 +929,8 @@ class Automorphism:
 		
 		return alphabet_size, domain, range
 	
-	def _rewrite(self, word, basis):
-		r"""Suppose that we have a *word* which is below a given *basis*. Then we can rewrite word as :math:`\text{word} = \text{basis}_{\,i} \Gamma`, for some :math:`\Gamma \in \langle A\rangle`.
+	def _rewrite(self, word, basis, img_basis):
+		r"""Suppose that we have a *word* which is below a given *basis*. Suppose we have a bijection between *basis* and some image *img_basis*. Then we can rewrite *word* as as descendant of *img_basis* in a manner which is compatible with this bijection.
 		
 			>>> basis = example_5_3.quasinormal_basis()
 			>>> basis_p, basis_i = example_5_3._partition_basis(basis)

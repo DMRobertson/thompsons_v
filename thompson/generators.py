@@ -290,4 +290,25 @@ class Generators(list):
 		"""
 		self[index: index+1] = [self[index].alpha(i) for i in range(1, self.arity+1)]
 		return self #allows chaining
-
+	
+	def expand_to_size(self, size):
+		"""Expands the current generating set until it has the given *size*. The expansions begin from the end of the generating set and work leftwards, wrapping around if we reach the start. (This is to try and avoid creating long words where possible.)
+		
+			>>> #TODO
+		
+		:raises ValueError: if an expansion to the given size is not possible.
+		"""
+		#TODO example
+		modulus = self.arity - 1
+		if size % modulus != len(self) % modulus:
+			raise ValueError("Cannot expand from length {} to length {} in steps of size {}.".format(
+			  len(self), size, modulus))
+			  
+		num_expansions = size // modulus
+		i = -1
+		for _ in range(num_expansions):
+			if i < 0:
+				i = len(self) - 1
+			image_of_basis.expand(i)
+			i -= 1
+		assert len(self) == size

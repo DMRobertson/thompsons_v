@@ -10,7 +10,6 @@ __all__ = ["cyclic_order_six", "arity_three_order_inf", "arity_four", "alphabet_
 
 #TODO. Have a method that reads automorphisms in from a file. Writing the Python syntax around all this is boring.
 #TODO. Allow powers in the definition of words e.g. a1^4?
-#TODO. Allow chaining of subscripts? e.g. a121 == a1 a2 a1?
 
 #Example 4.5
 domain = Generators(2, 1, ["x1 a1 a1 a1", "x1 a1 a1 a2", "x1 a1 a2",    "x1 a2 a1", "x1 a2 a2"])
