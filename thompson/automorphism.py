@@ -752,41 +752,45 @@ class Automorphism:
 		"""
 		#todo doctests
 		#TODO broken links.
-		if not(self.arity == other.arity and self.alphabet_size == other.alphabet_size):
+		#0. Check that both automorphisms belong to the same G_{n,r}.
+		if not(self.arity == other.arity
+		  and self.alphabet_size == other.alphabet_size):
 			raise ValueError('Both automorphisms must have the same arity and alphabet size.')
 		
-		#1a. Find quasi-normal bases.
-		#S for self, O for other
-		s_qnf = self.quasinormal_basis()
-		o_qnf = other.quasinormal_basis()
-		
-		#1b. and extract the list of periodic and infinite elements.
-		#P for periodic, I for infinite
-		s_qnf_p, s_qnf_i = self._partition_basis(s_qnf)
-		o_qnf_p, o_qnf_i = other._partition_basis(o_qnf)
-		
-		#1c. Before going any further, check that the number of periodic and infinite elements are compatible.
-		modulus = self.arity - 1
-		if not (len(s_qnf_p) % modulus == len(o_qnf_p) % modulus
-		  and   len(s_qnf_i) % modulus == len(o_qnf_i) % modulus):
+		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
+		result = self._check_parition_sizes()
+		if result is None:
 			return None
-		
-		#Steps 2 and 3: construct the free factors.
+		pure_periodic, pure_infinite = result
+		'''
+		TODO SORT ME OUT
+		#2 and 3. Construct the free factors and rewrite them inside V_{n,s_T}
+		#call the results sp and si
 		s_p, s_i =  self.free_factors()
 		o_p, o_i = other.free_factors()
 		
-		#Step 4. Test the periodic factors.
-		rho_p = s_p.test_conjugate_to(o_p)
-		if rho_p is None:
-			return None
+		#Step 4. If necessary, test the periodic factors.
+		if not pure_infinite:
+			rho_p = s_p.test_conjugate_to(o_p)
+			if rho_p is None:
+				return None
+			rewrite rho_p in terms of the original algebra
+			if pure_periodic:
+				return rho_p (newly rewritten)
 		
-		#Step 5. Test the infinite factors
-		rho_i = s_i.test_conjugate_to(o_i)
-		if rho_i is None:
-			return None
+		#Step 5. If necessary, test the infinite factors.
+		if not pure_periodic:
+			rho_i = s_i.test_conjugate_to(o_i)
+			if rho_i is None:
+				return None
+			rewrite rho_i in terms of the original algebra
+			if pure_infinite:
+				return rho_i
 		
-		#Step 6. TODO need to be able to compute this free product(???)
+		#Step 6. If we've got this far, we have a periodic/infinite mixture.
+		#Combine the rewritten conjugators.
 		return rho_p * rho_i
+		'''
 	
 	def _partition_basis(self, basis):
 		r"""Let the current automorphism be in semi-normal form with respect to the given *basis*. This method places the elements of *basis* into two lists *(periodic, infinite)* depending on their orbit type. 
@@ -830,7 +834,44 @@ class Automorphism:
 		infinite = Generators(self.arity, self.alphabet_size, infinite)
 		return periodic, infinite
 	
+	def _check_parition_sizes(self):
+		"""Checks the sizes of a partition of two quasinormal bases to see if they might possibly describe conjugate automorphisms.
+		
+		:raises ValueError: if for some bizarre reason we find that either quasinormal basis is of size zero.
+		:returns: None if we discover conjugacy is impossible; otherwise returns a pair of booleans *(pure_periodic, pure_infinite)*. Note that even if such a pair is returned, we do **not** know for certain that conjugacy is possible.
+		"""
+		#todo doctest
+		s_qnf = self.quasinormal_basis()
+		o_qnf = other.quasinormal_basis()
+		#Check that we have at at least one element in each basis.
+		#This eliminates the possibility that either s or o is both pure periodic and pure infinite.
+		if len(s_qnf) == 0:
+			raise ValueError("The first partition describes a basis of 0 elements.")
+		if len(o_qnf) == 0:
+			raise ValueError("The second partition describes a basis of 0 elements.")
+		
+		s_qnf_p, s_qnf_i = self._partition_basis(s_qnf)
+		o_qnf_p, o_qnf_i = other._partition_basis(o_qnf)
+		
+		s_pure_periodic = len(s_qnf_i) == 0
+		s_pure_infinite = len(s_qnf_p) == 0
+		o_pure_periodic = len(o_qnf_i) == 0
+		o_pure_infinite = len(o_qnf_p) == 0
+		
+		#Check that s is periodic iff o is periodic and the same for infinite.
+		if not (s_pure_periodic == o_pure_periodic
+		  and   s_pure_infinite == o_pure_infinite):
+			return None
+		
+		#Check that the lengths match up modulo n-1.
+		modulus = self.arity - 1
+		if not (len(s_qnf_p) % modulus == len(o_qnf_p) % modulus
+		  and   len(s_qnf_i) % modulus == len(o_qnf_i) % modulus):
+			return None
+		return s_pure_periodic, s_pure_infinite
+	
 	def free_factors(self):
+		#todo sort me out
 		r"""Let :math:`\phi` denote the current automorphism. This map produces the 'free factors' :math:`\phi_P` and :math:`\phi_{RI}` which are completely periodic and completely infinite, respectively.
 		
 			>>> s_p, s_i = example_5_3.free_factors()
@@ -881,6 +922,7 @@ class Automorphism:
 		return s_p, s_i
 	
 	def _rewrite_mapping(self, words, basis, img_basis):
+		#todo sort me out
 		r"""Given a *basis*, a set of *words* below that *basis*, and a bijective image *img_basis* of *basis*, this method rewrites the list of rules ``w -> self[w] for w in words`` in terms of the new *img_basis*.
 		
 		:returns: a pair *(domain, range)* where *domain* and *range* are both below *img_basis*.
@@ -930,6 +972,7 @@ class Automorphism:
 		return alphabet_size, domain, range
 	
 	def _rewrite(self, word, basis, img_basis):
+		#todo sort me out
 		r"""Suppose that we have a *word* which is below a given *basis*. Suppose we have a bijection between *basis* and some image *img_basis*. Then we can rewrite *word* as as descendant of *img_basis* in a manner which is compatible with this bijection.
 		
 			>>> basis = example_5_3.quasinormal_basis()
@@ -962,7 +1005,7 @@ class Automorphism:
 		rewritten = Word(letters, self.arity, alphabet_size)
 		return rewritten
 
-#TODO. Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
+#TODO? Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
 #TODO method to decide if the automorphism is in (the equivalent of) F, T, or V.
 #TODO the named elements A, B, C, X_n of Thompson's V.
 
@@ -971,7 +1014,6 @@ class AutomorphismComponent(Automorphism):
 	
 	:ivar root_sources: a list of words which tells us where each root :math:`x_i` originally came from.
 	"""
-	#TODO use .. autoclass:: in the rst file so that I can insert a header here
 	def __init__(self, arity, alphabet_size, domain, range, root_sources):
 		"""In addition to creating an automorphism, we store a list of *root_sources* to keep track of the mapping between this automorphism's roots and the corresponding words of the parnet automorphism.
 		
