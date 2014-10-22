@@ -875,6 +875,8 @@ class Automorphism:
 			&G_{n, r}	&\to		&G_{n, |X|}		&\to		&G_{n, s} \\
 			&\phi		&\mapsto	&\phi|_X		&\mapsto	&\phi\,'
 		
+		:raises ValueError: if an empty list of *generators* is provided.
+		
 		:returns: The transformed automorphism :math:`\phi\, \in G_{n, s}'. Its type is :class:`PeriodicAutomorphism` if *infinite* is False; otherwise its type is :class:`InfiniteAutomorphism`.
 		
 		.. doctest::
@@ -889,24 +891,38 @@ class Automorphism:
 			This is embedded in a parent automorphism by the following rules.
 			y1 a1 ~~> x1 a1 a2 a1
 			y1 a2 ~~> x1 a1 a2 a2
-			>>> print(example_5_3.free_factor(i, infinite=True))
+		
+		.. doctest::
+			:hide:
+			
+
+			>>> # alphabet_size_two example
+			>>> qnb = alphabet_size_two.quasinormal_basis()
+			>>> p, i = alphabet_size_two._partition_basis(qnb)
+			>>> print(alphabet_size_two.free_factor(p, infinite=False))
 			Using {y1} to denote the root letters of this automorphism.
-			InfiniteAutomorphism of V_2,1 specified by 6 generators (after reduction):
-			y1 a1 a1 a1 -> y1 a1 a1
-			y1 a1 a1 a2 -> y1 a1 a2 a1
-			y1 a1 a2    -> y1 a1 a2 a2
-			y1 a2 a1    -> y1 a2 a1 a1
-			y1 a2 a2 a1 -> y1 a2 a1 a2
-			y1 a2 a2 a2 -> y1 a2 a2
+			PeriodicAutomorphism of V_3,1 specified by 1 generators (after reduction):
+			y1 -> y1
 			This is embedded in a parent automorphism by the following rules.
-			y1 a1 a1 a1 ~~> x1 a1 a1 a1 a1
-			y1 a1 a1 a2 ~~> x1 a1 a1 a1 a2
-			y1 a1 a2    ~~> x1 a1 a1 a2
-			y1 a2 a1    ~~> x1 a2 a1
-			y1 a2 a2 a1 ~~> x1 a2 a2 a1
-			y1 a2 a2 a2 ~~> x1 a2 a2 a2
+			y1 ~~> x1 a1
+			>>> print(alphabet_size_two.free_factor(i, infinite=True))
+			Using {y1} to denote the root letters of this automorphism.
+			InfiniteAutomorphism of V_3,1 specified by 5 generators (after reduction):
+			y1 a1    -> y1 a1 a3
+			y1 a2    -> y1 a3
+			y1 a3 a1 -> y1 a2
+			y1 a3 a2 -> y1 a1 a2
+			y1 a3 a3 -> y1 a1 a1
+			This is embedded in a parent automorphism by the following rules.
+			y1 a1    ~~> x1 a2
+			y1 a2    ~~> x1 a3
+			y1 a3 a1 ~~> x2 a1
+			y1 a3 a2 ~~> x2 a2
+			y1 a3 a3 ~~> x2 a3
 		"""
 		#TODO more doctests
+		if len(generators) == 0:
+			raise ValueError('Must provide at least one generator.')
 		expansion = generators.minimal_expansion_for(self)
 		modulus = self.arity - 1
 		alphabet_size = modulo_non_zero(len(generators), modulus)

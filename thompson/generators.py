@@ -310,7 +310,7 @@ class Generators(list):
 		:raises ValueError: if an expansion to the given size is not possible.
 		"""
 		modulus = self.arity - 1
-		if (size % modulus != len(self) % modulus) or size <= len(self):
+		if (size % modulus != len(self) % modulus) or size < len(self):
 			raise ValueError("Cannot expand from length {} to length {} in steps of size {}.".format(
 			  len(self), size, modulus))
 			  
