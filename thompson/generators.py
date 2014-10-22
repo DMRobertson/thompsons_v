@@ -294,21 +294,31 @@ class Generators(list):
 	def expand_to_size(self, size):
 		"""Expands the current generating set until it has the given *size*. The expansions begin from the end of the generating set and work leftwards, wrapping around if we reach the start. (This is to try and avoid creating long words where possible.)
 		
-			>>> #TODO
+			>>> basis = Generators.standard_basis(3, 1); print(basis)
+			[x1]
+			>>> basis.expand_to_size(11); print(basis)
+			[x1 a1 a1, x1 a1 a2, x1 a1 a3, x1 a2 a1, x1 a2 a2, x1 a2 a3, x1 a3 a1, x1 a3 a2, x1 a3 a3 a1, x1 a3 a3 a2, x1 a3 a3 a3]
+			>>> basis = Generators.standard_basis(2, 1); print(basis)
+			[x1]
+			>>> basis.expand_to_size(2); print(basis)
+			[x1 a1, x1 a2]
+			>>> basis = Generators.standard_basis(2, 3).expand(2).expand(0); print(basis)
+			[x1 a1, x1 a2, x2, x3 a1, x3 a2]
+			>>> basis.expand_to_size(12); print(basis)
+			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2, x2 a1, x2 a2, x3 a1 a1, x3 a1 a2, x3 a2 a1 a1, x3 a2 a1 a2, x3 a2 a2 a1, x3 a2 a2 a2]
 		
 		:raises ValueError: if an expansion to the given size is not possible.
 		"""
-		#TODO example
 		modulus = self.arity - 1
-		if size % modulus != len(self) % modulus:
+		if (size % modulus != len(self) % modulus) or size <= len(self):
 			raise ValueError("Cannot expand from length {} to length {} in steps of size {}.".format(
 			  len(self), size, modulus))
 			  
-		num_expansions = size // modulus
+		num_expansions = (size - len(self))// modulus
 		i = -1
 		for _ in range(num_expansions):
 			if i < 0:
 				i = len(self) - 1
-			image_of_basis.expand(i)
+			self.expand(i)
 			i -= 1
 		assert len(self) == size

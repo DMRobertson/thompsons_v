@@ -5,4 +5,6 @@ from thompson import *
 from thompson.examples import *
 from thompson.orbits import *
 
-example_5_3.test_conjugate_to(example_5_3)
+qnb = example_4_5.quasinormal_basis()
+p, i = example_4_5._partition_basis(qnb)
+print(example_4_5.free_factor(p, infinite=False))
