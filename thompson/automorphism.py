@@ -748,7 +748,7 @@ class Automorphism:
 		:returns: if it exists, a conjugating element :math:`\rho` such that :math:`\rho^{-1}\psi\rho = \phi`. If no such :math:`\rho` exists, returns ``None``.
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
 		
-		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27. See also :meth:`PeriodicAutomorphism.test_conjugate_to` and :meth:`InfiniteAutomorphism.test_conjugate_to`.
+		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27. See also :meth:`PeriodicFactor.test_conjugate_to` and :meth:`InfiniteFactor.test_conjugate_to`.
 		"""
 		#todo doctests
 		#TODO broken links.
@@ -877,7 +877,7 @@ class Automorphism:
 		
 		:raises ValueError: if an empty list of *generators* is provided.
 		
-		:returns: The transformed automorphism :math:`\phi\, \in G_{n, s}'. Its type is :class:`PeriodicAutomorphism` if *infinite* is False; otherwise its type is :class:`InfiniteAutomorphism`.
+		:returns: The transformed automorphism :math:`\phi\, \in G_{n, s}`. Its type is :class:`PeriodicFactor` if *infinite* is False; otherwise its type is :class:`InfiniteFactor`.
 		
 		.. doctest::
 			
@@ -885,7 +885,7 @@ class Automorphism:
 			>>> p, i = example_5_3._partition_basis(qnb)
 			>>> print(example_5_3.free_factor(p, infinite=False))
 			Using {y1} to denote the root letters of this automorphism.
-			PeriodicAutomorphism of V_2,1 specified by 2 generators (after reduction):
+			PeriodicFactor of V_2,1 specified by 2 generators (after reduction):
 			y1 a1 -> y1 a2
 			y1 a2 -> y1 a1
 			This is embedded in a parent automorphism by the following rules.
@@ -901,13 +901,13 @@ class Automorphism:
 			>>> p, i = alphabet_size_two._partition_basis(qnb)
 			>>> print(alphabet_size_two.free_factor(p, infinite=False))
 			Using {y1} to denote the root letters of this automorphism.
-			PeriodicAutomorphism of V_3,1 specified by 1 generators (after reduction):
+			PeriodicFactor of V_3,1 specified by 1 generators (after reduction):
 			y1 -> y1
 			This is embedded in a parent automorphism by the following rules.
 			y1 ~~> x1 a1
 			>>> print(alphabet_size_two.free_factor(i, infinite=True))
 			Using {y1} to denote the root letters of this automorphism.
-			InfiniteAutomorphism of V_3,1 specified by 5 generators (after reduction):
+			InfiniteFactor of V_3,1 specified by 5 generators (after reduction):
 			y1 a1    -> y1 a1 a3
 			y1 a2    -> y1 a3
 			y1 a3 a1 -> y1 a2
@@ -931,7 +931,7 @@ class Automorphism:
 		images.expand_to_size(len(generators))
 		domain, range = self._rewrite_mapping(expansion, generators, images)
 		
-		type = InfiniteAutomorphism if infinite else PeriodicAutomorphism
+		type = InfiniteFactor if infinite else PeriodicFactor
 		return type(self.arity, alphabet_size, domain, range, expansion)
 	
 	def _rewrite_mapping(self, words, basis, img_basis):
@@ -965,10 +965,10 @@ class Automorphism:
 #TODO method to decide if the automorphism is in (the equivalent of) F, T, or V.
 #TODO the named elements A, B, C, X_n of Thompson's V.
 
-class AutomorphismComponent(Automorphism):
+class AutomorphismFactor(Automorphism):
 	"""An automorphism derived from a larger parent automorphism.
 	
-	:ivar root_sources: a list of words which tells us where each root :math:`x_i` originally came from.
+	:ivar domain_preimage: a list of words which tells us where each domain word originally came from.
 	"""
 	def __init__(self, arity, alphabet_size, domain, range, domain_preimage):
 		"""In addition to creating an automorphism, we store the *domain_preimage* to keep track of the mapping between the words in this automorphism's algebra and the words manipulated by the parent automorphism.
@@ -1005,9 +1005,39 @@ class AutomorphismComponent(Automorphism):
 			  str(domain_word).replace('x', 'y'), preimage))
 		return output.getvalue()
 
-class PeriodicAutomorphism(AutomorphismComponent):
-	r"""
+class PeriodicFactor(AutomorphismFactor):
+	r"""A purely periodic free factor which has been extracted from another component.
+	
+		>>> basis_p = example_5_9.quasinormal_basis()
+		>>> factor = example_5_9.free_factor(basis_p)
+		>>> print(factor)
+		Using {y1} to denote the root letters of this automorphism.
+		PeriodicFactor of V_2,1 specified by 7 generators (after reduction):
+		y1 a1 a1    -> y1 a1 a2 a1
+		y1 a1 a2 a1 -> y1 a1 a2 a2
+		y1 a1 a2 a2 -> y1 a1 a1
+		y1 a2 a1 a1 -> y1 a2 a1 a2
+		y1 a2 a1 a2 -> y1 a2 a1 a1
+		y1 a2 a2 a1 -> y1 a2 a2 a2
+		y1 a2 a2 a2 -> y1 a2 a2 a1
+		This is embedded in a parent automorphism by the following rules.
+		y1 a1 a1    ~~> x1 a1 a1 a1
+		y1 a1 a2 a1 ~~> x1 a1 a1 a2
+		y1 a1 a2 a2 ~~> x1 a1 a2
+		y1 a2 a1 a1 ~~> x1 a2 a1 a1
+		y1 a2 a1 a2 ~~> x1 a2 a1 a2
+		y1 a2 a2 a1 ~~> x1 a2 a2 a1
+		y1 a2 a2 a2 ~~> x1 a2 a2 a2
+		>>> sorted(factor.cycle_type)
+		[2, 3]
+		>>> from pprint import pprint
+		>>> #Two orbits of size 2, one orbit of size 3
+		>>> pprint(factor.multiplicity)
+		{2: 2, 3: 1}
+		
+	
 	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)` where :math:`\phi` is the current automorphism and :math:`X_\phi` is the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.quasinormal_basis>` for :math:`\phi`.
+	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`
 	"""
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -1015,48 +1045,77 @@ class PeriodicAutomorphism(AutomorphismComponent):
 		assert self.quasinormal_basis() == self.domain
 		assert self.quasinormal_basis().minimal_expansion_for(self) == self.domain
 		
+		#Attributes:
+		#.cycle_types
+		#.multiplicities
+		#Need to have constructed the QNF basis here.
+		#TODO: can we just pass on this information (QNF basis, QNF orbit types) from the parent automorphism?
+		self._setup_cycle_type()
 		self._setup_multiplicities()
+	
+	def _setup_cycle_type(self):
+		#see definition 5.8
+		self.cycle_type = {type.data for type in self._qnf_orbit_types.values()}
 	
 	def _setup_multiplicities(self):
 		counts = defaultdict(int)
-		for type in self._qnf_orbit_types.values():
-			period = type.data
-			counts[period] += 1
-		for key, value in counts.items():
-			assert value % key == 0
-			counts[key] = value // key
+		for orbit in self._qnf_orbit_types.values():
+			orbit_size = orbit.data
+			counts[orbit_size] += 1
+		for orbit_size, occurances in counts.items():
+			assert occurances % orbit_size == 0
+			counts[orbit_size] = occurances // orbit_size
 		self.multiplicity = dict(counts)
+	
+	def enumerate_orbits(self):
+		"""Enumerates the periodic orbits of the current automorphism's quasinormal_basis. Returns a dictionary *orbits_by_size*. Each value ``orbits_by_size[d]`` is a list of the orbits of size *d*. Orbits themselves are represented as lists of :class:`Words <thompson.word.Word>`."""
+		#TODO it might be more efficient to use a deque of lists. After all, we're going to want to pick one orbit and replace it with an expansion.
+		#TODO doctest
+		#TODO check this is deterministic
+		orbits_by_size = defaultdict(list) #defaultdict(deque)?
+		basis = self.quasinormal_basis();
+		already_seen = set()
+		for gen in basis:
+			if gen in already_seen:
+				continue
+			type, images = self._orbit_type(gen, basis)
+			images = list(images.values())
+			already_seen.update(images)
+			orbits_by_size[type.data].append(images)
+		return dict(orbits_by_size)
 	
 	def test_conjugate_to(self, other):
 		raise NotImplementedError()
 		# todo docstring and doctest
 		# see sec 5.3 and alg 5.13
-		# if not isinstance(other, PeriodicAutomorphism):
-			# raise TypeError('Other automorphism must be Periodic.')
+		if not isinstance(other, PeriodicFactor):
+			raise TypeError('Other automorphism must be Periodic.')
 		
 		# 1. The quasi-normal bases are constructed in initialisation.
-		  # Note that they should simply be the *r* root words *x1, ..., xr*.
+		# Note that the QNF basis should be just the domain. TODO Checkme
 		
 		# 2. Check that the cycle types are the same.
-		# s_cycles = self.cycle_type()
-		# o_cycles = other.cycle_type()
-		# if self.cycle_types() != other.cycle_types():
-			# return None
+		if self.cycle_type != other.cycle_type:
+			return None
 		
-		# 3. Check that the multiplicites are congruent.
-		# modulus = self.arity - 1
-		# for d in s_cycles:
-			# if self.multiplicity[d] % modulus != other.multiplicity[d] % modulus:
-				# return None
+		#3. Check that the multiplicites are congruent.
+		modulus = self.arity - 1
+		for d in self.cycle_type:
+			if self.multiplicity[d] % modulus != other.multiplicity[d] % modulus:
+				return None
 		
 		# 4. Construct bases X'?
+		s_orbits_of_size = defaultdict(list)
+		o_orbits_of_size = defaultdict(list)
+		for d in self.cycle_type:
+			if self.multiplicity[d] > other.multiplicity[d]:
+				pass
+			elif self.multiplicity[d] < other.multiplicity[d]:
+				pass
 		# 5. Choose a map rho.???
 	
-	def cycle_type(self):
-		#see def 5.8
-		return {type.data for type in self._qnf_orbit_types.values()}
 	
 	
-class InfiniteAutomorphism(AutomorphismComponent):
+class InfiniteFactor(AutomorphismFactor):
 	def test_conjugate_to(self, other):
 		raise NotImplementedError()

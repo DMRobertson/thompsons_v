@@ -17,15 +17,15 @@ To :meth:`test for conjugacy <Automorphism.test_conjugate_to>` we need to extrac
 - how the components embed into the original automorphism, and
 - any extra information that we need to test the components for conjugacy. 
 
-.. autoclass:: AutomorphismComponent
+.. autoclass:: AutomorphismFactor
     :members:
     :undoc-members:
 
-.. autoclass:: thompson.automorphism.PeriodicAutomorphism
+.. autoclass:: thompson.automorphism.PeriodicFactor
     :members:
     :undoc-members:
 
-.. autoclass:: thompson.automorphism.InfiniteAutomorphism
+.. autoclass:: thompson.automorphism.InfiniteFactor
     :members:
     :undoc-members:
 
