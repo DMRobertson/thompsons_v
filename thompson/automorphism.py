@@ -126,8 +126,8 @@ class Isomorphism:
 			x1 a2 a1 -> x1 a1 a2 a2 a1
 			x1 a2 a2 -> x1 a1 a2 a1
 			>>> #Swaps x1 and x2
-			>>> domain = Generators(2, 2, ["x1", "x2 a1", "x2 a2"])
-			>>> range  = Generators(2, 2, ["x2", "x1 a1", "x1 a2"])
+			>>> domain = Generators((2, 2), ["x1", "x2 a1", "x2 a2"])
+			>>> range  = Generators((2, 2), ["x2", "x1 a1", "x1 a2"])
 			>>> Automorphism._reduce(domain, range)
 			>>> for d, r in zip(domain, range):
 			... 	print(d, '->', r)
@@ -142,8 +142,8 @@ class Isomorphism:
 			d_pref = are_contractible(domain[i : i + arity])
 			r_pref = are_contractible(range[ i : i + arity])
 			if d_pref and r_pref: #are both non-empty tuples
-				domain[i : i + arity] = [Word(d_pref, arity, domain.signature.alphabet_size)]
-				range[ i : i + arity] = [Word(r_pref, arity,  range.signature.alphabet_size)]
+				domain[i : i + arity] = [Word(d_pref, domain.signature)]
+				range[ i : i + arity] = [Word(r_pref, range.signature)]
 				i -= (arity - 1) 
 				i = max(i, 0)
 			else:
@@ -303,41 +303,14 @@ class Isomorphism:
 		signature_output = self.domain.signature if inverse else self.range.signature
 		subwords = lambda_arguments(word)
 		letters = _concat(self.image(word, inverse) for word in subwords)
-		letters = standardise(letters, self.arity)
+		letters = standardise(letters, self.signature)
 		image = Word(letters, signature_output, preprocess=False) #can skip validation
 		self._set_image(word, image, inverse)
 		return image
 	
-	def repeated_image(self, key, power):
-		r"""If :math:`\psi` is the current automorphism, returns :math:`\text{key}\psi^\text{ power}`.
-		
-		:rtype: a :class:`~thompson.word.Word` instance.
-		
-		.. doctest::
-			
-			>>> from thompson.examples import *
-			>>> print(example_4_25.repeated_image('x1 a1', 10))
-			x1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
-			>>> print(example_4_25.repeated_image('x1 a1 a1 a1 a1 a1 a1 a1', -3))
-			x1 a1
-			>>> print(arity_four.repeated_image('x a4 a4 a2', 4))
-			x1 a3 a3 a2
-		"""
-		signature_input = self.range.signature if inverse else self.domain.signature
-		if power == 0:
-			if not isinstance(key, Word):
-				key = Word(key, signature_input)
-			return key
-		inverse = power < 0
-		power = abs(power)
-		image = key
-		for _ in range(power):
-			image = self.image(image, inverse=inverse)
-		return image
-		
 	#Printing
 	def _string_header(self):
-		return "{}: V_{} -> V_{} specified by {} generators (after reduction).".format(
+		return "{}: V{} -> V{} specified by {} generators (after reduction).".format(
 		  type(self).__name__, self.domain.signature, self.range.signature, len(self.domain))
 	
 	def __str__(self):
@@ -345,7 +318,7 @@ class Isomorphism:
 		
 			>>> from thompson.examples import cyclic_order_six
 			>>> print(cyclic_order_six)
-			Automorphism of V_2,1 specified by 5 generators (after reduction):
+			Automorphism: V(2, 1) -> V(2, 1) specified by 5 generators (after reduction).
 			x1 a1 a1    -> x1 a1 a1
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
 			x1 a1 a2 a2 -> x1 a2
@@ -386,7 +359,6 @@ class Isomorphism:
 class Automorphism(Isomorphism):
 	r"""An automorphism is an isomorphism from :math:`V_{n,r}` to itself. The automorphism group :math:`\mathrm{Aut}(V_{n,r})` is labelled :math:`G_{n,r}`.
 	"""
-	
 	def __init__(self, domain, range):
 		r"""Creates an automorphism, given the *arity* :math:`n` and *alphabet_size* :math:`r`. Two bases *domain* and *range* are also given. The automorphism maps elements so that the given order of generators is preserved:
 		
@@ -399,12 +371,38 @@ class Automorphism(Isomorphism):
 			raise TypeError('Domain {} and range {} have different signatures.'.format(
 			  domain.signature, range.signature))
 		
-		super().__init__(self, domain, range)
+		super().__init__(domain, range)
 		self.signature = domain.signature
 		
 		#Cache attributes
 		self._qnf_basis = None
 		self._qnf_orbit_types = {}
+	
+	def repeated_image(self, key, power):
+		r"""If :math:`\psi` is the current automorphism, returns :math:`\text{key}\psi^\text{ power}`.
+		
+		:rtype: a :class:`~thompson.word.Word` instance.
+		
+		.. doctest::
+			
+			>>> from thompson.examples import *
+			>>> print(example_4_25.repeated_image('x1 a1', 10))
+			x1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
+			>>> print(example_4_25.repeated_image('x1 a1 a1 a1 a1 a1 a1 a1', -3))
+			x1 a1
+			>>> print(arity_four.repeated_image('x a4 a4 a2', 4))
+			x1 a3 a3 a2
+		"""
+		inverse = power < 0
+		if power == 0:
+			if not isinstance(key, Word):
+				key = Word(key, self.signature)
+			return key
+		power = abs(power)
+		image = key
+		for _ in range(power):
+			image = self.image(image, inverse=inverse)
+		return image
 	
 	#Generating the quasinormal basis
 	def quasinormal_basis(self):
@@ -414,9 +412,9 @@ class Automorphism(Isomorphism):
 		
 			>>> from thompson.examples import *
 			>>> example_4_5.quasinormal_basis()
-			Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
+			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
 			>>> alphabet_size_two.quasinormal_basis()
-			Generators(3, 2, ['x1 a1', 'x1 a2', 'x1 a3', 'x2'])
+			Generators((3, 2), ['x1 a1', 'x1 a2', 'x1 a3', 'x2'])
 		
 		:rtype: a :class:`~thompson.generators.Generators` instance.
 		
@@ -443,17 +441,17 @@ class Automorphism(Isomorphism):
 		
 			>>> from thompson.examples import *
 			>>> example_4_5._seminormal_form_start_point()
-			Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
+			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
 			>>> example_4_11._seminormal_form_start_point()
-			Generators(2, 1, ['x1 a1', 'x1 a2'])
+			Generators((2, 1), ['x1 a1', 'x1 a2'])
 			>>> example_4_12._seminormal_form_start_point()
-			Generators(2, 1, ['x1 a1', 'x1 a2'])
+			Generators((2, 1), ['x1 a1', 'x1 a2'])
 			>>> example_4_25._seminormal_form_start_point()
-			Generators(2, 1, ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
+			Generators((2, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
 			>>> cyclic_order_six._seminormal_form_start_point()
-			Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
+			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
 		"""
-		basis = Generators.standard_basis(self.arity, self.alphabet_size)
+		basis = Generators.standard_basis(self.signature)
 		i = 0
 		while i < len(basis):
 			b = basis[i]
@@ -494,14 +492,14 @@ class Automorphism(Isomorphism):
 		x1 a2: Incomplete orbit
 		with respect to the basis [x1 a1, x1 a2]
 		>>> basis.expand(0)
-		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2'])
+		Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2'])
 		>>> dump_orbit_types(example_4_12, basis)
 		x1 a1 a1: Bi-infinite orbit containing [x1 a2] a2
 		x1 a1 a2: Bi-infinite orbit containing [x1 a2] a1
 		x1 a2: Incomplete orbit
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2]
 		>>> basis.expand(2)
-		Generators(2, 1, ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
+		Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
 		>>> dump_orbit_types(example_4_12, basis)
 		x1 a1 a1: Periodic orbit of order 4
 		x1 a1 a2: Periodic orbit of order 4
@@ -605,9 +603,9 @@ class Automorphism(Isomorphism):
 		.. doctest::
 			:options: -ELLIPSIS
 			
-			>>> u  = Word('x1 a2 a3 a1 a2', 3, 2)
-			>>> v1 = Word('x1 a1 a2 a2 a3 a1', 3, 2)
-			>>> v2 = Word('x2 a3 a2', 3, 2)
+			>>> u  = Word('x1 a2 a3 a1 a2', (3, 2))
+			>>> v1 = Word('x1 a1 a2 a2 a3 a1', (3, 2))
+			>>> v2 = Word('x2 a3 a2', (3, 2))
 			>>> print(alphabet_size_two.share_orbit(u, v1))
 			{}
 			>>> print(alphabet_size_two.share_orbit(u, v2))
@@ -619,31 +617,31 @@ class Automorphism(Isomorphism):
 			:hide:
 			:options: -ELLIPSIS
 			
-			>>> u  = Word('x a2 a2 a1 a1 a2', 2, 1)
-			>>> v1 = Word('x a1 a2', 2, 1)
-			>>> v2 = Word('x a1 a1 a2', 2, 1)
+			>>> u  = Word('x a2 a2 a1 a1 a2', (2, 1))
+			>>> v1 = Word('x a1 a2', (2, 1))
+			>>> v2 = Word('x a1 a1 a2', (2, 1))
 			>>> print(example_4_25.share_orbit(u, v1))
 			{}
 			>>> print(example_4_25.share_orbit(u, v2))
 			{3}
-			>>> u  = Word('x a2 a2 x a1 a2 L x a2 a1 L x a1 a1 a1 a2 L', 2, 1)
+			>>> u  = Word('x a2 a2 x a1 a2 L x a2 a1 L x a1 a1 a1 a2 L', (2, 1))
 			>>> vs = [
-			... 	Word('x a2 a2 a1 a1 a1 a1 a1', 2, 1),
-			... 	Word('x a2 a2 a2', 2, 1),
-			... 	Word('x a2 a2 x a1 a2 L', 2, 1),
-			... 	Word('x a1 a1 x a1 a2 x a2 a2 L L', 2, 1)]
+			... 	Word('x a2 a2 a1 a1 a1 a1 a1', (2, 1)),
+			... 	Word('x a2 a2 a2', (2, 1)),
+			... 	Word('x a2 a2 x a1 a2 L', (2, 1)),
+			... 	Word('x a1 a1 x a1 a2 x a2 a2 L L', (2, 1))]
 			... 
 			>>> for v in vs: print(example_4_25.share_orbit(u, v))
 			{-4}
 			{}
 			{-1}
 			{}
-			>>> u1 = Word('x a2 a3 a1', 4, 1)
-			>>> v1 = Word('x a3 a3 a3 a3 a3 a3 a3 a3 a3 a2 a3 a1', 4, 1)
-			>>> v2 = Word('x a1 a2 a3 a4', 4, 1)
-			>>> u2 = Word('x a3 a4 a1', 4, 1)
-			>>> v3 = Word('x a4 a1 a1', 4, 1)
-			>>> v4 = Word('x a4 a3 a2 a1', 4, 1)
+			>>> u1 = Word('x a2 a3 a1', (4, 1))
+			>>> v1 = Word('x a3 a3 a3 a3 a3 a3 a3 a3 a3 a2 a3 a1', (4, 1))
+			>>> v2 = Word('x a1 a2 a3 a4', (4, 1))
+			>>> u2 = Word('x a3 a4 a1', (4, 1))
+			>>> v3 = Word('x a4 a1 a1', (4, 1))
+			>>> v4 = Word('x a4 a3 a2 a1', (4, 1))
 			>>> print(arity_four.share_orbit(u1, v1))
 			{9}
 			>>> print(arity_four.share_orbit(u1, v2))
@@ -652,13 +650,13 @@ class Automorphism(Isomorphism):
 			{-1}
 			>>> print(arity_four.share_orbit(u2, v4))
 			{}
-			>>> u = Word("x a1 a2 a1 a2 a1", 2, 1)
-			>>> v = Word("x a2 a2 a2 a1", 2, 1)
+			>>> u = Word("x a1 a2 a1 a2 a1", (2, 1))
+			>>> v = Word("x a2 a2 a2 a1", (2, 1))
 			>>> print(cyclic_order_six.share_orbit(u, v))
 			{..., -1, 2, 5, 8, 11, 14, ...}
-			>>> u = Word("x a1 a1 x a1 a2 a1 x a1 a2 a2 a1 L L", 2, 1)
-			>>> v1 = Word("x a1 a1 x a2 a2 x a2 a1 L L", 2, 1)
-			>>> v2 = Word("x a1 a1 x a1 a2 a1 x a1 a1 L L", 2, 1)
+			>>> u = Word("x a1 a1 x a1 a2 a1 x a1 a2 a2 a1 L L", (2, 1))
+			>>> v1 = Word("x a1 a1 x a2 a2 x a2 a1 L L", (2, 1))
+			>>> v2 = Word("x a1 a1 x a1 a2 a1 x a1 a1 L L", (2, 1))
 			>>> print(cyclic_order_six.share_orbit(u, v1))
 			{..., -1, 5, 11, 17, 23, 29, ...}
 			>>> print(cyclic_order_six.share_orbit(u, v2))
@@ -677,7 +675,7 @@ class Automorphism(Isomorphism):
 		
 		if not (basis.is_above(u) and basis.is_above(v)):
 			depth = max(u.max_depth_to(basis), v.max_depth_to(basis))
-			alphas = range(-1, -self.arity-1, -1)
+			alphas = range(-1, -self.signature.arity - 1, -1)
 			solution_set = SolutionSet.all_integers
 			
 			# For all strings of length *depth* \Gamma made only from alphas:
@@ -745,9 +743,9 @@ class Automorphism(Isomorphism):
 		* :math:`\widetilde{\Gamma}` does not start with the characteristic multiplier of :math:`\widetilde{y}`.
 		
 			>>> example_4_25.quasinormal_basis()
-			Generators(2, 1, ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
-			>>> example_4_25._preprocess(Word('x a2 a2', 2, 1), from_string('a1 a1 a2'))
-			(1, Word('x1 a2 a2', 2, 1), (-2,))
+			Generators((2, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
+			>>> example_4_25._preprocess(Word('x a2 a2', (2, 1)), from_string('a1 a1 a2'))
+			(1, Word('x1 a2 a2', (2, 1)), (-2,))
 		"""
 		head_type = self._qnf_orbit_types[head]
 		if head_type.is_type('C'):
@@ -903,8 +901,8 @@ class Automorphism(Isomorphism):
 				infinite.append(gen)
 			else:
 				raise ValueError('Automorphism was not in semi-normal form with respect to the given basis.')
-		periodic = Generators(self.arity, self.alphabet_size, periodic)
-		infinite = Generators(self.arity, self.alphabet_size, infinite)
+		periodic = Generators(self.signature, periodic)
+		infinite = Generators(self.signature, infinite)
 		return periodic, infinite
 	
 	def free_factor(self, generators, infinite=False):
@@ -925,7 +923,7 @@ class Automorphism(Isomorphism):
 			>>> p, i = example_5_3._partition_basis(qnb)
 			>>> print(example_5_3.free_factor(p, infinite=False))
 			Using {y1} to denote the root letters of this automorphism.
-			PeriodicFactor of V_2,1 specified by 2 generators (after reduction):
+			PeriodicFactor: V(2, 1) -> V(2, 1) specified by 2 generators (after reduction).
 			y1 a1 -> y1 a2
 			y1 a2 -> y1 a1
 			This is embedded in a parent automorphism by the following rules.
@@ -940,13 +938,13 @@ class Automorphism(Isomorphism):
 			>>> p, i = alphabet_size_two._partition_basis(qnb)
 			>>> print(alphabet_size_two.free_factor(p, infinite=False))
 			Using {y1} to denote the root letters of this automorphism.
-			PeriodicFactor of V_3,1 specified by 1 generators (after reduction):
+			PeriodicFactor: V(3, 1) -> V(3, 1) specified by 1 generators (after reduction).
 			y1 -> y1
 			This is embedded in a parent automorphism by the following rules.
 			y1 ~~> x1 a1
 			>>> print(alphabet_size_two.free_factor(i, infinite=True))
 			Using {y1} to denote the root letters of this automorphism.
-			InfiniteFactor of V_3,1 specified by 5 generators (after reduction):
+			InfiniteFactor: V(3, 1) -> V(3, 1) specified by 5 generators (after reduction).
 			y1 a1    -> y1 a1 a3
 			y1 a2    -> y1 a3
 			y1 a3 a1 -> y1 a2
@@ -963,24 +961,23 @@ class Automorphism(Isomorphism):
 		if len(generators) == 0:
 			raise ValueError('Must provide at least one generator.')
 		expansion = generators.minimal_expansion_for(self)
-		modulus = self.arity - 1
+		modulus = self.signature.arity - 1
 		alphabet_size = modulo_non_zero(len(generators), modulus)
 		
-		images = Generators.standard_basis(self.arity, alphabet_size)
+		images = Generators.standard_basis((self.signature.arity, alphabet_size))
 		images.expand_to_size(len(generators))
 		domain, range = self._rewrite_mapping(expansion, generators, images)
 		
 		type = InfiniteFactor if infinite else PeriodicFactor
-		return type(self.arity, alphabet_size, domain, range, expansion)
+		return type(domain, range, expansion)
 	
 	def _rewrite_mapping(self, words, basis, img_basis):
 		r"""Given a *basis*, a set of *words* below that *basis*, and a bijective image *img_basis* of *basis*, this method rewrites the list of rules ``w -> self[w] for w in words`` in terms of the new *img_basis*.
 		
 		:returns: a pair of lists *domain, range* where *domain* and *range* are both below *img_basis*.
 		"""
-		alphabet_size = img_basis.alphabet_size
-		domain = Generators(self.arity, alphabet_size)
-		range = Generators(self.arity, alphabet_size)
+		domain = Generators(img_basis.signature)
+		range = Generators(img_basis.signature)
 		
 		for word in words:
 			preimage = self._rewrite(word, basis, img_basis)
@@ -1009,7 +1006,7 @@ class AutomorphismFactor(Automorphism):
 	
 	:ivar domain_preimage: a list of words which tells us where each domain word originally came from.
 	"""
-	def __init__(self, arity, alphabet_size, domain, range, domain_preimage):
+	def __init__(self, domain, range, domain_preimage):
 		"""In addition to creating an automorphism, we store the *domain_preimage* to keep track of the mapping between the words in this automorphism's algebra and the words manipulated by the parent automorphism.
 		
 		:raises ValueError: if ``len(domain_preimage) != len(domain)``.
@@ -1020,12 +1017,12 @@ class AutomorphismFactor(Automorphism):
 		if not len(domain_preimage) == len(domain):
 			raise ValueError('Each domain word must be associated to a word from the parent algebra. Found {} associations but domain size is {}'.format(
 			  len(domain_preimage), len(domain)))
-		super().__init__(arity, alphabet_size, domain, range)
+		super().__init__(domain, range)
 		self.domain_preimage = domain_preimage
 	
 	def __str__(self):
 		output = StringIO()
-		if self.alphabet_size == 1:
+		if self.signature.alphabet_size == 1:
 			roots = '{y1}'
 		else:
 			roots = '{{y1, ..., y{}}}'.format(self.alphabet_size)
@@ -1049,7 +1046,7 @@ class PeriodicFactor(AutomorphismFactor):
 	
 		>>> print(example_5_9_p)
 		Using {y1} to denote the root letters of this automorphism.
-		PeriodicFactor of V_2,1 specified by 7 generators (after reduction):
+		PeriodicFactor: V(2, 1) -> V(2, 1) specified by 7 generators (after reduction).
 		y1 a1 a1    -> y1 a1 a2 a1
 		y1 a1 a2 a1 -> y1 a1 a2 a2
 		y1 a1 a2 a2 -> y1 a1 a1
@@ -1140,7 +1137,7 @@ class PeriodicFactor(AutomorphismFactor):
 			>>> psi_p = example_5_12_psi_p; phi_p = example_5_12_phi_p
 			>>> rho_p = example_5_12_psi_p.test_conjugate_to(example_5_12_phi_p)
 			>>> print(rho_p)
-			Automorphism of V_2,1 specified by 6 generators (after reduction):
+			Automorphism: V(2, 1) -> V(2, 1) specified by 6 generators (after reduction).
 			x1 a1 a1    -> x1 a1 a2
 			x1 a1 a2    -> x1 a2 a2
 			x1 a2 a1 a1 -> x1 a1 a1 a1
@@ -1164,7 +1161,7 @@ class PeriodicFactor(AutomorphismFactor):
 			return None
 		
 		#3. Check that the multiplicites are congruent.
-		modulus = self.arity - 1
+		modulus = self.signature.arity - 1
 		for d in self.cycle_type:
 			if self.multiplicity[d] % modulus != other.multiplicity[d] % modulus:
 				return None
@@ -1177,7 +1174,6 @@ class PeriodicFactor(AutomorphismFactor):
 			assert len(s_orbits_of_size[d]) == self.multiplicity[d]
 			assert len(o_orbits_of_size[d]) == other.multiplicity[d]
 			
-			modulus = self.arity - 1
 			expansions_needed = (self.multiplicity[d] - other.multiplicity[d]) // modulus
 			
 			if expansions_needed > 0:
@@ -1187,15 +1183,15 @@ class PeriodicFactor(AutomorphismFactor):
 			
 			assert len(s_orbits_of_size[d]) == len(o_orbits_of_size[d])
 		
-		domain = Generators(self.arity, self.alphabet_size)
-		range  = Generators(self.arity, self.alphabet_size)
+		domain = Generators(self.signature)
+		range  = Generators(self.signature)
 		for d in self.cycle_type:
 			for s_orbit, o_orbit in zip(s_orbits_of_size[d], o_orbits_of_size[d]):
 				for s_word, o_word in zip(s_orbit, o_orbit):
 					domain.append(s_word)
 					range.append(o_word)
 		
-		rho = Automorphism(self.arity, self.alphabet_size, domain, range)
+		rho = Automorphism(domain, range)
 		return rho
 		#TODO translate back to original setting
 	
@@ -1212,7 +1208,7 @@ class PeriodicFactor(AutomorphismFactor):
 		"""
 		for _ in range(num_expansions):
 			orbit = deque.popleft()
-			arity = orbit[0].arity
+			arity = orbit[0].signature.arity
 			for i in range(1, arity+1):
 				new_orbit = [w.alpha(i) for w in orbit]
 				deque.append(new_orbit)

@@ -65,7 +65,7 @@ class Generators(list):
 	def __eq__(self, other):
 		if not isinstance(other, Generators):
 			return NotImplemented
-		return self.signature == other.signature and super().__eq__(self, other)
+		return self.signature == other.signature and super().__eq__(other)
 	
 	#Tests on generating sets
 	def test_free(self):
@@ -253,7 +253,7 @@ class Generators(list):
 			raise ValueError('The generating set does not freely generate V_{n,r}.')
 		
 		for aut in automorphisms:
-			if aut.signature != self.self.signature:
+			if aut.signature != self.signature:
 				raise ValueError('At least one automorphism belongs to a different G_{n,r} than the basis.')
 		
 		#1. Expand until all images belong to X<A>.
