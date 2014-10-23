@@ -21,7 +21,7 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 
 __all__ = ["Automorphism"]
 
-from collections import defaultdict
+from collections import defaultdict, deque
 from io import StringIO
 from itertools import product
 
@@ -40,8 +40,6 @@ def modulo_non_zero(x, n):
 		return n
 	return x
 
-#TODO. Check the assumption that the bases consist of simple words only (no lambdas).
-#TODO. Is this even a problem any more? Will depend on how is_above() functions work I imagine.
 class Automorphism:
 	r"""Represents an automorphism of :math:`V_{n,r}` by specifying two bases. This class keeps track of the mapping between bases.
 	
@@ -95,6 +93,8 @@ class Automorphism:
 			raise ValueError("Range does not generate V_{},{}. Missing elements are {}.".format(
 			  arity, alphabet_size, [format(x) for x in missing]))
 		
+		#Expand any non-simple words
+		Automorphism._expand(domain, range)
 		#Before saving the domain and range, reduce them to remove any redundancy. This is like reducing tree pairs.
 		#How do you know that you've found the smallest possible nice basis if you haven't kept everything as small as possible throughout?
 		Automorphism._reduce(domain, range)
@@ -121,6 +121,19 @@ class Automorphism:
 		#_inv
 		#_qnf_basis
 		#_qnf_orbit_types
+	
+	@staticmethod
+	def _expand(domain, range):
+		"""Expands the pair of generating sets where neccessary until all words in both sets are simple."""
+		#todo doctest and string
+		i = 0
+		assert len(domain) == len(range)
+		while i < len(domain):
+			if not (domain[i].is_simple() and range[i].is_simple()):
+				domain.expand(i)
+				range.expand(i)
+			else:
+				i += 1
 	
 	@staticmethod
 	def _reduce(domain, range):
@@ -169,6 +182,21 @@ class Automorphism:
 		else:
 			self._map[d] = r
 			self._inv[r] = d
+	
+	#Simple operations on automorphisms
+	def __eq__(self, other):
+		return self.domain == other.domain and self.range == other.range
+	
+	def __mul__(self, other): #self * other is used for the (backwards) composition self then other
+		if not isinstance(other, Automorphism):
+			return NotImplemented
+		if self.arity != other.arity or self.alphabet_size != other.alphabet_size:
+			raise TypeError("Arities and alphabet sizes do not match.")
+		#TODO doctest and string
+		range = Generators(self.arity, self.alphabet_size)
+		for d, word in zip(self.domain, self.range):
+			range.append(other.image(word))
+		return Automorphism(self.arity, self.alphabet_size, self.domain, range)
 	
 	#Finding images of words
 	def image(self, key, inverse=False):
@@ -895,7 +923,6 @@ class Automorphism:
 		.. doctest::
 			:hide:
 			
-
 			>>> # alphabet_size_two example
 			>>> qnb = alphabet_size_two.quasinormal_basis()
 			>>> p, i = alphabet_size_two._partition_basis(qnb)
@@ -1008,9 +1035,7 @@ class AutomorphismFactor(Automorphism):
 class PeriodicFactor(AutomorphismFactor):
 	r"""A purely periodic free factor which has been extracted from another component.
 	
-		>>> basis_p = example_5_9.quasinormal_basis()
-		>>> factor = example_5_9.free_factor(basis_p)
-		>>> print(factor)
+		>>> print(example_5_9_p)
 		Using {y1} to denote the root letters of this automorphism.
 		PeriodicFactor of V_2,1 specified by 7 generators (after reduction):
 		y1 a1 a1    -> y1 a1 a2 a1
@@ -1028,11 +1053,11 @@ class PeriodicFactor(AutomorphismFactor):
 		y1 a2 a1 a2 ~~> x1 a2 a1 a2
 		y1 a2 a2 a1 ~~> x1 a2 a2 a1
 		y1 a2 a2 a2 ~~> x1 a2 a2 a2
-		>>> sorted(factor.cycle_type)
+		>>> sorted(example_5_9_p.cycle_type)
 		[2, 3]
 		>>> from pprint import pprint
 		>>> #Two orbits of size 2, one orbit of size 3
-		>>> pprint(factor.multiplicity)
+		>>> pprint(example_5_9_p.multiplicity)
 		{2: 2, 3: 1}
 		
 	
@@ -1067,29 +1092,57 @@ class PeriodicFactor(AutomorphismFactor):
 			counts[orbit_size] = occurances // orbit_size
 		self.multiplicity = dict(counts)
 	
-	def enumerate_orbits(self):
-		"""Enumerates the periodic orbits of the current automorphism's quasinormal_basis. Returns a dictionary *orbits_by_size*. Each value ``orbits_by_size[d]`` is a list of the orbits of size *d*. Orbits themselves are represented as lists of :class:`Words <thompson.word.Word>`."""
-		#TODO it might be more efficient to use a deque of lists. After all, we're going to want to pick one orbit and replace it with an expansion.
+	def enumerate_orbits(self, basis):
+		r"""Enumerates the periodic orbits of the current automorphism's quasinormal_basis. Returns a dictionary *orbits_by_size*. Each value ``orbits_by_size[d]`` is a list of the orbits of size *d*. Orbits themselves are represented as lists of :class:`Words <thompson.word.Word>`.
+		
+			>>> def display_orbits(orbits_by_size):
+			... 	for key in sorted(orbits_by_size):
+			... 		print('Orbits of length', key)
+			... 		for list in orbits_by_size[key]:
+			... 			print('...', *list, sep=' -> ', end=' -> ...\n')
+			>>> orbits_by_size = example_5_9_p.enumerate_orbits(example_5_9_p.quasinormal_basis())
+			>>> display_orbits(orbits_by_size)
+			Orbits of length 2
+			... -> x1 a2 a1 a1 -> x1 a2 a1 a2 -> ...
+			... -> x1 a2 a2 a1 -> x1 a2 a2 a2 -> ...
+			Orbits of length 3
+			... -> x1 a1 a1 -> x1 a1 a2 a1 -> x1 a1 a2 a2 -> ...
+		"""
 		#TODO doctest
 		#TODO check this is deterministic
-		orbits_by_size = defaultdict(list) #defaultdict(deque)?
-		basis = self.quasinormal_basis();
+		orbits_by_size = defaultdict(deque)
 		already_seen = set()
 		for gen in basis:
 			if gen in already_seen:
 				continue
 			type, images = self._orbit_type(gen, basis)
-			images = list(images.values())
+			length = type.data
+			images = [images[i] for i in range(length)]
 			already_seen.update(images)
-			orbits_by_size[type.data].append(images)
+			orbits_by_size[length].append(images)
 		return dict(orbits_by_size)
 	
 	def test_conjugate_to(self, other):
-		raise NotImplementedError()
+		"""We can determine if two purely periodic automorphisms are periodic by examining their orbits based on their size.
+		
+			>>> psi_p = example_5_12_psi_p; phi_p = example_5_12_phi_p
+			>>> rho_p = example_5_12_psi_p.test_conjugate_to(example_5_12_phi_p)
+			>>> print(rho_p)
+			Automorphism of V_2,1 specified by 6 generators (after reduction):
+			x1 a1 a1    -> x1 a1 a2
+			x1 a1 a2    -> x1 a2 a2
+			x1 a2 a1 a1 -> x1 a1 a1 a1
+			x1 a2 a1 a2 -> x1 a2 a1 a1
+			x1 a2 a2 a1 -> x1 a1 a1 a2
+			x1 a2 a2 a2 -> x1 a2 a1 a2
+			>>> rho_p * phi_p == psi_p * rho_p
+			True
+		
+		.. seealso:: This implements algorithm 5.13 of the paper---see section 5.3.
+		"""
 		# todo docstring and doctest
-		# see sec 5.3 and alg 5.13
 		if not isinstance(other, PeriodicFactor):
-			raise TypeError('Other automorphism must be Periodic.')
+			raise TypeError('Other automorphism must be a PeriodicFactor.')
 		
 		# 1. The quasi-normal bases are constructed in initialisation.
 		# Note that the QNF basis should be just the domain. TODO Checkme
@@ -1104,18 +1157,54 @@ class PeriodicFactor(AutomorphismFactor):
 			if self.multiplicity[d] % modulus != other.multiplicity[d] % modulus:
 				return None
 		
-		# 4. Construct bases X'?
-		s_orbits_of_size = defaultdict(list)
-		o_orbits_of_size = defaultdict(list)
+		# 4. Expand bases until the orbits multiplicites are the same
+		s_orbits_of_size = self.enumerate_orbits(self.quasinormal_basis())
+		o_orbits_of_size = other.enumerate_orbits(other.quasinormal_basis())
+
 		for d in self.cycle_type:
-			if self.multiplicity[d] > other.multiplicity[d]:
-				pass
-			elif self.multiplicity[d] < other.multiplicity[d]:
-				pass
-		# 5. Choose a map rho.???
+			assert len(s_orbits_of_size[d]) == self.multiplicity[d]
+			assert len(o_orbits_of_size[d]) == other.multiplicity[d]
+			
+			modulus = self.arity - 1
+			expansions_needed = (self.multiplicity[d] - other.multiplicity[d]) // modulus
+			
+			if expansions_needed > 0:
+				other.expand_orbits(o_orbits_of_size[d], expansions_needed)
+			elif expansions_needed < 0:
+				self.expand_orbits(s_orbits_of_size[d], -expansions_needed)
+			
+			assert len(s_orbits_of_size[d]) == len(o_orbits_of_size[d])
+		
+		domain = Generators(self.arity, self.alphabet_size)
+		range  = Generators(self.arity, self.alphabet_size)
+		for d in self.cycle_type:
+			for s_orbit, o_orbit in zip(s_orbits_of_size[d], o_orbits_of_size[d]):
+				for s_word, o_word in zip(s_orbit, o_orbit):
+					domain.append(s_word)
+					range.append(o_word)
+		
+		rho = Automorphism(self.arity, self.alphabet_size, domain, range)
+		return rho
+		#TODO translate back to original setting
 	
-	
-	
+	@staticmethod
+	def expand_orbits(deque, num_expansions):
+		r"""Takes a *deque* whose elements are a list of words. The following process is repeated *num_expansions* times.
+		
+		1. Pop an orbit :math:`\mathcal{O} = [o_1, \dotsc, o_d]` from the left of the deque.
+		2. For :math:`i = 1, \dotsc, n` (where :math:`n` is the arity):
+			a. Compute the new orbit :math:`\mathcal{O_i} =[o_1\alpha_i, \dotsc, o_d\alpha_i]`
+			b. Append this orbit to the right of *deque*.
+		
+		Once complete, the number of orbits in *deque* has increased by :math:`\text{(arity -1) $\times$ num_expansions}`
+		"""
+		for _ in range(num_expansions):
+			orbit = deque.popleft()
+			arity = orbit[0].arity
+			for i in range(1, arity+1):
+				new_orbit = [w.alpha(i) for w in orbit]
+				deque.append(new_orbit)
+
 class InfiniteFactor(AutomorphismFactor):
 	def test_conjugate_to(self, other):
 		raise NotImplementedError()

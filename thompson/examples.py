@@ -6,7 +6,9 @@ from .word import Word
 
 __all__ = ["cyclic_order_six", "arity_three_order_inf", "arity_four", "alphabet_size_two",
            "example_4_5", "example_4_11", "example_4_12", "example_4_25",
-           "example_5_3", "example_5_9", "example_5_12_psi", "example_5_12_phi", "example_5_12_rho", "example_5_26"]
+           "example_5_3",
+           "example_5_9", "example_5_9_p", "example_5_12_psi", "example_5_12_psi_p", "example_5_12_phi", "example_5_12_phi_p", "example_5_12_rho",
+           "example_5_26"]
 
 #TODO. Have a method that reads automorphisms in from a file. Writing the Python syntax around all this is boring.
 #TODO. Allow powers in the definition of words e.g. a1^4?
@@ -41,25 +43,30 @@ d = Generators(2, 1, domain)
 r = Generators(2, 1, range)
 example_5_3 = Automorphism(2, 1, d, r)
 
+#Pure Periodic
 #Example 5.9
 domain = ["x a1 a1 a1", "x a1 a1 a2", "x a1 a2",    "x a2 a1 a1", "x a2 a1 a2", "x a2 a2 a1", "x a2 a2 a2"]
 range  = ["x a1 a1 a2", "x a1 a2",    "x a1 a1 a1", "x a2 a1 a2", "x a2 a1 a1", "x a2 a2 a2", "x a2 a2 a1"]
 d = Generators(2, 1, domain)
 r = Generators(2, 1, range)
 example_5_9 = Automorphism(2, 1, d, r)
+example_5_9_p = example_5_9.free_factor(example_5_9.quasinormal_basis())
 
 #Example 5.12
 domain = ["x a1 a1 a1 a1", "x a1 a1 a1 a2", "x a1 a1 a2", "x a1 a2",    "x a2 a1", "x a2 a2"]
 range  = ["x a1 a1 a1 a2", "x a1 a1 a1 a1", "x a1 a2",    "x a1 a1 a2", "x a2 a2", "x a2 a1"]
 example_5_12_psi = Automorphism(2, 1, Generators(2, 1, domain), Generators(2, 1, range))
+example_5_12_psi_p = example_5_12_psi.free_factor(example_5_12_psi.quasinormal_basis())
 
 domain = ["x a1", "x a2"]
 range  = ["x a2", "x a1"]
 example_5_12_phi = Automorphism(2, 1, Generators(2, 1, domain), Generators(2, 1, range))
+example_5_12_phi_p = example_5_12_phi.free_factor(example_5_12_phi.quasinormal_basis())
 
 domain = ["x a1 a1 a1 a1", "x a1 a1 a1 a2", "x a1 a1 a2", "x a1 a2",    "x a2 a1", "x a2 a2"]
 range  = ["x a1 a1 a1",    "x a2 a1 a1",    "x a1 a1 a2", "x a2 a1 a2", "x a1 a2", "x a2 a2"]
 example_5_12_rho = Automorphism(2, 1, Generators(2, 1, domain), Generators(2, 1, range))
+# example_5_12_rho_p = example_5_12_rho.free_factor(example_5_12_rho.quasinormal_basis())
 
 #Example 5.26
 domain = ["x a1",       "x a2 a1 a1", "x a2 a1 a2", "x a2 a2"]
