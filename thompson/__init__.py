@@ -5,10 +5,10 @@ Importing ``*`` from this module will add the :class:`~thompson.word.Word`, :cla
 .. moduleauthor:: David Robertson <david.m.robertson1@gmail.com>
 """
 
-from .word import Word
-from .generators import Generators
-from .automorphism import Automorphism
-from . import examples
+# from .word import Word
+# from .generators import Generators
+# from .automorphism import Automorphism
+# from . import examples
 
 #GLOBAL TODO
 #Read through documentation and ensure that useful error messages are being raised, including for assertions.

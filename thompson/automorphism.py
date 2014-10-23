@@ -19,7 +19,7 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 
 """
 
-__all__ = ["Automorphism"]
+__all__ = ["Isomorphism", "Automorphism"]
 
 from collections import defaultdict, deque
 from io import StringIO
@@ -40,36 +40,29 @@ def modulo_non_zero(x, n):
 		return n
 	return x
 
-class Automorphism:
-	r"""Represents an automorphism of :math:`V_{n,r}` by specifying two bases. This class keeps track of the mapping between bases.
+class Isomorphism:
+	r"""Represents an ismorphism of algebras :math:`\psi : V_{n,r} \to V_{n,s}` as a bijection between bases.
+	:ivar domain_words: a :class:`basis <thompson.generators.Generators>` of preimages 
+	:ivar range_words:  a :class:`basis <thompson.generators.Generators>` of images.
 	
-	:ivar arity: :math:`n`, the number of operators :math:`\alpha_i`.
-	:ivar alphabet_size: :math:`r`, the number of letters :math:`x_i`.
-	:ivar domain: a :class:`generating set <thompson.generators.Generators>` of preimages 
-	:ivar range: a :class:`generating set <thompson.generators.Generators>` of images.
+	:raises ValueError: if the bases are of different sizes.
+	:raises TypeError: if the algebras described by *domain* and *range* are not isomorphic.
 	"""
-	
-	def __init__(self, arity, alphabet_size, domain, range):
-		r"""Creates an automorphism, given the *arity* :math:`n` and *alphabet_size* :math:`r`. Two bases *domain* and *range* are also given. The automorphism maps elements so that the given order of generators is preserved:
-		
-			.. math:: \text{domain}_{\,i} \mapsto \text{range}_{\,i}
-		
-		:raises ValueError: if the bases are of different sizes.
-		:raises IndexError: if the bases have different arities or alphabet sizes.
-		:raises ValueError: if either basis :meth:`isn't actually a basis <thompson.generators.Generators.is_basis>`.
-		"""
+	def __init__(self, domain, range):
 		#The boring checks
 		if len(domain) != len(range):
 			raise ValueError("Domain basis has {} elements, but range basis has {} elements.".format(
 			  len(domain), len(range)))
 		
-		if not(arity == domain.arity == range.arity):
-			raise IndexError("Arities do not match. Expected: {}, Domain: {}, Range: {}".format(
-			  arity, domain.arity, range.arity))
+		if not domain.signature.is_isomorphic_to(range.signature):
+			raise TypeError("Domain signature {} is not isomorphic to range signature {}.".format(
+			  domain.signature, range.signature))
 		
-		if not(alphabet_size == domain.alphabet_size == range.alphabet_size):
-			raise IndexError("Alphabet sizes do not match. Expected: {}, Domain: {}, Range: {}".format(
-			  alphabet_size, domain.alphabet_size, range.alphabet_size))
+		#Expand any non-simple words
+		Isomorphism._expand(domain, range)
+		#Before saving the domain and range, reduce them to remove any redundancy. This is like reducing tree pairs.
+		#How do you know that you've found the smallest possible nice basis if you haven't kept everything as small as possible throughout?
+		Isomorphism._reduce(domain, range)
 		
 		#Check to see that the two generating sets given are free
 		i, j = domain.test_free()
@@ -85,49 +78,33 @@ class Automorphism:
 		#Check to see that the two generating sets generate all of V_{n,r}
 		missing = domain.test_generates_algebra()
 		if len(missing) > 0:
-			raise ValueError("Domain does not generate V_{},{}. Missing elements are {}.".format(
-			  arity, alphabet_size, [format(x) for x in missing]))
+			raise ValueError("Domain does not generate V_{}. Missing elements are {}.".format(
+			  domain.signature, [format(x) for x in missing]))
 		
 		missing = range.test_generates_algebra()
 		if len(missing) > 0:
-			raise ValueError("Range does not generate V_{},{}. Missing elements are {}.".format(
-			  arity, alphabet_size, [format(x) for x in missing]))
+			raise ValueError("Range does not generate V_{}. Missing elements are {}.".format(
+			  range.signature, [format(x) for x in missing]))
 		
-		#Expand any non-simple words
-		Automorphism._expand(domain, range)
-		#Before saving the domain and range, reduce them to remove any redundancy. This is like reducing tree pairs.
-		#How do you know that you've found the smallest possible nice basis if you haven't kept everything as small as possible throughout?
-		Automorphism._reduce(domain, range)
-		
-		self.arity = arity
-		self.alphabet_size = alphabet_size
 		self.domain = domain
 		self.range = range
 		
+		#Mapping caches
 		self._map = {}
 		self._inv = {}
 		for d, r in zip(self.domain, self.range):
 			self._set_image(d, r)
+			
 		#Compute and cache the images of any simple word above self.domain.
-		for root in Generators.standard_basis(self.arity, self.alphabet_size):
+		for root in Generators.standard_basis(domain.signature):
 			self._image_simple_above_domain(root)
 			self._image_simple_above_domain(root, inverse=True)
-		
-		self._qnf_basis = None
-		self._qnf_orbit_types = {}
-		
-		#Cache attributes
-		#_map
-		#_inv
-		#_qnf_basis
-		#_qnf_orbit_types
 	
 	@staticmethod
 	def _expand(domain, range):
 		"""Expands the pair of generating sets where neccessary until all words in both sets are simple."""
 		#todo doctest and string
 		i = 0
-		assert len(domain) == len(range)
 		while i < len(domain):
 			if not (domain[i].is_simple() and range[i].is_simple()):
 				domain.expand(i)
@@ -160,13 +137,13 @@ class Automorphism:
 		#similar to word._reduce and Generator.test_generates_algebra
 		#This method ensures that self.domain.minimal_expansion(self) == self.domain after initialisation.
 		i = 0
-		arity = domain.arity
+		arity = domain.signature.arity
 		while i <= len(domain) - arity:
 			d_pref = are_contractible(domain[i : i + arity])
-			r_pref = are_contractible(range[i : i + arity])
+			r_pref = are_contractible(range[ i : i + arity])
 			if d_pref and r_pref: #are both non-empty tuples
-				domain[i : i + arity] = [Word(d_pref, arity, domain.alphabet_size)]
-				range[ i : i + arity] = [Word(r_pref, arity, range.alphabet_size )]
+				domain[i : i + arity] = [Word(d_pref, arity, domain.signature.alphabet_size)]
+				range[ i : i + arity] = [Word(r_pref, arity,  range.signature.alphabet_size)]
 				i -= (arity - 1) 
 				i = max(i, 0)
 			else:
@@ -174,29 +151,29 @@ class Automorphism:
 	
 	def _set_image(self, d, r, inverse=False):
 		"""Stores the rule that phi(d) = r in the mapping dictionaries and ensure that d and r are both Words. Use inverse to specify that phi(r) = d."""
-		assert isinstance(d, Word), repr(d)
-		assert isinstance(r, Word), repr(r)
 		if inverse:
-			self._map[r] = d
-			self._inv[d] = r
-		else:
-			self._map[d] = r
-			self._inv[r] = d
+			d, r = r, d
+		assert d in self.domain.signature, repr(d)
+		assert r in self.range.signature, repr(r)
+		self._map[d] = r
+		self._inv[r] = d
 	
-	#Simple operations on automorphisms
+	#Simple operations on isomorphisms
 	def __eq__(self, other):
 		return self.domain == other.domain and self.range == other.range
 	
 	def __mul__(self, other): #self * other is used for the (backwards) composition self then other
-		if not isinstance(other, Automorphism):
-			return NotImplemented
-		if self.arity != other.arity or self.alphabet_size != other.alphabet_size:
-			raise TypeError("Arities and alphabet sizes do not match.")
 		#TODO doctest and string
-		range = Generators(self.arity, self.alphabet_size)
+		if not isinstance(other, Isomorphism):
+			return NotImplemented
+		if self.range.signature != other.domain.signature:
+			raise TypeError("Signatures do not match.")
+		
+		range = Generators(other.range.signature)
 		for d, word in zip(self.domain, self.range):
 			range.append(other.image(word))
-		return Automorphism(self.arity, self.alphabet_size, self.domain, range)
+		return Isomorphism(self.domain, range)
+		#TODO will need to be think about when to return automorphisms here
 	
 	#Finding images of words
 	def image(self, key, inverse=False):
@@ -245,13 +222,17 @@ class Automorphism:
 		:rtype: a :class:`~thompson.word.Word` instance (which are always in standard form).
 		"""
 		dict = self._inv if inverse else self._map
+		signature_input = self.range.signature if inverse else self.domain.signature
 		try:
 			return dict[key]
 		except KeyError:
 			if isinstance(key, Word):
+				if key.signature != signature_input:
+					raise TypeError("Signature {} of {} does not match {}".format(
+					  key.signature, key, signature_input))
 				word = key
 			elif isinstance(key, (str, tuple)):
-				word = Word(key, self.arity, self.alphabet_size)
+				word = Word(key, signature_input)
 		
 		try:
 			return dict[word]
@@ -276,13 +257,14 @@ class Automorphism:
 		Images are cached once computed.
 		"""
 		dict = self._inv if inverse else self._map
+		signature_output = self.domain.signature if inverse else self.range.signature
 		try: 
 			return dict[word]
 		except KeyError:
 			img_letters = _concat(self._image_simple_above_domain(child, inverse) for child in word.expand())
 			#NOT in standard form.
-			img_letters = standardise(img_letters, self.arity)
-			image = Word(img_letters, self.arity, self.alphabet_size, preprocess=False)
+			img_letters = standardise(img_letters, word.signature)
+			image = Word(img_letters, signature_output, preprocess=False)
 			self._set_image(word, image, inverse)
 			return image
 	
@@ -294,13 +276,15 @@ class Automorphism:
 		are then computed and cached. The final image in this list (i.e. that of the original *word* is returned).
 		"""
 		dict = self._inv if inverse else self._map
+		signature_input = self.range.signature if inverse else self.domain.signature
+		signature_output = self.domain.signature if inverse else self.range.signature
 		i = 1
 		while True:
 			head, tail = word.rsplit(i)
 			if head in dict:
 				break
 			i += 1
-		head = Word(head, self.arity, self.alphabet_size, preprocess=False)
+		head = Word(head, signature_input, preprocess=False)
 		image = dict[head] #is a word
 		for _ in range(i):
 			alpha, tail = tail[0], tail[1:]
@@ -316,10 +300,11 @@ class Automorphism:
 		:raises ValueError: if the last letter in *word* is not a lambda.
 		"""
 		dict = self._inv if inverse else self._map
+		signature_output = self.domain.signature if inverse else self.range.signature
 		subwords = lambda_arguments(word)
 		letters = _concat(self.image(word, inverse) for word in subwords)
 		letters = standardise(letters, self.arity)
-		image = Word(letters, self.arity, self.alphabet_size, preprocess=False) #can skip validation
+		image = Word(letters, signature_output, preprocess=False) #can skip validation
 		self._set_image(word, image, inverse)
 		return image
 	
@@ -338,9 +323,10 @@ class Automorphism:
 			>>> print(arity_four.repeated_image('x a4 a4 a2', 4))
 			x1 a3 a3 a2
 		"""
+		signature_input = self.range.signature if inverse else self.domain.signature
 		if power == 0:
 			if not isinstance(key, Word):
-				key = Word(key, self.arity, self.alphabet_size)
+				key = Word(key, signature_input)
 			return key
 		inverse = power < 0
 		power = abs(power)
@@ -350,6 +336,10 @@ class Automorphism:
 		return image
 		
 	#Printing
+	def _string_header(self):
+		return "{}: V_{} -> V_{} specified by {} generators (after reduction).".format(
+		  type(self).__name__, self.domain.signature, self.range.signature, len(self.domain))
+	
 	def __str__(self):
 		"""Printing an automorphism gives its arity, alphabet_size, and lists the images of its domain elements.
 		
@@ -363,8 +353,7 @@ class Automorphism:
 			x1 a2 a2    -> x1 a1 a2 a1
 		"""
 		output = StringIO()
-		output.write("{} of V_{},{} specified by {} generators (after reduction):".format(
-		  type(self).__name__, self.arity, self.alphabet_size, len(self.domain)))
+		output.write(self._string_header())
 		max_len = 0
 		for key in self.domain:
 			max_len = max(max_len, len(str(key)))
@@ -377,10 +366,10 @@ class Automorphism:
 	def dump_mapping(self, inverse=False, **kwargs):
 		r"""A tool for debugging. Prints all the mapping rules :math:`w \mapsto \phi(w)` that have been stored. If *inverse* is True, the rules for the inverse are printed. Any keyword arguments *kwargs* are passed to the :func:`print <py3:print>` function."""
 		dict = self._inv if inverse else self._map
-		print('{} of V_{},{} specified by {} generators (after reduction).'.format(
-		  type(self).__name__, self.arity, self.alphabet_size, len(self.domain)), **kwargs)
+		print(self._string_header(), **kwargs)
 		if inverse:
-			print('Printing the inverse mapping.', **kwargs)
+			print('Printing the **inverse** mapping.', **kwargs)
+		
 		print('The generators are marked by an asterisk.', **kwargs)
 		max_len = 0
 		for key in dict:
@@ -393,6 +382,29 @@ class Automorphism:
 			prefix = " * " if key in generators else "   "
 			value = self.image(key, inverse)
 			print(prefix + fmt.format(key, value), **kwargs)
+
+class Automorphism(Isomorphism):
+	r"""An automorphism is an isomorphism from :math:`V_{n,r}` to itself. The automorphism group :math:`\mathrm{Aut}(V_{n,r})` is labelled :math:`G_{n,r}`.
+	"""
+	
+	def __init__(self, domain, range):
+		r"""Creates an automorphism, given the *arity* :math:`n` and *alphabet_size* :math:`r`. Two bases *domain* and *range* are also given. The automorphism maps elements so that the given order of generators is preserved:
+		
+			.. math:: \text{domain}_{\,i} \mapsto \text{range}_{\,i}
+		
+		:raises IndexError: if the bases have different arities or alphabet sizes.
+		:raises ValueError: if either basis :meth:`isn't actually a basis <thompson.generators.Generators.is_basis>`.
+		"""
+		if domain.signature != range.signature:
+			raise TypeError('Domain {} and range {} have different signatures.'.format(
+			  domain.signature, range.signature))
+		
+		super().__init__(self, domain, range)
+		self.signature = domain.signature
+		
+		#Cache attributes
+		self._qnf_basis = None
+		self._qnf_orbit_types = {}
 	
 	#Generating the quasinormal basis
 	def quasinormal_basis(self):

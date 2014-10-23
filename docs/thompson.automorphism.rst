@@ -3,6 +3,13 @@ Automorphisms
 
 .. automodule :: thompson.automorphism
 
+The Isomorphism class
+---------------------
+
+.. autoclass:: thompson.automorphism.Isomorphism
+    :members:
+    :undoc-members:
+
 The Automorphism class
 ----------------------
 

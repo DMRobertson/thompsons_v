@@ -13,38 +13,28 @@ The Generators class
 from copy import copy
 
 from . import word
-from .word import Word
+from .word import Word, Signature
 
 __all__ = ["Generators"]
 
 class Generators(list):
 	r"""An ordered subset of :math:`V_{n, r}`, together with methods which treat such sets as generating sets and bases. Internally, this is a subclass of :class:`list <py3:list>`, so it is possible to reorder and otherwise modify collections of Generators.
 	
-	:ivar arity: :math:`n`, the number of operators :math:`\alpha_i`.
-	:ivar alphabet_size: :math:`r`, the number of letters :math:`x_i`.
+	:ivar signature: The :class:`~thompson.word.Signature` of the algebra this set belongs to.
 	"""
 	
-	def __init__(self, arity, alphabet_size, generators=None):
+	def __init__(self, signature, generators=None):
 		"""When creating a generating set, you must specify the algebra :math:`V_{n, r}` it is a subset of. A list of generators can optionally be provided. Each generator is passed to :meth:`append`.
-		
-		:raises ValueError: if either of *arity* and *alphabet_size* is not a natural number.
 		"""
-		if not arity > 0:
-			raise ValueError('Arity should be a natural number (received {}).'.format(
-			  arity))
-		
-		if not alphabet_size > 0:
-			raise ValueError('Alphabet size should be a natural number (received {}).'.format(
-			  alphabet_size))
-		
-		self.arity = arity
-		self.alphabet_size = alphabet_size
+		if not isinstance(signature, Signature):
+			signature = Signature(*signature)
+		self.signature = signature
 		if generators is not None:
 			for g in generators:
 				self.append(g)
 	
 	def append(self, w):
-		"""Adds *w* to this generating set. If *w* is a string, a :class:`Word` object is created and assigned the same *arity* and *alphabet_size* as the generating set.
+		"""Adds *w* to this generating set. If *w* is a string, a :class:`~thompson.word.Word` object is created and assigned the same *arity* and *alphabet_size* as the generating set.
 		
 		:raises TypeError: if *w* is neither a string nor a Word.
 		:raises IndexError: if *w* has a different arity to the generating set.
@@ -52,18 +42,13 @@ class Generators(list):
 		:raises ValueError: if *w* is already contained in this generating set.
 		"""
 		if isinstance(w, str):
-			w = Word(w, self.arity, self.alphabet_size)
+			w = Word(w, self.signature)
 		elif not isinstance(w, Word):
 			raise TypeError("{:r} is neither a string nor a Word.".format(w))
 		
-		if w.arity != self.arity:
+		if self.signature != w.signature:
 			raise IndexError("Can't add {} with arity {} to generating set with arity {}."
-			  .format(w, w.arity, self.arity))
-		
-		if w.alphabet_size > self.alphabet_size:
-			raise IndexError("Can't add {} with alphabet size {} to generating set with alphabet size {}.".format(
-			  w, w.alphabet_size, self.alphabet_size))
-		#else: modify the alphabet size?
+			  .format(w, w.signature, self.signature))
 		
 		if w not in self:
 			super().append(w)
@@ -74,14 +59,19 @@ class Generators(list):
 		return "[" + ", ".join(format(w) for w in self) + "]"
 	
 	def __repr__(self):
-		return "Generators({}, {}, [{}])".format(
-		  self.arity, self.alphabet_size, ", ".join(repr(format(w)) for w in self))
+		return "Generators({}, [{}])".format(
+		  self.signature, ", ".join(repr(format(w)) for w in self))
+	
+	def __eq__(self, other):
+		if not isinstance(other, Generators):
+			return NotImplemented
+		return self.signature == other.signature and super().__eq__(self, other)
 	
 	#Tests on generating sets
 	def test_free(self):
 		r"""Tests to see if the current generating set ``X`` is a free generating set. If the test fails, returns the first pair of indices :math:`(i, j)` found for which one of ``X[i]`` and ``X[j]`` is an initial segment of the other. If the test passes, returns ``(-1, -1)``.
 		
-			>>> g = Generators(2, 3, ["x1 a1", "x1 a2 a1", "x1 a2 a1 a1", "x1 a2 a2"])
+			>>> g = Generators((2, 3), ["x1 a1", "x1 a2 a1", "x1 a2 a1 a1", "x1 a2 a2"])
 			>>> g.test_free()
 			(1, 2)
 			>>> print(g[1], g[2], sep='\n')
@@ -101,7 +91,7 @@ class Generators(list):
 	def is_free(self):
 		"""Returns True if this is a free generating set; otherwise False.
 		
-			>>> g = Generators(2, 3, ['x1', 'x2']);
+			>>> g = Generators((2, 3), ['x1', 'x2']);
 			>>> g.is_free()
 			True
 			>>> g.append('x3'); g.is_free()
@@ -117,32 +107,31 @@ class Generators(list):
 		The test fails if there is at least one such element; in this case, the list of all such elements is returned. Otherwise the test passes, and an empty list is returned.
 		
 			>>> #A basis for V_2,1
-			>>> Y = Generators(2, 1, ["x a1", "x a2 a1", "x a2 a2 a1 a1", "x a2 a2 a1 a2", "x a2 a2 a2"])
+			>>> Y = Generators((2, 1), ["x a1", "x a2 a1", "x a2 a2 a1 a1", "x a2 a2 a1 a2", "x a2 a2 a2"])
 			>>> Y.test_generates_algebra()
 			[]
 			>>> #The same words do not generate V_2,3
-			>>> Y = Generators(2, 3, Y)
+			>>> Y = Generators((2, 3), ["x a1", "x a2 a1", "x a2 a2 a1 a1", "x a2 a2 a1 a2", "x a2 a2 a2"])
 			>>> missing = Y.test_generates_algebra(); missing
-			[Word('x2', 2, 3), Word('x3', 2, 3)]
+			[Word('x2', (2, 3)), Word('x3', (2, 3))]
 			>>> for x in missing: print(x)
 			x2
 			x3
 		
 		:rtype: a list of :class:`Words <thompson.word.Word>`."""
-		
 		words = sorted(self) #Creates a shallow copy and then sorts it.
 		i = 0
-		while i <= len(words) - self.arity:
-			prefix = word.are_contractible(words[i : i + self.arity])
+		while i <= len(words) - self.signature.arity:
+			prefix = word.are_contractible(words[i : i + self.signature.arity])
 			if prefix:
-				words[i : i + self.arity] = [prefix]
-				i -= (self.arity - 1) 
+				words[i : i + self.signature.arity] = [prefix] if prefix not in words else []
+				i -= (self.signature.arity - 1) 
 				i = max(i, 0)
 			else:
 				i += 1
 		
 		#At the end, should contract to (something which includes) [x1, x2, ..., x_r]
-		expected = Generators.standard_basis(self.arity, self.alphabet_size)
+		expected = Generators.standard_basis(self.signature)
 		missing = [x for x in expected if x not in words]
 		return missing
 	
@@ -151,7 +140,7 @@ class Generators(list):
 		
 			>>> from random import randint
 			>>> arity = randint(2, 5); alphabet_size = randint(2, 10)
-			>>> Y = Generators.standard_basis(arity, alphabet_size)
+			>>> Y = Generators.standard_basis((arity, alphabet_size))
 			>>> Y.generates_algebra()
 			True
 		"""
@@ -162,13 +151,13 @@ class Generators(list):
 		
 		If *return_index* is False, returns the pair *(gen, tail)*. Otherwise, returns the pair *(i, tail)* where *i* is the index of *gen* in the current basis.
 		
-			>>> basis = Generators.standard_basis(2, 1).expand(0).expand(0).expand(0)
+			>>> basis = Generators.standard_basis((2, 1)).expand(0).expand(0).expand(0)
 			>>> basis
-			Generators(2, 1, ['x1 a1 a1 a1', 'x1 a1 a1 a2', 'x1 a1 a2', 'x1 a2'])
-			>>> gen, tail = basis.test_above(Word('x1 a2 a2 a1', 2, 1))
+			Generators((2, 1), ['x1 a1 a1 a1', 'x1 a1 a1 a2', 'x1 a1 a2', 'x1 a2'])
+			>>> gen, tail = basis.test_above(Word('x1 a2 a2 a1', (2, 1)))
 			>>> print(gen, '|', format(tail))
 			x1 a2 | a2 a1
-			>>> i, tail = basis.test_above(Word('x1 a2 a2 a1', 2, 1), return_index=True)
+			>>> i, tail = basis.test_above(Word('x1 a2 a2 a1', (2, 1)), return_index=True)
 			>>> print(basis[i])
 			x1 a2
 		"""
@@ -183,14 +172,14 @@ class Generators(list):
 	def is_above(self, word):
 		"""Returns True if any generator :meth:`~thompson.word.Word.is_above` the given *word*.
 		
-			>>> g = Generators(2, 2, ['x1 a1', 'x1 a2', 'x2'])
-			>>> g.is_above(Word('x1 a1 a1 a2', 2, 2))
+			>>> g = Generators((2, 2), ['x1 a1', 'x1 a2', 'x2'])
+			>>> g.is_above(Word('x1 a1 a1 a2', (2, 2)))
 			True
-			>>> g.is_above(Word('x1', 2, 2))
+			>>> g.is_above(Word('x1', (2, 2)))
 			False
-			>>> g.is_above(Word('x2', 2, 2))
+			>>> g.is_above(Word('x2', (2, 2)))
 			True
-			>>> g.is_above(Word('x1 a1 x1 a2 L', 2, 2))
+			>>> g.is_above(Word('x1 a1 x1 a2 L', (2, 2)))
 			False
 		"""
 		return any(gen.is_above(word) for gen in self)
@@ -198,7 +187,7 @@ class Generators(list):
 	def is_basis(self):
 		"""Returns True if this is a :meth:`free generating set <is_free>` which :meth:`generates all of <is_free>` :math:`V_{n,r}`. Otherwise returns False.
 		
-			>>> g = Generators(2, 2, ["x1 a1", "x1 a2"])
+			>>> g = Generators((2, 2), ["x1 a1", "x1 a2"])
 			>>> g.is_free()
 			True
 			>>> g.generates_algebra()
@@ -213,15 +202,18 @@ class Generators(list):
 	
 	#Creating generating sets
 	@classmethod
-	def standard_basis(cls, arity, alphabet_size):
-		r"""Creates the standard basis :math:`\boldsymbol{x} = \{x_1, \dotsc, x_r\}` for :math:`V_{n,r}`, where :math:`n` is the arity and :math:`r` is the *alphabet_size*. 
+	def standard_basis(cls, signature):
+		r"""Creates the standard basis :math:`\boldsymbol{x} = \{x_1, \dotsc, x_r\}` for :math:`V_{n,r}`, where :math:`n` is the arity and :math:`r` is the *alphabet_size* of the *signature*. 
 		
-			>>> Generators.standard_basis(2, 4)
-			Generators(2, 4, ['x1', 'x2', 'x3', 'x4'])
+			>>> Generators.standard_basis((2, 4))
+			Generators((2, 4), ['x1', 'x2', 'x3', 'x4'])
 		"""
-		output = Generators(arity, alphabet_size)
-		for i in range(1, alphabet_size + 1):
-			output.append(Word((i,), arity, alphabet_size, preprocess=False))
+		if isinstance(signature, tuple) and not isinstance(signature, Signature):
+			signature = Signature(*signature)
+		
+		output = Generators(signature)
+		for i in range(1, signature.alphabet_size + 1):
+			output.append(Word((i,), signature, preprocess=False))
 		return output
 	
 	def minimal_expansion_for(self, *automorphisms):
@@ -229,7 +221,7 @@ class Generators(list):
 
 		
 			>>> from thompson.examples import *
-			>>> std_basis = Generators.standard_basis(2, 1)
+			>>> std_basis = Generators.standard_basis((2, 1))
 			>>> std_basis.minimal_expansion_for(example_4_5) == example_4_5.domain
 			True
 			>>> std_basis.minimal_expansion_for(example_4_11) == example_4_11.domain
@@ -239,7 +231,7 @@ class Generators(list):
 			True
 			>>> std_basis.minimal_expansion_for(example_4_25) == example_4_25.domain
 			True
-			>>> reduced_domain = Generators(2, 1, ["x a1 a1", "x a1 a2 a1", "x a1 a2 a2", "x a2 a1", "x a2 a2"])
+			>>> reduced_domain = Generators((2, 1), ["x a1 a1", "x a1 a2 a1", "x a1 a2 a2", "x a2 a1", "x a2 a2"])
 			>>> std_basis.minimal_expansion_for(cyclic_order_six) == reduced_domain
 			True
 			>>> basis = example_5_3.quasinormal_basis()
@@ -261,7 +253,7 @@ class Generators(list):
 			raise ValueError('The generating set does not freely generate V_{n,r}.')
 		
 		for aut in automorphisms:
-			if not (aut.arity == self.arity and aut.alphabet_size == self.alphabet_size):
+			if aut.signature != self.self.signature:
 				raise ValueError('At least one automorphism belongs to a different G_{n,r} than the basis.')
 		
 		#1. Expand until all images belong to X<A>.
@@ -278,38 +270,38 @@ class Generators(list):
 	def expand(self, index):
 		r"""Replaces the word :math:`w` at index *index* in the current generating set with its children, :math:`w\alpha1, \dotsc, w\alpha_n`, where :math:`n` is the arity of the generating set.
 		
-			>>> g = Generators.standard_basis(3, 1); g
-			Generators(3, 1, ['x1'])
+			>>> g = Generators.standard_basis((3, 1)); g
+			Generators((3, 1), ['x1'])
 			>>> g.expand(0)
-			Generators(3, 1, ['x1 a1', 'x1 a2', 'x1 a3'])
+			Generators((3, 1), ['x1 a1', 'x1 a2', 'x1 a3'])
 			>>> g.expand(1)
-			Generators(3, 1, ['x1 a1', 'x1 a2 a1', 'x1 a2 a2', 'x1 a2 a3', 'x1 a3'])
+			Generators((3, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2', 'x1 a2 a3', 'x1 a3'])
 			
 			:raises IndexError: if there is no generator at index *index*.
 			:returns: the current generating set, after modification. 
 		"""
-		self[index: index+1] = [self[index].alpha(i) for i in range(1, self.arity+1)]
+		self[index: index+1] = [self[index].alpha(i) for i in range(1, self.signature.arity+1)]
 		return self #allows chaining
 	
 	def expand_to_size(self, size):
 		"""Expands the current generating set until it has the given *size*. The expansions begin from the end of the generating set and work leftwards, wrapping around if we reach the start. (This is to try and avoid creating long words where possible.)
 		
-			>>> basis = Generators.standard_basis(3, 1); print(basis)
+			>>> basis = Generators.standard_basis((3, 1)); print(basis)
 			[x1]
 			>>> basis.expand_to_size(11); print(basis)
 			[x1 a1 a1, x1 a1 a2, x1 a1 a3, x1 a2 a1, x1 a2 a2, x1 a2 a3, x1 a3 a1, x1 a3 a2, x1 a3 a3 a1, x1 a3 a3 a2, x1 a3 a3 a3]
-			>>> basis = Generators.standard_basis(2, 1); print(basis)
+			>>> basis = Generators.standard_basis((2, 1)); print(basis)
 			[x1]
 			>>> basis.expand_to_size(2); print(basis)
 			[x1 a1, x1 a2]
-			>>> basis = Generators.standard_basis(2, 3).expand(2).expand(0); print(basis)
+			>>> basis = Generators.standard_basis((2, 3)).expand(2).expand(0); print(basis)
 			[x1 a1, x1 a2, x2, x3 a1, x3 a2]
 			>>> basis.expand_to_size(12); print(basis)
 			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2, x2 a1, x2 a2, x3 a1 a1, x3 a1 a2, x3 a2 a1 a1, x3 a2 a1 a2, x3 a2 a2 a1, x3 a2 a2 a2]
 		
 		:raises ValueError: if an expansion to the given size is not possible.
 		"""
-		modulus = self.arity - 1
+		modulus = self.signature.arity - 1
 		if (size % modulus != len(self) % modulus) or size < len(self):
 			raise ValueError("Cannot expand from length {} to length {} in steps of size {}.".format(
 			  len(self), size, modulus))
