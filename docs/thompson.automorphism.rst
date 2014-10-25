@@ -1,5 +1,5 @@
-Automorphisms
-=============
+Automorphisms and conjugacy
+===========================
 
 .. automodule :: thompson.automorphism
 

@@ -7,7 +7,8 @@ from .word import Word
 __all__ = ["cyclic_order_six", "arity_three_order_inf", "arity_four", "alphabet_size_two",
            "example_4_5", "example_4_11", "example_4_12", "example_4_25",
            "example_5_3",
-           "example_5_9", "example_5_9_p", "example_5_12_psi", "example_5_12_psi_p", "example_5_12_phi", "example_5_12_phi_p", "example_5_12_rho",
+           "example_5_9", "example_5_12_psi", "example_5_12_phi", "example_5_12_rho",
+           "example_5_9_p", "example_5_12_psi_p", "example_5_12_phi_p",
            "example_5_26"]
 
 #TODO. Have a method that reads automorphisms in from a file. Writing the Python syntax around all this is boring.

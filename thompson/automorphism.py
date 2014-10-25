@@ -11,12 +11,12 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
  
 .. testsetup::
 	
-	from thompson.automorphism import *
 	from thompson.word import Word, from_string
 	from thompson import word
 	from thompson.generators import Generators
+	from thompson.automorphism import *
 	from thompson.orbits import dump_orbit_types
-
+	from thompson.examples import *
 """
 
 __all__ = ["Isomorphism", "Automorphism"]
@@ -96,6 +96,7 @@ class Isomorphism:
 			self._set_image(d, r)
 			
 		#Compute and cache the images of any simple word above self.domain.
+		#Setup the inverse map
 		for root in Generators.standard_basis(domain.signature):
 			self._image_simple_above_domain(root)
 			self._image_simple_above_domain(root, inverse=True)
@@ -385,13 +386,14 @@ class Automorphism(Isomorphism):
 		
 		.. doctest::
 			
-			>>> from thompson.examples import *
 			>>> print(example_4_25.repeated_image('x1 a1', 10))
 			x1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
 			>>> print(example_4_25.repeated_image('x1 a1 a1 a1 a1 a1 a1 a1', -3))
 			x1 a1
-			>>> print(arity_four.repeated_image('x a4 a4 a2', 4))
+			>>> print(arity_four.repeated_image('x1 a4 a4 a2', 4))
 			x1 a3 a3 a2
+			>>> print(arity_four.repeated_image('x1 a3 a3 a2', -4))
+			x1 a4 a4 a2
 		"""
 		inverse = power < 0
 		if power == 0:
@@ -410,7 +412,6 @@ class Automorphism(Isomorphism):
 		
 		There is a minimal such basis, :math:`X_\phi` say, and we say that :math:`\phi` is *in quasi-normal form* with respect to :math:`X_\phi`. This method determines and returns the basis :math:`X_\phi` where :math:`\phi` denotes the current automorphism. The result is cached so that further calls to this method perform no additional computation. 
 		
-			>>> from thompson.examples import *
 			>>> example_4_5.quasinormal_basis()
 			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
 			>>> alphabet_size_two.quasinormal_basis()
@@ -439,7 +440,6 @@ class Automorphism(Isomorphism):
 	def _seminormal_form_start_point(self):
 		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \cup W`. See remark 4.10 and example 4.25. This basis that this method produces is the smallest possible which *might* be semi-normal.
 		
-			>>> from thompson.examples import *
 			>>> example_4_5._seminormal_form_start_point()
 			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
 			>>> example_4_11._seminormal_form_start_point()
@@ -464,7 +464,6 @@ class Automorphism(Isomorphism):
 	def _orbit_type(self, y, basis):
 		"""Returns the orbit type of *y* with respect to the given *basis*. Also returns a dictionary of computed images, the list (7) from the paper.
 		
-		>>> from thompson.examples import *
 		>>> #Example 4.5.
 		>>> dump_orbit_types(example_4_5, example_4_5.domain)
 		x1 a1 a1 a1: Left semi-infinite orbit with characteristic (-1, a1)

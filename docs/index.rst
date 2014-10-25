@@ -24,8 +24,8 @@ This package began as a series of tools to represent tree pair diagrams in `Thom
    
    Words and standard forms <thompson.word>
    Generating sets and bases <thompson.generators>
-   Automorphisms <thompson.automorphism>
    Orbits <thompson.orbits>
+   Automorphisms and conjugacy <thompson.automorphism>
    Examples <thompson.examples>
    References <references>
 

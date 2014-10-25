@@ -1,49 +1,20 @@
-r"""By a *word*, we mean a string written using the symbols
-
-.. math:: X \cup \Omega = \{x_1, \dotsc, x_r\} \cup \{\alpha_1, \dotsc, \alpha_n, \lambda\}.
-
-The :math:`x_i` are constants, the :math:`\alpha_i` are unary operators and :math:`\lambda` is an *n*-ary operation. In this package, we refer to the parameters :math:`n` and :math:`r` as the *arity* and *alphabet size* respectively.
-
-We consider three different algebras (in the sense of `universal algebra <http://en.wikipedia.org/wiki/Universal_algebra>`_) of words. In the notation of [Cohn]_:
-
-1. :math:`W(\Omega; X)`, the set of all finite strings written using letters in :math:`X \cup \Omega`. Cohn calls these :math:`\Omega`-rows.
-2. :math:`W_\Omega(X)`, the subset of :math:`W(\Omega; X)` whose strings begin with an :math:`x_i`, and represent a :func:`valid <validate>` series of operations. Cohn calls these :math:`\Omega`-words.
-3. :math:`V_{n, r}(X) = W_\Omega(X) / \mathfrak{q}`. This is equivalent to the set of words in :math:`W_\Omega(X)` which are in Higman's :func:`standard form <standardise>`. Roughly speaking, a is in standard form if is valid (type 2) and it cannot be reduced to a shorter word using the following two rules. 
-
-	a. :math:`w_1 \dots w_n \lambda \alpha_i = w_i`
-	b. :math:`w \alpha_1 \dots w \alpha_n \lambda = w`
-
-In the rules above, :math:`w` and the :math:`w_i` are all words in standard form.
-
-Sometimes we need to refer to a string which consists only of :math:`\alpha`-s. Write :math:`A` for the set :math:`\{\alpha_1, \dotsc, \alpha_n\}`. We define :math:`\langle A \rangle` to be the set of finite strings over :math:`A`.
-
-.. seealso:: Definition 2.1, Section 2.3, Remark 3.3 and Definition 3.7 of the paper.
-
-In the workings of this module, we represent a word as a :class:`tuple <py3:tuple>` of integers, where:
-
-- :math:`x_i` is represented by :math:`i`,
-- :math:`\alpha_i` is represented by :math:`-i`, and
-- :math:`\lambda` is represented by :math:`0`.
-
-We can write words of all types in this format, but we're only interested in the standard forms (type 3). To this end, the :func:`validate` detects those which are of type 2, and :func:`standardise` reduces type 2 words to type 3.
-
+"""
 .. testsetup:: 
 	
 	from thompson.word import *
-
-Signatures and the Word class
------------------------------
+	from thompson.examples import *
 """
 
 import operator
 from collections import namedtuple
 from itertools import chain
 
-__all__ = ["Signature", "format", "from_string", "validate", "standardise", "are_contractible", "lambda_arguments", "Word", "_concat"]
+__all__ = ["Signature", "Word",
+	"format", "from_string", "validate", "standardise", "are_contractible", "lambda_arguments", "_concat"]
+
 
 BaseSignature = namedtuple('BaseSignature', 'arity alphabet_size')
 class Signature(BaseSignature):
-	"""Signatures are glorified :class:`namedtuples <py3:collections.namedtuple>` which specify the particular algebra :math:`V_{n,r}` that we are working in."""
 	__slots__ = ()
 	
 	def __new__(cls, arity, alphabet_size):
@@ -73,7 +44,7 @@ class Signature(BaseSignature):
 		return isinstance(other, Word) and other.signature == self
 	
 	def is_isomorphic_to(self, other):
-		"""We can test the (signatures of) two algebras to see if they are isomorphic.
+		"""We can test the (signatures of) two algebras :math:`V_{n,r}` and :math:`V_{m,s}` to see if they are isomorphic. This happens precisely when :math:`n = m` and :math:`r \equiv s \pmod{n-1}`.
 		
 			>>> Signature(2, 1).is_isomorphic_to(Signature(2, 4))
 			True
@@ -83,6 +54,9 @@ class Signature(BaseSignature):
 			False
 			>>> Signature(3, 3).is_isomorphic_to(Signature(3, 1))
 			True
+		
+		.. seealso:: Corollary 3.14 of the paper.
+		
 		"""
 		if not isinstance(other, Signature):
 			return NotImplemented
@@ -90,6 +64,7 @@ class Signature(BaseSignature):
 			return False
 		modulus = self.arity - 1
 		return self.alphabet_size % modulus == other.alphabet_size % modulus
+
 
 def _char(symbol):
 	"""Converts the internal representation of a symbol into a nice string."""
@@ -136,15 +111,15 @@ def from_string(str):
 	return tuple(output)
 
 def validate(letters, signature):
-	r"""Checks that the given *letters* describe a valid word belonging to the algebra with the given *signature* = *(arity, alphabet_size)*. If no errors are raised when running this function, then we know that:
+	r"""Checks that the given *letters* describe a valid word belonging to the algebra with the given *signature = (arity, alphabet_size)*. If no errors are raised when running this function, then we know that:
 	
 	- The first letter is an :math:`x_i`.
 	- Every :math:`\lambda` has *arity* arguments to its left.
-	- If thge word contains a :math:`\lambda`, every subword is an argument of some :math:`\lambda`.
+	- If the word contains a :math:`\lambda`, every subword is an argument of some :math:`\lambda`.
 	- No :math:`\alpha_i` appears with :math:`i >` *arity*.
 	- No :math:`x_i` occurs with  :math:`i >` *alphabet_size*.
 	
-	Calling this function does not modfiy *letters*, and thus *letters* may not be in standard form (type 3).
+	Calling this function does not modify *letters*. The argument *letters* need not be in standard form.
 	
 		>>> validate(from_string('a1 x a2 L'), (2, 1))
 		Traceback (most recent call last):
@@ -363,20 +338,9 @@ def _concat(words):
 	"""Takes an iterable *words* which yields sequences of integers representing words. Returns a tuple containing all the *words* concatenated together, with a zero (lambda) added on the end."""
 	return tuple(chain.from_iterable(words)) + (0,)
 
+#3. The word class.
 class Word(tuple):
-	r"""A sequence of letters (stored as integers), together with a recorded *signature*. Words are implemented as subclasses of :class:`tuple <py3:tuple>`, meaning they are `immutable <https://docs.python.org/3/glossary.html#term-immutable>`_. This means they can be used as dictionary keys. 
-	
-		>>> w = Word('x1 a1', (2, 1))
-		>>> x = {}; x[w] = 'stored value'
-		>>> x[w]
-		'stored value'
-		>>> #Can also use the underlying tuple as a key
-		>>> x[1, -1]
-		'stored value'
-		>>> #the reason this works
-		>>> hash(w) == hash((1, -1))
-		True
-	
+	"""
 	:ivar signature: the signature of the algebra this word belongs to.
 	:ivar lambda_length: the number of times the contraction symbol :math:`\lambda` occurs in this word after it has been written in standard form.
 	"""
@@ -388,7 +352,7 @@ class Word(tuple):
 			>>> Word("x2 a1 a2 a3 x1 a1 a2 a1 x2 L a2", (3, 2))
 			Word('x1 a1 a2 a1', (3, 2))
 		
-		By default, ``preprocess is True``. This means that words are :func:`validated <validate>` and :func:`reduced to standard form <standardise>` before they are stored as a tuple. These steps can be disabled by using ``preprocess=False``. This option is used internally when we *know* we have letters which are already vaild and in standard form.
+		By default, the argument *preprocess* is True. This means that words are :func:`validated <validate>` and :func:`reduced to standard form <standardise>` before they are stored as a tuple. These steps can be disabled by using ``preprocess=False``. This option is used internally when we *know* we have letters which are already vaild and in standard form.
 		
 		:raises ValueError: See the errors raised by :func:`validate`.
 		"""

@@ -3,6 +3,7 @@
 .. testsetup::
 	
 	from thompson.orbits import *
+	from thompson.examples import *
 """
 
 from collections import namedtuple
@@ -108,7 +109,6 @@ OrbitType.incomplete = OrbitType(OrbitType._incomplete, None)
 def dump_orbit_types(aut, basis=None, words=None):
 	r"""Prints the classification of the orbits under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the minimal expansion given by :meth:`~thompson.automorphism._minimal_expansion`. If *words* is omited, it is taken to be the same as *basis*. See the docstring for :meth:`~thompson.automorphism._orbit_type`.
 	
-		>>> from thompson.examples import *
 		>>> dump_orbit_types(arity_three_order_inf)
 		x1 a1: Left semi-infinite orbit with characteristic (-1, a1)
 		x1 a2: Bi-infinite orbit containing [x1 a3 a3] a2
