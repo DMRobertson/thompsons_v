@@ -85,11 +85,11 @@ class Homomorphism:
 			>>> #This is given by 6 generators, but after reduction consists of 5:
 			>>> print(cyclic_order_six)
 			Automorphism: V(2, 1) -> V(2, 1) specified by 5 generators (after reduction).
-			x1 a1 a1    -> x1 a1 a1
+			x1 a1 a1    -> x1 a1 a1      
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
-			x1 a1 a2 a2 -> x1 a2
+			x1 a1 a2 a2 -> x1 a2         
 			x1 a2 a1    -> x1 a1 a2 a2 a1
-			x1 a2 a2    -> x1 a1 a2 a1
+			x1 a2 a2    -> x1 a1 a2 a1   
 			>>> #Swaps x1 and x2. Should reduce to two generators instead of 3
 			>>> domain = Generators((2, 2), ["x1", "x2 a1", "x2 a2"])
 			>>> range  = Generators((2, 2), ["x2", "x1 a1", "x1 a2"])
@@ -267,6 +267,24 @@ class Homomorphism:
 		self._set_image(word, image, sig_in, sig_out, cache)
 		return image
 	
+	def image_of_set(self, set, sig_in=None, sig_out=None, cache=None):
+		"""Computes the image of a set of :class:`~thompson.generators.Generators` under the current homomorphism.
+		:rtype: another set of :class:`~thompson.generators.Generators`.
+		"""
+		#todo example
+		sig_in = sig_in or self.domain.signature
+		sig_out = sig_out or self.range.signature
+		cache = cache or self._map
+		
+		if set.signature != sig_in:
+			raise ValueError("Set signature {} does not match the input signature {}.".format(
+			  set.signature, sig_in))
+		images = Generators(sig_out)
+		for preimage in set:
+			images.append(self._compute_image(preimage, sig_in, sig_out, cache))
+		
+		return images
+	
 	#Printing
 	def _string_header(self):
 		return "{}: V{} -> V{} specified by {} generators (after reduction).".format(
@@ -277,19 +295,49 @@ class Homomorphism:
 		
 			>>> print(cyclic_order_six)
 			Automorphism: V(2, 1) -> V(2, 1) specified by 5 generators (after reduction).
-			x1 a1 a1    -> x1 a1 a1
+			x1 a1 a1    -> x1 a1 a1      
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
-			x1 a1 a2 a2 -> x1 a2
+			x1 a1 a2 a2 -> x1 a2         
 			x1 a2 a1    -> x1 a1 a2 a2 a1
-			x1 a2 a2    -> x1 a1 a2 a1
+			x1 a2 a2    -> x1 a1 a2 a1   
 		"""
 		output = StringIO()
 		output.write(self._string_header())
-		max_len = 0
-		for key in self.domain:
-			max_len = max(max_len, len(str(key)))
-		fmt = "\n{!s: <" + str(max_len) + "} -> {!s}"
-		for key in sorted(self.domain):
-			value = self.image(key)
-			output.write(fmt.format(key, value))
+		rows = self._format_table(self.domain, self.range)
+		for row in rows:
+			output.write('\n')
+			output.write(row)
 		return output.getvalue()
+	
+	@staticmethod
+	def _format_table(*columns, sep=None, root_names=None):
+		for row in zip(*columns):
+			break
+		num_columns = len(row)
+		
+		if sep is None:
+			sep = [' -> '] * (num_columns - 1)
+		else:
+			assert len(sep) == (num_columns - 1)
+			sep = [' {} '.format(s) for s in sep]
+		
+		if root_names is None:
+			root_names = 'x' * num_columns
+		else:
+			assert len(root_names) == num_columns
+		
+		max_width = [0] * num_columns
+		for row in zip(*columns):
+			for i, entry in enumerate(row):
+				max_width[i] = max(max_width[i], len(str(entry)))
+		
+		column = "{{!s: <{}}}"
+		fmt = ""
+		for i, width in enumerate(max_width):
+			if i > 0:
+				fmt += sep[i - 1]
+			fmt += column.format(max_width[i])
+		
+		for row in zip(*columns):
+			row = [str(entry).replace('x', root_names[i]) for i, entry in enumerate(row)]
+			yield fmt.format(*row)

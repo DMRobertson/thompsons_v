@@ -15,6 +15,7 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 __all__ = ["Automorphism"]
 
 from collections import defaultdict, deque
+from copy import copy
 from io import StringIO
 from itertools import product
 
@@ -83,7 +84,7 @@ class Automorphism(Homomorphism):
 	
 	#Computing images
 	def image(self, key, inverse=False):
-		"""If *inverse* is True, the inverse of the current automorphism is used to map *key* instead.
+		"""If *inverse* is True, the inverse of the current automorphism is used to map *key* instead. Otherwise this method delegates to :meth:`Homomorphism.image <thompson.homomorphism.Homomorphism.image>`.
 		
 		Examples of finding inverse images:
 		
@@ -102,14 +103,15 @@ class Automorphism(Homomorphism):
 			return super().image(key)
 	
 	def image_of_set(self, set, inverse=False):
-		"""Compute the image of a set of :class:`~thompson.generators.Generators`.
-		:rtype: another set of :class:`~thompson.generators.Generators`.
+		"""If *inverse* is True, the inverse of the current automorphism is used to map *set* instead. Otherwise this method delegates to :meth:`Homomorphism.image_of_set <thompson.homomorphism.Homomorphism.image_of_set>`.
+		
+		Examples of finding inverse images:
 		"""
-		# todo example
-		if set.signature != self.domain.signature:
-			raise TypeError("Set signature {} does not match the domain signature {}.".format(
-			  set.signature, self.domain.signature))
-		return Generators(self.range.signature, (self.image(w, inverse) for w in set))
+		#todo examples
+		if inverse:
+			return super().image_of_set(set, self.range.signature, self.domain.signature, self._inv)
+		else:
+			return super().image_of_set(set)
 	
 	def repeated_image(self, key, power):
 		r"""If :math:`\psi` is the current automorphism, returns :math:`\text{key}\psi^\text{ power}`.
@@ -148,6 +150,8 @@ class Automorphism(Homomorphism):
 			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
 			>>> alphabet_size_two.quasinormal_basis()
 			Generators((3, 2), ['x1 a1', 'x1 a2', 'x1 a3', 'x2'])
+			>>> example_5_12_phi.quasinormal_basis()
+			Generators((2, 1), ['x1 a1', 'x1 a2'])
 		
 		:rtype: a :class:`~thompson.generators.Generators` instance.
 		
@@ -155,7 +159,6 @@ class Automorphism(Homomorphism):
 		"""
 		if self._qnf_basis is not None:
 			return self._qnf_basis
-		
 		basis = self._seminormal_form_start_point()
 		#expand basis until each no element's orbit has finite intersection with X<A>
 		i = 0
@@ -518,13 +521,26 @@ class Automorphism(Homomorphism):
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
 		
 		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27. See also :meth:`PeriodicFactor.test_conjugate_to` and :meth:`InfiniteFactor.test_conjugate_to`.
+		
+			>>> psi = example_5_12_psi; phi = example_5_12_phi
+			>>> rho = psi.test_conjugate_to(phi)
+			>>> print(rho)
+			Automorphism: V(2, 1) -> V(2, 1) specified by 6 generators (after reduction).
+			x1 a1 a1 a1 a1 -> x1 a1 a2   
+			x1 a1 a1 a1 a2 -> x1 a2 a2   
+			x1 a1 a1 a2    -> x1 a1 a1 a1
+			x1 a1 a2       -> x1 a2 a1 a1
+			x1 a2 a1       -> x1 a1 a1 a2
+			x1 a2 a2       -> x1 a2 a1 a2
+			>>> rho * phi == psi * rho
+			True
 		"""
 		#todo doctests
 		#TODO broken links.
 		#0. Check that both automorphisms belong to the same G_{n,r}.
-		if not(self.arity == other.arity
-		  and self.alphabet_size == other.alphabet_size):
-			raise ValueError('Both automorphisms must have the same arity and alphabet size.')
+		if self.signature != other.signature:
+			raise ValueError('Automorphism\'s signatures {} and {} do not match.'.format(
+			  self.signature, other.signature))
 		
 		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
 		result = self._check_parition_sizes(other)
@@ -533,20 +549,21 @@ class Automorphism(Homomorphism):
 		pure_periodic, pure_infinite, s_qnf_p, s_qnf_i, o_qnf_p, o_qnf_i = result
 		
 		#4. If necessary, test the periodic factors.
-		if not pure_infinite:
+		if pure_infinite:
+			rho_p = None
+		else:
 			#2, 3. Extract the periodic factor.
 			s_p = self.free_factor(s_qnf_p, infinite=False)
-			o_p = self.free_factor(o_qnf_p, infinite=False)
+			o_p = other.free_factor(o_qnf_p, infinite=False)
 			
 			rho_p = s_p.test_conjugate_to(o_p)
 			if rho_p is None:
 				return None
-			#TODO rewrite rho_p in terms of the original algebra
-			if pure_periodic:
-				return rho_p
 		
 		#Step 5. If necessary, test the infinite factors.
-		if not pure_periodic:
+		if pure_periodic:
+			rho_i = None
+		else:
 			#2, 3. Extract the infinite factor.
 			s_i = self.free_factor(s_qnf_i, infinite=True)
 			o_i = self.free_factor(o_qnf_i, infinite=True)
@@ -554,13 +571,10 @@ class Automorphism(Homomorphism):
 			rho_i = s_i.test_conjugate_to(o_i)
 			if rho_i is None:
 				return None
-			#TODO rewrite rho_i in terms of the original algebra
-			if pure_infinite:
-				return rho_i
 		
 		#Step 6. If we've got this far, we have a periodic/infinite mixture.
 		#Combine the rewritten conjugators into one conjugator in G_n,r
-		return rho_p * rho_i
+		return self._combine_factors(rho_p, rho_i)
 	
 	def _check_parition_sizes(self, other):
 		r"""Checks the sizes of a partition of two quasinormal bases to see if they might possibly describe conjugate automorphisms.
@@ -588,7 +602,7 @@ class Automorphism(Homomorphism):
 			return None
 		
 		#Check that the lengths match up modulo n-1.
-		modulus = self.arity - 1
+		modulus = self.signature.arity - 1
 		if not (len(s_qnf_p) % modulus == len(o_qnf_p) % modulus
 		  and   len(s_qnf_i) % modulus == len(o_qnf_i) % modulus):
 			return None
@@ -653,13 +667,11 @@ class Automorphism(Homomorphism):
 			>>> qnb = example_5_3.quasinormal_basis()
 			>>> p, i = example_5_3._partition_basis(qnb)
 			>>> print(example_5_3.free_factor(p, infinite=False))
-			Using {y1} to denote the root letters of this automorphism.
 			PeriodicFactor: V(2, 1) -> V(2, 1) specified by 2 generators (after reduction).
-			y1 a1 -> y1 a2
-			y1 a2 -> y1 a1
-			This is embedded in a parent automorphism by the following rules.
-			y1 a1 ~~> x1 a1 a2 a1
-			y1 a2 ~~> x1 a1 a2 a2
+			This automorphism was derived from a parent automorphism.
+			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
+			x1 a1 a2 a1 ~>    y1 a1 => y1 a2    ~> x1 a1 a2 a2
+			x1 a1 a2 a2 ~>    y1 a2 => y1 a1    ~> x1 a1 a2 a1
 		
 		.. doctest::
 			:hide:
@@ -668,25 +680,19 @@ class Automorphism(Homomorphism):
 			>>> qnb = alphabet_size_two.quasinormal_basis()
 			>>> p, i = alphabet_size_two._partition_basis(qnb)
 			>>> print(alphabet_size_two.free_factor(p, infinite=False))
-			Using {y1} to denote the root letters of this automorphism.
 			PeriodicFactor: V(3, 1) -> V(3, 1) specified by 1 generators (after reduction).
-			y1 -> y1
-			This is embedded in a parent automorphism by the following rules.
-			y1 ~~> x1 a1
+			This automorphism was derived from a parent automorphism.
+			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
+			x1 a1 ~>    y1 => y1    ~> x1 a1
 			>>> print(alphabet_size_two.free_factor(i, infinite=True))
-			Using {y1} to denote the root letters of this automorphism.
 			InfiniteFactor: V(3, 1) -> V(3, 1) specified by 5 generators (after reduction).
-			y1 a1    -> y1 a1 a3
-			y1 a2    -> y1 a3
-			y1 a3 a1 -> y1 a2
-			y1 a3 a2 -> y1 a1 a2
-			y1 a3 a3 -> y1 a1 a1
-			This is embedded in a parent automorphism by the following rules.
-			y1 a1    ~~> x1 a2
-			y1 a2    ~~> x1 a3
-			y1 a3 a1 ~~> x2 a1
-			y1 a3 a2 ~~> x2 a2
-			y1 a3 a3 ~~> x2 a3
+			This automorphism was derived from a parent automorphism.
+			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
+			x1 a2 ~>    y1 a1    => y1 a1 a3    ~> x1 a2 a3
+			x1 a3 ~>    y1 a2    => y1 a3       ~> x2      
+			x2 a1 ~>    y1 a3 a1 => y1 a2       ~> x1 a3   
+			x2 a2 ~>    y1 a3 a2 => y1 a1 a2    ~> x1 a2 a2
+			x2 a3 ~>    y1 a3 a3 => y1 a1 a1    ~> x1 a2 a1
 		"""
 		#TODO more doctests
 		if len(generators) == 0:
@@ -700,8 +706,10 @@ class Automorphism(Homomorphism):
 		
 		domain, range = self._rewrite_mapping(expansion, generators, images)
 		type = InfiniteFactor if infinite else PeriodicFactor
-		relabeller = Homomorphism(images, generators)
-		return type(domain, range, relabeller)
+		relabeller = Homomorphism(images, copy(generators))
+		domain.set_relabeller(relabeller)
+		range.set_relabeller(relabeller)
+		return type(domain, range)
 	
 	def _rewrite_mapping(self, words, basis, img_basis):
 		r"""Given a *basis*, a set of *words* below that *basis*, and a bijective image *img_basis* of *basis*, this method rewrites the list of rules ``w -> self[w] for w in words`` in terms of the new *img_basis*.
@@ -728,6 +736,28 @@ class Automorphism(Homomorphism):
 			  word, basis))
 		index, tail = result
 		return img_basis[index].extend(tail)
+	
+	def _combine_factors(self, periodic, infinite):
+		#doctest and docstring
+		if periodic is None:
+			p_domain = p_range = Generators(self.signature)
+		else:
+			p_domain, p_range = periodic.relabel()
+		
+		if infinite is None:
+			i_domain = i_range = Generators(self.signature)
+		else:
+			i_domain, i_range = infinite.relabel()
+		
+		assert p_domain.signature == p_range.signature == i_domain.signature == i_range.signature == self.signature
+		domain = p_domain + i_domain
+		range  = p_range + i_range
+		
+		domain, range = zip(*sorted(zip(domain, range)))
+		domain = Generators(self.signature, domain)
+		range = Generators(self.signature, range)
+		
+		return Automorphism(domain, range)
 
 #TODO? Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
 #TODO method to decide if the automorphism is in (the equivalent of) F, T, or V.
@@ -736,66 +766,56 @@ class Automorphism(Homomorphism):
 class AutomorphismFactor(Automorphism):
 	"""An automorphism derived from a larger parent automorphism.
 	
-	:ivar relabeller: the isomorphism which relabelled words to produce this automorphism.
+	:ivar relabeller: the homomorphism which maps relabelled words back into the original algebra that this automorphism came from.
 	"""
-	def __init__(self, domain, range, relabeller):
-		"""In addition to creating an automorphism, we store the *relabeller* used to produce
+	def __init__(self, domain, range):
+		"""In addition to creating an automorphism, we check that *domain* and *range* are equipped with relabelling homomorphisms, allowing us to convert between the original and relabelled word.
 		
-		to keep track of the mapping between the words in this automorphism's algebra and the words manipulated by the parent automorphism.
-		
-		:raises ValueError: if the signatures of domain, range and relabeller are inconsistent.
+		:raises ValueError: if domain or range is missing a relabeller.
 		
 		.. seealso:: :meth:`Automorphism.__init__`
 		"""
 		#todo example
-		if not (domain.signature == range.signature == relabeller.domain.signature):
-			raise ValueError('Relabeller signature {} -> {} does not match the restricted automorphism\'s signature {}.'.format(
-			  relabeller.domain.signature, relabeller.range.signature, domain.signature))
+		if domain.relabeller is None:
+			raise ValueError('Domain has no relabelling homomorphism.')
+		if range.relabeller is None:
+			raise ValueError('Range has no relabelling homomorphism.')
 		super().__init__(domain, range)
-		self.relabeller = relabeller
+	
+	def relabel(self):
+		#todo docstring
+		return self.domain.relabel(), self.range.relabel()
 	
 	def __str__(self):
+		#todo fixme
 		output = StringIO()
-		if self.signature.alphabet_size == 1:
-			roots = '{y1}'
-		else:
-			roots = '{{y1, ..., y{}}}'.format(self.alphabet_size)
-		output.write("Using {} to denote the root letters of this automorphism.\n".format(
-		  roots))
-		output.write(super().__str__().replace('x', 'y'))
-		output.write("\nThis is embedded in a parent automorphism by the following rules.")
+		output.write(self._string_header())
+		output.write("\nThis automorphism was derived from a parent automorphism.\n'x' and 'y' represent root words of the parent and current derived algebra, respectively.")
 		
-		max_len = 0
-		for key in self.domain:
-			max_len = max(max_len, len(str(key)))
-		fmt = "\n{: <" + str(max_len) + "} ~~> {!s}"
-		
-		for d in self.domain:
-			output.write(fmt.format(
-			  str(d).replace('x', 'y'), self.relabeller.image(d)))
+		domain_relabelled, range_relabelled = self.relabel()
+		rows = self._format_table(
+		    domain_relabelled, self.domain, self.range, range_relabelled,
+		    sep = ['~>   ', '=>', '   ~>'], root_names = 'xyyx'
+		)
+		for row in rows:
+			output.write('\n')
+			output.write(row)
 		return output.getvalue()
 
 class PeriodicFactor(AutomorphismFactor):
 	r"""A purely periodic free factor which has been extracted from another component.
 	
 		>>> print(example_5_9_p)
-		Using {y1} to denote the root letters of this automorphism.
 		PeriodicFactor: V(2, 1) -> V(2, 1) specified by 7 generators (after reduction).
-		y1 a1 a1    -> y1 a1 a2 a1
-		y1 a1 a2 a1 -> y1 a1 a2 a2
-		y1 a1 a2 a2 -> y1 a1 a1
-		y1 a2 a1 a1 -> y1 a2 a1 a2
-		y1 a2 a1 a2 -> y1 a2 a1 a1
-		y1 a2 a2 a1 -> y1 a2 a2 a2
-		y1 a2 a2 a2 -> y1 a2 a2 a1
-		This is embedded in a parent automorphism by the following rules.
-		y1 a1 a1    ~~> x1 a1 a1 a1
-		y1 a1 a2 a1 ~~> x1 a1 a1 a2
-		y1 a1 a2 a2 ~~> x1 a1 a2
-		y1 a2 a1 a1 ~~> x1 a2 a1 a1
-		y1 a2 a1 a2 ~~> x1 a2 a1 a2
-		y1 a2 a2 a1 ~~> x1 a2 a2 a1
-		y1 a2 a2 a2 ~~> x1 a2 a2 a2
+		This automorphism was derived from a parent automorphism.
+		'x' and 'y' represent root words of the parent and current derived algebra, respectively.
+		x1 a1 a1 a1 ~>    y1 a1 a1    => y1 a1 a2 a1    ~> x1 a1 a1 a2
+		x1 a1 a1 a2 ~>    y1 a1 a2 a1 => y1 a1 a2 a2    ~> x1 a1 a2   
+		x1 a1 a2    ~>    y1 a1 a2 a2 => y1 a1 a1       ~> x1 a1 a1 a1
+		x1 a2 a1 a1 ~>    y1 a2 a1 a1 => y1 a2 a1 a2    ~> x1 a2 a1 a2
+		x1 a2 a1 a2 ~>    y1 a2 a1 a2 => y1 a2 a1 a1    ~> x1 a2 a1 a1
+		x1 a2 a2 a1 ~>    y1 a2 a2 a1 => y1 a2 a2 a2    ~> x1 a2 a2 a2
+		x1 a2 a2 a2 ~>    y1 a2 a2 a2 => y1 a2 a2 a1    ~> x1 a2 a2 a1
 		>>> sorted(example_5_9_p.cycle_type)
 		[2, 3]
 		>>> from pprint import pprint
@@ -869,15 +889,17 @@ class PeriodicFactor(AutomorphismFactor):
 		"""We can determine if two purely periodic automorphisms are periodic by examining their orbits based on their size.
 		
 			>>> psi_p = example_5_12_psi_p; phi_p = example_5_12_phi_p
-			>>> rho_p = example_5_12_psi_p.test_conjugate_to(example_5_12_phi_p)
+			>>> rho_p = psi_p.test_conjugate_to(phi_p)
 			>>> print(rho_p)
-			Automorphism: V(2, 1) -> V(2, 1) specified by 6 generators (after reduction).
-			x1 a1 a1    -> x1 a1 a2
-			x1 a1 a2    -> x1 a2 a2
-			x1 a2 a1 a1 -> x1 a1 a1 a1
-			x1 a2 a1 a2 -> x1 a2 a1 a1
-			x1 a2 a2 a1 -> x1 a1 a1 a2
-			x1 a2 a2 a2 -> x1 a2 a1 a2
+			AutomorphismFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after reduction).
+			This automorphism was derived from a parent automorphism.
+			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
+			x1 a1 a1 a1 a1 ~>    y1 a1 a1    => y1 a1 a2       ~> x1 a1 a2   
+			x1 a1 a1 a1 a2 ~>    y1 a1 a2    => y1 a2 a2       ~> x1 a2 a2   
+			x1 a1 a1 a2    ~>    y1 a2 a1 a1 => y1 a1 a1 a1    ~> x1 a1 a1 a1
+			x1 a1 a2       ~>    y1 a2 a1 a2 => y1 a2 a1 a1    ~> x1 a2 a1 a1
+			x1 a2 a1       ~>    y1 a2 a2 a1 => y1 a1 a1 a2    ~> x1 a1 a1 a2
+			x1 a2 a2       ~>    y1 a2 a2 a2 => y1 a2 a1 a2    ~> x1 a2 a1 a2
 			>>> rho_p * phi_p == psi_p * rho_p
 			True
 		
@@ -925,9 +947,10 @@ class PeriodicFactor(AutomorphismFactor):
 					domain.append(s_word)
 					range.append(o_word)
 		
-		rho = Automorphism(domain, range)
+		domain.relabeller = self.domain.relabeller
+		range.relabeller = other.range.relabeller
+		rho = AutomorphismFactor(domain, range)
 		return rho
-		#TODO translate back to original setting
 	
 	@staticmethod
 	def expand_orbits(deque, num_expansions):
@@ -935,6 +958,7 @@ class PeriodicFactor(AutomorphismFactor):
 		
 		1. Pop an orbit :math:`\mathcal{O} = [o_1, \dotsc, o_d]` from the left of the deque.
 		2. For :math:`i = 1, \dotsc, n` (where :math:`n` is the arity):
+			
 			a. Compute the new orbit :math:`\mathcal{O_i} =[o_1\alpha_i, \dotsc, o_d\alpha_i]`
 			b. Append this orbit to the right of *deque*.
 		
