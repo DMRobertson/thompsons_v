@@ -9,7 +9,7 @@ By a *word*, we mean a string written using the symbols
 
 The :math:`x_i` are constants, the :math:`\alpha_i` are unary operators and :math:`\lambda` is an *n*-ary operation. In this package, we refer to the parameters :math:`n` and :math:`r` as the *arity* and *alphabet size* respectively.
 
-If we collect together all such words, we obtain an *algebra* (in the sense of `universal algebra <http://en.wikipedia.org/wiki/Universal_algebra>`_) of words. We consider three different algebras In the notation of [Cohn]_:
+If we collect together all such words, we obtain an *algebra* (in the sense of `universal algebra <http://en.wikipedia.org/wiki/Universal_algebra>`_) of words. We consider three different algebras; using the notation of [Cohn]_:
 
 1. :math:`W(\Omega; X)`, the set of all finite strings written using letters in :math:`X \cup \Omega`. Cohn calls these :math:`\Omega`-rows.
 2. :math:`W_\Omega(X)`, the subset of :math:`W(\Omega; X)` whose strings begin with an :math:`x_i`, and represent a :func:`valid <validate>` series of operations. Cohn calls these :math:`\Omega`-words.
@@ -25,7 +25,7 @@ Sometimes we need to refer to a string which consists only of :math:`\alpha`-s. 
 Signatures
 ----------
 
-To each word :math:`w \in V_{n,r}` we associate a :class:`Signature` object. This allows us to pass words around as arguments to functions and keep track of which algebra :math:`V_{n,r}` the word belongs to. Signatures are implemented as glorified :func:`namedtuples <py3:collections.namedtuple>`.
+To each word :math:`w \in V_{n,r}` we associate a :class:`Signature` object. This allows us to pass words around as arguments to functions and keep track of which algebra :math:`V_{n,r}` the word belongs to. Signatures are implemented as glorified :func:`namedtuples <py3:collections.namedtuple>. In particular this means they are `immutable <https://docs.python.org/3/glossary.html#term-immutable>`_.
 
 .. autoclass:: thompson.word.Signature
     :members:
@@ -50,7 +50,7 @@ We can write words of all types in this format, but we're only interested in the
 The Word class
 --------------
 
-It's important to know when a sequence of letters denotes a word in standard form. The :class:`Word` class addresses this problem by standardising its input upon creation. This means that a Word will always be in standard form. Words are also given a :class:`Signature` at creation time, so that we know which algebra the word comes from.
+It's important to know when a sequence of letters denotes a word in standard form. The :class:`Word` class addresses this problem by standardising its input upon creation. We can think of a Word object as a fixed list of letters with the guarantee that its are in standard form. Words are also given a :class:`Signature` at creation time, so that we know which algebra the word comes from.
 
 We also need to know that once a Word has been created, it cannot be modified to something not in standard form. We achieve this simply by making it impossible to modify a Word. Words are implemented as (subclasses of) :class:`tuple <py3:tuple>`, which are `immutable <https://docs.python.org/3/glossary.html#term-immutable>`_. One useful side effect of this is that Words can be used as dictionary keys. 
 

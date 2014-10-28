@@ -1,8 +1,9 @@
 """A list of examples for use in doctests."""
 
-from .automorphism import Automorphism
-from .generators import Generators
 from .word import Word
+from .generators import Generators
+from .automorphism import Automorphism
+from .factors import PeriodicFactor, InfiniteFactor
 
 __all__ = ["cyclic_order_six", "arity_three_order_inf", "arity_four", "alphabet_size_two",
            "example_4_5", "example_4_11", "example_4_12", "example_4_25",
