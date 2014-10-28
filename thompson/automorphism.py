@@ -19,7 +19,7 @@ from io import StringIO
 from itertools import product
 
 from .word import *
-from .generators import Generators
+from .generators import *
 from .homomorphism import Homomorphism
 from .orbits import *
 
@@ -696,48 +696,27 @@ class Automorphism(Homomorphism):
 		#TODO more doctests
 		if len(generators) == 0:
 			raise ValueError('Must provide at least one generator.')
-		expansion = generators.minimal_expansion_for(self)
+		#1. Decide how to relabel *generators* as elements of V_n,s
 		modulus = self.signature.arity - 1
 		alphabet_size = modulo_non_zero(len(generators), modulus)
+		generators_relabelled = Generators.standard_basis((self.signature.arity, alphabet_size))
+		generators_relabelled.expand_to_size(len(generators))
 		
-		images = Generators.standard_basis((self.signature.arity, alphabet_size))
-		images.expand_to_size(len(generators))
+		#2. Relabel the domain and range
+		domain = generators.minimal_expansion_for(self)
+		range = self.image_of_set(domain)
+		rewrite_set(domain, generators, generators_relabelled)
+		rewrite_set(range,  generators, generators_relabelled)
+		#Make sure we can undo the relabelling
+		inverse_relabeller = Homomorphism(copy(generators_relabelled), copy(generators))
 		
-		domain, range = self._rewrite_mapping(expansion, generators, images)
-		relabeller = Homomorphism(images, copy(generators))
-		domain.set_relabeller(relabeller)
-		range.set_relabeller(relabeller)
-		#TODO. Convert the information about self (QNF basis and orbit types) to information about the new factor.
-		
-		from . import factors
-		type = factors.get_factor_class(infinite)
-		return type(domain, range)
-	
-	def _rewrite_mapping(self, words, basis, img_basis):
-		r"""Given a *basis*, a set of *words* below that *basis*, and a bijective image *img_basis* of *basis*, this method rewrites the list of rules ``w -> self[w] for w in words`` in terms of the new *img_basis*.
-		
-		:returns: a pair of lists *domain, range* where *domain* and *range* are both below *img_basis*.
-		"""
-		domain = Generators(img_basis.signature)
-		range = Generators(img_basis.signature)
-		
-		for word in words:
-			preimage = self._rewrite(word, basis, img_basis)
-			domain.append(preimage)
-			image = self._rewrite(self.image(word), basis, img_basis)
-			range.append(image)
-		
-		return domain, range
-	
-	def _rewrite(self, word, basis, img_basis):
-		r"""Suppose that we have a *word* which is below a given *basis*. Suppose we have a bijection between *basis* and some image *img_basis*. Then we can rewrite *word* as as descendant of *img_basis* in a manner which is compatible with this bijection.
-		"""
-		result = basis.test_above(word, return_index=True)
-		if result is None:
-			raise ValueError('The word {} is not below the basis {}'.format(
-			  word, basis))
-		index, tail = result
-		return img_basis[index].extend(tail)
+		#3. Return the factor
+		from .factors import get_factor_class
+		type = get_factor_class(infinite)
+		factor = type(domain, range, inverse_relabeller, inverse_relabeller)
+		factor._qnf_basis = copy(generators_relabelled) #See the discussion before ex 5.3
+		#TODO pass on the any data about orbit types here
+		return factor
 	
 	def _combine_factors(self, periodic, infinite):
 		#doctest and docstring

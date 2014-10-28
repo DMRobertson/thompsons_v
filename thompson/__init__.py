@@ -14,5 +14,7 @@ from .examples import *
 Global TODO:
 - Read through documentation and ensure that useful error messages are being raised, including for assertions.
 - Remove any unneccessary assertions?
+- Remove from * imports where it's just me being lazy
 - Change <A> to A* where neccessary. Need to check with AJD
+- Having to fix quite a few 'forgot to copy' bug with mutable stuff (generating sets). Maybe copy everything at the start?
 """

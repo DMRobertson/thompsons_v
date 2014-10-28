@@ -15,6 +15,7 @@ from io import StringIO
 
 from .word import *
 from .generators import Generators
+from copy import copy
 
 #Extracted the bits responsible for defining a homomorphism from the automorphism class.
 class Homomorphism:
@@ -68,8 +69,15 @@ class Homomorphism:
 	
 	@staticmethod
 	def _expand(domain, range):
-		"""Expands the pair of generating sets where neccessary until all words in both sets are simple."""
-		#todo doctest and string
+		r"""Expands the pair of generating sets where necessary until all words in both sets are simple.
+		
+			>>> g = Generators((2, 2), ['x1 a1 a1', 'x1 a2 x1 a1 L', 'x2 x1 L', 'x2 a2']);
+			>>> h = Generators((2, 2), ['x1 a1 x2 L', 'x2 a1 a1 a2', 'x2 x1 L', 'x2 a2']);
+			>>> Homomorphism._expand(g, h)
+			>>> print(g, h, sep='\n')
+			[x1 a1 a1 a1, x1 a1 a1 a2, x1 a2, x1 a1, x2, x1, x2 a2]
+			[x1 a1, x2, x2 a1 a1 a2 a1, x2 a1 a1 a2 a2, x2, x1, x2 a2]
+		"""
 		i = 0
 		while i < len(domain):
 			if not (domain[i].is_simple() and range[i].is_simple()):
@@ -129,8 +137,18 @@ class Homomorphism:
 		:raises TypeError: if the homomorphisms cannot be composed in the given order; i.e. if ``self.range.signature != other.domain.signature``.
 		
 		:rtype: an :class:`thompson.automorphism.Automorphism` if possible; otherwise a :class:`Homomorphism`.
+		
+			>>> print(alphabet_size_two * alphabet_size_two)
+			Automorphism: V(3, 2) -> V(3, 2) specified by 8 generators (after reduction).
+			x1 a1    -> x1 a1      
+			x1 a2    -> x1 a2 a3 a3
+			x1 a3 a1 -> x1 a3      
+			x1 a3 a2 -> x1 a2 a2   
+			x1 a3 a3 -> x1 a2 a1   
+			x2 a1    -> x2         
+			x2 a2    -> x1 a2 a3 a2
+			x2 a3    -> x1 a2 a3 a1
 		"""
-		#TODO doctest
 		if not isinstance(other, Homomorphism):
 			return NotImplemented
 		if self.range.signature != other.domain.signature:
@@ -138,12 +156,13 @@ class Homomorphism:
 			  self.domain.signature, self.range.signature, other.domain.signature, other.range.signature))
 		
 		range = Generators(other.range.signature)
-		for word in self.range:
-			range.append(other.image(word))
+		range = other.image_of_set(self.range)
+		domain = copy(self.domain)
 		
+		Homomorphism._expand(domain, range)
 		from thompson.automorphism import Automorphism
 		type = Automorphism if self.domain.signature == other.range.signature else Homomorphism
-		return type(self.domain, range)
+		return type(domain, range)
 	
 	#Finding images of words
 	def image(self, key, sig_in=None, sig_out=None, cache=None):

@@ -14,28 +14,41 @@ from .generators import Generators
 class AutomorphismFactor(Automorphism):
 	"""An automorphism derived from a larger parent automorphism.
 	
-	:ivar relabeller: the homomorphism which maps relabelled words back into the original algebra that this automorphism came from.
+	:ivar domain_relabeller: the homomorphism which maps relabelled words back into the original algebra that this automorphism came from.
+	:ivar range_relabeller: the homomorphism which maps relabelled words back into the original algebra that this automorphism came from.
 	"""
-	def __init__(self, domain, range):
-		"""In addition to creating an automorphism, we check that *domain* and *range* are equipped with relabelling homomorphisms, allowing us to convert between the original and relabelled word.
+	def __init__(self, domain, range, domain_relabeller=None, range_relabeller=None):
+		"""In addition to creating an automorphism, we allow an optional relabelling homomorphism *relabeller* to be stored. This allows us to turn words in the factor back to words in the parent algebra.
 		
-		:raises ValueError: if domain or range is missing a relabeller.
+		This class is returned by :meth:`~thompson.automorphism.Automorphism.free_factors` and doesn't need to be instantiated by the user.
 		
-		.. seealso:: :meth:`Automorphism.__init__`
+		:raises ValueError: if a relabeller is provided and the relabeller's signature does not match that of *domain* or *range*
+		
+		.. seealso:: :meth:`Automorphism.__init__`, :meth:`~thompson.automorphism.Automorphism.free_factors`
 		"""
-		#todo example
-		if domain.relabeller is None:
-			raise ValueError('Domain has no relabelling homomorphism.')
-		if range.relabeller is None:
-			raise ValueError('Range has no relabelling homomorphism.')
+		if domain_relabeller is None != range_relabeller is None:
+			raise ValueError("Must either specify both relabellers or neither.")
+		
+		if domain_relabeller is not None and domain_relabeller.domain.signature != domain.signature:
+			raise ValueError('Domain relabeller signature {} does not match automorphism\'s domain signature {}.'.format(
+			  domain_relabeller.domain.signature, domain.signature))
+		
+		if range_relabeller is not None and range_relabeller.domain.signature != range.signature:
+			raise ValueError('Range relabeller signature {} does not match automorphism\'s range signature {}.'.format(
+			  range_relabeller.domain.signature, range.signature))
+		
 		super().__init__(domain, range)
+		self.domain_relabeller = domain_relabeller
+		self.range_relabeller = range_relabeller
 	
 	def relabel(self):
-		#todo docstring
-		return self.domain.relabel(), self.range.relabel()
+		"""Used to convert back to the parent algebra after doing computations in the derived algebra."""
+		#TODO example
+		if self.domain_relabeller is None or self.range_relabeller is None:
+			raise AttributeError("This factor has not been assigned a relabeller.")
+		return self.domain_relabeller.image_of_set(self.domain), self.range_relabeller.image_of_set(self.range)
 	
 	def __str__(self):
-		#todo fixme
 		output = StringIO()
 		output.write(self._string_header())
 		output.write("\nThis automorphism was derived from a parent automorphism.\n'x' and 'y' represent root words of the parent and current derived algebra, respectively.")
@@ -195,9 +208,7 @@ class PeriodicFactor(AutomorphismFactor):
 					domain.append(s_word)
 					range.append(o_word)
 		
-		domain.relabeller = self.domain.relabeller
-		range.relabeller = other.range.relabeller
-		rho = AutomorphismFactor(domain, range)
+		rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
 		return rho
 	
 	@staticmethod
