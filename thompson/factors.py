@@ -236,7 +236,15 @@ class InfiniteFactor(AutomorphismFactor):
 		assert self.quasinormal_basis().minimal_expansion_for(self) == self.domain
 	
 	def test_conjugate_to(self, other):
-		raise NotImplementedError()
+		#todo doctest and docstring
+		#1. The QNF bases are computed automatically.
+		#2. Compute the equivalence classes X_1, ... X_m of \equiv on self's QNF basis
+		classes = self.equivalence_classes()
+		basis = other.quasinormal_basis()
+		min_expansion = basis.minimal_expansion_for(other)
+		terminal = basis.descendants_above(min_expansion)
+		img_expansion = other.image_of_set(min_expansion)
+		initial  = basis.descendants_above(img_expansion)
 	
 	def equivalence_classes(self):
 		"""Computes the equivalence classes :math:`\mathcal X_1, \dotsc, \mathcal X_m` of :math:`\equiv`.
