@@ -94,11 +94,7 @@ class PeriodicFactor(AutomorphismFactor):
 		assert self.quasinormal_basis() == self.domain
 		assert self.quasinormal_basis().minimal_expansion_for(self) == self.domain
 		
-		#Attributes:
-		#.cycle_types
-		#.multiplicities
 		#Need to have constructed the QNF basis here.
-		#TODO: can we just pass on this information (QNF basis, QNF orbit types) from the parent automorphism?
 		self._setup_cycle_type()
 		self._setup_multiplicities()
 	
@@ -132,8 +128,7 @@ class PeriodicFactor(AutomorphismFactor):
 			Orbits of length 3
 			... -> x1 a1 a1 -> x1 a1 a2 a1 -> x1 a1 a2 a2 -> ...
 		"""
-		#TODO doctest
-		#TODO check this is deterministic
+		#TODO another doctest
 		orbits_by_size = defaultdict(deque)
 		already_seen = set()
 		for gen in basis:
@@ -147,7 +142,7 @@ class PeriodicFactor(AutomorphismFactor):
 		return dict(orbits_by_size)
 	
 	def test_conjugate_to(self, other):
-		"""We can determine if two purely periodic automorphisms are periodic by examining their orbits based on their size.
+		"""We can determine if two purely periodic automorphisms are periodic by examining their orbits.
 		
 			>>> psi_p = example_5_12_psi_p; phi_p = example_5_12_phi_p
 			>>> rho_p = psi_p.test_conjugate_to(phi_p)
@@ -166,7 +161,7 @@ class PeriodicFactor(AutomorphismFactor):
 		
 		.. seealso:: This implements algorithm 5.13 of the paper---see section 5.3.
 		"""
-		# todo docstring and doctest
+		# todo another doctest
 		if not isinstance(other, PeriodicFactor):
 			raise TypeError('Other automorphism must be a PeriodicFactor.')
 		

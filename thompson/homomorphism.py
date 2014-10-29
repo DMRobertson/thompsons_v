@@ -223,7 +223,6 @@ class Homomorphism:
 			pass
 		
 		#1. First deal with the easy words (no lambdas).
-		#TODO. I have a feeling that this ought to be ``if self.domain.is_above(word) or something similar...
 		if word.is_simple():
 			#Cache should already have dealt with anything above the domain
 			return self._image_simple_below_domain(word, sig_in, sig_out, cache)
@@ -289,8 +288,13 @@ class Homomorphism:
 	def image_of_set(self, set, sig_in=None, sig_out=None, cache=None):
 		"""Computes the image of a set of :class:`~thompson.generators.Generators` under the current homomorphism.
 		:rtype: another set of :class:`~thompson.generators.Generators`.
+		
+			>>> basis = Generators.standard_basis((2,1))
+			>>> basis.expand_to_size(8); print(basis)
+			[x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2 a1, x1 a1 a2 a2, x1 a2 a1 a1, x1 a2 a1 a2, x1 a2 a2 a1, x1 a2 a2 a2]
+			>>> print(example_5_3.image_of_set(basis))
+			[x1 a1 a1 a1 x1 a1 a1 a2 a1 L, x1 a1 a1 a2 a2, x1 a1 a2 a2, x1 a1 a2 a1, x1 a2 a1 a1 a1, x1 a2 a1 a1 a2, x1 a2 a1 a2, x1 a2 a2]
 		"""
-		#todo example
 		sig_in = sig_in or self.domain.signature
 		sig_out = sig_out or self.range.signature
 		cache = cache or self._map

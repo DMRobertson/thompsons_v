@@ -11,7 +11,7 @@ from numbers import Number
 
 from .word import format
 
-__all__ = ["OrbitType", "dump_orbit_types", "SolutionSet"]
+__all__ = ["OrbitType", "print_orbit_types", "SolutionSet"]
 
 BaseOrbitType = namedtuple("BaseOrbitType","type data")
 class OrbitType(BaseOrbitType):
@@ -27,12 +27,14 @@ class OrbitType(BaseOrbitType):
 	4. *Left semi-infinite.* The backward orbit exists and does not repeat itself; the forward orbit eventually leaves :math:`X\langle A\rangle`.
 	5. *Incomplete*. Only a finite number of images :math:`y\phi^{-n}, \dotsc, y\phi^{-1}, y, y\phi, \dotsc, y\phi^m` belong to :math:`X\langle A\rangle`.
 	
-	This class is essentially a glorified :mod:`enumeration <py3:enum>`: its instances store a number from 1 to 5 to represent the type of an orbit. Instances have a *data* attribute, for storing additional object data. This stores:
+	This class is essentially a glorified :mod:`enumeration <py3:enum>`: its instances store a number from 1 to 5 to represent the type of an orbit.
+	
+	:ivar data: Instances have a *data* attribute, which describes the orbit in some way. The value of this attribute depends on the orbit type. Specifically, *data* is:
 	
 	* For complete finite orbits, the period of the orbit;
 	* For semi-infinite orbits, the characteristic :math:`(m, \Gamma)` of the orbit;
-	* For complete infinite orbits, a pair :math:`(z, \Delta)` as described in lemma 4.14(C). Briefly, math:`z` is semi-infinite, and :math:`z\Delta` belonging to the orbit being described;
-	* For incomplete orbits, the constant ``None``.
+	* For incomplete orbits, the constant ``None``;
+	* For complete infinite orbits, a pair :math:`(z, \Delta)` as described in lemma 4.14(C). Briefly, :math:`z` is semi-infinite, and :math:`z\Delta` belongs to the orbit being described.
 	"""
 	_complete_infinite = 1
 	_complete_finite = 2
@@ -105,11 +107,10 @@ class OrbitType(BaseOrbitType):
 OrbitType.incomplete = OrbitType(OrbitType._incomplete, None)
 """Instance for incomplete orbits."""
 
-#todo renameme
-def dump_orbit_types(aut, basis=None, words=None):
-	r"""Prints the classification of the orbits under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the minimal expansion given by :meth:`~thompson.automorphism._minimal_expansion`. If *words* is omited, it is taken to be the same as *basis*. See the docstring for :meth:`~thompson.automorphism._orbit_type`.
+def print_orbit_types(aut, basis=None, words=None):
+	r"""Prints the classification of the orbits under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the smallest possible expansion which could potentially be a semi-normal basis; see :meth:`~thompson.automorphism._seminormal_form_start_point`. If *words* is omited, it is taken to be the same as *basis*.
 	
-		>>> dump_orbit_types(arity_three_order_inf)
+		>>> print_orbit_types(arity_three_order_inf)
 		x1 a1: Left semi-infinite orbit with characteristic (-1, a1)
 		x1 a2: Bi-infinite orbit containing [x1 a3 a3] a2
 		x1 a3 a1: Bi-infinite orbit containing [x1 a3 a3] a3
@@ -117,7 +118,7 @@ def dump_orbit_types(aut, basis=None, words=None):
 		x1 a3 a3: Right semi-infinite orbit with characteristic (1, a1)
 		with respect to the basis [x1 a1, x1 a2, x1 a3 a1, x1 a3 a2, x1 a3 a3]
 		
-		>>> dump_orbit_types(arity_four)
+		>>> print_orbit_types(arity_four)
 		x1 a1 a1: Periodic orbit of order 4
 		x1 a1 a2: Periodic orbit of order 4
 		x1 a1 a3: Periodic orbit of order 4
@@ -126,6 +127,8 @@ def dump_orbit_types(aut, basis=None, words=None):
 		x1 a3: Right semi-infinite orbit with characteristic (1, a3)
 		x1 a4: Left semi-infinite orbit with characteristic (-1, a4)
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a1 a3, x1 a1 a4, x1 a2, x1 a3, x1 a4]
+	
+		.. seealso:: :meth:`~thompson.automorphism._orbit_type`.
 	"""
 	if basis is None:
 		basis = aut._seminormal_form_start_point()

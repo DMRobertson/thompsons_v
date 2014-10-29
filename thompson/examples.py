@@ -12,7 +12,7 @@ __all__ = ["cyclic_order_six", "arity_three_order_inf", "arity_four", "alphabet_
            "example_5_9_p", "example_5_12_psi_p", "example_5_12_phi_p",
            "example_5_26"]
 
-#TODO. Have a method that reads automorphisms in from a file. Writing the Python syntax around all this is boring.
+#TODO. Have a method that reads homomorphisms in from a file. Writing the Python syntax around all this is boring.
 #TODO. Allow powers in the definition of words e.g. a1^4?
 
 #Example 4.5
@@ -23,7 +23,6 @@ example_4_5 = Automorphism(domain, range)
 
 #Example 4.11
 #TODO. I think this is a special element of one of Thompson's groups.
-#TODO? I should put those examples in the automorphism module.
 domain = Generators((2, 1), ["x a1 a1", "x a1 a2", "x a2"])
 range  = Generators((2, 1), ["x a1",    "x a2 a1", "x a2 a2"])
 example_4_11 = Automorphism(domain, range)

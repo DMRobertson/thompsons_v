@@ -294,6 +294,8 @@ class Generators(list):
 			>>> basis.expand_to_size(12); print(basis)
 			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2, x2 a1, x2 a2, x3 a1 a1, x3 a1 a2, x3 a2 a1 a1, x3 a2 a1 a2, x3 a2 a2 a1, x3 a2 a2 a2]
 		
+		:returns: the current generating set
+		
 		:raises ValueError: if an expansion to the given size is not possible.
 		"""
 		modulus = self.signature.arity - 1

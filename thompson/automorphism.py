@@ -8,7 +8,7 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 	from thompson import word
 	from thompson.generators import Generators
 	from thompson.automorphism import *
-	from thompson.orbits import dump_orbit_types
+	from thompson.orbits import print_orbit_types
 	from thompson.examples import *
 """
 
@@ -105,8 +105,14 @@ class Automorphism(Homomorphism):
 		"""If *inverse* is True, the inverse of the current automorphism is used to map *set* instead. Otherwise this method delegates to :meth:`Homomorphism.image_of_set <thompson.homomorphism.Homomorphism.image_of_set>`.
 		
 		Examples of finding inverse images:
+		
+			>>> basis = Generators.standard_basis((2,1))
+			>>> basis.expand_to_size(8);
+			>>> print(example_5_3.image_of_set(basis, inverse=True))
+			[x1 a1 a1 a1 a1, x1 a1 a1 a1 a2 x1 a1 a1 a2 L, x1 a1 a2 a2, x1 a1 a2 a1, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2 a1, x1 a2 a2 a2 a2]
+		
+		.. seealso:: The superclass implementation is :meth:`~thompson.homomorphism.Homomorphism.image_of_set`.
 		"""
-		#todo examples
 		if inverse:
 			return super().image_of_set(set, self.range.signature, self.domain.signature, self._inv)
 		else:
@@ -199,41 +205,41 @@ class Automorphism(Homomorphism):
 		"""Returns the orbit type of *y* with respect to the given *basis*. Also returns a dictionary of computed images, the list (7) from the paper.
 		
 		>>> #Example 4.5.
-		>>> dump_orbit_types(example_4_5, example_4_5.domain)
+		>>> print_orbit_types(example_4_5, example_4_5.domain)
 		x1 a1 a1 a1: Left semi-infinite orbit with characteristic (-1, a1)
 		x1 a1 a1 a2: Bi-infinite orbit containing [x1 a1 a2] a1
 		x1 a1 a2: Right semi-infinite orbit with characteristic (1, a2)
 		x1 a2 a1: Periodic orbit of order 2
 		x1 a2 a2: Periodic orbit of order 2
 		with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
-		>>> dump_orbit_types(example_4_5, basis=example_4_5.domain, words=['x', 'x a1', 'x a2'])
+		>>> print_orbit_types(example_4_5, basis=example_4_5.domain, words=['x', 'x a1', 'x a2'])
 		x: Incomplete orbit
 		x a1: Incomplete orbit
 		x a2: Incomplete orbit
 		with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 		
 		>>> #Example 4.11
-		>>> dump_orbit_types(example_4_11)
+		>>> print_orbit_types(example_4_11)
 		x1 a1: Left semi-infinite orbit with characteristic (-1, a1)
 		x1 a2: Right semi-infinite orbit with characteristic (1, a2)
 		with respect to the basis [x1 a1, x1 a2]
 		
 		>>> #Example 4.12
 		>>> basis = example_4_12._seminormal_form_start_point()
-		>>> dump_orbit_types(example_4_12, basis)
+		>>> print_orbit_types(example_4_12, basis)
 		x1 a1: Incomplete orbit
 		x1 a2: Incomplete orbit
 		with respect to the basis [x1 a1, x1 a2]
 		>>> basis.expand(0)
 		Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2'])
-		>>> dump_orbit_types(example_4_12, basis)
+		>>> print_orbit_types(example_4_12, basis)
 		x1 a1 a1: Bi-infinite orbit containing [x1 a2] a2
 		x1 a1 a2: Bi-infinite orbit containing [x1 a2] a1
 		x1 a2: Incomplete orbit
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2]
 		>>> basis.expand(2)
 		Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
-		>>> dump_orbit_types(example_4_12, basis)
+		>>> print_orbit_types(example_4_12, basis)
 		x1 a1 a1: Periodic orbit of order 4
 		x1 a1 a2: Periodic orbit of order 4
 		x1 a2 a1: Periodic orbit of order 4
@@ -241,7 +247,7 @@ class Automorphism(Homomorphism):
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 		
 		>>> #Example 4.25
-		>>> dump_orbit_types(example_4_25)
+		>>> print_orbit_types(example_4_25)
 		x1 a1: Right semi-infinite orbit with characteristic (1, a1 a1)
 		x1 a2 a1: Bi-infinite orbit containing [x1 a1] a1 a2
 		x1 a2 a2: Left semi-infinite orbit with characteristic (-1, a1 a1)
@@ -404,7 +410,6 @@ class Automorphism(Homomorphism):
 		if u == v:
 			return SolutionSet.all_integers
 		basis = self.quasinormal_basis()
-		# print('QNF basis is', basis)
 		
 		if not (basis.is_above(u) and basis.is_above(v)):
 			depth = max(u.max_depth_to(basis), v.max_depth_to(basis))
@@ -426,41 +431,28 @@ class Automorphism(Homomorphism):
 		v_head, v_tail = basis.test_above(v)
 		u_head_type = self._qnf_orbit_types[u_head]
 		v_head_type = self._qnf_orbit_types[v_head]
-		# print('u = {} | {}\nhead type: {}'.format(
-		  # u_head, format(u_tail), u_head_type))
-		# print('v = {} | {}\nhead type: {}'.format(
-		  # v_head, format(v_tail), v_head_type))
 		
 		#Is either element periodic?
 		if u_head_type.is_type('A') or v_head_type.is_type('A'):
-			#Are they both periodic with the same periods?
+			#If so, do they have different periods?
 			if u_head_type != v_head_type:
-				# print('Not both periodic with same period.')
 				return SolutionSet.empty_set
 			
 			period = u_head_type.data
 			image = u
-			# print('Testing the orbit of u.')
 			for i in range(1, period):
 				image = self.image(image)
 				if image == v:
-					# print('Found a match.')
 					return SolutionSet(i, period)
-			# print('No match found.')
 			return SolutionSet.empty_set
 		
-		# print('Neither u nor v is periodic.')
-		#Replace them with nicer versions from the same orbits.
-		#Track how many positions in the orbit we moved.
-		u_shift, u_head, u_tail = self._preprocess(u_head, u_tail)
-		v_shift, v_head, v_tail = self._preprocess(v_head, v_tail)
+		#Neither u not v are periodic.
+		#Move along the orbit until we find a nicer u and v.
+		u_shift, u_head, u_tail = self._type_b_descendant(u_head, u_tail)
+		v_shift, v_head, v_tail = self._type_b_descendant(v_head, v_tail)
 		
 		u = u_head.extend(u_tail)
 		v = v_head.extend(v_tail)
-		# print("Shifted u by {} positions.\nNow u is {} | {}".format(
-		  # u_shift, u_head, format(u_tail)))
-		# print("Shifted v by {} positions.\nNow v is {} | {}".format(
-		  # v_shift, v_head, format(v_tail)))
 		
 		type, images = self._orbit_type(u, basis)
 		for i, image in images.items():
@@ -468,10 +460,9 @@ class Automorphism(Homomorphism):
 				return SolutionSet.singleton(u_shift + i - v_shift)
 		return SolutionSet.empty_set
 	
-	#TODO needs a better name
-	def _preprocess(self, head, tail):
+	def _type_b_descendant(self, head, tail):
 		r"""Takes a pair :math:`(y, \Gamma)` below the quasi-normal basis :math:`X` and returns a triple :math:`(\widetilde{y}, \widetilde{\Gamma}, k) where
-		* The orbit of :math:`\widetilde{y}` is semi-infinite;
+		* The orbit of :math:`\widetilde{y}` is semi-infinite (type B);
 		* :math:`\widetilde{y}\widetilde{\Gamma}` is in the same orbit as :math:`y\Gamma`.
 		* :math:`\widetilde{\Gamma}` does not start with the characteristic multiplier of :math:`\widetilde{y}`.
 		
@@ -535,7 +526,6 @@ class Automorphism(Homomorphism):
 			True
 		"""
 		#todo doctests
-		#TODO broken links.
 		#0. Check that both automorphisms belong to the same G_{n,r}.
 		if self.signature != other.signature:
 			raise ValueError('Automorphism\'s signatures {} and {} do not match.'.format(
@@ -662,6 +652,7 @@ class Automorphism(Homomorphism):
 		:returns: The transformed automorphism :math:`\phi\, \in G_{n, s}`. Its type is :class:`PeriodicFactor` if *infinite* is False; otherwise its type is :class:`InfiniteFactor`.
 		
 		.. doctest::
+			:hide:
 			
 			>>> qnb = example_5_3.quasinormal_basis()
 			>>> p, i = example_5_3._partition_basis(qnb)
@@ -673,7 +664,6 @@ class Automorphism(Homomorphism):
 			x1 a1 a2 a2 ~>    y1 a2 => y1 a1    ~> x1 a1 a2 a1
 		
 		.. doctest::
-			:hide:
 			
 			>>> # alphabet_size_two example
 			>>> qnb = alphabet_size_two.quasinormal_basis()
@@ -715,7 +705,7 @@ class Automorphism(Homomorphism):
 		type = get_factor_class(infinite)
 		factor = type(domain, range, inverse_relabeller, inverse_relabeller)
 		factor._qnf_basis = copy(generators_relabelled) #See the discussion before ex 5.3
-		#TODO pass on the any data about orbit types here
+		#TODO pass on any data about orbit types here? Would only need to relabel the data for complete infinite orbits
 		return factor
 	
 	def _combine_factors(self, periodic, infinite):
@@ -740,7 +730,7 @@ class Automorphism(Homomorphism):
 		
 		return Automorphism(domain, range)
 
-#TODO? Compose and invert automorphisms. Basically move all the functionality from TreePair over to this class and ditch trree pair.
-#TODO method to decide if the automorphism is in (the equivalent of) F, T, or V.
-#TODO the named elements A, B, C, X_n of Thompson's V.
+#TODO? Invert automorphisms (and implement any functionality left over from TreePair?)
+#TODO? Decide if the automorphism is in (the equivalent of) F, T, or V.
+#TODO? The named generators A, B, C, X_n of Thompson's V. Analogues for general G_n,r?
 

@@ -25,7 +25,7 @@ Sometimes we need to refer to a string which consists only of :math:`\alpha`-s. 
 Signatures
 ----------
 
-To each word :math:`w \in V_{n,r}` we associate a :class:`Signature` object. This allows us to pass words around as arguments to functions and keep track of which algebra :math:`V_{n,r}` the word belongs to. Signatures are implemented as glorified :func:`namedtuples <py3:collections.namedtuple>. In particular this means they are `immutable <https://docs.python.org/3/glossary.html#term-immutable>`_.
+To each word :math:`w \in V_{n,r}` we associate a :class:`Signature` object. This allows us to pass words around as arguments to functions and keep track of which algebra :math:`V_{n,r}` the word belongs to. Signatures are implemented as glorified :func:`namedtuples <py3:collections.namedtuple>`. In particular this means they are `immutable <https://docs.python.org/3/glossary.html#term-immutable>`_.
 
 .. autoclass:: thompson.word.Signature
     :members:
