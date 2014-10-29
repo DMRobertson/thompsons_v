@@ -90,7 +90,8 @@ class PeriodicFactor(AutomorphismFactor):
 	"""
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		#See discussion before lemma 5.3
+		#See discussion before lemma 5.3.
+		#Should have X_P = Y_P = Z_P
 		assert self.quasinormal_basis() == self.domain
 		assert self.quasinormal_basis().minimal_expansion_for(self) == self.domain
 		
@@ -134,7 +135,7 @@ class PeriodicFactor(AutomorphismFactor):
 		for gen in basis:
 			if gen in already_seen:
 				continue
-			type, images = self._orbit_type(gen, basis)
+			type, images = self.orbit_type(gen, basis)
 			length = type.data
 			images = [images[i] for i in range(length)]
 			already_seen.update(images)
@@ -226,8 +227,53 @@ class PeriodicFactor(AutomorphismFactor):
 				deque.append(new_orbit)
 
 class InfiniteFactor(AutomorphismFactor):
+	"""#todo docstring"""
+	
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		#See discussion before lemma 5.3.
+		#Domain should be Y_P
+		assert self.quasinormal_basis().minimal_expansion_for(self) == self.domain
+	
 	def test_conjugate_to(self, other):
 		raise NotImplementedError()
+	
+	def equivalence_classes(self):
+		"""Computes the equivalence classes :math:`\mathcal X_1, \dotsc, \mathcal X_m` of :math:`\equiv`.
+		
+		.. seealso:: Def 5.17 through Lemma 5.20 of the paper.
+		
+			>>> classes = example_4_25_i.equivalence_classes()
+			>>> for cls in classes: print(Generators.__str__(sorted(cls)))
+			[x1 a1, x1 a2 a1, x1 a2 a2]
+		"""
+		#TODO another test
+		num_classes = 0
+		dict = {}
+		basis = self.quasinormal_basis()
+		for gen in basis:
+			if gen in dict:
+				continue
+			else:
+				dict[gen] = num_classes
+				num_classes += 1
+			
+			type, images = self.orbit_type(gen, basis)
+			for img in images.values():
+				head, tail = basis.test_above(img)
+				dict[head] = dict[gen]
+		
+		classes = [set() for _ in range(num_classes)]
+		for gen, class_num in dict.items():
+			classes[class_num].add(gen)
+		for i, cls in enumerate(classes):
+			if not cls:
+				del classes[i]
+		return classes
+	
+	def semi_infinite_end_points(self):
+		...
+	
 
 def get_factor_class(infinite):
 	return InfiniteFactor if infinite else PeriodicFactor

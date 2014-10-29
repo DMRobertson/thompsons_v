@@ -5,12 +5,18 @@ from .generators import Generators
 from .automorphism import Automorphism
 from .factors import PeriodicFactor, InfiniteFactor
 
-__all__ = ["cyclic_order_six", "arity_three_order_inf", "arity_four", "alphabet_size_two",
-           "example_4_5", "example_4_11", "example_4_12", "example_4_25",
-           "example_5_3",
-           "example_5_9", "example_5_12_psi", "example_5_12_phi", "example_5_12_rho",
-           "example_5_9_p", "example_5_12_psi_p", "example_5_12_phi_p",
-           "example_5_26"]
+__all__ = [
+	#Made-up examples
+	"cyclic_order_six", "arity_three_order_inf", "arity_four", "alphabet_size_two",
+	#Paper section 4
+	"example_4_5", "example_4_11", "example_4_12", "example_4_25", "example_4_25_i",
+	#Conjugacy
+	"example_5_3",
+		#Pure Periodic
+		"example_5_9", "example_5_12_psi", "example_5_12_phi", "example_5_12_rho",
+		"example_5_9_p", "example_5_12_psi_p", "example_5_12_phi_p",
+		#Pure Infinite
+		"example_5_26"]
 
 #TODO. Have a method that reads homomorphisms in from a file. Writing the Python syntax around all this is boring.
 #TODO. Allow powers in the definition of words e.g. a1^4?
@@ -36,6 +42,7 @@ example_4_12 = Automorphism(domain, range)
 domain = Generators((2, 1), ["x a1",       "x a2 a1",    "x a2 a2 a1 a1", "x a2 a2 a1 a2", "x a2 a2 a2"])
 range  = Generators((2, 1), ["x a1 a1 a1", "x a1 a1 a2", "x a2 a2",       "x a1 a2",       "x a2 a1"   ])
 example_4_25 = Automorphism(domain, range)
+example_4_25_i = example_4_25.free_factor(example_4_25.quasinormal_basis(), infinite=True)
 
 #Example 5.3
 domain = ["x a1 a1 a1 a1", "x a1 a1 a1 a2", "x a1 a1 a2",    "x a1 a2 a1", "x a1 a2 a2", "x a2 a1",    "x a2 a2 a1", "x a2 a2 a2"]

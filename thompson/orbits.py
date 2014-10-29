@@ -128,7 +128,7 @@ def print_orbit_types(aut, basis=None, words=None):
 		x1 a4: Left semi-infinite orbit with characteristic (-1, a4)
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a1 a3, x1 a1 a4, x1 a2, x1 a3, x1 a4]
 	
-		.. seealso:: :meth:`~thompson.automorphism._orbit_type`.
+		.. seealso:: :meth:`~thompson.automorphism.orbit_type`.
 	"""
 	if basis is None:
 		basis = aut._seminormal_form_start_point()
@@ -136,7 +136,7 @@ def print_orbit_types(aut, basis=None, words=None):
 		words = basis
 	for w in words:
 		print("{}: {}".format(
-		  w, aut._orbit_type(w, basis)[0]))
+		  w, aut.orbit_type(w, basis)[0]))
 	print('with respect to the basis', basis)
 
 BaseSolutionSet = namedtuple('BaseSolutionSet', 'base increment')

@@ -168,7 +168,7 @@ class Automorphism(Homomorphism):
 		#expand basis until each no element's orbit has finite intersection with X<A>
 		i = 0
 		while i < len(basis):
-			type, image = self._orbit_type(basis[i], basis)
+			type, image = self.orbit_type(basis[i], basis)
 			if type is OrbitType.incomplete:
 				basis.expand(i)
 			else:
@@ -201,7 +201,7 @@ class Automorphism(Homomorphism):
 				basis.expand(i)
 		return basis
 	
-	def _orbit_type(self, y, basis):
+	def orbit_type(self, y, basis):
 		"""Returns the orbit type of *y* with respect to the given *basis*. Also returns a dictionary of computed images, the list (7) from the paper.
 		
 		>>> #Example 4.5.
@@ -325,7 +325,7 @@ class Automorphism(Homomorphism):
 			images.append(image)
 			#1. Did we fall out of X<A>?
 			if not basis.is_above(image):
-				return False, 0, m, images
+				return False, 0, m, images[:-1]
 			
 			#2. Is this an infinite orbit?
 			#Find the generator *prefix* above the current image.
@@ -454,7 +454,7 @@ class Automorphism(Homomorphism):
 		u = u_head.extend(u_tail)
 		v = v_head.extend(v_tail)
 		
-		type, images = self._orbit_type(u, basis)
+		type, images = self.orbit_type(u, basis)
 		for i, image in images.items():
 			if image == v:
 				return SolutionSet.singleton(u_shift + i - v_shift)
@@ -468,7 +468,7 @@ class Automorphism(Homomorphism):
 		
 			>>> example_4_25.quasinormal_basis()
 			Generators((2, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
-			>>> example_4_25._preprocess(Word('x a2 a2', (2, 1)), from_string('a1 a1 a2'))
+			>>> example_4_25._type_b_descendant(Word('x a2 a2', (2, 1)), from_string('a1 a1 a2'))
 			(1, Word('x1 a2 a2', (2, 1)), (-2,))
 		"""
 		head_type = self._qnf_orbit_types[head]
@@ -628,7 +628,7 @@ class Automorphism(Homomorphism):
 			try:
 				type = self._qnf_orbit_types[gen]
 			except KeyError:
-				type, _ = self._orbit_type(gen, basis)
+				type, _ = self.orbit_type(gen, basis)
 			if type.is_type("A"):
 				periodic.append(gen)
 			elif type.is_type("B") or type.is_type("C"):
@@ -704,8 +704,8 @@ class Automorphism(Homomorphism):
 		from .factors import get_factor_class
 		type = get_factor_class(infinite)
 		factor = type(domain, range, inverse_relabeller, inverse_relabeller)
-		factor._qnf_basis = copy(generators_relabelled) #See the discussion before ex 5.3
-		#TODO pass on any data about orbit types here? Would only need to relabel the data for complete infinite orbits
+		#TODO We know apriori what the quasi-normal basis is. We could pass this info on to the factor?
+		#TODO Would also be able to relabel type b data for bi-infinite orbit types
 		return factor
 	
 	def _combine_factors(self, periodic, infinite):
