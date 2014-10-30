@@ -4,9 +4,10 @@
 	from thompson.factors import *
 	from thompson.examples import *
 """
-
 from collections import defaultdict, deque
 from io import StringIO
+
+import networkx as nx
 
 from .automorphism import Automorphism
 from .generators import Generators
@@ -255,7 +256,6 @@ class InfiniteFactor(AutomorphismFactor):
 			>>> for cls in classes: print(Generators.__str__(sorted(cls)))
 			[x1 a1, x1 a2 a1, x1 a2 a2]
 		"""
-		#TODO another test
 		num_classes = 0
 		dict = {}
 		basis = self.quasinormal_basis()
@@ -278,6 +278,28 @@ class InfiniteFactor(AutomorphismFactor):
 			if not cls:
 				del classes[i]
 		return classes
+	
+	def equivalence_graph(self):
+		basis = self.quasinormal_basis()
+		G = nx.DiGraph()
+		G.add_nodes_from(basis)
+		
+		for gen in basis:
+			type, images = self.orbit_type(gen, basis)
+			for power, image in images.items(): #image is y Delta, power is k
+				head, tail = basis.test_above(image) #y and delta
+				if head == gen:
+					continue #no loops, please!
+				# elif G.in_degree(head) == 0:
+				print(gen, '->', head)
+				G.add_edge(gen, head,
+				  start_tail=tuple(), power=power, end_tail=tail)
+				# elif G.in_degree(gen) == 0:
+				print(gen, '<=', head)
+				G.add_edge(head, gen,
+				  start_tail=tail, power=-power, end_tail=tuple())
+		
+		return G
 	
 	def semi_infinite_end_points(self):
 		...

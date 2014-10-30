@@ -1,2 +1,1 @@
-#pathlib>=1.0.0
-#svgwrite>=1.1.6
+networkx
