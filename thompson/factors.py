@@ -6,11 +6,13 @@
 """
 from collections import defaultdict, deque
 from io import StringIO
+from itertools import chain, permutations
 
 import networkx as nx
 
 from .automorphism import Automorphism
 from .generators import Generators
+from .word import Word
 
 class AutomorphismFactor(Automorphism):
 	"""An automorphism derived from a larger parent automorphism.
@@ -262,6 +264,7 @@ class InfiniteFactor(AutomorphismFactor):
 			>>> for cls in classes: print(Generators.__str__(sorted(cls)))
 			[x1 a1, x1 a2 a1, x1 a2 a2]
 		"""
+		#todo deprecate me?
 		num_classes = 0
 		dict = {}
 		basis = self.quasinormal_basis()
@@ -288,51 +291,53 @@ class InfiniteFactor(AutomorphismFactor):
 	def equivalence_graphs(self):
 		#docstring and test
 		basis = self.quasinormal_basis()
+		min_exp = basis.minimal_expansion_for(self)
+		endpts = self.semi_infinite_end_points()
+		
+		#1. Form the graph of direct congruences under \equiv_0
 		G = nx.DiGraph()
 		G.add_nodes_from(basis)
+		orbit_generators = set(min_exp + endpts)
 		
-		#1. Form the graph of direct congruences
-		for gen in basis:
+		#  For each orbit to be inspected:
+		for gen in orbit_generators:
+			#Compute the core part of the orbit
 			type, images = self.orbit_type(gen, basis)
-			print(gen)
-			from pprint import pprint
-			pprint(images)
-			for power, image in images.items(): #image is y Delta, power is k
-				head, tail = basis.test_above(image) #y and delta
-				if head == gen:
-					continue #no loops, please!
-				G.add_edge(gen, head,
-				  start_tail=tuple(), power=power, end_tail=tail)
-				G.add_edge(head, gen,
-				  start_tail=tail, power=-power, end_tail=tuple())
+			# print('\nOrbit of', gen)
+			#Rewrite as descendants of the QNF basis
+			for power, image in images.items():
+				images[power] = basis.test_above(image)
+			
+			for (pow1, (head1, tail1)), (pow2, (head2, tail2)) in permutations(images.items(), 2):
+				if head1 == head2:
+					continue #no loops in this graph, please!
+				# print("[{}] {} PSI^{} = [{}] {}".format(
+				  # head1, Word.__str__(tail1), pow2-pow1, head2, Word.__str__(tail2)))
+				G.add_edge(head1, head2,
+					  start_tail = tail1, power = pow2 - pow1, end_tail = tail2)
 		
-		seen = set()
+		#2. Throw away any extra stuff to get a directed forest
 		unseen = set(basis)
 		components = []
+		roots = []
 		
-		#2. Find connected components and reduce them to DAGs
 		while unseen:
 			#Create a new graph to store the connected component.
 			H = nx.DiGraph()
 			components.append(H)
 			root = unseen.pop()
-			seen.add(root)
-			H.add_node(root)
+			roots.append(root)
 			
 			#Start by examining any node we haven't seen yet.
 			examine = [root]
 			while examine:
 				current = examine.pop()
 				for node in G.successors(current):
-					if node in seen:
-						continue
-					unseen.remove(node)
-					seen.add(node)
-					H.add_node(node)
-					H.add_edge(current, node, G[current][node])
-					examine.append(node)
-		
-		return components
+					if node in unseen:
+						unseen.discard(node)
+						H.add_edge(current, node, G[current][node])
+						examine.append(node)
+		return components, roots
 	
 	def semi_infinite_end_points(self):
 		#todo docstring and test
@@ -343,7 +348,7 @@ class InfiniteFactor(AutomorphismFactor):
 		initial  = basis.descendants_above(img_expansion)
 		return initial + terminal
 	
-	def type_b_images(self, other, classes, endpts):
+	'''def type_b_images(self, other, classes, endpts):
 		#1. Put each endpoint into a subalgebra V_i
 		endpts_in_subalgebra = [set() for cls in classes]
 		words_above_class = [set(cls.simple_words_above()) for cls in classes]
@@ -379,7 +384,7 @@ class InfiniteFactor(AutomorphismFactor):
 					continue
 				images[word] = endpts_by_char[type.data]
 			type_b_images.append(images)
-		return type_b_images
+		return type_b_images'''
 
 def get_factor_class(infinite):
 	return InfiniteFactor if infinite else PeriodicFactor

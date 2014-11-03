@@ -8,23 +8,24 @@ from thompson.orbits import *
 from pprint import pprint
 
 import networkx as nx
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
-classes = example_5_26_psi_i.equivalence_classes()
-print(*classes)
 
-# def fmt_triple(edge_data):
-	# return "({}, {}, {})".format(
-		# format(edge_data['start_tail']), edge_data['power'], format(edge_data['end_tail'])
-	# )
+def fmt_triple(edge_data):
+	return "({}, {}, {})".format(
+		format(edge_data['start_tail']), edge_data['power'], format(edge_data['end_tail'])
+	)
 
 # ex = example_4_25_i
 # ex = example_5_3_i
 ex = example_5_26_psi_i
 
-components = ex.equivalence_graphs()
+print('QN basis:', ex.quasinormal_basis())
+
+components, roots = ex.equivalence_graphs()
+print('\nWhat does the graph look like?')
 for i, subgraph in enumerate(components):
-	print('component', i)
+	print('component', i, 'with root', roots[i])
 	for node in subgraph:
 		print('\tEdges out of', node)
 		for source, target in subgraph.out_edges_iter(node):
