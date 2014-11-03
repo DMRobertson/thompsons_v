@@ -11,12 +11,14 @@ __all__ = [
 	#Paper section 4
 	"example_4_5", "example_4_11", "example_4_12", "example_4_25", "example_4_25_i",
 	#Conjugacy
-	"example_5_3",
+	"example_5_3", "example_5_3_p", "example_5_3_i",
 		#Pure Periodic
 		"example_5_9", "example_5_12_psi", "example_5_12_phi", "example_5_12_rho",
 		"example_5_9_p", "example_5_12_psi_p", "example_5_12_phi_p",
 		#Pure Infinite
-		"example_5_26"]
+		"example_5_26_psi", "example_5_26_phi",
+		"example_5_26_psi_i", "example_5_26_phi_i"
+]
 
 #TODO. Have a method that reads homomorphisms in from a file. Writing the Python syntax around all this is boring.
 #TODO. Allow powers in the definition of words e.g. a1^4?
@@ -47,17 +49,16 @@ example_4_25_i = example_4_25.free_factor(example_4_25.quasinormal_basis(), infi
 #Example 5.3
 domain = ["x a1 a1 a1 a1", "x a1 a1 a1 a2", "x a1 a1 a2",    "x a1 a2 a1", "x a1 a2 a2", "x a2 a1",    "x a2 a2 a1", "x a2 a2 a2"]
 range  = ["x a1 a1 a1",    "x a1 a1 a2 a1", "x a1 a1 a2 a2", "x a1 a2 a2", "x a1 a2 a1", "x a2 a1 a1", "x a2 a1 a2", "x a2 a2"]
-d = Generators((2, 1), domain)
-r = Generators((2, 1), range)
-example_5_3 = Automorphism(d, r)
+example_5_3 = Automorphism(Generators((2, 1), domain), Generators((2, 1), range))
+p, i = example_5_3._partition_basis(example_5_3.quasinormal_basis())
+example_5_3_p = example_5_3.free_factor(p)
+example_5_3_i = example_5_3.free_factor(i, infinite=True)
 
 #Pure Periodic
 #Example 5.9
 domain = ["x a1 a1 a1", "x a1 a1 a2", "x a1 a2",    "x a2 a1 a1", "x a2 a1 a2", "x a2 a2 a1", "x a2 a2 a2"]
 range  = ["x a1 a1 a2", "x a1 a2",    "x a1 a1 a1", "x a2 a1 a2", "x a2 a1 a1", "x a2 a2 a2", "x a2 a2 a1"]
-d = Generators((2, 1), domain)
-r = Generators((2, 1), range)
-example_5_9 = Automorphism(d, r)
+example_5_9 = Automorphism(Generators((2, 1), domain), Generators((2, 1), range))
 example_5_9_p = example_5_9.free_factor(example_5_9.quasinormal_basis())
 
 #Example 5.12
@@ -79,7 +80,10 @@ example_5_12_rho = Automorphism(Generators((2, 1), domain), Generators((2, 1), r
 #Example 5.26
 domain = ["x a1",       "x a2 a1 a1", "x a2 a1 a2", "x a2 a2"]
 range  = ["x a1 a1 a1", "x a2",       "x a1 a1 a2", "x a1 a2"]
-example_5_26 = Automorphism(Generators((2, 1), domain), Generators((2, 1), range))
+example_5_26_psi = Automorphism(Generators((2, 1), domain), Generators((2, 1), range))
+example_5_26_psi_i = example_5_26_psi.free_factor(example_5_26_psi.quasinormal_basis(), infinite=True)
+example_5_26_phi = example_4_25
+example_5_26_phi_i = example_4_25_i
 
 #Made up examples
 #A completely periodic element of order six

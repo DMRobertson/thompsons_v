@@ -241,11 +241,17 @@ class InfiniteFactor(AutomorphismFactor):
 		#1. The QNF bases are computed automatically.
 		#2. Compute the equivalence classes X_1, ... X_m of \equiv on self's QNF basis
 		classes = self.equivalence_classes()
-		basis = other.quasinormal_basis()
-		min_expansion = basis.minimal_expansion_for(other)
-		terminal = basis.descendants_above(min_expansion)
-		img_expansion = other.image_of_set(min_expansion)
-		initial  = basis.descendants_above(img_expansion)
+		
+		from pprint import pprint
+		for cls in classes: print(cls)
+		
+		#3. Find the initial and terminal elements of SI *other*-orbits.
+		endpts = other.semi_infinite_end_points()
+		print(Generators.__str__(endpts))
+		
+		#4. Construct the sets R_i
+		pprint(
+			self.type_b_images(other, classes, endpts))
 	
 	def equivalence_classes(self):
 		"""Computes the equivalence classes :math:`\mathcal X_1, \dotsc, \mathcal X_m` of :math:`\equiv`.
@@ -271,39 +277,109 @@ class InfiniteFactor(AutomorphismFactor):
 				head, tail = basis.test_above(img)
 				dict[head] = dict[gen]
 		
-		classes = [set() for _ in range(num_classes)]
+		classes = [Generators(self.signature) for _ in range(num_classes)]
 		for gen, class_num in dict.items():
-			classes[class_num].add(gen)
+			classes[class_num].append(gen)
 		for i, cls in enumerate(classes):
 			if not cls:
 				del classes[i]
 		return classes
 	
-	def equivalence_graph(self):
+	def equivalence_graphs(self):
+		#docstring and test
 		basis = self.quasinormal_basis()
 		G = nx.DiGraph()
 		G.add_nodes_from(basis)
 		
+		#1. Form the graph of direct congruences
 		for gen in basis:
 			type, images = self.orbit_type(gen, basis)
+			print(gen)
+			from pprint import pprint
+			pprint(images)
 			for power, image in images.items(): #image is y Delta, power is k
 				head, tail = basis.test_above(image) #y and delta
 				if head == gen:
 					continue #no loops, please!
-				# elif G.in_degree(head) == 0:
-				print(gen, '->', head)
 				G.add_edge(gen, head,
 				  start_tail=tuple(), power=power, end_tail=tail)
-				# elif G.in_degree(gen) == 0:
-				print(gen, '<=', head)
 				G.add_edge(head, gen,
 				  start_tail=tail, power=-power, end_tail=tuple())
 		
-		return G
+		seen = set()
+		unseen = set(basis)
+		components = []
+		
+		#2. Find connected components and reduce them to DAGs
+		while unseen:
+			#Create a new graph to store the connected component.
+			H = nx.DiGraph()
+			components.append(H)
+			root = unseen.pop()
+			seen.add(root)
+			H.add_node(root)
+			
+			#Start by examining any node we haven't seen yet.
+			examine = [root]
+			while examine:
+				current = examine.pop()
+				for node in G.successors(current):
+					if node in seen:
+						continue
+					unseen.remove(node)
+					seen.add(node)
+					H.add_node(node)
+					H.add_edge(current, node, G[current][node])
+					examine.append(node)
+		
+		return components
 	
 	def semi_infinite_end_points(self):
-		...
+		#todo docstring and test
+		basis = self.quasinormal_basis()
+		min_expansion = basis.minimal_expansion_for(self)
+		img_expansion = self.image_of_set(min_expansion)
+		terminal = basis.descendants_above(min_expansion)
+		initial  = basis.descendants_above(img_expansion)
+		return initial + terminal
 	
+	def type_b_images(self, other, classes, endpts):
+		#1. Put each endpoint into a subalgebra V_i
+		endpts_in_subalgebra = [set() for cls in classes]
+		words_above_class = [set(cls.simple_words_above()) for cls in classes]
+		for endpt in endpts:
+			for i, cls in enumerate(classes):
+				#1. Is the endpoint below any of the classes?
+				if cls.is_above(endpt) or endpt in words_above_class[i]:
+					endpts_in_subalgebra[i].add(endpt)
+					break
+			raise ValueError('Could not put {} into a subalgebra.'.format(
+			  endpt))
+		
+		sbasis = self.quasinormal_basis()
+		obasis = other.quasinormal_basis()
+		type_b_images = []
+		
+		#2. For each subalgebra:
+		for i, cls in enumerate(classes):
+			#a. Map characteristics to the set of endpts in the subalgebra with those characteristics
+			endpts_by_char = {}
+			for endpt in endpts_in_subalgebra[i]:
+				type, _ = other.orbit_type(endpt, obasis)
+				try:
+					endpts_by_char[type.data].add(endpt)
+				except KeyError:
+					endpts_by_char[type.data] = set(endpt)
+			
+			#b. Map type B words to the set of endpts with the same characteristic
+			images = {}
+			for word in cls:
+				type, _ = self.orbit_type(word, sbasis)
+				if not type.is_type('B'):
+					continue
+				images[word] = endpts_by_char[type.data]
+			type_b_images.append(images)
+		return type_b_images
 
 def get_factor_class(infinite):
 	return InfiniteFactor if infinite else PeriodicFactor
