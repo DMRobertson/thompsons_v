@@ -16,20 +16,22 @@ def fmt_triple(edge_data):
 		format(edge_data['start_tail']), edge_data['power'], format(edge_data['end_tail'])
 	)
 
-# ex = example_4_25_i
+ex = example_4_25_i
 # ex = example_5_3_i
-ex = example_5_26_psi_i
+# ex = example_5_26_psi_i
 
+print(ex)
 print('QN basis:', ex.quasinormal_basis())
 
-components, roots = ex.equivalence_graphs()
-print('\nWhat does the graph look like?')
-for i, subgraph in enumerate(components):
-	print('component', i, 'with root', roots[i])
-	for node in subgraph:
+triples = ex.equivalence_classes()
+for i, (graph, root, type_c_data) in enumerate(triples):
+	print('component', i, 'with root', root)
+	print('type B elements:', *graph.nodes_iter())
+	print('type C elements:', *type_c_data)
+	for node in graph:
 		print('\tEdges out of', node)
-		for source, target in subgraph.out_edges_iter(node):
-			data = subgraph[source][target]
+		for source, target in graph.out_edges_iter(node):
+			data = graph[source][target]
 			print('\t\tto', target, 'with data\n\t\t\t', fmt_triple(data))
 
 # G = nx.union_all(components)

@@ -61,8 +61,9 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 todo_include_todos = True
 
 intersphinx_mapping = {
-	'svgwrite': ('http://svgwrite.readthedocs.org/en/latest', None),
-	'py3': ('https://docs.python.org/3/', None)
+	'svgwrite':	('http://svgwrite.readthedocs.org/en/latest', None),
+	'py3':		('https://docs.python.org/3/', None),
+	'nx':		('http://networkx.github.io/documentation/latest', None), 
 }
 
 """Pro- and Epilogue"""

@@ -243,9 +243,7 @@ class InfiniteFactor(AutomorphismFactor):
 		#1. The QNF bases are computed automatically.
 		#2. Compute the equivalence classes X_1, ... X_m of \equiv on self's QNF basis
 		classes = self.equivalence_classes()
-		
-		from pprint import pprint
-		for cls in classes: print(cls)
+
 		
 		#3. Find the initial and terminal elements of SI *other*-orbits.
 		endpts = other.semi_infinite_end_points()
@@ -256,87 +254,79 @@ class InfiniteFactor(AutomorphismFactor):
 			self.type_b_images(other, classes, endpts))
 	
 	def equivalence_classes(self):
-		"""Computes the equivalence classes :math:`\mathcal X_1, \dotsc, \mathcal X_m` of :math:`\equiv`.
-		
-		.. seealso:: Def 5.17 through Lemma 5.20 of the paper.
-		
-			>>> classes = example_4_25_i.equivalence_classes()
-			>>> for cls in classes: print(Generators.__str__(sorted(cls)))
-			[x1 a1, x1 a2 a1, x1 a2 a2]
+		"""Partitions the QNF basis into equivalence classes. A class is represented as a triple *(graph, root, type_c_data)*, where:
+		- the graph's vertices are the type B words in the class.
+		- the graph's edges stores how the type B words are related
+		- root is a chosen vertex which preceeds all others in the graph
+		- type_c_data is a dictionary. Keys are the type C elements of this class. Values are the type B data recorded by the OrbitType class.
 		"""
-		#todo deprecate me?
-		num_classes = 0
-		dict = {}
+		type_b, type_c = self._split_basis()
+		G = self._congruence_graph(type_b)
+		components, roots = self._tree_components(G)
+		#Before returning, we need to reinclude the type C elements!
+		type_c_data = []
+		for comp in components:
+			restriction = {head : data for head, data in type_c.items() if data[1] in comp}
+			type_c_data.append(restriction)
+		return list(zip(components, roots, type_c_data))
+	
+	def _split_basis(self):
+		"""Partition X into type B and type C parts."""
+		#todo docstring and test
+		type_b = []
+		type_c = {}
 		basis = self.quasinormal_basis()
 		for gen in basis:
-			if gen in dict:
-				continue
+			type, _ = self.orbit_type(gen, basis)
+			if type.is_type('B'):
+				type_b.append(gen)
+			elif type.is_type('C'):
+				type_c[gen] = type.data
 			else:
-				dict[gen] = num_classes
-				num_classes += 1
-			
-			type, images = self.orbit_type(gen, basis)
-			for img in images.values():
-				head, tail = basis.test_above(img)
-				dict[head] = dict[gen]
-		
-		classes = [Generators(self.signature) for _ in range(num_classes)]
-		for gen, class_num in dict.items():
-			classes[class_num].append(gen)
-		for i, cls in enumerate(classes):
-			if not cls:
-				del classes[i]
-		return classes
+				raise ValueError('Incorrect orbit type.')
+		return type_b, type_c
 	
-	def equivalence_graphs(self):
-		#docstring and test
+	def _congruence_graph(self, type_b):
+		"""Form the graph whose vertices are type B elements of the QNF basis and edges store the information which makes two vertices congruent."""
 		basis = self.quasinormal_basis()
 		min_exp = basis.minimal_expansion_for(self)
 		endpts = self.semi_infinite_end_points()
 		
-		#1. Form the graph of direct congruences under \equiv_0
 		G = nx.DiGraph()
-		G.add_nodes_from(basis)
 		orbit_generators = set(min_exp + endpts)
 		
-		#  For each orbit to be inspected:
 		for gen in orbit_generators:
-			#Compute the core part of the orbit
 			type, images = self.orbit_type(gen, basis)
-			# print('\nOrbit of', gen)
-			#Rewrite as descendants of the QNF basis
+			type_b_images = {}
 			for power, image in images.items():
-				images[power] = basis.test_above(image)
+				head, tail = basis.test_above(image)
+				if head in type_b:
+					type_b_images[power] = (head, tail)
 			
-			for (pow1, (head1, tail1)), (pow2, (head2, tail2)) in permutations(images.items(), 2):
+			congruent_pairs = permutations(type_b_images.items(), 2)
+			for (pow1, (head1, tail1)), (pow2, (head2, tail2)) in congruent_pairs:
 				if head1 == head2:
 					continue #no loops in this graph, please!
 				# print("[{}] {} PSI^{} = [{}] {}".format(
 				  # head1, Word.__str__(tail1), pow2-pow1, head2, Word.__str__(tail2)))
 				G.add_edge(head1, head2,
 					  start_tail = tail1, power = pow2 - pow1, end_tail = tail2)
+		return G
 		
-		#2. Throw away any extra stuff to get a directed forest
-		unseen = set(basis)
+	def _tree_components(self, G):
+		"""Breaks down the _congruence_graph() into connected components, then removes extra stuff to get """
+		unseen = set(G.nodes_iter())
 		components = []
 		roots = []
 		
 		while unseen:
-			#Create a new graph to store the connected component.
-			H = nx.DiGraph()
-			components.append(H)
 			root = unseen.pop()
+			T = nx.dfs_tree(G, root)
+			components.append(T)
 			roots.append(root)
-			
-			#Start by examining any node we haven't seen yet.
-			examine = [root]
-			while examine:
-				current = examine.pop()
-				for node in G.successors(current):
-					if node in unseen:
-						unseen.discard(node)
-						H.add_edge(current, node, G[current][node])
-						examine.append(node)
+			#Copy over the edge data
+			for (u, v) in T.edges_iter():
+				T[u][v] = G[u][v]
 		return components, roots
 	
 	def semi_infinite_end_points(self):
