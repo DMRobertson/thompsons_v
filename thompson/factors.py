@@ -243,15 +243,22 @@ class InfiniteFactor(AutomorphismFactor):
 		#1. The QNF bases are computed automatically.
 		#2. Compute the equivalence classes X_1, ... X_m of \equiv on self's QNF basis
 		classes = self.equivalence_classes()
-
 		
 		#3. Find the initial and terminal elements of SI *other*-orbits.
-		endpts = other.semi_infinite_end_points()
-		print(Generators.__str__(endpts))
-		
 		#4. Construct the sets R_i
-		pprint(
-			self.type_b_images(other, classes, endpts))
+		endpts_by_char = other.endpts_by_char()
+		
+		#5. Type B representitives are stored in the output from equivalence_classes()
+		#6. Iterate through all the maps which take an might be potential conjugators.
+		for mapping in self.potential_conjugators(other, endpts_by_char):
+			#This method should produce injective set maps domain -> range
+			domain = list(mapping.keys())
+			range  = list(mapping.values())
+			#This extends to an injective homorphism. Is the extension surjective?
+			if range.generates_algebra():
+				rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
+				return rho
+		return None
 	
 	def equivalence_classes(self):
 		"""Partitions the QNF basis into equivalence classes. A class is represented as a triple *(graph, root, type_c_data)*, where:
@@ -273,13 +280,13 @@ class InfiniteFactor(AutomorphismFactor):
 	def _split_basis(self):
 		"""Partition X into type B and type C parts."""
 		#todo docstring and test
-		type_b = []
+		type_b = {}
 		type_c = {}
 		basis = self.quasinormal_basis()
 		for gen in basis:
 			type, _ = self.orbit_type(gen, basis)
 			if type.is_type('B'):
-				type_b.append(gen)
+				type_b[gen] = type.data
 			elif type.is_type('C'):
 				type_c[gen] = type.data
 			else:
@@ -338,43 +345,32 @@ class InfiniteFactor(AutomorphismFactor):
 		initial  = basis.descendants_above(img_expansion)
 		return initial + terminal
 	
-	'''def type_b_images(self, other, classes, endpts):
-		#1. Put each endpoint into a subalgebra V_i
-		endpts_in_subalgebra = [set() for cls in classes]
-		words_above_class = [set(cls.simple_words_above()) for cls in classes]
-		for endpt in endpts:
-			for i, cls in enumerate(classes):
-				#1. Is the endpoint below any of the classes?
-				if cls.is_above(endpt) or endpt in words_above_class[i]:
-					endpts_in_subalgebra[i].add(endpt)
-					break
-			raise ValueError('Could not put {} into a subalgebra.'.format(
-			  endpt))
-		
-		sbasis = self.quasinormal_basis()
-		obasis = other.quasinormal_basis()
-		type_b_images = []
-		
-		#2. For each subalgebra:
-		for i, cls in enumerate(classes):
-			#a. Map characteristics to the set of endpts in the subalgebra with those characteristics
-			endpts_by_char = {}
-			for endpt in endpts_in_subalgebra[i]:
-				type, _ = other.orbit_type(endpt, obasis)
-				try:
-					endpts_by_char[type.data].add(endpt)
-				except KeyError:
-					endpts_by_char[type.data] = set(endpt)
-			
-			#b. Map type B words to the set of endpts with the same characteristic
-			images = {}
-			for word in cls:
-				type, _ = self.orbit_type(word, sbasis)
-				if not type.is_type('B'):
-					continue
-				images[word] = endpts_by_char[type.data]
-			type_b_images.append(images)
-		return type_b_images'''
+	def endpts_by_char(self):
+		output = defaultdict(deque)
+		basis = self.quasinormal_basis()
+		for word in self.semi_infinite_end_points():
+			type, _ = self.orbit_type(word, basis)
+			assert type.is_type('B')
+			output[type.data].append(gen)
+		return dict(output)
+	
+	def potential_conjugators(other, endpts):
+		... #TODO
+		#1. Flatten and glue components together to form the chain
+		#2. while True:
+		'''	NEXT
+			choose the next available image for the current word
+			if there is no image available, go up
+			check to see if this works with what is already chosen
+			if so, go down
+			if not, go up
+			DOWN
+			if we cannot go down: yield the mapping, then go up
+			UP
+			if we cannot go up: break the loop
+		'''
+			#a. if we cannot go down: yield the mapping
+			#b. if we have no image to chose from 
 
 def get_factor_class(infinite):
 	return InfiniteFactor if infinite else PeriodicFactor
