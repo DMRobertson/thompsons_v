@@ -1,6 +1,9 @@
 """
 .. testsetup::
 	
+	from pprint import pprint
+	from collections import deque
+	
 	from thompson.factors import *
 	from thompson.examples import *
 """
@@ -13,6 +16,8 @@ import networkx as nx
 from .automorphism import Automorphism
 from .generators import Generators
 from .word import Word
+
+__all__ = ["PeriodicFactor", "InfiniteFactor", "restricted_injections"]
 
 class AutomorphismFactor(Automorphism):
 	"""An automorphism derived from a larger parent automorphism.
@@ -240,42 +245,27 @@ class InfiniteFactor(AutomorphismFactor):
 	
 	def test_conjugate_to(self, other):
 		#todo doctest and docstring
+		if not isinstance(other, InfiniteFactor):
+			raise TypeError('Other automorphism must be a InfiniteFactor.')
+		
 		#1. The QNF bases are computed automatically.
 		#2. Compute the equivalence classes X_1, ... X_m of \equiv on self's QNF basis
-		classes = self.equivalence_classes()
+		type_b, type_c = self._split_basis()
+		classes = self.equivalence_classes(type_b, type_c)
 		
 		#3. Find the initial and terminal elements of SI *other*-orbits.
 		#4. Construct the sets R_i
-		endpts_by_char = other.endpts_by_char()
+		choices = self.potential_endpt_images(other, type_b)
 		
-		#5. Type B representitives are stored in the output from equivalence_classes()
+		#5. Type B representitives for each class are stored in the output from equivalence_classes()
 		#6. Iterate through all the maps which take an might be potential conjugators.
-		for mapping in self.potential_conjugators(other, endpts_by_char):
+		for domain, range in self.potential_conjugators(other, classes, choices):
 			#This method should produce injective set maps domain -> range
-			domain = list(mapping.keys())
-			range  = list(mapping.values())
 			#This extends to an injective homorphism. Is the extension surjective?
 			if range.generates_algebra():
 				rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
 				return rho
 		return None
-	
-	def equivalence_classes(self):
-		"""Partitions the QNF basis into equivalence classes. A class is represented as a triple *(graph, root, type_c_data)*, where:
-		- the graph's vertices are the type B words in the class.
-		- the graph's edges stores how the type B words are related
-		- root is a chosen vertex which preceeds all others in the graph
-		- type_c_data is a dictionary. Keys are the type C elements of this class. Values are the type B data recorded by the OrbitType class.
-		"""
-		type_b, type_c = self._split_basis()
-		G = self._congruence_graph(type_b)
-		components, roots = self._tree_components(G)
-		#Before returning, we need to reinclude the type C elements!
-		type_c_data = []
-		for comp in components:
-			restriction = {head : data for head, data in type_c.items() if data[1] in comp}
-			type_c_data.append(restriction)
-		return list(zip(components, roots, type_c_data))
 	
 	def _split_basis(self):
 		"""Partition X into type B and type C parts."""
@@ -292,6 +282,22 @@ class InfiniteFactor(AutomorphismFactor):
 			else:
 				raise ValueError('Incorrect orbit type.')
 		return type_b, type_c
+	
+	def equivalence_classes(self, type_b, type_c):
+		"""Partitions the QNF basis into equivalence classes. A class is represented as a triple *(graph, root, type_c_data)*, where:
+		- the graph's vertices are the type B words in the class.
+		- the graph's edges stores how the type B words are related
+		- root is a chosen vertex which preceeds all others in the graph
+		- type_c_data is a dictionary. Keys are the type C elements of this class. Values are the type B data recorded by the OrbitType class.
+		"""
+		G = self._congruence_graph(type_b)
+		components, roots = self._tree_components(G)
+		#Before returning, we need to reinclude the type C elements!
+		type_c_data = []
+		for comp in components:
+			restriction = {head : data for head, data in type_c.items() if data[1] in comp}
+			type_c_data.append(restriction)
+		return list(zip(components, roots, type_c_data))
 	
 	def _congruence_graph(self, type_b):
 		"""Form the graph whose vertices are type B elements of the QNF basis and edges store the information which makes two vertices congruent."""
@@ -336,41 +342,127 @@ class InfiniteFactor(AutomorphismFactor):
 				T[u][v] = G[u][v]
 		return components, roots
 	
-	def semi_infinite_end_points(self):
-		#todo docstring and test
+	def potential_endpt_images(self, other, self_type_b):
+		images_by_char = defaultdict(deque)
 		basis = self.quasinormal_basis()
-		min_expansion = basis.minimal_expansion_for(self)
-		img_expansion = self.image_of_set(min_expansion)
-		terminal = basis.descendants_above(min_expansion)
-		initial  = basis.descendants_above(img_expansion)
-		return initial + terminal
-	
-	def endpts_by_char(self):
-		output = defaultdict(deque)
-		basis = self.quasinormal_basis()
-		for word in self.semi_infinite_end_points():
+		for word in other.semi_infinite_end_points():
 			type, _ = self.orbit_type(word, basis)
 			assert type.is_type('B')
-			output[type.data].append(gen)
-		return dict(output)
+			images_by_char[type.data].append(gen)
+		
+		choices = {word : images_by_char[char] for word, char in self_type_b}
+		return choices
 	
-	def potential_conjugators(other, endpts):
-		... #TODO
-		#1. Flatten and glue components together to form the chain
-		#2. while True:
-		'''	NEXT
-			choose the next available image for the current word
-			if there is no image available, go up
-			check to see if this works with what is already chosen
-			if so, go down
-			if not, go up
-			DOWN
-			if we cannot go down: yield the mapping, then go up
-			UP
-			if we cannot go up: break the loop
-		'''
-			#a. if we cannot go down: yield the mapping
-			#b. if we have no image to chose from 
+	def potential_conjugators(other, classes, choices):
+		#1. Flatten and glue the graph components together to form the ladder
+		ladder = []
+		for (graph, root, type_c_data) in classes:
+			ladder.extend(nx.dfs_preorder_nodes(graph, root))
+		
+		#2. Define the test function. See the docstring for restricted_injections
+		def is_acceptable(depth, d, img, images):
+			...
+		
+		yield from restricted_injections(domain, choices, is_acceptable)
+
 
 def get_factor_class(infinite):
 	return InfiniteFactor if infinite else PeriodicFactor
+
+def restricted_injections(domain, choices, is_acceptable=None):
+	r"""Let *domain* be a set consisting of :math:`n` different groups, :math:`X = X_1 \sqcup \dots \sqcup X_n`. Let :math:`Y = Y_1 \sqcup \dots \sqcup Y_n` be a partition of another set. How many injective maps :math:`f\colon X \to Y` are there such that :math:`f(X_i) \subseteq Y_i`? This function enumerates them all.
+	
+	A function *is_acceptable* function may be provided::
+	
+		def is_acceptable(depth, d, img, images):
+			...
+			return boolean
+	
+	This is called when we have determined the possible *images* of the elements before *d* in *domain*. The number *depth* is the index of *d* in *domain*. The function should return true if the rule ``d -> img`` is compatible with the rules defined by ``domain -> images`` thus far. If so, this enumeration continues. If not, we scrap the rule ``d -> img`` and try something else.
+	
+	If no function *is_acceptable* is provided, no acceptability checks are made, i.e. we assume all rules ``d -> img`` are acceptable.
+	
+	:returns: Yields a list of potential *images*.
+	
+	.. doctest::
+		
+		>>> ladder = 'x1 x3 x2 x4'.split()
+		>>> Y1 = deque('y1 y2'.split())
+		>>> Y2 = deque('y3 y4'.split())
+		>>> choices = dict(x1=Y1, x2=Y1, x3=Y2, x4=Y2)
+		>>> for images in restricted_injections(ladder, choices):
+		... 	pprint({ladder[i] : images[i] for i in range(len(ladder))})
+		{'x1': 'y1', 'x2': 'y2', 'x3': 'y3', 'x4': 'y4'}
+		{'x1': 'y1', 'x2': 'y2', 'x3': 'y4', 'x4': 'y3'}
+		{'x1': 'y2', 'x2': 'y1', 'x3': 'y3', 'x4': 'y4'}
+		{'x1': 'y2', 'x2': 'y1', 'x3': 'y4', 'x4': 'y3'}
+	
+	.. doctest::
+		:hide:
+		
+		>>> ladder = 'x1 x2 x7 x8 x9 x10'.split()
+		>>> Y1 = deque('y1 y2'.split())
+		>>> Y2 = deque('y7'.split())
+		>>> Y3 = deque('y8 y9 y10'.split())
+		>>> choices = dict(x1=Y1, x2=Y1, x7=Y2, x8=Y3, x9=Y3, x10=Y3)
+		>>> for images in restricted_injections(ladder, choices):
+		... 	print(images)
+		['y1', 'y2', 'y7', 'y8', 'y9', 'y10']
+		['y1', 'y2', 'y7', 'y8', 'y10', 'y9']
+		['y1', 'y2', 'y7', 'y9', 'y10', 'y8']
+		['y1', 'y2', 'y7', 'y9', 'y8', 'y10']
+		['y1', 'y2', 'y7', 'y10', 'y8', 'y9']
+		['y1', 'y2', 'y7', 'y10', 'y9', 'y8']
+		['y2', 'y1', 'y7', 'y8', 'y9', 'y10']
+		['y2', 'y1', 'y7', 'y8', 'y10', 'y9']
+		['y2', 'y1', 'y7', 'y9', 'y10', 'y8']
+		['y2', 'y1', 'y7', 'y9', 'y8', 'y10']
+		['y2', 'y1', 'y7', 'y10', 'y8', 'y9']
+		['y2', 'y1', 'y7', 'y10', 'y9', 'y8']
+	
+	.. warning:: This function uses ``None`` to stand for images which have yet to be decided. Everything will fail horribly if any element of *domain* is ``None``.
+	"""
+	if is_acceptable is None:
+		def is_acceptable(*args, **kwargs): return True
+	
+	#2. Setup the state we need
+	images = [None] * len(domain) #images for the words on the ladder
+	first  = [None] * len(domain) #the first image we tried for each rung
+	depth  = 0                    #current position on the ladder
+	ascend = False                #do we go up or down?
+	
+	while True:
+		#Move onto the next choice for images[depth]
+		current = domain[depth]
+		if images[depth] is not None:
+			choices[current].append(images[depth])
+			images[depth] = None
+		test_img = choices[current][0]
+		
+		#Have we tried this before?
+		if first[depth] == test_img:
+			ascend = True
+		elif not is_acceptable(depth, current, test_img, images):
+			ascend = True
+		else: #This choice works, let's make it official
+			images[depth] = choices[current].popleft()
+			if first[depth] is None:
+				first[depth] = images[depth]
+			ascend = False
+		
+		#Move down to make another choice
+		if not ascend:
+			if depth + 1 == len(domain):
+				yield images
+				choices[current].append(images[depth])
+				ascend = True
+			else:
+				depth += 1
+		
+		#This choice didn't work, let's go up
+		if ascend:
+			images[depth] = None
+			first[depth] = None
+			depth -= 1
+			if depth < 0:
+				break

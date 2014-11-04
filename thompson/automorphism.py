@@ -145,6 +145,16 @@ class Automorphism(Homomorphism):
 			image = self.image(image, inverse)
 		return image
 	
+	#Finding interesting sets of word
+	def semi_infinite_end_points(self):
+		#todo docstring and test
+		basis = self.quasinormal_basis()
+		min_expansion = basis.minimal_expansion_for(self)
+		img_expansion = self.image_of_set(min_expansion)
+		terminal = basis.descendants_above(min_expansion)
+		initial  = basis.descendants_above(img_expansion)
+		return initial + terminal
+	
 	#Generating the quasinormal basis
 	def quasinormal_basis(self):
 		r"""We say that :math:`\phi` is *in semi-normal form* with respect to the basis :math:`X` if no element of :math:`X` lies in an incomplete :math:`X`-component of a :math:`\phi` orbit. See the :mod:`~thompson.orbits` module for more details.

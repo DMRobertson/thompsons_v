@@ -6,8 +6,6 @@ To :meth:`test for conjugacy <thompson.automorphism.Automorphism.test_conjugate_
 - any extra information that we need to test the components for conjugacy. 
 
 .. automodule:: thompson.factors
-    :members:
-    :undoc-members:
 
 Factor class
 ------------
@@ -29,3 +27,5 @@ Infinite Factors
 .. autoclass:: InfiniteFactor
     :members:
     :undoc-members:
+
+.. autofunction:: restricted_injections

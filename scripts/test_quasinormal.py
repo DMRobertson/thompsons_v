@@ -7,32 +7,30 @@ from thompson.examples import *
 from thompson.orbits import *
 from pprint import pprint
 
-import networkx as nx
+# import networkx as nx
 # import matplotlib.pyplot as plt
 
 
-def fmt_triple(edge_data):
-	return "({}, {}, {})".format(
-		format(edge_data['start_tail']), edge_data['power'], format(edge_data['end_tail'])
-	)
+# def fmt_triple(edge_data):
+	# return "({}, {}, {})".format(
+		# format(edge_data['start_tail']), edge_data['power'], format(edge_data['end_tail'])
+	# )
 
-ex = example_4_25_i
-# ex = example_5_3_i
-# ex = example_5_26_psi_i
+psi = example_5_26_psi_i
+phi = example_5_26_phi_i
 
-print(ex)
-print('QN basis:', ex.quasinormal_basis())
+rho = psi.test_conjugate_to(phi)
 
-triples = ex.equivalence_classes()
-for i, (graph, root, type_c_data) in enumerate(triples):
-	print('component', i, 'with root', root)
-	print('type B elements:', *graph.nodes_iter())
-	print('type C elements:', *type_c_data)
-	for node in graph:
-		print('\tEdges out of', node)
-		for source, target in graph.out_edges_iter(node):
-			data = graph[source][target]
-			print('\t\tto', target, 'with data\n\t\t\t', fmt_triple(data))
+# triples = ex.equivalence_classes()
+# for i, (graph, root, type_c_data) in enumerate(triples):
+	# print('component', i, 'with root', root)
+	# print('type B elements:', *graph.nodes_iter())
+	# print('type C elements:', *type_c_data)
+	# for node in graph:
+		# print('\tEdges out of', node)
+		# for source, target in graph.out_edges_iter(node):
+			# data = graph[source][target]
+			# print('\t\tto', target, 'with data\n\t\t\t', fmt_triple(data))
 
 # G = nx.union_all(components)
 
