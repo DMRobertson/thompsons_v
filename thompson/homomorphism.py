@@ -24,13 +24,14 @@ class Homomorphism:
 	:ivar domain: a :class:`basis <thompson.generators.Generators>` of preimages 
 	:ivar range:  a :class:`set <thompson.generators.Generators>` of images.
 	
-	:raises ValueError: if the bases are of different sizes.
+	:raises TypeError: if the bases are of different sizes.
 	:raises TypeError: if the algebras described by *domain* and *range* have different arities.
+	:raises ValueError: if *domain* is :meth:`not a basis <thompson.generators.Generators.is_basis>`.
 	"""
 	def __init__(self, domain, range):
 		#The boring checks
 		if len(domain) != len(range):
-			raise ValueError("Domain basis has {} elements, but range basis has {} elements.".format(
+			raise TypeError("Domain basis has {} elements, but range basis has {} elements.".format(
 			  len(domain), len(range)))
 		
 		if domain.signature.arity != range.signature.arity:
@@ -92,7 +93,7 @@ class Homomorphism:
 			
 			>>> #This is given by 6 generators, but after reduction consists of 5:
 			>>> print(cyclic_order_six)
-			Automorphism: V(2, 1) -> V(2, 1) specified by 5 generators (after reduction).
+			Automorphism: V(2, 1) -> V(2, 1) specified by 5 generators (after expansion and reduction).
 			x1 a1 a1    -> x1 a1 a1      
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
 			x1 a1 a2 a2 -> x1 a2         
@@ -102,7 +103,7 @@ class Homomorphism:
 			>>> domain = Generators((2, 2), ["x1", "x2 a1", "x2 a2"])
 			>>> range  = Generators((2, 2), ["x2", "x1 a1", "x1 a2"])
 			>>> print(Homomorphism(domain, range))
-			Homomorphism: V(2, 2) -> V(2, 2) specified by 2 generators (after reduction).
+			Homomorphism: V(2, 2) -> V(2, 2) specified by 2 generators (after expansion and reduction).
 			x1 -> x2
 			x2 -> x1
 		"""
@@ -139,7 +140,7 @@ class Homomorphism:
 		:rtype: an :class:`thompson.automorphism.Automorphism` if possible; otherwise a :class:`Homomorphism`.
 		
 			>>> print(alphabet_size_two * alphabet_size_two)
-			Automorphism: V(3, 2) -> V(3, 2) specified by 8 generators (after reduction).
+			Automorphism: V(3, 2) -> V(3, 2) specified by 8 generators (after expansion and reduction).
 			x1 a1    -> x1 a1      
 			x1 a2    -> x1 a2 a3 a3
 			x1 a3 a1 -> x1 a3      
@@ -310,14 +311,14 @@ class Homomorphism:
 	
 	#Printing
 	def _string_header(self):
-		return "{}: V{} -> V{} specified by {} generators (after reduction).".format(
+		return "{}: V{} -> V{} specified by {} generators (after expansion and reduction).".format(
 		  type(self).__name__, self.domain.signature, self.range.signature, len(self.domain))
 	
 	def __str__(self):
 		"""Printing an automorphism gives its arity, alphabet_size, and lists the images of its domain elements.
 		
 			>>> print(cyclic_order_six)
-			Automorphism: V(2, 1) -> V(2, 1) specified by 5 generators (after reduction).
+			Automorphism: V(2, 1) -> V(2, 1) specified by 5 generators (after expansion and reduction).
 			x1 a1 a1    -> x1 a1 a1      
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
 			x1 a1 a2 a2 -> x1 a2         

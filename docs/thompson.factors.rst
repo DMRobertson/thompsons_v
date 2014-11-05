@@ -27,5 +27,3 @@ Infinite Factors
 .. autoclass:: InfiniteFactor
     :members:
     :undoc-members:
-
-.. autofunction:: restricted_injections

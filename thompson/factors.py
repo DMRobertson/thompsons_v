@@ -8,8 +8,10 @@
 	from thompson.examples import *
 """
 from collections import defaultdict, deque
+from functools import partial
 from io import StringIO
 from itertools import chain, permutations
+from pprint import pprint
 
 import networkx as nx
 
@@ -17,7 +19,7 @@ from .automorphism import Automorphism
 from .generators import Generators
 from .word import Word
 
-__all__ = ["PeriodicFactor", "InfiniteFactor", "restricted_injections"]
+__all__ = ["PeriodicFactor", "InfiniteFactor"]
 
 class AutomorphismFactor(Automorphism):
 	"""An automorphism derived from a larger parent automorphism.
@@ -30,19 +32,20 @@ class AutomorphismFactor(Automorphism):
 		
 		This class is returned by :meth:`~thompson.automorphism.Automorphism.free_factors` and doesn't need to be instantiated by the user.
 		
-		:raises ValueError: if a relabeller is provided and the relabeller's signature does not match that of *domain* or *range*
+		:raises LookupError: if a relabeller is provided and the relabeller's signature does not match that of *domain* or *range*
+		:raises TypeError: if a relabeller is provided and the relabeller's signature does not match that of *domain* or *range* (as appropriate)
 		
 		.. seealso:: :meth:`Automorphism.__init__`, :meth:`~thompson.automorphism.Automorphism.free_factors`
 		"""
 		if domain_relabeller is None != range_relabeller is None:
-			raise ValueError("Must either specify both relabellers or neither.")
+			raise LookupError("Must either specify both relabellers or neither.")
 		
 		if domain_relabeller is not None and domain_relabeller.domain.signature != domain.signature:
-			raise ValueError('Domain relabeller signature {} does not match automorphism\'s domain signature {}.'.format(
+			raise TypeError('Domain relabeller signature {} does not match automorphism\'s domain signature {}.'.format(
 			  domain_relabeller.domain.signature, domain.signature))
 		
 		if range_relabeller is not None and range_relabeller.domain.signature != range.signature:
-			raise ValueError('Range relabeller signature {} does not match automorphism\'s range signature {}.'.format(
+			raise TypeError('Range relabeller signature {} does not match automorphism\'s range signature {}.'.format(
 			  range_relabeller.domain.signature, range.signature))
 		
 		super().__init__(domain, range)
@@ -71,11 +74,14 @@ class AutomorphismFactor(Automorphism):
 			output.write(row)
 		return output.getvalue()
 
+def get_factor_class(infinite):
+	return InfiniteFactor if infinite else PeriodicFactor
+
 class PeriodicFactor(AutomorphismFactor):
 	r"""A purely periodic free factor which has been extracted from another component.
 	
 		>>> print(example_5_9_p)
-		PeriodicFactor: V(2, 1) -> V(2, 1) specified by 7 generators (after reduction).
+		PeriodicFactor: V(2, 1) -> V(2, 1) specified by 7 generators (after expansion and reduction).
 		This automorphism was derived from a parent automorphism.
 		'x' and 'y' represent root words of the parent and current derived algebra, respectively.
 		x1 a1 a1 a1 ~>    y1 a1 a1    => y1 a1 a2 a1    ~> x1 a1 a1 a2
@@ -156,7 +162,7 @@ class PeriodicFactor(AutomorphismFactor):
 			>>> psi_p = example_5_12_psi_p; phi_p = example_5_12_phi_p
 			>>> rho_p = psi_p.test_conjugate_to(phi_p)
 			>>> print(rho_p)
-			AutomorphismFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after reduction).
+			AutomorphismFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
 			This automorphism was derived from a parent automorphism.
 			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
 			x1 a1 a1 a1 a1 ~>    y1 a1 a1    => y1 a1 a2       ~> x1 a1 a2   
@@ -251,19 +257,25 @@ class InfiniteFactor(AutomorphismFactor):
 		#1. The QNF bases are computed automatically.
 		#2. Compute the equivalence classes X_1, ... X_m of \equiv on self's QNF basis
 		type_b, type_c = self._split_basis()
+		print('** type B: **')
+		pprint(type_b)
+		print('** type C: **')
+		pprint(type_c)
 		roots, graph = self.equivalence_data(type_b, type_c)
-		
+		print('** Roots: **')
+		pprint(roots)
+		print('** Graph: **')
+		dump_graph(roots, graph)
 		#3. Find the initial and terminal elements of SI *other*-orbits.
 		#4. Construct the sets R_i
 		potential_endpoints = self.potential_image_endpoints(other, type_b)
+		print('** Potential Endpoints: **')
+		pprint(potential_endpoints)
 		
 		#5. Type B representitives for each class are stored in *roots*.
-		#6. Iterate through all the maps which take an might be potential conjugators.
-		for domain, range in self.potential_conjugators(other, classes, choices):
-			#This method should produce injective set maps domain -> range
-			#This extends to an injective homorphism. Is the extension surjective?
-			if range.generates_algebra():
-				rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
+		#6. Iterate through all the automorhpisms which be conjugators.
+		for rho in self.potential_conjugators(other, roots, graph, potential_endpoints, type_c):
+			if self * rho == rho * other:
 				return rho
 		return None
 	
@@ -347,6 +359,7 @@ class InfiniteFactor(AutomorphismFactor):
 		
 		while unseen_nodes:
 			root = unseen_nodes.pop()
+			print('ROOT:', root)
 			roots.append(root)
 			for edge in nx.dfs_edges(G, root):
 				unvisisted_edges.remove(edge)
@@ -364,122 +377,146 @@ class InfiniteFactor(AutomorphismFactor):
 		images_by_char = defaultdict(set)
 		basis = other.quasinormal_basis()
 		for word in other.semi_infinite_end_points():
-			type, _ = other.orbit_type(word, other)
+			type, _ = other.orbit_type(word, basis)
 			assert type.is_type('B')
 			images_by_char[type.data].add(word)
 		
-		orbit_endpts = {word : images_by_char[char] for word, char in self_type_b}
+		orbit_endpts = {word : images_by_char[char] for word, char in self_type_b.items()}
 		return orbit_endpts
 	
-	def potential_conjugators(other, classes, choices):
+	def potential_conjugators(self, other, roots, graph, choices, type_c):
 		#1. Flatten and glue the graph components together to form the ladder
 		ladder = []
-		for (graph, root, type_c_data) in classes:
+		for root in roots:
 			ladder.extend(nx.dfs_preorder_nodes(graph, root))
 		
-		#2. Define the test function. See the docstring for restricted_injections
-		def is_acceptable(depth, d, img, images):
-			...
+		#2. Define the test function. See the docstring for maps_satisfying_choices
+		deduce_images = partial(image_for_type_b, roots=roots, graph=graph, aut=other)
 		
-		yield from restricted_injections(domain, choices, is_acceptable)
+		#3. Now the hard part---the iteration.
+		for images in maps_satisfying_choices(ladder, choices, deduce_images):
+			domain = Generators(self.signature, sorted(images))
+			range = Generators(self.signature, (images[d] for d in domain))
+			
+			#a. Add in type C images to domain and range
+			for word, data in type_c.items():
+				domain.append(word)
+				img = image_for_type_c(word, data, images, other)
+				range.append(img)
+			
+			#b. Does this define an Automorphism?
+			try:
+				pprint(domain)
+				pprint(range)
+				rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
+			except ValueError as e:
+				print(e)
+				continue
+			yield rho
 
-def get_factor_class(infinite):
-	return InfiniteFactor if infinite else PeriodicFactor
-
-def restricted_injections(domain, choices, is_acceptable=None):
-	r"""Let *domain* be a set consisting of :math:`n` different groups, :math:`X = X_1 \sqcup \dots \sqcup X_n`. Let :math:`Y = Y_1 \sqcup \dots \sqcup Y_n` be a partition of another set. How many injective maps :math:`f\colon X \to Y` are there such that :math:`f(X_i) \subseteq Y_i`? This function enumerates them all.
+def maps_satisfying_choices(domain, choices, image_for):
+	r"""Suppose we have a list of elements :math:`d` belonging to some list *domain*. We would like to efficiently enumerate the functions :math:`f\colon\text{domain} -> I` where :math:`I` is some set. We would also like these functions :math:`f` to abide by certain rules described below.
 	
-	A function *is_acceptable* function may be provided::
+	For each such :math:`d` we have a set of *choices* to make: say :math:`\text{choices}(d) = \{c_{d,1}, \dots c_{d,n_d}\}`. Making a choice :math:`c_{d,i}` for :math:`d` will determine the set of potential images for :math:`d`. This set is allowed to depend on:
 	
-		def is_acceptable(depth, d, img, images):
-			...
-			return boolean
+	- the element :math:`d` being mapped;
+	- the choice :math:`c_{d, i}` which was made for d;
+	- the images which have been proposed thus far for the elements preceeding :math:`d` in *domain*.
 	
-	This is called when we have determined the possible *images* of the elements before *d* in *domain*. The number *depth* is the index of *d* in *domain*. The function should return true if the rule ``d -> img`` is compatible with the rules defined by ``domain -> images`` thus far. If so, this enumeration continues. If not, we scrap the rule ``d -> img`` and try something else.
+	We also ask that each choice produces at most one image for :math:`d`. This should be determined by the call ``image_for(d, choice, images)``, where images is the proposed mapping which has been constructed so far. If no image is available, this function should return ``None``.
 	
-	If no function *is_acceptable* is provided, no acceptability checks are made, i.e. we assume all rules ``d -> img`` are acceptable.
+	.. warning:: Make sure that ``None`` isn't a valid image for :math:`d`!
 	
-	:returns: Yields a list of potential *images*.
-	
-	.. doctest::
-		
-		>>> ladder = 'x1 x3 x2 x4'.split()
-		>>> Y1 = deque('y1 y2'.split())
-		>>> Y2 = deque('y3 y4'.split())
-		>>> choices = dict(x1=Y1, x2=Y1, x3=Y2, x4=Y2)
-		>>> for images in restricted_injections(ladder, choices):
-		... 	pprint({ladder[i] : images[i] for i in range(len(ladder))})
-		{'x1': 'y1', 'x2': 'y2', 'x3': 'y3', 'x4': 'y4'}
-		{'x1': 'y1', 'x2': 'y2', 'x3': 'y4', 'x4': 'y3'}
-		{'x1': 'y2', 'x2': 'y1', 'x3': 'y3', 'x4': 'y4'}
-		{'x1': 'y2', 'x2': 'y1', 'x3': 'y4', 'x4': 'y3'}
-	
-	.. doctest::
-		:hide:
-		
-		>>> ladder = 'x1 x2 x7 x8 x9 x10'.split()
-		>>> Y1 = deque('y1 y2'.split())
-		>>> Y2 = deque('y7'.split())
-		>>> Y3 = deque('y8 y9 y10'.split())
-		>>> choices = dict(x1=Y1, x2=Y1, x7=Y2, x8=Y3, x9=Y3, x10=Y3)
-		>>> for images in restricted_injections(ladder, choices):
-		... 	print(images)
-		['y1', 'y2', 'y7', 'y8', 'y9', 'y10']
-		['y1', 'y2', 'y7', 'y8', 'y10', 'y9']
-		['y1', 'y2', 'y7', 'y9', 'y10', 'y8']
-		['y1', 'y2', 'y7', 'y9', 'y8', 'y10']
-		['y1', 'y2', 'y7', 'y10', 'y8', 'y9']
-		['y1', 'y2', 'y7', 'y10', 'y9', 'y8']
-		['y2', 'y1', 'y7', 'y8', 'y9', 'y10']
-		['y2', 'y1', 'y7', 'y8', 'y10', 'y9']
-		['y2', 'y1', 'y7', 'y9', 'y10', 'y8']
-		['y2', 'y1', 'y7', 'y9', 'y8', 'y10']
-		['y2', 'y1', 'y7', 'y10', 'y8', 'y9']
-		['y2', 'y1', 'y7', 'y10', 'y9', 'y8']
-	
-	.. warning:: This function uses ``None`` to stand for images which have yet to be decided. Everything will fail horribly if any element of *domain* is ``None``.
+	:returns: yields mappings which satisfy all the constraints until it is no longer possible to do so.
 	"""
-	if is_acceptable is None:
-		def is_acceptable(*args, **kwargs): return True
-	
 	#2. Setup the state we need
-	images = [None] * len(domain) #images for the words on the ladder
-	first  = [None] * len(domain) #the first image we tried for each rung
-	depth  = 0                    #current position on the ladder
-	ascend = False                #do we go up or down?
+	images = {}                             #mapping from ladder to images
+	choice_iterators = [None] * len(domain) #iterators yielding the choices at each rung
+	depth  = 0                              #current position on the ladder
+	ascend = False                          #do we go up or down?
 	
 	while True:
-		#Move onto the next choice for images[depth]
-		current = domain[depth]
-		if images[depth] is not None:
-			choices[current].append(images[depth])
-			images[depth] = None
-		test_img = choices[current][0]
-		
-		#Have we tried this before?
-		if first[depth] == test_img:
-			ascend = True
-		elif not is_acceptable(depth, current, test_img, images):
-			ascend = True
-		else: #This choice works, let's make it official
-			images[depth] = choices[current].popleft()
-			if first[depth] is None:
-				first[depth] = images[depth]
-			ascend = False
-		
-		#Move down to make another choice
-		if not ascend:
-			if depth + 1 == len(domain):
-				yield images
-				choices[current].append(images[depth])
-				ascend = True
-			else:
-				depth += 1
-		
-		#This choice didn't work, let's go up
+		#If the last choice we made didn't work (or we reached the bottom of the ladder) go up
 		if ascend:
-			images[depth] = None
-			first[depth] = None
+			current = domain[depth]
+			try:
+				del images[current]
+			except KeyError:
+				pass
+			choice_iterators[depth] = None
 			depth -= 1
 			if depth < 0:
 				break
+		
+		#Select the next choice for this depth
+		current = domain[depth]
+		if choice_iterators[depth] is None:
+			choice_iterators[depth] = iter(choices[current])
+		try:
+			choice = next(choice_iterators[depth])
+		except GeneratorExit:
+			ascend = True
+			continue
+		
+		#Does this choice give us an image?
+		print('trying the choice', current, '~>', choice)
+		img = image_for(current, choice, images)
+		if img is None:
+			print('This doesn\'t work.')
+			ascend = True
+			continue
+		print('WORKS, and', current, '->', img)
+		images[current] = img
+		ascend = False
+		
+		#If we've made it this far, we've chosen an image. Try to go down the ladder.
+		if depth + 1 == len(domain):
+			print("I YIELD CONTROL TO YOU")
+			yield images
+			ascend = True
+		else:
+			depth += 1
+
+def image_for_type_b(word, chosen_endpoint, images, roots, graph, aut):
+	"""Is it possible to map *word* into the *aut*-orbit ending with *chosen_endpoint* when we have already constructed a mapping described by *images*?"""
+	if word in roots:
+		return chosen_endpoint
+	
+	predecessor, _, edge_data = next(graph.in_edges_iter(word, data=True))
+	predecessor_image = images[predecessor]
+	
+	u = chosen_endpoint.extend(edge_data['end_tail'])
+	v = predecessor_image.extend(edge_data['start_tail'])
+	solns = aut.share_orbit(u, v)
+	if solns.is_empty():
+		return None
+	assert not solns.is_sequence()
+	return aut.repeated_image(chosen_endpoint, solns.base + edge_data['power'])
+
+def image_for_type_c(word, type_b_data, images, aut):
+	power, gen, tail = type_b_data
+	w = images[gen].extend(tail)
+	return aut.repeated_image(w, -power)
+
+
+###for debugging only
+def fmt_triple(edge_data):
+	return "({}, {}, {})".format(
+		format(edge_data['start_tail']), edge_data['power'], format(edge_data['end_tail'])
+	)
+
+def dump_graph(roots, graph):
+	import networkx as nx
+	for i, root in enumerate(roots):
+		print('component', i, 'with root', root)
+		print('type B elements:')
+		for node in nx.dfs_preorder_nodes(graph, root):
+			print('\tEdges out of', node)
+			for source, target in graph.out_edges_iter(node):
+				data = graph[source][target]
+				print('\t\tto', target, 'with data\n\t\t\t', fmt_triple(data))
+
+
+
+
+

@@ -43,13 +43,15 @@ class Automorphism(Homomorphism):
 		
 			.. math:: \text{domain}_{\,i} \mapsto \text{range}_{\,i}
 		
-		:raises IndexError: if the bases have different arities or alphabet sizes.
+		:raises TypeError: if the bases have different arities or alphabet sizes.
 		:raises ValueError: if either basis :meth:`isn't actually a basis <thompson.generators.Generators.is_basis>`.
 		"""
 		#Check to see that the domain and range algebras are the same
 		if domain.signature != range.signature:
 			raise TypeError('Domain {} and range {} have different signatures.'.format(
 			  domain.signature, range.signature))
+		
+		super()._expand(domain, range)
 		
 		#Check to see that range is a basis for the range algebra
 		i, j = range.test_free()
@@ -158,7 +160,7 @@ class Automorphism(Homomorphism):
 			>>> Generators.__str__(example_4_25.semi_infinite_end_points())
 			'[x1 a1, x1 a1 a1, x1 a2 a2, x1 a2 a2 a1]'
 		
-		:rtype: A (sorted) list of :class:`~thompson.word.Word`s.
+		:rtype: A (sorted) list of :class:`Words <~thompson.word.Word>`.
 		
 		.. seealso:: The discussion before lemma 4.6.
 		"""
@@ -539,7 +541,7 @@ class Automorphism(Homomorphism):
 			>>> psi = example_5_12_psi; phi = example_5_12_phi
 			>>> rho = psi.test_conjugate_to(phi)
 			>>> print(rho)
-			Automorphism: V(2, 1) -> V(2, 1) specified by 6 generators (after reduction).
+			Automorphism: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
 			x1 a1 a1 a1 a1 -> x1 a1 a2   
 			x1 a1 a1 a1 a2 -> x1 a2 a2   
 			x1 a1 a1 a2    -> x1 a1 a1 a1
@@ -681,7 +683,7 @@ class Automorphism(Homomorphism):
 			>>> qnb = example_5_3.quasinormal_basis()
 			>>> p, i = example_5_3._partition_basis(qnb)
 			>>> print(example_5_3.free_factor(p, infinite=False))
-			PeriodicFactor: V(2, 1) -> V(2, 1) specified by 2 generators (after reduction).
+			PeriodicFactor: V(2, 1) -> V(2, 1) specified by 2 generators (after expansion and reduction).
 			This automorphism was derived from a parent automorphism.
 			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
 			x1 a1 a2 a1 ~>    y1 a1 => y1 a2    ~> x1 a1 a2 a2
@@ -693,12 +695,12 @@ class Automorphism(Homomorphism):
 			>>> qnb = alphabet_size_two.quasinormal_basis()
 			>>> p, i = alphabet_size_two._partition_basis(qnb)
 			>>> print(alphabet_size_two.free_factor(p, infinite=False))
-			PeriodicFactor: V(3, 1) -> V(3, 1) specified by 1 generators (after reduction).
+			PeriodicFactor: V(3, 1) -> V(3, 1) specified by 1 generators (after expansion and reduction).
 			This automorphism was derived from a parent automorphism.
 			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
 			x1 a1 ~>    y1 => y1    ~> x1 a1
 			>>> print(alphabet_size_two.free_factor(i, infinite=True))
-			InfiniteFactor: V(3, 1) -> V(3, 1) specified by 5 generators (after reduction).
+			InfiniteFactor: V(3, 1) -> V(3, 1) specified by 5 generators (after expansion and reduction).
 			This automorphism was derived from a parent automorphism.
 			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
 			x1 a2 ~>    y1 a1    => y1 a1 a3    ~> x1 a2 a3
