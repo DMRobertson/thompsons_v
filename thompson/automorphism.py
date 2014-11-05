@@ -147,13 +147,27 @@ class Automorphism(Homomorphism):
 	
 	#Finding interesting sets of word
 	def semi_infinite_end_points(self):
-		#todo docstring and test
+		"""Returns a list of the words :math:`w` which are initial or terminal elements of semi-infinite orbits with respect the current automorphism's :meth:`quasinormal_basis`.
+		
+			>>> Generators.__str__(example_4_5.semi_infinite_end_points())
+			'[x1 a1 a1, x1 a1 a2]'
+			>>> Generators.__str__(example_4_11.semi_infinite_end_points())
+			'[x1 a1, x1 a2]'
+			>>> Generators.__str__(example_4_12.semi_infinite_end_points())
+			'[]'
+			>>> Generators.__str__(example_4_25.semi_infinite_end_points())
+			'[x1 a1, x1 a1 a1, x1 a2 a2, x1 a2 a2 a1]'
+		
+		:rtype: A (sorted) list of :class:`~thompson.word.Word`s.
+		
+		.. seealso:: The discussion before lemma 4.6.
+		"""
 		basis = self.quasinormal_basis()
 		min_expansion = basis.minimal_expansion_for(self)
 		img_expansion = self.image_of_set(min_expansion)
 		terminal = basis.descendants_above(min_expansion)
 		initial  = basis.descendants_above(img_expansion)
-		return initial + terminal
+		return sorted(initial + terminal)
 	
 	#Generating the quasinormal basis
 	def quasinormal_basis(self):

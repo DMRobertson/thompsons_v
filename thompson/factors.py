@@ -251,13 +251,13 @@ class InfiniteFactor(AutomorphismFactor):
 		#1. The QNF bases are computed automatically.
 		#2. Compute the equivalence classes X_1, ... X_m of \equiv on self's QNF basis
 		type_b, type_c = self._split_basis()
-		classes = self.equivalence_classes(type_b, type_c)
+		roots, graph = self.equivalence_data(type_b, type_c)
 		
 		#3. Find the initial and terminal elements of SI *other*-orbits.
 		#4. Construct the sets R_i
-		choices = self.potential_endpt_images(other, type_b)
+		potential_endpoints = self.potential_image_endpoints(other, type_b)
 		
-		#5. Type B representitives for each class are stored in the output from equivalence_classes()
+		#5. Type B representitives for each class are stored in *roots*.
 		#6. Iterate through all the maps which take an might be potential conjugators.
 		for domain, range in self.potential_conjugators(other, classes, choices):
 			#This method should produce injective set maps domain -> range
@@ -283,24 +283,15 @@ class InfiniteFactor(AutomorphismFactor):
 				raise ValueError('Incorrect orbit type.')
 		return type_b, type_c
 	
-	def equivalence_classes(self, type_b, type_c):
-		"""Partitions the QNF basis into equivalence classes. A class is represented as a triple *(graph, root, type_c_data)*, where:
-		- the graph's vertices are the type B words in the class.
-		- the graph's edges stores how the type B words are related
-		- root is a chosen vertex which preceeds all others in the graph
-		- type_c_data is a dictionary. Keys are the type C elements of this class. Values are the type B data recorded by the OrbitType class.
-		"""
-		G = self._congruence_graph(type_b)
-		components, roots = self._tree_components(G)
-		#Before returning, we need to reinclude the type C elements!
-		type_c_data = []
-		for comp in components:
-			restriction = {head : data for head, data in type_c.items() if data[1] in comp}
-			type_c_data.append(restriction)
-		return list(zip(components, roots, type_c_data))
+	def equivalence_data(self, type_b, type_c):
+		#todo doctest and string
+		G = self._congruence_graph()
+		self._simplify_graph(G, type_c)
+		roots = self._reduce_to_forest(G)
+		return roots, G
 	
-	def _congruence_graph(self, type_b):
-		"""Form the graph whose vertices are type B elements of the QNF basis and edges store the information which makes two vertices congruent."""
+	def _congruence_graph(self):
+		"""Form a graph whose vertex set is the QNF basis. The edges store the information which makes two vertices congruent."""
 		basis = self.quasinormal_basis()
 		min_exp = basis.minimal_expansion_for(self)
 		endpts = self.semi_infinite_end_points()
@@ -308,50 +299,77 @@ class InfiniteFactor(AutomorphismFactor):
 		G = nx.DiGraph()
 		orbit_generators = set(min_exp + endpts)
 		
+		#1. Add an edge for every direct conjugacy relationship.
 		for gen in orbit_generators:
 			type, images = self.orbit_type(gen, basis)
-			type_b_images = {}
-			for power, image in images.items():
-				head, tail = basis.test_above(image)
-				if head in type_b:
-					type_b_images[power] = (head, tail)
+			for power, img in images.items():
+				images[power] = basis.test_above(img)
 			
-			congruent_pairs = permutations(type_b_images.items(), 2)
+			congruent_pairs = permutations(images.items(), 2)
 			for (pow1, (head1, tail1)), (pow2, (head2, tail2)) in congruent_pairs:
 				if head1 == head2:
-					continue #no loops in this graph, please!
-				# print("[{}] {} PSI^{} = [{}] {}".format(
-				  # head1, Word.__str__(tail1), pow2-pow1, head2, Word.__str__(tail2)))
+					continue
 				G.add_edge(head1, head2,
 					  start_tail = tail1, power = pow2 - pow1, end_tail = tail2)
 		return G
+	
+	@staticmethod
+	def _simplify_graph(G, type_c):
+		"""Removes all the type C words from this graph. Edges to and from type C words are removed, but the information they is still stored in the graph."""
+		#2. Remove the type C elements.
+		for word, type_b_data in type_c.items():
+			replacement = type_b_data[1]
+			replacement_in  = G[word][replacement]
+			replacement_out = G[replacement][word]
+			#Use the scheme of Lemma 5.24 to avoid type C words.
+			for source, _, incoming in G.in_edges_iter(word, data=True):
+				G.add_edge(source, replacement,
+				  start_tail = incoming['start_tail'],
+				  power      = incoming['power'] + replacement_in['power'],
+				  end_tail   = replacement_in['end_tail'] + incoming['end_tail'])
+				  
+			for _, target, outgoing in G.out_edges_iter(word, data=True):
+				G.add_edge(replacement, target,
+				  start_tail = replacement_in['start_tail'] + incoming['start_tail'],
+				  power      = replacement_out['power'] + incoming['power'],
+				  end_tail   = outgoing['end_tail']) 
+			
+			G.remove_node(word)
 		
-	def _tree_components(self, G):
-		"""Breaks down the _congruence_graph() into connected components, then removes extra stuff to get """
-		unseen = set(G.nodes_iter())
-		components = []
+		return [], G
+	
+	@staticmethod
+	def _reduce_to_forest(G):
+		"""Removes edges from G so that each connected component is a tree."""
+		unseen_nodes = set(G.nodes_iter())
+		unvisisted_edges = set(G.edges_iter())
 		roots = []
 		
-		while unseen:
-			root = unseen.pop()
-			T = nx.dfs_tree(G, root)
-			components.append(T)
+		while unseen_nodes:
+			root = unseen_nodes.pop()
 			roots.append(root)
-			#Copy over the edge data
-			for (u, v) in T.edges_iter():
-				T[u][v] = G[u][v]
-		return components, roots
-	
-	def potential_endpt_images(self, other, self_type_b):
-		images_by_char = defaultdict(deque)
-		basis = self.quasinormal_basis()
-		for word in other.semi_infinite_end_points():
-			type, _ = self.orbit_type(word, basis)
-			assert type.is_type('B')
-			images_by_char[type.data].append(gen)
+			for edge in nx.dfs_edges(G, root):
+				unvisisted_edges.remove(edge)
+				_, target = edge
+				unseen_nodes.remove(target)
 		
-		choices = {word : images_by_char[char] for word, char in self_type_b}
-		return choices
+		to_remove = [e for e in G.edges_iter() if e in unvisisted_edges]
+		G.remove_edges_from(to_remove)
+		return roots
+	
+	def potential_image_endpoints(self, other, self_type_b):
+		"""Let ``x`` be a type B word with respect to the current automorphism. This returns a mapping which takes ``x`` and produces the set of words ``w`` which are endpoints of *other*-orbits which have the same characteristic as ``x``.
+		"""
+		#todo doctest
+		images_by_char = defaultdict(set)
+		basis = other.quasinormal_basis()
+		for word in other.semi_infinite_end_points():
+			type, _ = other.orbit_type(word, other)
+			assert type.is_type('B')
+			images_by_char[type.data].add(word)
+		
+		orbit_endpts = {word : images_by_char[char] for word, char in self_type_b}
+		return orbit_endpts
 	
 	def potential_conjugators(other, classes, choices):
 		#1. Flatten and glue the graph components together to form the ladder
@@ -364,7 +382,6 @@ class InfiniteFactor(AutomorphismFactor):
 			...
 		
 		yield from restricted_injections(domain, choices, is_acceptable)
-
 
 def get_factor_class(infinite):
 	return InfiniteFactor if infinite else PeriodicFactor
