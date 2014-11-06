@@ -1,5 +1,4 @@
-"""Tools for classifying the X<A> orbits of elements of V_n,r.
-
+"""
 .. testsetup::
 	
 	from thompson.orbits import *
@@ -15,26 +14,16 @@ __all__ = ["OrbitType", "print_orbit_types", "SolutionSet"]
 
 BaseOrbitType = namedtuple("BaseOrbitType","type data")
 class OrbitType(BaseOrbitType):
-	r"""Let :math:`y` be a word, and let :math:`X` be an expansion of the standard basis :math:`\boldsymbol{x}=\{x_1, \dotsc, x_n\}`; finally let :math:`\phi` be an  :class:`Automorphism`.
-	
-	We call the set :math:`\{ y \phi^i\}_{i\in \mathbb Z}` the :math:`\phi`-orbit of :math:`y`. In [Hig]_ (section 9), Higman showed that these :math:`\phi`-orbits could only intersect with :math:`X\langle A \rangle` in certain ways. Here, :math:`X\langle A \rangle` is the set of :meth:`simple <thompson.word.Word.is_simple>` words starting with an :math:`x \in X`.
-	
-	Let us refer to the intersection of the :math:`\phi`-orbit of :math:`y` with :math:`X\langle A \rangle` as just the *orbit* of :math:`y`. These orbits come in five different types:
-	
-	1. *Complete infinite.* The orbit exists for all :math:`i \in \mathbb Z` and each element of the orbit is different.
-	2. *Complete finite*, or *periodic.* The orbit exists for all :math:`i \in \mathbb Z`, but eventually it repeats itself.
-	3. *Right semi-infinite.* The forward orbit :math:`\{ y \phi^n\}_{n\in \mathbb N}` exists and does not repeat itself; however the backward orbit :math:`\{ y \phi^{-n}\}_{n\in \mathbb N}` eventually leaves :math:`X\langle A\rangle`.
-	4. *Left semi-infinite.* The backward orbit exists and does not repeat itself; the forward orbit eventually leaves :math:`X\langle A\rangle`.
-	5. *Incomplete*. Only a finite number of images :math:`y\phi^{-n}, \dotsc, y\phi^{-1}, y, y\phi, \dotsc, y\phi^m` belong to :math:`X\langle A\rangle`.
-	
-	This class is essentially a glorified :mod:`enumeration <py3:enum>`: its instances store a number from 1 to 5 to represent the type of an orbit.
+	r"""This class is essentially a glorified :mod:`enumeration <py3:enum>`: its instances store a number from 1 to 5 to represent the type of an orbit.
 	
 	:ivar data: Instances have a *data* attribute, which describes the orbit in some way. The value of this attribute depends on the orbit type. Specifically, *data* is:
 	
 	* For complete finite orbits, the period of the orbit;
 	* For semi-infinite orbits, the characteristic :math:`(m, \Gamma)` of the orbit;
 	* For incomplete orbits, the constant ``None``;
-	* For complete infinite orbits, a pair :math:`(z, \Delta)` as described in lemma 4.14(C). Briefly, :math:`z` is semi-infinite, and :math:`z\Delta` belongs to the orbit being described.
+	* For complete infinite orbits, a triple :math:`(k, z, \Delta)` such that :math:`w\phi^k = z\Delta`, for some word :math:`w` in the orbit being described. We require :math:`z` to be of type B (i.e. semi-infinite), and so refer to this triple as the *type B data*.
+	
+	.. seealso:: Lemma 4.14 of the paper.
 	"""
 	_complete_infinite = 1
 	_complete_finite = 2
@@ -60,8 +49,6 @@ class OrbitType(BaseOrbitType):
 	@classmethod
 	def semi_infinite(cls, characteristic, backward):
 		"""Describes a semi-infinite orbit. If backward is True, the orbit is left semi-infinite; otherwise the orbit is right semi-infinite.
-		
-		:raises ValueError: if direction is neither ``'left'`` nor ``'right'``.
 		"""
 		if backward:
 			type = cls._left_semi_infinite
@@ -74,11 +61,16 @@ class OrbitType(BaseOrbitType):
 	@classmethod
 	def complete_infinite(cls, type_b_data):
 		"""Instance for representing orbits which are infinite in both directions. The argument *type_b_data* is a triple :math:`(n, z, \Delta)` where:
+		
 		- :math:`z` belongs to the orbit being described; 
 		- we had to move :math:`n` steps forward in the orbit to find :math:`z\Delta`;
 		- :math:`z` is a semi-infinite basis element.
 		"""
 		return cls(cls._complete_infinite, type_b_data)
+	
+	@classmethod
+	def incomplete(cls):
+		return cls(cls._incomplete, None)
 	
 	def __str__(self):
 		output = "{} orbit".format(self._names[self.type])
@@ -95,20 +87,21 @@ class OrbitType(BaseOrbitType):
 	def is_type(self, letter):
 		"""Returns True if this orbit is of the given type; else False.
 		
-		:raises ValueError: if *letter* is not one of A, B or C."""
-		if letter == "A":
+		:raises ValueError: if *letter* is not one of the strings ``'A'``, ``'B'`` or ``'C'``."""
+		if letter.upper() == "A":
 			return self.type == self._complete_finite
-		if letter == "B":
+		if letter.upper() == "B":
 			return self.type == self._left_semi_infinite or self.type == self._right_semi_infinite
-		if letter == "C":
+		if letter.upper() == "C":
 			return self.type == self._complete_infinite
 		raise ValueError("Letter argument should be A, B or C.")
-
-OrbitType.incomplete = OrbitType(OrbitType._incomplete, None)
-"""Instance for incomplete orbits."""
+	
+	def is_incomplete(self):
+		"""Returns True if this orbit is incomplete, otherwise False."""
+		return self.data is None
 
 def print_orbit_types(aut, basis=None, words=None):
-	r"""Prints the classification of the orbits under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the smallest possible expansion which could potentially be a semi-normal basis; see :meth:`~thompson.automorphism._seminormal_form_start_point`. If *words* is omited, it is taken to be the same as *basis*.
+	r"""Prints the classification of the orbits under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the smallest possible expansion which could potentially be a semi-normal basis; see :meth:`~thompson.automorphism.Automorphism._seminormal_form_start_point`. If *words* is omited, it is taken to be the same as *basis*.
 	
 		>>> print_orbit_types(arity_three_order_inf)
 		x1 a1: Left semi-infinite orbit with characteristic (-1, a1)
@@ -128,7 +121,7 @@ def print_orbit_types(aut, basis=None, words=None):
 		x1 a4: Left semi-infinite orbit with characteristic (-1, a4)
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a1 a3, x1 a1 a4, x1 a2, x1 a3, x1 a4]
 	
-		.. seealso:: :meth:`~thompson.automorphism.orbit_type`.
+		.. seealso:: The :meth:`~thompson.automorphism.Automorphism.orbit_type` method.
 	"""
 	if basis is None:
 		basis = aut._seminormal_form_start_point()
@@ -141,11 +134,7 @@ def print_orbit_types(aut, basis=None, words=None):
 
 BaseSolutionSet = namedtuple('BaseSolutionSet', 'base increment')
 class SolutionSet(BaseSolutionSet):
-	r"""Solutions to the equation :math:`u\psi^m = v` come in specific instances. If there are no solutions, the solution set is :math:`\emptyset`. If :math:`u = v`, then the solution set is :math:`\mathbb{Z}`. Otherwise :math:`u` and :math:`v` share an orbit. If this orbit is periodic, then the solution set is :math:`m + p\mathbb{Z}`, where :math:`p` is the period of the orbit. Otherwise the solution set is a single integer :math:`m`.
-	
-	Internally we represent this as a pair *(base, increment)* of python objects. The first element *base* is a solution :math:`m` if it exists; otherwise ``None``. The second element *increment* is the increment *p* between solutions (which occurs for a periodic orbit only).
-	
-	Create solution sets as follows:
+	r"""Create solution sets as follows:
 	
 	.. doctest::
 		:options: -ELLIPSIS
@@ -154,9 +143,9 @@ class SolutionSet(BaseSolutionSet):
 		{..., 3, 5, 7, 9, 11, 13, ...}
 		>>> print(SolutionSet.singleton(4))
 		{4}
-		>>> print(SolutionSet.empty_set)
+		>>> print(SolutionSet.empty_set())
 		{}
-		>>> print(SolutionSet.all_integers)
+		>>> print(SolutionSet.the_integers())
 		{..., -1, 0, 1, 2, 3, 4, ...}
 	"""
 	__slots__ = ()
@@ -171,16 +160,38 @@ class SolutionSet(BaseSolutionSet):
 	def singleton(cls, value):
 		return cls(value, None)
 	
+	@classmethod
+	def empty_set(cls):
+		return cls(None, None)
+	
+	@classmethod
+	def the_integers(cls):
+		return cls(0, 1)
+	
+	def is_sequence(self):
+		"""Returns True if this set contains more than one distinct element; otherwise returns False.
+		
+			>>> SolutionSet.empty_set().is_sequence()
+			False
+			>>> SolutionSet.singleton(2).is_sequence()
+			False
+			>>> SolutionSet(base=4, increment=3).is_sequence()
+			True
+			>>> SolutionSet.the_integers().is_sequence()
+			True
+		"""
+		return self.base is not None and self.increment is not None
+	
 	def is_singleton(self):
 		"""Returns True if this contains precisely one element, otherwise False.
 		
-			>>> SolutionSet.empty_set.is_singleton()
+			>>> SolutionSet.empty_set().is_singleton()
 			False
 			>>> SolutionSet.singleton(2).is_singleton()
 			True
 			>>> SolutionSet(base=4, increment=3).is_singleton()
 			False
-			>>> SolutionSet.all_integers.is_singleton()
+			>>> SolutionSet.the_integers().is_singleton()
 			False
 		"""
 		return self.base is not None and self.increment is None
@@ -188,41 +199,27 @@ class SolutionSet(BaseSolutionSet):
 	def is_empty(self):
 		"""Returns True if this set is empty, otherwise False.
 		
-			>>> SolutionSet.empty_set.is_empty()
+			>>> SolutionSet.empty_set().is_empty()
 			True
 			>>> SolutionSet.singleton(2).is_empty()
 			False
 			>>> SolutionSet(base=4, increment=3).is_empty()
 			False
-			>>> SolutionSet.all_integers.is_empty()
+			>>> SolutionSet.the_integers().is_empty()
 			False
 		"""
 		return self.base is None
 	
-	def is_sequence(self):
-		"""Returns True if this set contains more than one distinct element; otherwise returns False.
-		
-			>>> SolutionSet.empty_set.is_sequence()
-			False
-			>>> SolutionSet.singleton(2).is_sequence()
-			False
-			>>> SolutionSet(base=4, increment=3).is_sequence()
-			True
-			>>> SolutionSet.all_integers.is_sequence()
-			True
-		"""
-		return self.base is not None and self.increment is not None
-	
 	def is_the_integers(self):
 		"""Returns True if this set contains every integer; otherwise returns False.
 		
-			>>> SolutionSet.empty_set.is_the_integers()
+			>>> SolutionSet.empty_set().is_the_integers()
 			False
 			>>> SolutionSet.singleton(2).is_the_integers()
 			False
 			>>> SolutionSet(base=4, increment=3).is_the_integers()
 			False
-			>>> SolutionSet.all_integers.is_the_integers()
+			>>> SolutionSet.the_integers().is_the_integers()
 			True
 		"""
 		return self.is_sequence() and abs(self.increment) == 1
@@ -230,13 +227,13 @@ class SolutionSet(BaseSolutionSet):
 	def __contains__(self, other): #other in self
 		"""Returns true if this set contains an *other* number.
 		
-			>>> 1024 in SolutionSet.empty_set
+			>>> 1024 in SolutionSet.empty_set()
 			False
 			>>> 1024 in SolutionSet.singleton(128)
 			False
 			>>> 1024 in SolutionSet(0, 256)
 			True
-			>>> 1024 in SolutionSet.all_integers
+			>>> 1024 in SolutionSet.the_integers()
 			True
 		"""
 		if not isinstance(other, Number):
@@ -254,8 +251,8 @@ class SolutionSet(BaseSolutionSet):
 		.. doctest::
 			:options: -ELLIPSIS
 			
-			>>> phi = SolutionSet.empty_set
-			>>> Z = SolutionSet.all_integers
+			>>> phi = SolutionSet.empty_set()
+			>>> Z = SolutionSet.the_integers()
 			>>> singleton = SolutionSet.singleton
 			>>> print(phi & phi)
 			{}
@@ -286,7 +283,7 @@ class SolutionSet(BaseSolutionSet):
 			return NotImplemented
 		
 		if self.is_empty() or other.is_empty():
-			return SolutionSet.empty_set
+			return SolutionSet.empty_set()
 		
 		if self.is_the_integers():
 			return other
@@ -297,12 +294,12 @@ class SolutionSet(BaseSolutionSet):
 		if self.is_singleton():
 			if self.base in other:
 				return self
-			return SolutionSet.empty_set
+			return SolutionSet.empty_set()
 		
 		if other.is_singleton():
 			if other.base in self:
 				return other
-			return SolutionSet.empty_set
+			return SolutionSet.empty_set()
 		
 		#Solve s.base + s.inc * x = o.base + o.inc * y for (x,y)
 		a = self.increment
@@ -311,7 +308,7 @@ class SolutionSet(BaseSolutionSet):
 		#Equation above is equiv to ax + by = c --- a linear Diophantine equation.
 		result = solve_linear_diophantine(a, b, c)
 		if result is None:
-			return SolutionSet.empty_set
+			return SolutionSet.empty_set()
 		base, inc, lcm = result
 		new_base = self.base + base[0] * self.increment
 		assert new_base in self and new_base in other
@@ -325,9 +322,6 @@ class SolutionSet(BaseSolutionSet):
 		values = (self.base + i * self.increment for i in range(-1, 5))
 		values = (str(num) for num in values)
 		return "{{..., {0}, ...}}".format(", ".join(values))
-
-SolutionSet.all_integers = SolutionSet(base=0, increment=1)
-SolutionSet.empty_set = SolutionSet(base=None, increment=None)
 
 def extended_gcd(a,b):
 	"""From `this exposition of the extended gcd algorithm <http://anh.cs.luc.edu/331/notes/xgcd.pdf>`. Computes :math:`d = \gcd(a, b)` and returns a triple :math:`(d, x, y)` where :math:`d = ax + by`.

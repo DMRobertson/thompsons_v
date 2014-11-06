@@ -112,8 +112,6 @@ class Automorphism(Homomorphism):
 			>>> basis.expand_to_size(8);
 			>>> print(example_5_3.image_of_set(basis, inverse=True))
 			[x1 a1 a1 a1 a1, x1 a1 a1 a1 a2 x1 a1 a1 a2 L, x1 a1 a2 a2, x1 a1 a2 a1, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2 a1, x1 a2 a2 a2 a2]
-		
-		.. seealso:: The superclass implementation is :meth:`~thompson.homomorphism.Homomorphism.image_of_set`.
 		"""
 		if inverse:
 			return super().image_of_set(set, self.range.signature, self.domain.signature, self._inv)
@@ -160,7 +158,7 @@ class Automorphism(Homomorphism):
 			>>> Generators.__str__(example_4_25.semi_infinite_end_points())
 			'[x1 a1, x1 a1 a1, x1 a2 a2, x1 a2 a2 a1]'
 		
-		:rtype: A (sorted) list of :class:`Words <~thompson.word.Word>`.
+		:rtype: A (sorted) list of :class:`Words <thompson.word.Word>`.
 		
 		.. seealso:: The discussion before lemma 4.6.
 		"""
@@ -195,7 +193,7 @@ class Automorphism(Homomorphism):
 		i = 0
 		while i < len(basis):
 			type, image = self.orbit_type(basis[i], basis)
-			if type is OrbitType.incomplete:
+			if type.is_incomplete():
 				basis.expand(i)
 			else:
 				self._qnf_orbit_types[basis[i]] = type
@@ -293,7 +291,7 @@ class Automorphism(Homomorphism):
 			images[-i] = image
 		
 		if not (lsi or rsi):
-			otype = OrbitType.incomplete
+			otype = OrbitType.incomplete()
 			
 		elif lsi and not rsi:
 			tail = y.test_above(limages[-1])
@@ -428,19 +426,19 @@ class Automorphism(Homomorphism):
 			{}
 			
 		
-		:returns: The (possibly empty) :class:`~thompson.orbits.SolutionSet` of all integers :math:`m` for which :math:`u\psi^m = v`. Note that if :math:`u = v` this method returns :math:`m \in \mathbb{Z}`. 
+		:returns: The (possibly empty) :class:`~thompson.orbits.SolutionSet` of all integers :math:`m` for which :math:`u\psi^m = v`. Note that if :math:`u = v` this method returns :math:`\mathbb{Z}`. 
 		
 		.. seealso:: The implementation is due to lemma 4.24.2 of the paper.
 		"""
 		#TODO a script which randomly checks examples to verify.
 		if u == v:
-			return SolutionSet.all_integers
+			return SolutionSet.the_integers()
 		basis = self.quasinormal_basis()
 		
 		if not (basis.is_above(u) and basis.is_above(v)):
 			depth = max(u.max_depth_to(basis), v.max_depth_to(basis))
 			alphas = range(-1, -self.signature.arity - 1, -1)
-			solution_set = SolutionSet.all_integers
+			solution_set = SolutionSet.the_integers()
 			
 			# For all strings of length *depth* \Gamma made only from alphas:
 			for tail in product(alphas, repeat=depth):
@@ -462,7 +460,7 @@ class Automorphism(Homomorphism):
 		if u_head_type.is_type('A') or v_head_type.is_type('A'):
 			#If so, do they have different periods?
 			if u_head_type != v_head_type:
-				return SolutionSet.empty_set
+				return SolutionSet.empty_set()
 			
 			period = u_head_type.data
 			image = u
@@ -470,7 +468,7 @@ class Automorphism(Homomorphism):
 				image = self.image(image)
 				if image == v:
 					return SolutionSet(i, period)
-			return SolutionSet.empty_set
+			return SolutionSet.empty_set()
 		
 		#Neither u not v are periodic.
 		#Move along the orbit until we find a nicer u and v.
@@ -484,7 +482,7 @@ class Automorphism(Homomorphism):
 		for i, image in images.items():
 			if image == v:
 				return SolutionSet.singleton(u_shift + i - v_shift)
-		return SolutionSet.empty_set
+		return SolutionSet.empty_set()
 	
 	def _type_b_descendant(self, head, tail):
 		r"""Takes a pair :math:`(y, \Gamma)` below the quasi-normal basis :math:`X` and returns a triple :math:`(\widetilde{y}, \widetilde{\Gamma}, k) where
@@ -536,22 +534,9 @@ class Automorphism(Homomorphism):
 		:returns: if it exists, a conjugating element :math:`\rho` such that :math:`\rho^{-1}\psi\rho = \phi`. If no such :math:`\rho` exists, returns ``None``.
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
 		
-		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27. See also the periodic and infinite versions of :meth:`~thompson.factors.PeriodicFactor.test_conjugate_to` and :meth:`~thompson.factors.InfiniteFactor.test_conjugate_to`.
-		
-			>>> psi = example_5_12_psi; phi = example_5_12_phi
-			>>> rho = psi.test_conjugate_to(phi)
-			>>> print(rho)
-			Automorphism: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
-			x1 a1 a1 a1 a1 -> x1 a1 a2   
-			x1 a1 a1 a1 a2 -> x1 a2 a2   
-			x1 a1 a1 a2    -> x1 a1 a1 a1
-			x1 a1 a2       -> x1 a2 a1 a1
-			x1 a2 a1       -> x1 a1 a1 a2
-			x1 a2 a2       -> x1 a2 a1 a2
-			>>> rho * phi == psi * rho
-			True
+		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27; these are the :meth:`periodic <thompson.factors.PeriodicFactor.test_conjugate_to>` and :meth:`infinite <thompson.factors.InfiniteFactor.test_conjugate_to>` tests for conjugacy.
 		"""
-		#todo doctests
+		#TODO Doctest: try assembling a conjugator from factors
 		#0. Check that both automorphisms belong to the same G_{n,r}.
 		if self.signature != other.signature:
 			raise ValueError('Automorphism\'s signatures {} and {} do not match.'.format(
@@ -596,7 +581,6 @@ class Automorphism(Homomorphism):
 		
 		:returns: None if we discover conjugacy is impossible. Otherwise, returns a pair of booleans *(pure_periodic, pure_infinite)*. Note that even if such a pair is returned, we do **not** know for certain that conjugacy is possible.
 		"""
-		#todo doctest
 		s_qnf = self.quasinormal_basis()
 		o_qnf = other.quasinormal_basis()
 		#Check that we have at at least one element in each basis.
@@ -673,9 +657,8 @@ class Automorphism(Homomorphism):
 			&G_{n, r}	&\to		&G_{n, |X|}		&\to		&G_{n, s} \\
 			&\phi		&\mapsto	&\phi|_X		&\mapsto	&\phi\,'
 		
-		:raises ValueError: if an empty list of *generators* is provided.
-		
 		:returns: The transformed automorphism :math:`\phi\, \in G_{n, s}`. Its type is :class:`PeriodicFactor` if *infinite* is False; otherwise its type is :class:`InfiniteFactor`.
+		:raises ValueError: if an empty list of *generators* is provided.
 		
 		.. doctest::
 			:hide:
@@ -709,7 +692,6 @@ class Automorphism(Homomorphism):
 			x2 a2 ~>    y1 a3 a2 => y1 a1 a2    ~> x1 a2 a2
 			x2 a3 ~>    y1 a3 a3 => y1 a1 a1    ~> x1 a2 a1
 		"""
-		#TODO more doctests
 		if len(generators) == 0:
 			raise ValueError('Must provide at least one generator.')
 		#1. Decide how to relabel *generators* as elements of V_n,s

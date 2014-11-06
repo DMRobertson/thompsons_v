@@ -19,7 +19,7 @@ from copy import copy
 
 #Extracted the bits responsible for defining a homomorphism from the automorphism class.
 class Homomorphism:
-	r"""Let :math:`f: D \to R` be some map embedding a basis :math:`D` for :math:`V_{n,r}` into another algebra :math:`V_{n,s}` of the same :class:`~thompson.word.Signature`. This map uniquely extends to a homomorphism of algebras :math:`\psi : V_{n,r} \to V_{n,s}`..
+	r"""Let :math:`f: D \to R` be some map embedding a basis :math:`D` for :math:`V_{n,r}` into another algebra :math:`V_{n,s}` of the same :class:`~thompson.word.Signature`. This map uniquely extends to a homomorphism of algebras :math:`\psi : V_{n,r} \to V_{n,s}`.
 	
 	:ivar domain: a :class:`basis <thompson.generators.Generators>` of preimages 
 	:ivar range:  a :class:`set <thompson.generators.Generators>` of images.
@@ -53,8 +53,8 @@ class Homomorphism:
 		#Check to see that the domain generates all of V_{n,r}
 		missing = domain.test_generates_algebra()
 		if len(missing) > 0:
-			raise ValueError("Domain does not generate V_{}. Missing elements are {}.".format(
-			  domain.signature, [format(x) for x in missing]))
+			raise ValueError("Domain {} does not generate V_{}. Missing elements are {}.".format(
+			  domain, domain.signature, [format(x) for x in missing]))
 		
 		self.domain = domain
 		self.range = range
@@ -133,12 +133,14 @@ class Homomorphism:
 		return self.domain == other.domain and self.range == other.range
 	
 	def __mul__(self, other): #self * other is used for the (backwards) composition self then other
-		"""Forms the composition *self* then *other*.
+		r"""If the current automorphism is :math:`\psi` and the *other* is :math:`\phi`, multiplication forms the composition :math:`\psi\phi`, which maps :math:`x \mapsto x\psi \mapsto (x\psi)\phi`.
 		
 		:raises TypeError: if the homomorphisms cannot be composed in the given order; i.e. if ``self.range.signature != other.domain.signature``.
 		
-		:rtype: an :class:`thompson.automorphism.Automorphism` if possible; otherwise a :class:`Homomorphism`.
+		:rtype: an :class:`~thompson.automorphism.Automorphism` if possible; otherwise a :class:`Homomorphism`.
 		
+		.. doctest::
+			
 			>>> print(alphabet_size_two * alphabet_size_two)
 			Automorphism: V(3, 2) -> V(3, 2) specified by 8 generators (after expansion and reduction).
 			x1 a1    -> x1 a1      
@@ -288,8 +290,11 @@ class Homomorphism:
 	
 	def image_of_set(self, set, sig_in=None, sig_out=None, cache=None):
 		"""Computes the image of a set of :class:`~thompson.generators.Generators` under the current homomorphism.
+		
 		:rtype: another set of :class:`~thompson.generators.Generators`.
 		
+		.. doctest::
+			
 			>>> basis = Generators.standard_basis((2,1))
 			>>> basis.expand_to_size(8); print(basis)
 			[x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2 a1, x1 a1 a2 a2, x1 a2 a1 a1, x1 a2 a1 a2, x1 a2 a2 a1, x1 a2 a2 a2]

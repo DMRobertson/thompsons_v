@@ -27,7 +27,7 @@ __all__ = [
 domain = Generators((2, 1), ["x1 a1 a1 a1", "x1 a1 a1 a2", "x1 a1 a2",    "x1 a2 a1", "x1 a2 a2"])
 range  = Generators((2, 1), ["x1 a1 a1",    "x1 a1 a2 a1", "x1 a1 a2 a2", "x1 a2 a2", "x1 a2 a1"])
 example_4_5 = Automorphism(domain, range)
-#See example e.18 for characteristics
+#See example 4.18 for characteristics
 
 #Example 4.11
 #TODO. I think this is a special element of one of Thompson's groups.
@@ -75,7 +75,6 @@ example_5_12_phi_p = example_5_12_phi.free_factor(example_5_12_phi.quasinormal_b
 domain = ["x a1 a1 a1 a1", "x a1 a1 a1 a2", "x a1 a1 a2", "x a1 a2",    "x a2 a1", "x a2 a2"]
 range  = ["x a1 a1 a1",    "x a2 a1 a1",    "x a1 a1 a2", "x a2 a1 a2", "x a1 a2", "x a2 a2"]
 example_5_12_rho = Automorphism(Generators((2, 1), domain), Generators((2, 1), range))
-# example_5_12_rho_p = example_5_12_rho.free_factor(example_5_12_rho.quasinormal_basis())
 
 #Example 5.26
 domain = ["x a1",       "x a2 a1 a1", "x a2 a1 a2", "x a2 a2"]

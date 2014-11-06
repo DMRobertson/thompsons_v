@@ -65,7 +65,7 @@ class Generators(list):
 	
 	#Tests on generating sets
 	def test_free(self):
-		r"""Tests to see if the current generating set ``X`` is a free generating set. If the test fails, returns the first pair of indices :math:`(i, j)` found for which one of ``X[i]`` and ``X[j]`` is an initial segment of the other. If the test passes, returns ``(-1, -1)``.
+		r"""Tests to see if the current generating set :math:`X` is a free generating set. If the test fails, returns the first pair of indices :math:`(i, j)` found for which :math:`X_i` :meth:`is above <thompson.word.Word.is_above>` :math:`X_j`. If the test passes, returns :math:`(-1, -1)`.
 		
 			>>> g = Generators((2, 3), ["x1 a1", "x1 a2 a1", "x1 a2 a1 a1", "x1 a2 a2"])
 			>>> g.test_free()
@@ -98,9 +98,21 @@ class Generators(list):
 		return self.test_free() == (-1, -1)
 	
 	def simple_words_above(self):
-		"""An iterator that yields all the simple words which can be obtained by contracting this basis."""
-		#todo doctest
+		r"""An iterator that yields the simple words which can be obtained by contracting this basis :math:`n \geq 0` times. (So the 'above' condition is not strict.)
+		
+			>>> g = Generators((3, 1), ["x a1 a1 a3", "x a1 a1 a1", "x a1 a2", "x a1 a1 a2", "x a1 a3"])
+			>>> for word in g.simple_words_above():
+			... 	print(format(word))
+			x1 a1 a1 a1
+			x1 a1 a1 a2
+			x1 a1 a1 a3
+			x1 a1 a2
+			x1 a1 a3
+			x1 a1 a1
+			x1 a1
+		"""
 		words = sorted(self) #Creates a shallow copy and then sorts it.
+		yield from words
 		i = 0
 		arity = self.signature.arity
 		while i <= len(words) - arity:
@@ -112,7 +124,6 @@ class Generators(list):
 				i = max(i, 0)
 			else:
 				i += 1
-		yield from words
 	
 	def test_generates_algebra(self):
 		r"""Tests to see if this set generates all of :math:`V_{n,r}`. The generating set is sorted, and then contracted as much as possible. Then we check to see which elements of the :meth:`standard basis <standard_basis>` :math:`\boldsymbol{x} = \{x_1, \dotsc, x_r\}` are not included in the contraction.
@@ -132,7 +143,7 @@ class Generators(list):
 			x3
 		
 		:rtype: a list of :class:`Words <thompson.word.Word>`."""
-		words = list(self.simple_words_above())
+		words = set(self.simple_words_above())
 		#At the end, should contract to [x1, x2, ..., x_r]
 		expected = Generators.standard_basis(self.signature)
 		missing = [x for x in expected if x not in words]

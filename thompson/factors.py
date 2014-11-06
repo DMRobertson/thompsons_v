@@ -28,14 +28,14 @@ class AutomorphismFactor(Automorphism):
 	:ivar range_relabeller: the homomorphism which maps relabelled words back into the original algebra that this automorphism came from.
 	"""
 	def __init__(self, domain, range, domain_relabeller=None, range_relabeller=None):
-		"""In addition to creating an automorphism, we allow an optional relabelling homomorphism *relabeller* to be stored. This allows us to turn words in the factor back to words in the parent algebra.
+		"""In addition to creating an automorphism, we allow optional relabelling homomorphisms to be stored. This allows us to turn words in the factor back into words in the parent algebra.
 		
-		This class is returned by :meth:`~thompson.automorphism.Automorphism.free_factors` and doesn't need to be instantiated by the user.
+		Instances of this class are returned by :meth:`~thompson.automorphism.Automorphism.free_factor` and don't need to be instantiated by the user.
 		
 		:raises LookupError: if a relabeller is provided and the relabeller's signature does not match that of *domain* or *range*
 		:raises TypeError: if a relabeller is provided and the relabeller's signature does not match that of *domain* or *range* (as appropriate)
 		
-		.. seealso:: :meth:`Automorphism.__init__`, :meth:`~thompson.automorphism.Automorphism.free_factors`
+		.. seealso:: :meth:`thompson.automorphism.Automorphism.__init__`, :meth:`~thompson.automorphism.Automorphism.free_factor`
 		"""
 		if domain_relabeller is None != range_relabeller is None:
 			raise LookupError("Must either specify both relabellers or neither.")
@@ -53,10 +53,27 @@ class AutomorphismFactor(Automorphism):
 		self.range_relabeller = range_relabeller
 	
 	def relabel(self):
-		"""Used to convert back to the parent algebra after doing computations in the derived algebra."""
-		#TODO example
+		r"""Used to convert back to the parent algebra after doing computations in the derived algebra.
+		
+		In the following example :meth:`~thompson.automorphism.Automorphism.test_conjugate_to` takes a pure periodic automorphism and extracts factors. A conjugator :math:`\rho` is produced by :meth:`the overridden version of this method <thompson.factors.PeriodicFactor.test_conjugate_to>`. Finally :math:`\rho` is relabelled back to the parent algebra.
+		
+		:raises AttributeError: if the factor has not been assigned any relabellers.
+		
+			>>> psi = example_5_12_psi; phi = example_5_12_phi
+			>>> rho = psi.test_conjugate_to(phi)
+			>>> print(rho)
+			Automorphism: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
+			x1 a1 a1 a1 a1 -> x1 a1 a2   
+			x1 a1 a1 a1 a2 -> x1 a2 a2   
+			x1 a1 a1 a2    -> x1 a1 a1 a1
+			x1 a1 a2       -> x1 a2 a1 a1
+			x1 a2 a1       -> x1 a1 a1 a2
+			x1 a2 a2       -> x1 a2 a1 a2
+			>>> rho * phi == psi * rho
+			True
+		"""
 		if self.domain_relabeller is None or self.range_relabeller is None:
-			raise AttributeError("This factor has not been assigned a relabeller.")
+			raise AttributeError("This factor has not been assigned relabellers.")
 		return self.domain_relabeller.image_of_set(self.domain), self.range_relabeller.image_of_set(self.range)
 	
 	def __str__(self):
@@ -78,7 +95,7 @@ def get_factor_class(infinite):
 	return InfiniteFactor if infinite else PeriodicFactor
 
 class PeriodicFactor(AutomorphismFactor):
-	r"""A purely periodic free factor which has been extracted from another component.
+	r"""A purely periodic free factor which has been extracted from another automorphism.
 	
 		>>> print(example_5_9_p)
 		PeriodicFactor: V(2, 1) -> V(2, 1) specified by 7 generators (after expansion and reduction).
@@ -157,7 +174,7 @@ class PeriodicFactor(AutomorphismFactor):
 		return dict(orbits_by_size)
 	
 	def test_conjugate_to(self, other):
-		"""We can determine if two purely periodic automorphisms are periodic by examining their orbits.
+		"""We can determine if two purely periodic automorphisms are conjugate by examining their orbits.
 		
 			>>> psi_p = example_5_12_psi_p; phi_p = example_5_12_phi_p
 			>>> rho_p = psi_p.test_conjugate_to(phi_p)
@@ -204,9 +221,9 @@ class PeriodicFactor(AutomorphismFactor):
 			expansions_needed = (self.multiplicity[d] - other.multiplicity[d]) // modulus
 			
 			if expansions_needed > 0:
-				other.expand_orbits(o_orbits_of_size[d], expansions_needed)
+				expand_orbits(o_orbits_of_size[d], expansions_needed)
 			elif expansions_needed < 0:
-				self.expand_orbits(s_orbits_of_size[d], -expansions_needed)
+				expand_orbits(s_orbits_of_size[d], -expansions_needed)
 			
 			assert len(s_orbits_of_size[d]) == len(o_orbits_of_size[d])
 		
@@ -220,28 +237,39 @@ class PeriodicFactor(AutomorphismFactor):
 		
 		rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
 		return rho
+
+def expand_orbits(deque, num_expansions):
+	r"""Takes a *deque* whose elements are a list of words. The following process is repeated *num_expansions* times.
 	
-	@staticmethod
-	def expand_orbits(deque, num_expansions):
-		r"""Takes a *deque* whose elements are a list of words. The following process is repeated *num_expansions* times.
+	1. Pop an orbit :math:`\mathcal{O} = [o_1, \dotsc, o_d]` from the left of the deque.
+	2. For :math:`i = 1, \dotsc, n` (where :math:`n` is the arity):
 		
-		1. Pop an orbit :math:`\mathcal{O} = [o_1, \dotsc, o_d]` from the left of the deque.
-		2. For :math:`i = 1, \dotsc, n` (where :math:`n` is the arity):
-			
-			a. Compute the new orbit :math:`\mathcal{O_i} =[o_1\alpha_i, \dotsc, o_d\alpha_i]`
-			b. Append this orbit to the right of *deque*.
-		
-		Once complete, the number of orbits in *deque* has increased by :math:`\text{(arity -1) $\times$ num_expansions}`
-		"""
-		for _ in range(num_expansions):
-			orbit = deque.popleft()
-			arity = orbit[0].signature.arity
-			for i in range(1, arity+1):
-				new_orbit = [w.alpha(i) for w in orbit]
-				deque.append(new_orbit)
+		a. Compute the new orbit :math:`\mathcal{O_i} =[o_1\alpha_i, \dotsc, o_d\alpha_i]`
+		b. Append this orbit to the right of *deque*.
+	
+	Once complete, the number of orbits in *deque* has increased by :math:`\text{(arity -1) $\times$ num_expansions}`
+	"""
+	for _ in range(num_expansions):
+		orbit = deque.popleft()
+		arity = orbit[0].signature.arity
+		for i in range(1, arity+1):
+			new_orbit = [w.alpha(i) for w in orbit]
+			deque.append(new_orbit)
 
 class InfiniteFactor(AutomorphismFactor):
-	"""#todo docstring"""
+	"""A purely infinite free factor which has been extracted from another automorphism.
+	
+		>>> print(example_5_3_i)
+		InfiniteFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
+		This automorphism was derived from a parent automorphism.
+		'x' and 'y' represent root words of the parent and current derived algebra, respectively.
+		x1 a1 a1 a1 a1 ~>    y1 a1 a1 a1 => y1 a1 a1       ~> x1 a1 a1 a1   
+		x1 a1 a1 a1 a2 ~>    y1 a1 a1 a2 => y1 a1 a2 a1    ~> x1 a1 a1 a2 a1
+		x1 a1 a1 a2    ~>    y1 a1 a2    => y1 a1 a2 a2    ~> x1 a1 a1 a2 a2
+		x1 a2 a1       ~>    y1 a2 a1    => y1 a2 a1 a1    ~> x1 a2 a1 a1   
+		x1 a2 a2 a1    ~>    y1 a2 a2 a1 => y1 a2 a1 a2    ~> x1 a2 a1 a2   
+		x1 a2 a2 a2    ~>    y1 a2 a2 a2 => y1 a2 a2       ~> x1 a2 a2      
+	"""
 	
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -250,7 +278,26 @@ class InfiniteFactor(AutomorphismFactor):
 		assert self.quasinormal_basis().minimal_expansion_for(self) == self.domain
 	
 	def test_conjugate_to(self, other):
-		#todo doctest and docstring
+		"""We can determine if two purely infinite automorphisms are conjugate by breaking down the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.quasinormal_basis>` into :meth:`equivalence classes <equivalence_data>`.
+		
+		.. todo:: For the purposes of these doctests, need to have some way of making this output reproduceable. Will depend on how the equivalence graph is formed and iterated over.
+		
+			>>> psi_i = example_5_26_psi_i; phi_i = example_5_26_phi_i
+			>>> rho_i = psi_i.test_conjugate_to(phi_i)
+			>>> print(rho_i)
+			AutomorphismFactor: V(2, 1) -> V(2, 1) specified by 4 generators (after expansion and reduction).
+			This automorphism was derived from a parent automorphism.
+			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
+			x1 a1       ~>    y1 a1       => y1 a1 a1    ~> x1 a1 a1
+			x1 a2 a1 a1 ~>    y1 a2 a1 a1 => y1 a2 a2    ~> x1 a2 a2
+			x1 a2 a1 a2 ~>    y1 a2 a1 a2 => y1 a1 a2    ~> x1 a1 a2
+			x1 a2 a2    ~>    y1 a2 a2    => y1 a2 a1    ~> x1 a2 a1
+			>>> rho_i * phi_i == psi_i * rho_i
+			True
+		
+		.. seealso:: This implements algorithm 5.27 of the paper---see section 5.4.
+		"""
+		#todo another doctest.
 		if not isinstance(other, InfiniteFactor):
 			raise TypeError('Other automorphism must be a InfiniteFactor.')
 		
@@ -274,7 +321,7 @@ class InfiniteFactor(AutomorphismFactor):
 		
 		#5. Type B representitives for each class are stored in *roots*.
 		#6. Iterate through all the automorhpisms which be conjugators.
-		for rho in self.potential_conjugators(other, roots, graph, potential_endpoints, type_c):
+		for rho in self._potential_conjugators(other, roots, graph, potential_endpoints, type_c):
 			if self * rho == rho * other:
 				return rho
 		return None
@@ -296,7 +343,26 @@ class InfiniteFactor(AutomorphismFactor):
 		return type_b, type_c
 	
 	def equivalence_data(self, type_b, type_c):
-		#todo doctest and string
+		r"""Let :math:`X` be the quasi-normal basis for the current automorphism :math:`\psi`. We can define an equivalence relation :math:`\equiv` on :math:`X` by taking the relation
+		
+		.. math:: x \equiv y \iff \exists k, \Gamma, \Delta : x\Gamma\psi^k = y\Delta
+		
+		and allowing it to generate an equivalence relation. This method returns a pair *(roots, graph)* where
+		
+		- *graph* is a `DiGraph <https://networkx.github.io/documentation/latest/reference/classes.digraph.html>`_
+		
+			- vertices are type B words in :math:`X`
+			- directed edges :math:`x \to y` correspond to the relation :math:`x \equiv y`
+			- the *graph* is a directed forest
+		
+		- *roots* is a list of type B words in :math:`X`
+			
+			- *roots* are the roots of the trees in *graph*
+		
+		This information allows us to (attempt to) compute the images of :math:`X` under a conjugator given only the images of *roots*.
+		
+		.. seealso:: Definition 5.17 through to Lemma 5.20; also section 2.2 of the paper.
+		"""
 		G = self._congruence_graph()
 		self._simplify_graph(G, type_c)
 		roots = self._reduce_to_forest(G)
@@ -372,6 +438,8 @@ class InfiniteFactor(AutomorphismFactor):
 	
 	def potential_image_endpoints(self, other, self_type_b):
 		"""Let ``x`` be a type B word with respect to the current automorphism. This returns a mapping which takes ``x`` and produces the set of words ``w`` which are endpoints of *other*-orbits which have the same characteristic as ``x``.
+		
+		.. seealso:: The sets :math:`\mathcal R_i` of defintion 5.23.
 		"""
 		#todo doctest
 		images_by_char = defaultdict(set)
@@ -384,7 +452,7 @@ class InfiniteFactor(AutomorphismFactor):
 		orbit_endpts = {word : images_by_char[char] for word, char in self_type_b.items()}
 		return orbit_endpts
 	
-	def potential_conjugators(self, other, roots, graph, choices, type_c):
+	def _potential_conjugators(self, other, roots, graph, choices, type_c):
 		#1. Flatten and glue the graph components together to form the ladder
 		ladder = []
 		for root in roots:
@@ -497,7 +565,6 @@ def image_for_type_c(word, type_b_data, images, aut):
 	power, gen, tail = type_b_data
 	w = images[gen].extend(tail)
 	return aut.repeated_image(w, -power)
-
 
 ###for debugging only
 def fmt_triple(edge_data):

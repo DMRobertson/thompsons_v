@@ -310,10 +310,12 @@ def are_contractible(words):
 	
 	:return: :math:`w` (as a :class:`tuple <py3:tuple>` of integers) if the test passes; the empty tuple if the test fails.
 	
-	**NB:** If there is a prefix :math:`w`, this function does **not** check to see if
-	
-	- :math:`w` :func:`is a valid word <validate>`, or
-	- :math:`n` is the same as the arity of the context we're working in.
+	.. warning::
+		
+		If there is a prefix :math:`w`, this function does **not** check to see if
+		
+		- :math:`w` :func:`is a valid word <validate>`, or
+		- :math:`n` is the same as the arity of the context we're working in.
 	
 	>>> prefix = are_contractible(
 	... 	[Word("x a1 a2 a3 a1", (3, 1)), Word("x a1 a2 a3 a2", (3, 1)), Word("x a1 a2 a3 a3", (3, 1))])
@@ -403,7 +405,7 @@ class Word(tuple):
 		>>> Word('x1 a1 a2 a3 a4', (4, 1)) < Word('x1 a1 a2 a3 a3', (4, 1))
 		False
 		
-		We extend this to words :func:`in standard form <standardise>` in the following way. Let :math:`\lambda(u)` denote the lambda-length of :math:`u`.
+		We extend this to non-simple words :func:`in standard form <standardise>` in the following way. Let :math:`\lambda(u)` denote the lambda-length of :math:`u`.
 		
 		1. If :math:`\lambda(u) < \lambda(v)`, then :math:`u < v`.
 		
