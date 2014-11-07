@@ -1,0 +1,8 @@
+example_4_12
+3
+(2,1)	->	(2,1)
+x a1 a1	->	x a2 a2
+x a1 a2	->	x a2 a1
+x a2	->	x a1
+False
+False

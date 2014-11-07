@@ -1,0 +1,11 @@
+cyclic_order_six
+6
+(2,1)			->	(2,1)
+x a1 a1			->	x a1 a1
+x a1 a2 a1		->	x a1 a2 a2 a2
+x a1 a2 a2 a1	->	x a2 a1
+x a1 a2 a2 a2	->	x a2 a2
+x a2 a1			->	x a1 a2 a2 a1
+x a2 a2			->	x a1 a2 a1
+False
+False

@@ -1,0 +1,2 @@
+example_5_26_phi		=	example_4_25
+example_5_26_phi_i		=	example_4_25_i
