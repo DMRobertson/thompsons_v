@@ -7,7 +7,10 @@ import string
 from ..generators import Generators
 from ..automorphism import Automorphism
 
-__all__ = ["aut_from_file"]
+from . import random
+from .random import *
+
+__all__ = ["aut_from_file"] + random.__all__
 
 #TODO. Have a method that reads homomorphisms in from a file. Writing the Python syntax around all this is boring.
 #TODO. Allow powers in the definition of words e.g. a1^4?

@@ -12,6 +12,7 @@ In other words, a homomorphism is a function which 'commutes' with the algebra o
 """
 
 from io import StringIO
+from itertools import chain
 
 from .word import *
 from .generators import Generators
@@ -130,7 +131,7 @@ class Homomorphism:
 	
 	#Simple operations on homomorphisms
 	def __eq__(self, other):
-		return self.domain == other.domain and self.range == other.range
+		return all(self.image(w) == other.image(w) for w in chain(self.domain, other.domain))
 	
 	def __mul__(self, other): #self * other is used for the (backwards) composition self then other
 		r"""If the current automorphism is :math:`\psi` and the *other* is :math:`\phi`, multiplication forms the composition :math:`\psi\phi`, which maps :math:`x \mapsto x\psi \mapsto (x\psi)\phi`.

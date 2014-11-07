@@ -83,6 +83,17 @@ class Automorphism(Homomorphism):
 		cache = self._inv if cache is self._map else self._map
 		cache[r] = d
 	
+	def __invert__(self):
+		#TODO docstring
+		inv = copy(self)
+		inv.domain, inv.range = self.range, self.domain
+		inv._map, inv._inv    = self._inv, self._map
+		inv._qnf_basis = None
+		inv._qnf_orbit_types = {}
+		return inv
+		
+	inverse = __invert__
+	
 	#Computing images
 	def image(self, key, inverse=False):
 		"""If *inverse* is True, the inverse of the current automorphism is used to map *key* instead. Otherwise this method delegates to :meth:`Homomorphism.image <thompson.homomorphism.Homomorphism.image>`.
@@ -533,6 +544,14 @@ class Automorphism(Homomorphism):
 		
 		:returns: if it exists, a conjugating element :math:`\rho` such that :math:`\rho^{-1}\psi\rho = \phi`. If no such :math:`\rho` exists, returns ``None``.
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
+		
+			>>> psi, phi = random_conjugate_pair()
+			>>> print(psi)
+			>>> print(phi)
+			>>> rho = psi.test_conjugate_to(phi)
+			>>> rho is not None
+			True
+			>>> print(rho)
 		
 		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27; these are the :meth:`periodic <thompson.factors.PeriodicFactor.test_conjugate_to>` and :meth:`infinite <thompson.factors.InfiniteFactor.test_conjugate_to>` tests for conjugacy.
 		"""
