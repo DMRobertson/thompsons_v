@@ -327,6 +327,11 @@ class Generators(list):
 		self[index: index+1] = [self[index].alpha(i) for i in range(1, self.signature.arity+1)]
 		return self #allows chaining
 	
+	@classmethod
+	def sort_mapping_pair(cls, domain, range):
+		d, r = zip(*sorted(zip(domain, range)))
+		return cls(domain.signature, d), cls(range.signature, r)
+	
 	def expand_to_size(self, size):
 		"""Expands the current generating set until it has the given *size*. The expansions begin from the end of the generating set and work leftwards, wrapping around if we reach the start. (This is to try and avoid creating long words where possible.)
 		

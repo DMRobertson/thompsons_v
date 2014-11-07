@@ -29,7 +29,8 @@ class Homomorphism:
 	:raises TypeError: if the algebras described by *domain* and *range* have different arities.
 	:raises ValueError: if *domain* is :meth:`not a basis <thompson.generators.Generators.is_basis>`.
 	"""
-	def __init__(self, domain, range):
+	#TODO docstring for reduce
+	def __init__(self, domain, range, reduce=True):
 		#The boring checks
 		if len(domain) != len(range):
 			raise TypeError("Domain basis has {} elements, but range basis has {} elements.".format(
@@ -41,9 +42,12 @@ class Homomorphism:
 		
 		#Expand any non-simple words
 		Homomorphism._expand(domain, range)
+		domain, range = Generators.sort_mapping_pair(domain, range)
+		
 		#Remove any redundancy---like reducing tree pairs.
 		#How do you know that you've found the smallest possible nice basis if you haven't kept everything as small as possible throughout?
-		Homomorphism._reduce(domain, range)
+		if reduce:
+			Homomorphism._reduce(domain, range)
 		
 		#Check that domain is a free generating set
 		i, j = domain.test_free()
@@ -163,7 +167,6 @@ class Homomorphism:
 		range = other.image_of_set(self.range)
 		domain = copy(self.domain)
 		
-		Homomorphism._expand(domain, range)
 		from thompson.automorphism import Automorphism
 		type = Automorphism if self.domain.signature == other.range.signature else Homomorphism
 		return type(domain, range)

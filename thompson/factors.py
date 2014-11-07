@@ -27,7 +27,8 @@ class AutomorphismFactor(Automorphism):
 	:ivar domain_relabeller: the homomorphism which maps relabelled words back into the original algebra that this automorphism came from.
 	:ivar range_relabeller: the homomorphism which maps relabelled words back into the original algebra that this automorphism came from.
 	"""
-	def __init__(self, domain, range, domain_relabeller=None, range_relabeller=None):
+	#todo docstring for reduce
+	def __init__(self, domain, range, domain_relabeller=None, range_relabeller=None, reduce=True):
 		"""In addition to creating an automorphism, we allow optional relabelling homomorphisms to be stored. This allows us to turn words in the factor back into words in the parent algebra.
 		
 		Instances of this class are returned by :meth:`~thompson.automorphism.Automorphism.free_factor` and don't need to be instantiated by the user.
@@ -48,7 +49,7 @@ class AutomorphismFactor(Automorphism):
 			raise TypeError('Range relabeller signature {} does not match automorphism\'s range signature {}.'.format(
 			  range_relabeller.domain.signature, range.signature))
 		
-		super().__init__(domain, range)
+		super().__init__(domain, range, reduce)
 		self.domain_relabeller = domain_relabeller
 		self.range_relabeller = range_relabeller
 	

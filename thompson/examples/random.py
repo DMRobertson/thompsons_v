@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, shuffle
 
 from ..word import Signature
 from ..generators import Generators
@@ -21,11 +21,12 @@ def random_basis(num_expansions, signature):
 def random_automorphism(num_expansions, signature):
 	domain = random_basis(num_expansions, signature)
 	range  = random_basis(num_expansions, signature)
+	shuffle(range)
 	return Automorphism(domain, range)
 
 def random_conjugate_pair(num_expansions=None, signature=None):
 	if num_expansions is None:
-		num_expansions = randint(1, 8)
+		num_expansions = randint(1, 5)
 	if signature is None:
 		signature = random_signature()
 	psi = random_automorphism(num_expansions, signature)

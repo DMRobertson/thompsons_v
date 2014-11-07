@@ -38,7 +38,8 @@ class Automorphism(Homomorphism):
 	"""
 	:ivar signature: The :class:`~thompson.word.Signature` shared by the generating sets domain and range.
 	"""
-	def __init__(self, domain, range):
+	#todo docstring for reduce
+	def __init__(self, domain, range, reduce=True):
 		r"""Creates an automorphism, given the *arity* :math:`n` and *alphabet_size* :math:`r`. Two bases *domain* and *range* are also given. The automorphism maps elements so that the given order of generators is preserved:
 		
 			.. math:: \text{domain}_{\,i} \mapsto \text{range}_{\,i}
@@ -70,7 +71,7 @@ class Automorphism(Homomorphism):
 		self._qnf_orbit_types = {}
 		self.signature = domain.signature
 		
-		super().__init__(domain, range)
+		super().__init__(domain, range, reduce)
 		
 		#Setup the inverse map
 		for root in Generators.standard_basis(domain.signature):
@@ -86,8 +87,8 @@ class Automorphism(Homomorphism):
 	def __invert__(self):
 		#TODO docstring
 		inv = copy(self)
-		inv.domain, inv.range = self.range, self.domain
-		inv._map, inv._inv    = self._inv, self._map
+		inv.domain, inv.range = Generators.sort_mapping_pair(self.domain, self.range)
+		inv._map, inv._inv = self._inv, self._map
 		inv._qnf_basis = None
 		inv._qnf_orbit_types = {}
 		return inv
@@ -566,7 +567,6 @@ class Automorphism(Homomorphism):
 		if result is None:
 			return None
 		pure_periodic, pure_infinite, s_qnf_p, s_qnf_i, o_qnf_p, o_qnf_i = result
-		
 		#4. If necessary, test the periodic factors.
 		if pure_infinite:
 			rho_p = None
@@ -574,7 +574,6 @@ class Automorphism(Homomorphism):
 			#2, 3. Extract the periodic factor.
 			s_p = self.free_factor(s_qnf_p, infinite=False)
 			o_p = other.free_factor(o_qnf_p, infinite=False)
-			
 			rho_p = s_p.test_conjugate_to(o_p)
 			if rho_p is None:
 				return None
@@ -585,8 +584,7 @@ class Automorphism(Homomorphism):
 		else:
 			#2, 3. Extract the infinite factor.
 			s_i = self.free_factor(s_qnf_i, infinite=True)
-			o_i = self.free_factor(o_qnf_i, infinite=True)
-			
+			o_i = other.free_factor(o_qnf_i, infinite=True)
 			rho_i = s_i.test_conjugate_to(o_i)
 			if rho_i is None:
 				return None
@@ -722,16 +720,17 @@ class Automorphism(Homomorphism):
 		#2. Relabel the domain and range
 		domain = generators.minimal_expansion_for(self)
 		range = self.image_of_set(domain)
+		
 		rewrite_set(domain, generators, generators_relabelled)
 		rewrite_set(range,  generators, generators_relabelled)
 		#Make sure we can undo the relabelling
-		inverse_relabeller = Homomorphism(copy(generators_relabelled), copy(generators))
+		inverse_relabeller = Homomorphism(copy(generators_relabelled), copy(generators), reduce=False)
 		
 		#3. Return the factor
 		from .factors import get_factor_class
 		type = get_factor_class(infinite)
-		factor = type(domain, range, inverse_relabeller, inverse_relabeller)
-		#TODO We know apriori what the quasi-normal basis is. We could pass this info on to the factor?
+		factor = type(domain, range, inverse_relabeller, inverse_relabeller, reduce=False)
+		#TODO We know a priori what the quasi-normal basis is. We could pass this info on to the factor?
 		#TODO Would also be able to relabel type b data for bi-infinite orbit types
 		return factor
 	
@@ -751,7 +750,6 @@ class Automorphism(Homomorphism):
 		domain = p_domain + i_domain
 		range  = p_range + i_range
 		
-		domain, range = zip(*sorted(zip(domain, range)))
 		domain = Generators(self.signature, domain)
 		range = Generators(self.signature, range)
 		
