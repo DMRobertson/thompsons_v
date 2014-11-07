@@ -567,6 +567,7 @@ class Automorphism(Homomorphism):
 		if result is None:
 			return None
 		pure_periodic, pure_infinite, s_qnf_p, s_qnf_i, o_qnf_p, o_qnf_i = result
+		print(*result)
 		#4. If necessary, test the periodic factors.
 		if pure_infinite:
 			rho_p = None

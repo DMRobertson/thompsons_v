@@ -4,11 +4,20 @@ setup_script(__file__)
 from thompson.examples import *
 from pprint import pprint
 
-psi = example_5_26_psi_i
-phi = example_5_26_phi_i
+# import random
+# seed = random.randint(0, 10**10)
+# print(seed)
+# random.seed(seed)
+# psi, phi = random_conjugate_pair()
 
-# rho = psi.test_conjugate_to(phi)
-# print(rho)
+psi = aut_from_file('psi.aut')[0]
+phi = aut_from_file('phi.aut')[0]
+
+print(psi)
+print(phi)
+rho = psi.test_conjugate_to(phi)
+print(rho)
+
 # phi.quasinormal_basis())
 # type_b, type_c = phi._split_basis()
 # roots, graph = phi.equivalence_data(type_b, type_c)
