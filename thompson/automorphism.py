@@ -68,7 +68,6 @@ class Automorphism(Homomorphism):
 		#Cache attributes
 		self._inv = {}
 		self._qnf_basis = None
-		self._qnf_orbit_types = {}
 		self.signature = domain.signature
 		
 		super().__init__(domain, range, reduce)
@@ -90,7 +89,6 @@ class Automorphism(Homomorphism):
 		inv.domain, inv.range = Generators.sort_mapping_pair(self.domain, self.range)
 		inv._map, inv._inv = self._inv, self._map
 		inv._qnf_basis = None
-		inv._qnf_orbit_types = {}
 		return inv
 		
 	inverse = __invert__
@@ -204,11 +202,10 @@ class Automorphism(Homomorphism):
 		#expand basis until each no element's orbit has finite intersection with X<A>
 		i = 0
 		while i < len(basis):
-			type, image = self.orbit_type(basis[i], basis)
-			if type.is_incomplete():
+			otype, _, _ = self.orbit_type(basis[i], basis)
+			if otype.is_incomplete():
 				basis.expand(i)
 			else:
-				self._qnf_orbit_types[basis[i]] = type
 				i += 1
 		self._qnf_basis = basis
 		return basis
@@ -240,61 +237,59 @@ class Automorphism(Homomorphism):
 	def orbit_type(self, y, basis):
 		"""Returns the orbit type of *y* with respect to the given *basis*. Also returns a dictionary of computed images, the list (7) from the paper.
 		
-		>>> #Example 4.5.
-		>>> print_orbit_types(example_4_5, example_4_5.domain)
-		x1 a1 a1 a1: Left semi-infinite orbit with characteristic (-1, a1)
-		x1 a1 a1 a2: Bi-infinite orbit containing [x1 a1 a2] a1
-		x1 a1 a2: Right semi-infinite orbit with characteristic (1, a2)
-		x1 a2 a1: Periodic orbit of order 2
-		x1 a2 a2: Periodic orbit of order 2
-		with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
-		>>> print_orbit_types(example_4_5, basis=example_4_5.domain, words=['x', 'x a1', 'x a2'])
-		x: Incomplete orbit
-		x a1: Incomplete orbit
-		x a2: Incomplete orbit
-		with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
+			>>> #Example 4.5.
+			>>> print_orbit_types(example_4_5, example_4_5.domain)
+			x1 a1 a1 a1: Left semi-infinite orbit with characteristic (-1, a1)
+			x1 a1 a1 a2: Bi-infinite orbit
+			x1 a1 a2: Right semi-infinite orbit with characteristic (1, a2)
+			x1 a2 a1: Periodic orbit of order 2
+			x1 a2 a2: Periodic orbit of order 2
+			with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
+			>>> print_orbit_types(example_4_5, basis=example_4_5.domain, words=['x', 'x a1', 'x a2'])
+			x: Incomplete orbit
+			x a1: Incomplete orbit
+			x a2: Incomplete orbit
+			with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
+			
+			>>> #Example 4.11
+			>>> print_orbit_types(example_4_11)
+			x1 a1: Left semi-infinite orbit with characteristic (-1, a1)
+			x1 a2: Right semi-infinite orbit with characteristic (1, a2)
+			with respect to the basis [x1 a1, x1 a2]
+			
+			>>> #Example 4.12
+			>>> basis = example_4_12._seminormal_form_start_point()
+			>>> print_orbit_types(example_4_12, basis)
+			x1 a1: Incomplete orbit
+			x1 a2: Incomplete orbit
+			with respect to the basis [x1 a1, x1 a2]
+			>>> basis.expand(0)
+			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2'])
+			>>> print_orbit_types(example_4_12, basis)
+			x1 a1 a1: Bi-infinite orbit
+			x1 a1 a2: Bi-infinite orbit
+			x1 a2: Incomplete orbit
+			with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2]
+			>>> basis.expand(2)
+			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
+			>>> print_orbit_types(example_4_12, basis)
+			x1 a1 a1: Periodic orbit of order 4
+			x1 a1 a2: Periodic orbit of order 4
+			x1 a2 a1: Periodic orbit of order 4
+			x1 a2 a2: Periodic orbit of order 4
+			with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
+			
+			>>> #Example 4.25
+			>>> print_orbit_types(example_4_25)
+			x1 a1: Right semi-infinite orbit with characteristic (1, a1 a1)
+			x1 a2 a1: Bi-infinite orbit
+			x1 a2 a2: Left semi-infinite orbit with characteristic (-1, a1 a1)
+			with respect to the basis [x1 a1, x1 a2 a1, x1 a2 a2]
 		
-		>>> #Example 4.11
-		>>> print_orbit_types(example_4_11)
-		x1 a1: Left semi-infinite orbit with characteristic (-1, a1)
-		x1 a2: Right semi-infinite orbit with characteristic (1, a2)
-		with respect to the basis [x1 a1, x1 a2]
-		
-		>>> #Example 4.12
-		>>> basis = example_4_12._seminormal_form_start_point()
-		>>> print_orbit_types(example_4_12, basis)
-		x1 a1: Incomplete orbit
-		x1 a2: Incomplete orbit
-		with respect to the basis [x1 a1, x1 a2]
-		>>> basis.expand(0)
-		Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2'])
-		>>> print_orbit_types(example_4_12, basis)
-		x1 a1 a1: Bi-infinite orbit containing [x1 a2] a2
-		x1 a1 a2: Bi-infinite orbit containing [x1 a2] a1
-		x1 a2: Incomplete orbit
-		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2]
-		>>> basis.expand(2)
-		Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
-		>>> print_orbit_types(example_4_12, basis)
-		x1 a1 a1: Periodic orbit of order 4
-		x1 a1 a2: Periodic orbit of order 4
-		x1 a2 a1: Periodic orbit of order 4
-		x1 a2 a2: Periodic orbit of order 4
-		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
-		
-		>>> #Example 4.25
-		>>> print_orbit_types(example_4_25)
-		x1 a1: Right semi-infinite orbit with characteristic (1, a1 a1)
-		x1 a2 a1: Bi-infinite orbit containing [x1 a1] a1 a2
-		x1 a2 a2: Left semi-infinite orbit with characteristic (-1, a1 a1)
-		with respect to the basis [x1 a1, x1 a2 a1, x1 a2 a2]
+		.. seealso:: Lemmas 4.14, 4.24
 		"""
-		
-		# print('Computing the orbit type of', y)
-		rsi, rpow1, rpow2, rimages = self._test_semi_infinite(y, basis, backward=False)
-		# print('RIGHT:', rsi, rpow1, rpow2, [str(x) for x in rimages])
-		lsi, lpow1, lpow2, limages  = self._test_semi_infinite(y, basis, backward=True)
-		# print('LEFT: ', lsi, lpow1, lpow2, [str(x) for x in limages])
+		rinf, rpow1, rpow2, rimages = self.test_semi_infinite(y, basis, backward=False)
+		linf, lpow1, lpow2, limages = self.test_semi_infinite(y, basis, backward=True)
 		
 		images = {}
 		for i, image in enumerate(rimages):
@@ -302,26 +297,31 @@ class Automorphism(Homomorphism):
 		for i, image in enumerate(limages):
 			images[-i] = image
 		
-		if not (lsi or rsi):
+		type_b_data = None
+		if not (linf or rinf):
 			otype = OrbitType.incomplete()
 			
-		elif lsi and not rsi:
+		elif linf and not rinf:
 			tail = y.test_above(limages[-1])
-			assert tail is not None
-			assert len(tail) > 0
-			assert lpow1 == 0
-			characteristic = -lpow2, tail
+			if tail is None:
+				characteristic = None
+			else:
+				assert len(tail) > 0
+				assert lpow1 == 0
+				characteristic = -lpow2, tail
 			otype = OrbitType.semi_infinite(characteristic, backward=True)
 		
-		elif rsi and not lsi:
+		elif rinf and not linf:
 			tail = y.test_above(rimages[-1])
-			assert tail is not None
-			assert len(tail) > 0
-			assert rpow1 == 0
-			characteristic = (rpow2, tail)
+			if tail is None:
+				characteristic = None
+			else:
+				assert len(tail) > 0
+				assert rpow1 == 0
+				characteristic = rpow2, tail
 			otype = OrbitType.semi_infinite(characteristic, backward=False)
-			
-		elif lsi and rsi:
+		
+		elif linf and rinf:
 			if limages[-1] == y:
 				assert rimages[-1] == y
 				assert lpow1 == rpow1 == 0
@@ -329,27 +329,31 @@ class Automorphism(Homomorphism):
 				otype = OrbitType.periodic(lpow2)
 			
 			else:
+				otype = OrbitType.complete_infinite()
 				type_b, tail = basis.test_above(rimages[rpow1])
 				type_b_data = rpow1, type_b, tail
-				otype = OrbitType.complete_infinite(type_b_data)
 		
-		return otype, images
+		return otype, images, type_b_data
 	
-	def _test_semi_infinite(self, y, basis, backward=False):
-		r"""Computes the orbit type of *y* under the current automorphism :math:`\psi` with respect to *basis* in the given direction. The process stops when either:
+	def test_semi_infinite(self, y, basis, backward=False):
+		r"""Computes the orbit type of *y* under the current automorphism :math:`\psi` with respect to *basis* in the given direction. Let :math:`y\psi^m` be the most recently computed image. The process stops when either:
 		
-			1. an image :math:`y\psi^m` is computed which is not below the basis.
+			1. :math:`y\psi^m` is not below the *basis*.
+			
 				- infinite: ``False``
 				- start: ``0``
-				- end: ``m``
-				- images: :math:`y, y\psi, \dotsc, y\psi^m`.
-			2. two images :math:`y\psi^l, y\psi^m` have been computed, and both start with the same basis element.
+				- end: ``m-1``
+				- images: :math:`y, y\psi, \dotsc, y\psi^{m-1}`.
+			
+			2. For some :math:`0 \le l < m`, :math:`y\psi^l` and :math:`y\psi^m` start with the same basis element.
 				- infinite: ``True``
 				- start: ``l``
 				- end: ``m``
-				- images: :math:`y, y\psi, \dotsc, y\psi^l`.
+				- images: :math:`y, y\psi, \dotsc, y\psi^m`.
 		
-		Returns the tuple *(infinite, start, end, images)*.
+		:returns: the tuple *(infinite, start, end, images)*.
+		
+		.. seealso:: Lemma 4.24
 		"""
 		image = y
 		images = [y]
@@ -358,18 +362,18 @@ class Automorphism(Homomorphism):
 		while True:
 			m += 1
 			image = self.image(image, inverse=backward) #Compute y\phi^{\pm m}
-			images.append(image)
+			result = basis.test_above(image)
 			#1. Did we fall out of X<A>?
-			if not basis.is_above(image):
-				return False, 0, m, images[:-1]
+			if result is None:
+				return False, 0, m-1, images
 			
-			#2. Is this an infinite orbit?
-			#Find the generator *prefix* above the current image.
-			prefix, image_tail = basis.test_above(image)
-			# print(image, ':', prefix, '|', image_tail)
-			for ell, previous in enumerate(images[:-1]):
+			#2. Otherwise, is there evidence to conclude that this is this an infinite orbit?
+			prefix, tail = result
+			for ell, previous in enumerate(images):
 				if prefix.is_above(previous):
+					images.append(image)
 					return True, ell, m, images
+			images.append(image)
 	
 	#Orbit sharing test
 	def share_orbit(self, u, v):
@@ -465,16 +469,16 @@ class Automorphism(Homomorphism):
 		#Now we're dealing with simple words below the basis.
 		u_head, u_tail = basis.test_above(u)
 		v_head, v_tail = basis.test_above(v)
-		u_head_type = self._qnf_orbit_types[u_head]
-		v_head_type = self._qnf_orbit_types[v_head]
+		u_head_type, _, u_head_data = self.orbit_type(u_head, basis)
+		v_head_type, _, v_head_data = self.orbit_type(v_head, basis)
 		
 		#Is either element periodic?
-		if u_head_type.is_type('A') or v_head_type.is_type('A'):
+		if u_head_type.is_type_A() or v_head_type.is_type_A():
 			#If so, do they have different periods?
 			if u_head_type != v_head_type:
 				return SolutionSet.empty_set()
 			
-			period = u_head_type.data
+			period = u_head_type.characteristic[0]
 			image = u
 			for i in range(1, period):
 				image = self.image(image)
@@ -484,40 +488,41 @@ class Automorphism(Homomorphism):
 		
 		#Neither u not v are periodic.
 		#Move along the orbit until we find a nicer u and v.
-		u_shift, u_head, u_tail = self._type_b_descendant(u_head, u_tail)
-		v_shift, v_head, v_tail = self._type_b_descendant(v_head, v_tail)
+		u_shift, u_head, u_tail = self._type_b_descendant(u_head, u_tail, u_head_data)
+		v_shift, v_head, v_tail = self._type_b_descendant(v_head, v_tail, v_head_data)
 		
 		u = u_head.extend(u_tail)
 		v = v_head.extend(v_tail)
 		
-		type, images = self.orbit_type(u, basis)
+		type, images, _ = self.orbit_type(u, basis)
 		for i, image in images.items():
 			if image == v:
 				return SolutionSet.singleton(u_shift + i - v_shift)
 		return SolutionSet.empty_set()
 	
-	def _type_b_descendant(self, head, tail):
+	def _type_b_descendant(self, head, tail, head_data):
 		r"""Takes a pair :math:`(y, \Gamma)` below the quasi-normal basis :math:`X` and returns a triple :math:`(\widetilde{y}, \widetilde{\Gamma}, k) where
 		* The orbit of :math:`\widetilde{y}` is semi-infinite (type B);
 		* :math:`\widetilde{y}\widetilde{\Gamma}` is in the same orbit as :math:`y\Gamma`.
 		* :math:`\widetilde{\Gamma}` does not start with the characteristic multiplier of :math:`\widetilde{y}`.
 		
-			>>> example_4_25.quasinormal_basis()
+			>>> basis = example_4_25.quasinormal_basis()
+			>>> basis
 			Generators((2, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
-			>>> example_4_25._type_b_descendant(Word('x a2 a2', (2, 1)), from_string('a1 a1 a2'))
+			>>> head = Word('x a2 a2', (2, 1))
+			>>> _, _, type_b_data = example_4_25.orbit_type(head, basis)
+			>>> example_4_25._type_b_descendant(head, from_string('a1 a1 a2'), type_b_data)
 			(1, Word('x1 a2 a2', (2, 1)), (-2,))
 		"""
-		head_type = self._qnf_orbit_types[head]
-		if head_type.is_type('C'):
-			shift_1, head, prefix = head_type.data
+		if head_data is not None:
+			shift_1, head, prefix = head_data
 			tail = prefix + tail
 		else:
 			shift_1 = 0
 		
-		head_type = self._qnf_orbit_types[head]
-		assert head_type.is_type('B')
-		characteristic = head_type.data
-		shift_2, tail = self._remove_from_start(tail, characteristic)
+		head_type, _, _ = self.orbit_type(head, self.quasinormal_basis())
+		assert head_type.is_type_B()
+		shift_2, tail = self._remove_from_start(tail, head_type.characteristic)
 		return (shift_1 + shift_2), head, tail
 	
 	@staticmethod
@@ -650,21 +655,16 @@ class Automorphism(Homomorphism):
 			[x1 a1 a2 a1, x1 a1 a2 a2]
 			[x1 a1 a1 a1 a1, x1 a1 a1 a1 a2, x1 a1 a1 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2]
 		"""
-		periodic = []
-		infinite = []
+		periodic = Generators(self.signature)
+		infinite = Generators(self.signature)
 		for gen in basis:
-			try:
-				type = self._qnf_orbit_types[gen]
-			except KeyError:
-				type, _ = self.orbit_type(gen, basis)
-			if type.is_type("A"):
+			type, _, _ = self.orbit_type(gen, basis)
+			if type.is_incomplete():
+				raise ValueError('Automorphism is not in semi-normal form with respect to the given basis.')
+			elif type.is_type_A():
 				periodic.append(gen)
-			elif type.is_type("B") or type.is_type("C"):
-				infinite.append(gen)
 			else:
-				raise ValueError('Automorphism was not in semi-normal form with respect to the given basis.')
-		periodic = Generators(self.signature, periodic)
-		infinite = Generators(self.signature, infinite)
+				infinite.append(gen)
 		return periodic, infinite
 	
 	def free_factor(self, generators, infinite=False):

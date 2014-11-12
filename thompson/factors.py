@@ -122,24 +122,24 @@ class PeriodicFactor(AutomorphismFactor):
 	"""
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		#See discussion before lemma 5.3.
-		#Should have X_P = Y_P = Z_P
+		#See discussion before lemma 5.3: should have X_P = Y_P = Z_P
 		assert self.quasinormal_basis() == self.domain
 		assert self.quasinormal_basis().minimal_expansion_for(self) == self.domain
 		
-		#Need to have constructed the QNF basis here.
-		self._setup_cycle_type()
 		self._setup_multiplicities()
 	
-	def _setup_cycle_type(self):
-		#see definition 5.8
-		self.cycle_type = {type.data for type in self._qnf_orbit_types.values()}
-	
 	def _setup_multiplicities(self):
+		#see definition 5.8
+		self.cycle_type = set()
 		counts = defaultdict(int)
-		for orbit in self._qnf_orbit_types.values():
-			orbit_size = orbit.data
+		basis = self.quasinormal_basis()
+		
+		for gen in basis:
+			type, _, _ = self.orbit_type(gen, basis)
+			orbit_size = type.characteristic[0]
+			self.cycle_type.add(orbit_size)
 			counts[orbit_size] += 1
+		
 		for orbit_size, occurances in counts.items():
 			assert occurances % orbit_size == 0
 			counts[orbit_size] = occurances // orbit_size
@@ -167,8 +167,8 @@ class PeriodicFactor(AutomorphismFactor):
 		for gen in basis:
 			if gen in already_seen:
 				continue
-			type, images = self.orbit_type(gen, basis)
-			length = type.data
+			type, images, _ = self.orbit_type(gen, basis)
+			length = type.characteristic[0]
 			images = [images[i] for i in range(length)]
 			already_seen.update(images)
 			orbits_by_size[length].append(images)
@@ -337,11 +337,11 @@ class InfiniteFactor(AutomorphismFactor):
 		type_c = {}
 		basis = self.quasinormal_basis()
 		for gen in basis:
-			type, _ = self.orbit_type(gen, basis)
-			if type.is_type('B'):
-				type_b[gen] = type.data
-			elif type.is_type('C'):
-				type_c[gen] = type.data
+			type, _, type_b_data = self.orbit_type(gen, basis)
+			if type.is_type_B():
+				type_b[gen] = type.characteristic
+			elif type.is_type_C():
+				type_c[gen] = type_b_data
 			else:
 				raise ValueError('Incorrect orbit type.')
 		return type_b, type_c
@@ -384,7 +384,7 @@ class InfiniteFactor(AutomorphismFactor):
 		#1. Add an edge for every direct conjugacy relationship.
 		print('** edges **')
 		for gen in orbit_generators:
-			type, images = self.orbit_type(gen, basis)
+			type, images, _ = self.orbit_type(gen, basis)
 			for power, img in images.items():
 				images[power] = basis.test_above(img)
 			
@@ -474,9 +474,9 @@ class InfiniteFactor(AutomorphismFactor):
 		basis = other.quasinormal_basis()
 		print('** Semi-infinite end points **')
 		for word in other.semi_infinite_end_points():
-			type, _ = other.orbit_type(word, basis)
-			assert type.is_type('B')
-			images_by_char[type.data].add(word)
+			type, _, _ = other.orbit_type(word, basis)
+			assert type.is_type_B()
+			images_by_char[type.characteristic].add(word)
 		
 		orbit_endpts = {word : images_by_char[char] for word, char in self_type_b.items()}
 		return orbit_endpts

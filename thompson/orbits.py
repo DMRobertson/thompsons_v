@@ -12,11 +12,11 @@ from .word import format
 
 __all__ = ["OrbitType", "print_orbit_types", "SolutionSet"]
 
-BaseOrbitType = namedtuple("BaseOrbitType","type data")
+BaseOrbitType = namedtuple("BaseOrbitType", "type characteristic")
 class OrbitType(BaseOrbitType):
 	r"""This class is essentially a glorified :mod:`enumeration <py3:enum>`: its instances store a number from 1 to 5 to represent the type of an orbit.
 	
-	:ivar data: Instances have a *data* attribute, which describes the orbit in some way. The value of this attribute depends on the orbit type. Specifically, *data* is:
+	:ivar characteristic: Either the characteristic :math:`(m, \Gamma)` of this orbit, or ``None`` if this orbit has no characteristic.
 	
 	* For complete finite orbits, the period of the orbit;
 	* For semi-infinite orbits, the characteristic :math:`(m, \Gamma)` of the orbit;
@@ -44,70 +44,64 @@ class OrbitType(BaseOrbitType):
 	@classmethod
 	def periodic(cls, period):
 		"""Describes a complete finite (i.e. periodic) orbits. The argument is the period of the the orbit."""
-		return cls(cls._complete_finite, period)
+		return cls(cls._complete_finite, (period, tuple()))
 	
 	@classmethod
-	def semi_infinite(cls, characteristic, backward):
-		"""Describes a semi-infinite orbit. If backward is True, the orbit is left semi-infinite; otherwise the orbit is right semi-infinite.
-		"""
-		if backward:
-			type = cls._left_semi_infinite
-		else:
-			type = cls._right_semi_infinite
-		
-		assert (characteristic[0] < 0) == (backward)
+	def semi_infinite(cls, characteristic, backward=False):
+		"""Describes a semi-infinite orbit. The first argument is the characteristic of the orbit; use ``None`` if this orbit doesn't have a characteristic. The second argument should specify where this orbit is left or right semi-infinite."""
+		if characteristic is not None and len(characteristic[1]) == 0:
+			raise ValueError('Semi-infinite orbits cannot have a trivial characteristic multiplier.')
+		if characteristic is not None:
+			assert (characteristic[0] < 0) == backward, (characteristic, backward)
+		type = cls._left_semi_infinite if backward else cls._right_semi_infinite
 		return cls(type, characteristic)
 	
 	@classmethod
-	def complete_infinite(cls, type_b_data):
-		"""Instance for representing orbits which are infinite in both directions. The argument *type_b_data* is a triple :math:`(n, z, \Delta)` where:
-		
-		- :math:`z` belongs to the orbit being described; 
-		- we had to move :math:`n` steps forward in the orbit to find :math:`z\Delta`;
-		- :math:`z` is a semi-infinite basis element.
-		"""
-		return cls(cls._complete_infinite, type_b_data)
+	def complete_infinite(cls):
+		"""Describes an orbit which is infinite in both directions."""
+		return cls(cls._complete_infinite, None)
 	
 	@classmethod
 	def incomplete(cls):
+		"""Describes an orbit which is incomplete."""
 		return cls(cls._incomplete, None)
 	
 	def __str__(self):
 		output = "{} orbit".format(self._names[self.type])
 		if self.type is self._complete_finite:
-			output += " of order {}".format(self.data)
-		elif self.type == self._right_semi_infinite or self.type == self._left_semi_infinite:
-			output += " with characteristic ({}, {})".format(
-			  self.data[0], format(self.data[1]))
-		elif self.type == self._complete_infinite:
-			output += " containing [{}] {}".format(
-			  str(self.data[1]), format(self.data[2]))
+			output += " of order {}".format(self.characteristic[0])
+		if self.type == self._left_semi_infinite or self.type == self._right_semi_infinite:
+			if self.characteristic is not None:
+				output += " with characteristic ({}, {})".format(
+				  self.characteristic[0], format(self.characteristic[1]))
+			else:
+				output += " with no characteristic"
 		return output
 	
-	def is_type(self, letter):
-		"""Returns True if this orbit is of the given type; else False.
-		
-		:raises ValueError: if *letter* is not one of the strings ``'A'``, ``'B'`` or ``'C'``."""
-		if letter.upper() == "A":
-			return self.type == self._complete_finite
-		if letter.upper() == "B":
-			return self.type == self._left_semi_infinite or self.type == self._right_semi_infinite
-		if letter.upper() == "C":
-			return self.type == self._complete_infinite
-		raise ValueError("Letter argument should be A, B or C.")
+	def is_type_A(self):
+		""""""
+		return self.characteristic is not None and len(self.characteristic[1]) == 0
+	
+	def is_type_B(self):
+		""""""
+		return self.characteristic is not None and len(self.characteristic[1]) > 0 
+	
+	def is_type_C(self):
+		""""""
+		return self.characteristic is None
 	
 	def is_incomplete(self):
 		"""Returns True if this orbit is incomplete, otherwise False."""
-		return self.data is None
+		return self.type is self._incomplete
 
 def print_orbit_types(aut, basis=None, words=None):
 	r"""Prints the classification of the orbits under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the smallest possible expansion which could potentially be a semi-normal basis; see :meth:`~thompson.automorphism.Automorphism._seminormal_form_start_point`. If *words* is omited, it is taken to be the same as *basis*.
 	
 		>>> print_orbit_types(arity_three_order_inf)
 		x1 a1: Left semi-infinite orbit with characteristic (-1, a1)
-		x1 a2: Bi-infinite orbit containing [x1 a3 a3] a2
-		x1 a3 a1: Bi-infinite orbit containing [x1 a3 a3] a3
-		x1 a3 a2: Bi-infinite orbit containing [x1 a3 a3] a2
+		x1 a2: Bi-infinite orbit
+		x1 a3 a1: Bi-infinite orbit
+		x1 a3 a2: Bi-infinite orbit
 		x1 a3 a3: Right semi-infinite orbit with characteristic (1, a1)
 		with respect to the basis [x1 a1, x1 a2, x1 a3 a1, x1 a3 a2, x1 a3 a3]
 		
@@ -116,7 +110,7 @@ def print_orbit_types(aut, basis=None, words=None):
 		x1 a1 a2: Periodic orbit of order 4
 		x1 a1 a3: Periodic orbit of order 4
 		x1 a1 a4: Periodic orbit of order 4
-		x1 a2: Bi-infinite orbit containing [x1 a3] a2
+		x1 a2: Bi-infinite orbit
 		x1 a3: Right semi-infinite orbit with characteristic (1, a3)
 		x1 a4: Left semi-infinite orbit with characteristic (-1, a4)
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a1 a3, x1 a1 a4, x1 a2, x1 a3, x1 a4]

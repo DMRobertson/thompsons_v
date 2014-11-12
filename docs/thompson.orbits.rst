@@ -16,15 +16,24 @@ Let us refer to the intersection :math:`\mathrm{orb}_\phi (y) \cap X\langle A \r
 		The component is the entire orbit, but eventually it repeats itself. Thus the component only contains a finite number of distinct words.
 	3. Right semi-infinite.
 		The forward orbit :math:`\{ y \phi^n\}_{n\in \mathbb N}` belongs to the component and does not repeat itself. However, the backward orbit :math:`\{ y \phi^{-n}\}_{n\in \mathbb N}` eventually leaves :math:`X\langle A\rangle`; thus the component only contains a finite amount of the backward orbit.
-	4. *Left semi-infinite.*
+	4. Left semi-infinite.
 		The backward orbit is contained in the component, and does not repeat itself; the forward orbit eventually leaves :math:`X\langle A\rangle`.
-	5. *Incomplete*.
+	5. Incomplete
 		Only a finite part of the orbit :math:`y\phi^{-n}, \dotsc, y\phi^{-1}, y, y\phi, \dotsc, y\phi^m` belongs to the component.
 
-Confusingly, we also say that
-- periodic orbits are of type **A**
-- semi-infinite orbits are of type **B**
-- complete infinite orbits are of type **C**.
+Now suppose :math:`X` is a semi-normal basis for some automorphism. The orbits which intersect 
+
+Orbits which are not incomplete are given a second, independant label.
+
+	A.
+		Type A components are those with characteristic :math:`(m, \epsilon)`, where :math:`\epsilon` is the empty word. These are precisely the periodic orbits.
+	B.
+		Type B components are those with characteristic :math:`(m, \Gamma)`, where :math:`\Gamma \neq \epsilon` is nontrivial. Type B components must be semi-infinite, **but not all semi-infinite components are of type B!** 
+	C.
+		Type C components are those which are not of type A or B---that is, they are the components which do not have a characteristic. If :math:`x` is of type C, then there exists :
+		
+		Complete infinite components are always of type C, but **some semi-infinite components are of type B too**.
+	
 
 .. autoclass:: thompson.orbits.OrbitType
 	:members:
