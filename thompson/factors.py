@@ -472,11 +472,11 @@ class InfiniteFactor(AutomorphismFactor):
 		#todo doctest
 		images_by_char = defaultdict(set)
 		basis = other.quasinormal_basis()
-		print('** Semi-infinite end points **')
 		for word in other.semi_infinite_end_points():
 			type, _, _ = other.orbit_type(word, basis)
-			assert type.is_type_B()
-			images_by_char[type.characteristic].add(word)
+			if type.is_type_B():
+				print(word, type)
+				images_by_char[type.characteristic].add(word)
 		
 		orbit_endpts = {word : images_by_char[char] for word, char in self_type_b.items()}
 		return orbit_endpts

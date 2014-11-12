@@ -4,7 +4,7 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
  
 .. testsetup::
 	
-	from thompson.word import Word, from_string
+	from thompson.word import Word, Signature, from_string
 	from thompson import word
 	from thompson.generators import Generators
 	from thompson.automorphism import *
@@ -84,14 +84,27 @@ class Automorphism(Homomorphism):
 		cache[r] = d
 	
 	def __invert__(self):
-		#TODO docstring
+		"""We overload python's unary negation operator ``~`` as shorthand for inversion. (In Python, ``~`` is normally used for bitwise negation.) We can also call a method explicitily: ``phi.inverse()`` is exactly the same as ``~phi``.
+		
+			>>> phi = random_automorphism(20, signature = Signature(2, 1))
+			>>> phi * ~phi == ~phi * phi
+			True
+			>>> print(phi * ~phi)
+			Automorphism: V(2, 1) -> V(2, 1) specified by 1 generators (after expansion and reduction).
+			x1 -> x1
+			
+		"""
 		inv = copy(self)
-		inv.domain, inv.range = Generators.sort_mapping_pair(self.domain, self.range)
+		inv.domain, inv.range = Generators.sort_mapping_pair(self.range, self.domain)
 		inv._map, inv._inv = self._inv, self._map
 		inv._qnf_basis = None
 		return inv
 		
 	inverse = __invert__
+	
+	def is_identity(self):
+		basis = Generators.standard_basis(self.signature)
+		return self.image_of_set(basis) == basis
 	
 	#Computing images
 	def image(self, key, inverse=False):

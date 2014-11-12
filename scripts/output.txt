@@ -1,0 +1,23 @@
+x1 a1 a1 is type C in QNF basis
+ [x1 a1 a1, x1 a1 a2 a1, x1 a1 a2 a2 a1, x1 a1 a2 a2 a2 a1, x1 a1 a2 a2 a2 a2, x1 a2 a1 a1 a1, x1 a2 a1 a1 a2 a1, x1 a2 a1 a1 a2 a2 a1, x1 a2 a1 a1 a2 a2 a2, x1 a2 a1 a2 a1, x1 a2 a1 a2 a2, x1 a2 a2 a1 a1, x1 a2 a2 a1 a2 a1, x1 a2 a2 a1 a2 a2, x1 a2 a2 a2 a1, x1 a2 a2 a2 a2 a1, x1 a2 a2 a2 a2 a2]
+Automorphism: V(2, 1) -> V(2, 1) specified by 20 generators (after expansion and reduction).
+x1 a1 a1                   -> x1 a2 a1 a2 a1            
+x1 a1 a2 a1                -> x1 a2 a1 a1 a1 a2 a1      
+x1 a1 a2 a2                -> x1 a2 a2 a2               
+x1 a2 a1 a1                -> x1 a1 a2                  
+x1 a2 a1 a2 a1 a1 a1 a1    -> x1 a2 a1 a1 a2 a1         
+x1 a2 a1 a2 a1 a1 a1 a2 a1 -> x1 a2 a2 a1 a2 a1 a1 a2   
+x1 a2 a1 a2 a1 a1 a1 a2 a2 -> x1 a2 a1 a1 a2 a2 a2 a2   
+x1 a2 a1 a2 a1 a1 a2 a1    -> x1 a1 a1                  
+x1 a2 a1 a2 a1 a1 a2 a2    -> x1 a2 a1 a1 a2 a2 a1      
+x1 a2 a1 a2 a1 a2 a1       -> x1 a2 a1 a1 a1 a1 a2      
+x1 a2 a1 a2 a1 a2 a2       -> x1 a2 a1 a2 a2            
+x1 a2 a1 a2 a2 a1          -> x1 a2 a2 a1 a1            
+x1 a2 a1 a2 a2 a2          -> x1 a2 a2 a1 a2 a2         
+x1 a2 a2 a1 a1             -> x1 a2 a2 a1 a2 a1 a2 a1 a2
+x1 a2 a2 a1 a2 a1          -> x1 a2 a2 a1 a2 a1 a2 a1 a1
+x1 a2 a2 a1 a2 a2 a1       -> x1 a2 a1 a1 a1 a1 a1      
+x1 a2 a2 a1 a2 a2 a2       -> x1 a2 a1 a1 a1 a2 a2      
+x1 a2 a2 a2 a1             -> x1 a2 a2 a1 a2 a1 a1 a1   
+x1 a2 a2 a2 a2 a1          -> x1 a2 a1 a1 a2 a2 a2 a1   
+x1 a2 a2 a2 a2 a2          -> x1 a2 a2 a1 a2 a1 a2 a2   
