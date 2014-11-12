@@ -13,6 +13,8 @@ from pprint import pprint
 psi = aut_from_file('psi.aut')[0]
 phi = aut_from_file('phi.aut')[0]
 
+print('='*10)
+print(psi.repeated_image('x a3 a3 a3', 4))
 print(psi)
 print(phi)
 rho = psi.test_conjugate_to(phi)

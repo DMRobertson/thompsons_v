@@ -302,6 +302,8 @@ class InfiniteFactor(AutomorphismFactor):
 		if not isinstance(other, InfiniteFactor):
 			raise TypeError('Other automorphism must be a InfiniteFactor.')
 		
+		print(self)
+		print(other)
 		#1. The QNF bases are computed automatically.
 		#2. Compute the equivalence classes X_1, ... X_m of \equiv on self's QNF basis
 		type_b, type_c = self._split_basis()
@@ -314,10 +316,11 @@ class InfiniteFactor(AutomorphismFactor):
 		pprint(roots)
 		print('** Graph: **')
 		dump_graph(roots, graph)
+		verify_graph(self, roots, graph)
 		#3. Find the initial and terminal elements of SI *other*-orbits.
 		#4. Construct the sets R_i
-		potential_endpoints = self.potential_image_endpoints(other, type_b)
 		print('** Potential Endpoints: **')
+		potential_endpoints = other.potential_image_endpoints(type_b)
 		pprint(potential_endpoints)
 		
 		#5. Type B representitives for each class are stored in *roots*.
@@ -379,6 +382,7 @@ class InfiniteFactor(AutomorphismFactor):
 		orbit_generators = set(min_exp + endpts)
 		
 		#1. Add an edge for every direct conjugacy relationship.
+		print('** edges **')
 		for gen in orbit_generators:
 			type, images = self.orbit_type(gen, basis)
 			for power, img in images.items():
@@ -390,29 +394,52 @@ class InfiniteFactor(AutomorphismFactor):
 					continue
 				G.add_edge(head1, head2,
 					  start_tail = tail1, power = pow2 - pow1, end_tail = tail2)
+				assert self.repeated_image(head1.extend(tail1), pow2 - pow1) == head2.extend(tail2)
 		return G
 	
-	@staticmethod
-	def _simplify_graph(G, type_c):
+	# @staticmethod
+	def _simplify_graph(self, G, type_c):
 		"""Removes all the type C words from this graph. Edges to and from type C words are removed, but the information they is still stored in the graph."""
+		print('** Simplify graph **')
 		#2. Remove the type C elements.
 		for word, type_b_data in type_c.items():
 			replacement = type_b_data[1]
 			replacement_in  = G[word][replacement]
 			replacement_out = G[replacement][word]
+			
+			print('Type C: {}, Type B replacement: {}'.format(word, replacement, replacement_in))
+			print_edge(word, replacement, replacement_in)
+			assert self.repeated_image(word.extend(replacement_in['start_tail']), replacement_in['power']) == replacement.extend(replacement_in['end_tail'])
+			print_edge(replacement, word, replacement_out)
+			assert self.repeated_image(replacement.extend(replacement_out['start_tail']), replacement_out['power']) == word.extend(replacement_out['end_tail'])
+			
 			#Use the scheme of Lemma 5.24 to avoid type C words.
 			for source, _, incoming in G.in_edges_iter(word, data=True):
-				G.add_edge(source, replacement,
+				if source == replacement:
+					continue
+				data = dict(
 				  start_tail = incoming['start_tail'],
 				  power      = incoming['power'] + replacement_in['power'],
-				  end_tail   = replacement_in['end_tail'] + incoming['end_tail'])
+				  end_tail   = replacement_in['end_tail'] + incoming['end_tail']
+				)
+				G.add_edge(source, replacement, data)
+				print('adding', end=' ');
+				print_edge(source, replacement, data)
+				assert self.repeated_image(source.extend(data['start_tail']), data['power']) == replacement.extend(data['end_tail'])
 				  
 			for _, target, outgoing in G.out_edges_iter(word, data=True):
-				G.add_edge(replacement, target,
-				  start_tail = replacement_in['start_tail'] + incoming['start_tail'],
-				  power      = replacement_out['power'] + incoming['power'],
-				  end_tail   = outgoing['end_tail']) 
-			
+				if target == replacement:
+					continue
+				data = dict(
+				  start_tail = replacement_out['start_tail'] + outgoing['start_tail'],
+				  power      = replacement_out['power'] + outgoing['power'],
+				  end_tail   = outgoing['end_tail']
+				)
+				G.add_edge(replacement, target, data) 
+				print('adding', end=' ');
+				print_edge(replacement, target, data)
+				assert self.repeated_image(replacement.extend(data['start_tail']), data['power']) == target.extend(data['end_tail'])
+				
 			G.remove_node(word)
 		
 		return [], G
@@ -437,7 +464,7 @@ class InfiniteFactor(AutomorphismFactor):
 		G.remove_edges_from(to_remove)
 		return roots
 	
-	def potential_image_endpoints(self, other, self_type_b):
+	def potential_image_endpoints(other, self_type_b):
 		"""Let ``x`` be a type B word with respect to the current automorphism. This returns a mapping which takes ``x`` and produces the set of words ``w`` which are endpoints of *other*-orbits which have the same characteristic as ``x``.
 		
 		.. seealso:: The sets :math:`\mathcal R_i` of defintion 5.23.
@@ -445,6 +472,7 @@ class InfiniteFactor(AutomorphismFactor):
 		#todo doctest
 		images_by_char = defaultdict(set)
 		basis = other.quasinormal_basis()
+		print('** Semi-infinite end points **')
 		for word in other.semi_infinite_end_points():
 			type, _ = other.orbit_type(word, basis)
 			assert type.is_type('B')
@@ -573,6 +601,9 @@ def fmt_triple(edge_data):
 		format(edge_data['start_tail']), edge_data['power'], format(edge_data['end_tail'])
 	)
 
+def print_edge(source, target, data):
+	print("{} --> {} with data {}".format(source, target, fmt_triple(data)))
+
 def dump_graph(roots, graph):
 	import networkx as nx
 	for i, root in enumerate(roots):
@@ -583,6 +614,14 @@ def dump_graph(roots, graph):
 			for source, target in graph.out_edges_iter(node):
 				data = graph[source][target]
 				print('\t\tto', target, 'with data\n\t\t\t', fmt_triple(data))
+
+def verify_graph(aut, roots, graph):
+	import networkx as nx
+	for i, root in enumerate(roots):
+		for node in nx.dfs_preorder_nodes(graph, root):
+			for source, target in graph.out_edges_iter(node):
+				data = graph[source][target]
+				assert aut.repeated_image(source.extend(data['start_tail']), data['power']) == target.extend(data['end_tail'])
 
 
 
