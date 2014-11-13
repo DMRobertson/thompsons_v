@@ -570,7 +570,8 @@ class Automorphism(Homomorphism):
 			>>> rho = psi.test_conjugate_to(phi)
 			>>> rho is not None
 			True
-			>>> print(rho)
+			>>> psi * rho == rho * phi
+			True
 		
 		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27; these are the :meth:`periodic <thompson.factors.PeriodicFactor.test_conjugate_to>` and :meth:`infinite <thompson.factors.InfiniteFactor.test_conjugate_to>` tests for conjugacy.
 		"""

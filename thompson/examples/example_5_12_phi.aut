@@ -1,7 +1,4 @@
-example_5_12_phi
 2
 (2,1)	->	(2,1)
 x a1	->	x a2
 x a2	->	x a1
-True
-False

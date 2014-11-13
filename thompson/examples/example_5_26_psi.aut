@@ -1,9 +1,6 @@
-example_5_26_psi
 4
 (2,1)		->	(2,1)
 x a1		->	x a1 a1 a1
 x a2 a1 a1	->	x a2
 x a2 a1 a2	->	x a1 a1 a2
 x a2 a2		->	x a1 a2
-False
-True

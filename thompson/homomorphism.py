@@ -13,6 +13,7 @@ In other words, a homomorphism is a function which 'commutes' with the algebra o
 
 from io import StringIO
 from itertools import chain
+import re
 
 from .word import *
 from .generators import Generators
@@ -132,6 +133,33 @@ class Homomorphism:
 		assert d in sig_in, repr(d)
 		assert r in sig_out, repr(r)
 		cache[d] = r
+	
+	#Alternative constructors
+	@classmethod
+	def from_file(cls, filename):
+		"""Reads in a file specifying an automorphism and returns a pair *(aut, name)*. Here is an example of the format::
+		5
+		(2,1)		->	(2,1)
+		x1 a1 a1 a1	->	x1 a1 a1
+		x1 a1 a1 a2	->	x1 a1 a2 a1
+		x1 a1 a2	->	x1 a1 a2 a2
+		x1 a2 a1	->	x1 a2 a2
+		x1 a2 a2	->	x1 a2 a1
+		
+		- number of generators
+		- signatures of domain and range
+		- list of rules domain -> range
+		"""
+		with open(filename, encoding='utf-8') as f:
+			num_generators = int(f.readline())
+			params = extract_signatures.match(f.readline().strip()).groups()
+			d = Generators([int(params[0]), int(params[1])])
+			r = Generators([int(params[2]), int(params[3])])
+			for _ in range(num_generators):
+				d_word, r_word = (word.strip() for word in f.readline().split('->'))
+				d.append(d_word)
+				r.append(r_word)
+		return cls(d, r)
 	
 	#Simple operations on homomorphisms
 	def __eq__(self, other):
@@ -374,3 +402,9 @@ class Homomorphism:
 		for row in zip(*columns):
 			row = [str(entry).replace('x', root_names[i]) for i, entry in enumerate(row)]
 			yield fmt.format(*row)
+
+#Used in from_file()
+extract_signatures = re.compile(r"""
+	\( \s* (\d+) [\s,]+ (\d+) \s* \)
+	[\s\->]+
+	\( \s* (\d+) [\s,]+ (\d+) \s* \)""", re.VERBOSE)

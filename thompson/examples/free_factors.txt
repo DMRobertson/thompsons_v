@@ -1,0 +1,6 @@
+example_4_25       i
+example_5_3      p i
+example_5_9      p
+example_5_12_phi p
+example_5_12_psi p
+example_5_26_psi   i
