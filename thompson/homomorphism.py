@@ -161,6 +161,19 @@ class Homomorphism:
 				r.append(r_word)
 		return cls(d, r)
 	
+	def save_to_file(self, filename=None):
+		""""""
+		#todo docstring
+		#todo test that this is an inverse to from_file
+		if filename is None:
+			clsname = type(self).__name__ 
+			filename = clsname + '.' + clsname.lower()[:3]
+		with open(filename, 'wt', encoding='utf-8') as f:
+			print(len(self.domain), file=f)
+			print("{} -> {}".format(self.domain.signature, self.range.signature), file=f)
+			for d, r in zip(self.domain, self.range):
+				print("{} -> {}".format(d, r), file=f)
+	
 	#Simple operations on homomorphisms
 	def __eq__(self, other):
 		return all(self.image(w) == other.image(w) for w in chain(self.domain, other.domain))
@@ -364,44 +377,43 @@ class Homomorphism:
 		"""
 		output = StringIO()
 		output.write(self._string_header())
-		rows = self._format_table(self.domain, self.range)
+		rows = format_table(self.domain, self.range)
 		for row in rows:
 			output.write('\n')
 			output.write(row)
 		return output.getvalue()
+
+def format_table(*columns, sep=None, root_names=None):
+	for row in zip(*columns):
+		break
+	num_columns = len(row)
 	
-	@staticmethod
-	def _format_table(*columns, sep=None, root_names=None):
-		for row in zip(*columns):
-			break
-		num_columns = len(row)
-		
-		if sep is None:
-			sep = [' -> '] * (num_columns - 1)
-		else:
-			assert len(sep) == (num_columns - 1)
-			sep = [' {} '.format(s) for s in sep]
-		
-		if root_names is None:
-			root_names = 'x' * num_columns
-		else:
-			assert len(root_names) == num_columns
-		
-		max_width = [0] * num_columns
-		for row in zip(*columns):
-			for i, entry in enumerate(row):
-				max_width[i] = max(max_width[i], len(str(entry)))
-		
-		column = "{{!s: <{}}}"
-		fmt = ""
-		for i, width in enumerate(max_width):
-			if i > 0:
-				fmt += sep[i - 1]
-			fmt += column.format(max_width[i])
-		
-		for row in zip(*columns):
-			row = [str(entry).replace('x', root_names[i]) for i, entry in enumerate(row)]
-			yield fmt.format(*row)
+	if sep is None:
+		sep = [' -> '] * (num_columns - 1)
+	else:
+		assert len(sep) == (num_columns - 1)
+		sep = [' {} '.format(s) for s in sep]
+	
+	if root_names is None:
+		root_names = 'x' * num_columns
+	else:
+		assert len(root_names) == num_columns
+	
+	max_width = [0] * num_columns
+	for row in zip(*columns):
+		for i, entry in enumerate(row):
+			max_width[i] = max(max_width[i], len(str(entry)))
+	
+	column = "{{!s: <{}}}"
+	fmt = ""
+	for i, width in enumerate(max_width):
+		if i > 0:
+			fmt += sep[i - 1]
+		fmt += column.format(max_width[i])
+	
+	for row in zip(*columns):
+		row = [str(entry).replace('x', root_names[i]) for i, entry in enumerate(row)]
+		yield fmt.format(*row)
 
 #Used in from_file()
 extract_signatures = re.compile(r"""
