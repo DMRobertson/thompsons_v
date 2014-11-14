@@ -225,6 +225,7 @@ class Automorphism(Homomorphism):
 			print(basis[i], otype)
 			if otype.is_incomplete():
 				basis.expand(i)
+				i = 0
 			else:
 				i += 1
 		self._qnf_basis = basis
