@@ -15,8 +15,9 @@ from pprint import pprint
 
 import networkx as nx
 
-from .automorphism import Automorphism
 from .generators import Generators
+from .homomorphism import format_table
+from .automorphism import Automorphism
 from .word import Word
 
 __all__ = ["PeriodicFactor", "InfiniteFactor"]
@@ -78,12 +79,14 @@ class AutomorphismFactor(Automorphism):
 		return self.domain_relabeller.image_of_set(self.domain), self.range_relabeller.image_of_set(self.range)
 	
 	def __str__(self):
+		if self.domain_relabeller is None:
+			return super().__str__()
 		output = StringIO()
 		output.write(self._string_header())
 		output.write("\nThis automorphism was derived from a parent automorphism.\n'x' and 'y' represent root words of the parent and current derived algebra, respectively.")
 		
 		domain_relabelled, range_relabelled = self.relabel()
-		rows = self._format_table(
+		rows = format_table(
 		    domain_relabelled, self.domain, self.range, range_relabelled,
 		    sep = ['~>   ', '=>', '   ~>'], root_names = 'xyyx'
 		)
@@ -189,6 +192,11 @@ class PeriodicFactor(AutomorphismFactor):
 			x1 a1 a2       ~>    y1 a2 a1 a2 => y1 a2 a1 a1    ~> x1 a2 a1 a1
 			x1 a2 a1       ~>    y1 a2 a2 a1 => y1 a1 a1 a2    ~> x1 a1 a1 a2
 			x1 a2 a2       ~>    y1 a2 a2 a2 => y1 a2 a1 a2    ~> x1 a2 a1 a2
+			>>> rho_p * phi_p == psi_p * rho_p
+			True
+			
+			>>> psi_p, phi_p = random_conjugate_periodic_pair()
+			>>> rho_p = psi_p.test_conjugate_to(phi_p)
 			>>> rho_p * phi_p == psi_p * rho_p
 			True
 		

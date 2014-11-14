@@ -14,7 +14,6 @@ __all__ = random.__all__
 #TODO. Allow powers in the definition of words e.g. a1^4?
 
 def add_module_attribute(name, value):
-	print('setting', name)
 	globals()[name] = value
 	__all__.append(name)
 
@@ -34,17 +33,14 @@ def read_examples():
 	with open(free_factors, encoding='utf-8') as f:
 		for line in f:
 			details = line.lower().split()
-			print(details)
 			name = details[0]
 			
 			aut = globals()[name]
 			basis = aut.quasinormal_basis()
 			p, i = aut._partition_basis(basis)
 			if 'p' in details[1:]:
-				print('P')
 				add_module_attribute(name + '_p', aut.free_factor(p, infinite=False))
 			if 'i' in details[1:]:
-				print('I')
 				add_module_attribute(name + '_i', aut.free_factor(i, infinite=True))
 	
 	#3. If any examples have more than one name, deal with that next.
@@ -52,7 +48,6 @@ def read_examples():
 	with open(aliases, encoding='utf-8') as f:
 		for line in f:
 			alias, name = line.translate(remove_whitespace).split('=')
-			print(alias, name)
 			add_module_attribute(alias, globals()[name])
 
 read_examples()

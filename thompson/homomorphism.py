@@ -198,7 +198,12 @@ class Homomorphism:
 			x2 a2    -> x1 a2 a3 a2
 			x2 a3    -> x1 a2 a3 a1
 		"""
-		if not isinstance(other, Homomorphism):
+		parent_cls = None
+		if isinstance(other, type(self)):
+			parent_cls = type(self)
+		elif isinstance(self, type(other)):
+			parent_cls = type(other)
+		if parent_cls is None:
 			return NotImplemented
 		if self.range.signature != other.domain.signature:
 			raise TypeError("Signatures {}->{} and {}->{} do not match.".format(
@@ -207,10 +212,12 @@ class Homomorphism:
 		range = Generators(other.range.signature)
 		range = other.image_of_set(self.range)
 		domain = copy(self.domain)
-		
-		from thompson.automorphism import Automorphism
-		type = Automorphism if self.domain.signature == other.range.signature else Homomorphism
-		return type(domain, range)
+		for supercls in (parent_cls,) + parent_cls.__bases__:
+			try:
+				return supercls(domain, range)
+			except Exception as e:
+				pass
+		raise e
 	
 	#Finding images of words
 	def image(self, key, sig_in=None, sig_out=None, cache=None):

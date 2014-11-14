@@ -1,0 +1,37 @@
+Traceback (most recent call last):
+  File "H:\thompsons_v\scripts\test_conjugacy.py", line 19, in <module>
+    phi_p, phi_i = phi.free_factors()
+  File "H:\thompsons_v\thompson\automorphism.py", line 781, in free_factors
+    p, i = self._partition_basis(basis)
+  File "H:\thompsons_v\thompson\automorphism.py", line 682, in _partition_basis
+    raise ValueError('Automorphism is not in semi-normal form with respect to the given basis.')
+ValueError: Automorphism is not in semi-normal form with respect to the given basis.
+PSI
+===
+
+ Automorphism: V(2, 3) -> V(2, 3) specified by 7 generators (after expansion and reduction).
+x1          -> x1 a1   
+x2 a1 a1    -> x1 a2   
+x2 a1 a2    -> x2 a1   
+x2 a2 a1    -> x2 a2 a2
+x2 a2 a2 a1 -> x3 a2   
+x2 a2 a2 a2 -> x3 a1   
+x3          -> x2 a2 a1
+PHI
+===
+
+ Automorphism: V(2, 3) -> V(2, 3) specified by 14 generators (after expansion and reduction).
+x1                   -> x2 a1 a2 a1 a1 a2 a2
+x2 a1 a1 a1          -> x3 a1 a2            
+x2 a1 a1 a2          -> x2 a1 a1            
+x2 a1 a2 a1          -> x2 a1 a2 a2         
+x2 a1 a2 a2 a1 a1    -> x3 a2 a2            
+x2 a1 a2 a2 a1 a2    -> x2 a2 a2            
+x2 a1 a2 a2 a2 a1    -> x3 a2 a1            
+x2 a1 a2 a2 a2 a2 a1 -> x2 a2 a1            
+x2 a1 a2 a2 a2 a2 a2 -> x1                  
+x2 a2 a1             -> x2 a1 a2 a1 a1 a2 a1
+x2 a2 a2             -> x2 a1 a2 a1 a2 a2   
+x3 a1                -> x3 a1 a1            
+x3 a2 a1             -> x2 a1 a2 a1 a1 a1   
+x3 a2 a2             -> x2 a1 a2 a1 a2 a1   

@@ -20,7 +20,7 @@ class OrbitType(BaseOrbitType):
 	
 	* For complete finite orbits, the period of the orbit;
 	* For semi-infinite orbits, the characteristic :math:`(m, \Gamma)` of the orbit;
-	* For incomplete orbits, the constant ``None``;
+	* For \ orbits, the constant ``None``;
 	* For complete infinite orbits, a triple :math:`(k, z, \Delta)` such that :math:`w\phi^k = z\Delta`, for some word :math:`w` in the orbit being described. We require :math:`z` to be of type B (i.e. semi-infinite), and so refer to this triple as the *type B data*.
 	
 	.. seealso:: Lemma 4.14 of the paper.

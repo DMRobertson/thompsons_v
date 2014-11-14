@@ -102,6 +102,12 @@ class Automorphism(Homomorphism):
 		
 	inverse = __invert__
 	
+	@classmethod
+	def identity(cls, signature):
+		d = Generators.standard_basis(signature)
+		r = Generators.standard_basis(signature)
+		return cls(d, r)
+	
 	def is_identity(self):
 		basis = Generators.standard_basis(self.signature)
 		return self.image_of_set(basis) == basis
@@ -216,6 +222,7 @@ class Automorphism(Homomorphism):
 		i = 0
 		while i < len(basis):
 			otype, _, _ = self.orbit_type(basis[i], basis)
+			print(basis[i], otype)
 			if otype.is_incomplete():
 				basis.expand(i)
 			else:
@@ -586,7 +593,6 @@ class Automorphism(Homomorphism):
 		if result is None:
 			return None
 		pure_periodic, pure_infinite, s_qnf_p, s_qnf_i, o_qnf_p, o_qnf_i = result
-		print(*result)
 		#4. If necessary, test the periodic factors.
 		if pure_infinite:
 			rho_p = None
@@ -769,7 +775,26 @@ class Automorphism(Homomorphism):
 		range = Generators(self.signature, range)
 		
 		return Automorphism(domain, range)
+	
+	#For convenience
+	def free_factors(self):
+		basis = self.quasinormal_basis()
+		p, i = self._partition_basis(basis)
+		p = handle_trivial_factors(self, p, False)
+		i = handle_trivial_factors(self, i, True)
+		return p, i
 
+def handle_trivial_factors(aut, gens, infinite=False):
+	try:
+		factor = aut.free_factor(gens, infinite)
+	except ValueError as e:
+		if e.args[0] == 'Must provide at least one generator.':
+			from .factors import get_factor_class
+			type = get_factor_class(infinite)
+			factor = type.identity(gens.signature)
+		else:
+			raise e
+	return factor
 #TODO? Invert automorphisms (and implement any functionality left over from TreePair?)
 #TODO? Decide if the automorphism is in (the equivalent of) F, T, or V.
 #TODO? The named generators A, B, C, X_n of Thompson's V. Analogues for general G_n,r?
