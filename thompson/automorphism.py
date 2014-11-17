@@ -222,7 +222,7 @@ class Automorphism(Homomorphism):
 		i = 0
 		while i < len(basis):
 			otype, _, _ = self.orbit_type(basis[i], basis)
-			print(basis[i], otype)
+			# print(basis[i], otype)
 			if otype.is_incomplete():
 				basis.expand(i)
 				i = 0
@@ -490,6 +490,8 @@ class Automorphism(Homomorphism):
 		#Now we're dealing with simple words below the basis.
 		u_head, u_tail = basis.test_above(u)
 		v_head, v_tail = basis.test_above(v)
+		print("{} = {} | {}".format(u, u_head, u_tail))
+		print("{} = {} | {}".format(v, v_head, v_tail))
 		u_head_type, _, u_head_data = self.orbit_type(u_head, basis)
 		v_head_type, _, v_head_data = self.orbit_type(v_head, basis)
 		
@@ -514,8 +516,11 @@ class Automorphism(Homomorphism):
 		
 		u = u_head.extend(u_tail)
 		v = v_head.extend(v_tail)
+		print("{} = {} | {}".format(u, u_head, u_tail))
+		print("{} = {} | {}".format(v, v_head, v_tail))
 		
 		type, images, _ = self.orbit_type(u, basis)
+		print(images)
 		for i, image in images.items():
 			if image == v:
 				return SolutionSet.singleton(u_shift + i - v_shift)
@@ -781,18 +786,16 @@ class Automorphism(Homomorphism):
 	def free_factors(self):
 		basis = self.quasinormal_basis()
 		p, i = self._partition_basis(basis)
-		p = handle_trivial_factors(self, p, False)
-		i = handle_trivial_factors(self, i, True)
-		return p, i
+		p_factor = handle_trivial_factors(self, p, False)
+		i_factor = handle_trivial_factors(self, i, True)
+		return p_factor, i_factor
 
 def handle_trivial_factors(aut, gens, infinite=False):
 	try:
 		factor = aut.free_factor(gens, infinite)
 	except ValueError as e:
 		if e.args[0] == 'Must provide at least one generator.':
-			from .factors import get_factor_class
-			type = get_factor_class(infinite)
-			factor = type.identity(gens.signature)
+			return None
 		else:
 			raise e
 	return factor

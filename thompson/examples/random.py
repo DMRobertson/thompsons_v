@@ -12,13 +12,13 @@ __all__ = ['random_signature', 'random_basis',
 	'random_conjugate_factors']
 
 def needs_defaults(undec):
-	def dec(num_expansions=None, signature=None):
+	def decd(num_expansions=None, signature=None):
 		if num_expansions is None:
 			num_expansions = randint(1, 5)
 		if signature is None:
 			signature = random_signature()
 		return undec(num_expansions, signature)
-	return dec
+	return decd
 
 def random_signature():
 	return (randint(2, 4), randint(1, 5))

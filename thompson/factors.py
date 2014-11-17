@@ -310,8 +310,6 @@ class InfiniteFactor(AutomorphismFactor):
 		if not isinstance(other, InfiniteFactor):
 			raise TypeError('Other automorphism must be a InfiniteFactor.')
 		
-		print(self)
-		print(other)
 		#1. The QNF bases are computed automatically.
 		#2. Compute the equivalence classes X_1, ... X_m of \equiv on self's QNF basis
 		type_b, type_c = self._split_basis()
@@ -483,8 +481,10 @@ class InfiniteFactor(AutomorphismFactor):
 		for word in other.semi_infinite_end_points():
 			type, _, _ = other.orbit_type(word, basis)
 			if type.is_type_B():
-				print(word, type)
+				print('*', word, type)
 				images_by_char[type.characteristic].add(word)
+			else:
+				print(' ', word, type)
 		
 		orbit_endpts = {word : images_by_char[char] for word, char in self_type_b.items()}
 		return orbit_endpts
@@ -534,15 +534,17 @@ def maps_satisfying_choices(domain, choices, image_for):
 	
 	:returns: yields mappings which satisfy all the constraints until it is no longer possible to do so.
 	"""
+	print(' ** Maps satisfying choices ** ')
 	#2. Setup the state we need
 	images = {}                             #mapping from ladder to images
 	choice_iterators = [None] * len(domain) #iterators yielding the choices at each rung
 	depth  = 0                              #current position on the ladder
 	ascend = False                          #do we go up or down?
-	
+	print(domain)
 	while True:
 		#If the last choice we made didn't work (or we reached the bottom of the ladder) go up
 		if ascend:
+			print('Going up')
 			current = domain[depth]
 			try:
 				del images[current]
@@ -551,28 +553,30 @@ def maps_satisfying_choices(domain, choices, image_for):
 			choice_iterators[depth] = None
 			depth -= 1
 			if depth < 0:
+				print('break')
 				break
+		ascend = False
 		
 		#Select the next choice for this depth
 		current = domain[depth]
 		if choice_iterators[depth] is None:
+			print('create choice iterator for depth', depth)
 			choice_iterators[depth] = iter(choices[current])
 		try:
 			choice = next(choice_iterators[depth])
-		except GeneratorExit:
+			print('trying the choice', current, '~> orbit ending in', choice)
+		except StopIteration:
+			print('No more choices available')
 			ascend = True
 			continue
 		
 		#Does this choice give us an image?
-		print('trying the choice', current, '~>', choice)
 		img = image_for(current, choice, images)
 		if img is None:
 			print('This doesn\'t work.')
-			ascend = True
 			continue
 		print('WORKS, and', current, '->', img)
 		images[current] = img
-		ascend = False
 		
 		#If we've made it this far, we've chosen an image. Try to go down the ladder.
 		if depth + 1 == len(domain):
@@ -580,23 +584,42 @@ def maps_satisfying_choices(domain, choices, image_for):
 			yield images
 			ascend = True
 		else:
+			print('going down')
 			depth += 1
 
 def image_for_type_b(word, chosen_endpoint, images, roots, graph, aut):
 	"""Is it possible to map *word* into the *aut*-orbit ending with *chosen_endpoint* when we have already constructed a mapping described by *images*?"""
+	#In the paper's notation,
+	#chosen_endpoint is w
+	#word is x
 	if word in roots:
 		return chosen_endpoint
 	
 	predecessor, _, edge_data = next(graph.in_edges_iter(word, data=True))
 	predecessor_image = images[predecessor]
 	
-	u = chosen_endpoint.extend(edge_data['end_tail'])
-	v = predecessor_image.extend(edge_data['start_tail'])
+	u = chosen_endpoint.extend(edge_data['end_tail'])     #w   Delta
+	v = predecessor_image.extend(edge_data['start_tail']) #y_i Gamma
+	# v = aut.repeated_image(v, edge_data['power'])         #y_i Gamma phi^k
+	
+	from .word import from_string
+	if u == from_string('x1 a1 a1 a1 a1 a1 a1 a1 a1 a2') and v == from_string('x1 a2 a2 a1 a1 a2'):
+		print('x =', word)
+		print('w =', chosen_endpoint)
+		print('Delta =', edge_data['end_tail'])
+		print('y_i =', predecessor_image)
+		print('Gamma =', edge_data['start_tail'])
+		
+		print('u = w Delta =', u)
+		print('v = y_i Gamma =', v)
+		print('k =', edge_data['power'])
+		print('do', u, 'and', v, 'share an orbit?')
+	
 	solns = aut.share_orbit(u, v)
 	if solns.is_empty():
 		return None
-	assert not solns.is_sequence()
-	return aut.repeated_image(chosen_endpoint, solns.base + edge_data['power'])
+	assert not solns.is_sequence(), solns
+	return aut.repeated_image(chosen_endpoint, solns.base)
 
 def image_for_type_c(word, type_b_data, images, aut):
 	power, gen, tail = type_b_data
