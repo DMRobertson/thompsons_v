@@ -490,8 +490,8 @@ class Automorphism(Homomorphism):
 		#Now we're dealing with simple words below the basis.
 		u_head, u_tail = basis.test_above(u)
 		v_head, v_tail = basis.test_above(v)
-		print("{} = {} | {}".format(u, u_head, u_tail))
-		print("{} = {} | {}".format(v, v_head, v_tail))
+		print("{} = {} | {}".format(u, u_head, format(u_tail)))
+		print("{} = {} | {}".format(v, v_head, format(v_tail)))
 		u_head_type, _, u_head_data = self.orbit_type(u_head, basis)
 		v_head_type, _, v_head_data = self.orbit_type(v_head, basis)
 		
@@ -516,9 +516,11 @@ class Automorphism(Homomorphism):
 		
 		u = u_head.extend(u_tail)
 		v = v_head.extend(v_tail)
-		print("{} = {} | {}".format(u, u_head, u_tail))
-		print("{} = {} | {}".format(v, v_head, v_tail))
+		print("{} = {} | {}".format(u, u_head, format(u_tail)))
+		print("{} = {} | {}".format(v, v_head, format(v_tail)))
 		
+		type, images, _ = self.orbit_type(v, basis)
+		print(images)
 		type, images, _ = self.orbit_type(u, basis)
 		print(images)
 		for i, image in images.items():
