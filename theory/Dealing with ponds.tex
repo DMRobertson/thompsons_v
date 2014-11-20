@@ -68,4 +68,27 @@
 \end{enumerate}
 
 
+
+\subsection*{Orbit-sharing test}
+\begin{enumerate}
+	\item \alert{If} it is not the case that both $u, v \in X\ofA$:
+	\begin{enumerate}
+		\item Choose an integer $s$ so that all strings $\Gamma \in A^*$ of length $s$ satisfy $u\Gamma, v\Gamma \in X\ofA$.
+		\item \alert{For} each such $\Gamma$, run the orbit-sharing test on $u\Gamma$ and $v\Gamma$.
+		\item \alert{Return} the interesection of all the solution sets found.
+	\end{enumerate}
+	
+	Otherwise, $u, v \in X\ofA$. If it is true that $u$ and $v$ share an orbit, then either they belong to the same $X$-component, or they are separated by a pond.
+	
+	\item Look to see if $u$ is in a pond-orbit. \alert{For} each `bank' word $b$:
+	\begin{enumerate}
+		\item Run the orbit-sharing test on $b$ and $u$. Let $S$ denote the solution set.
+		\item \alert{If} the test returns $S=\emptyset$, \alert{continue} to the next bank word.
+		\item Run the component-sharing test on $(b, v)$ and $(b', v)$, where $b'$ is the other bank of the pond in question.
+		\item \alert{If} one of these two tests returns a non-empty solution set, $u$ and $v$ share an orbit. Combine the two non-empty solution sets and \alert{return}.
+		\item \alert{Else}, \alert{return} $\emptyset$.
+	\end{enumerate}
+	If we reach this point without returning, then $u$ does not lie in a pond orbit. It may be the case that $v$ \emph{does} lie in a pond orbit; but then this certainly means that $u$ and $v$ do not share an $X$-component. Thus the rest of the tests in Lemma 4.24.2 should conclude that $u$ and $v$ do not share an orbit.
+\end{enumerate}
+
 \end{document}
