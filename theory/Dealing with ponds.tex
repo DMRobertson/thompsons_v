@@ -1,0 +1,71 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper, heightrounded,
+	bindingoffset=6mm, left=10mm, right=40mm, marginparsep=5mm, marginparwidth=32.5mm,
+	headheight=15pt, top=25mm, bottom=20mm]{geometry}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{setspace}
+
+\let\phi\varphi
+\let\from\gets
+\def\ofA{\langle A \rangle}
+\renewcommand{\a}[1]{\alpha_#1}
+
+\newcommand\alert\textbf
+\newcommand\todo[1]{{\color{red}TODO: #1}}
+
+\usepackage{marginnote}
+\usepackage{ragged2e}
+\renewcommand*{\marginfont}{\normalfont\footnotesize}
+\renewcommand*{\raggedleftmarginnote}{\RaggedRight}
+\renewcommand*{\raggedrightmarginnote}{\RaggedRight}
+
+\begin{document}
+\onehalfspacing
+
+\subsection*{Identifying pond-type orbits}
+
+\begin{enumerate}
+\item Construct the quasi-normal basis X as before.
+\item Compute $X\ofA \setminus Y\ofA$ and $X\ofA \setminus Z\ofA$.
+\item \label{it:terminal_banks}
+	\alert{For} each terminal element $\ell$ in $X\ofA \setminus Y\ofA$:
+	
+	\begin{enumerate}
+		\item \label{it:iterate_descendants}
+			Let $\Gamma$ iterate through $A^*$ in shortlex order starting with $\Gamma=1$, the empty word. \alert{For} each $\Gamma$:
+			\begin{enumerate}
+				\item Compute $w = \ell\Gamma \phi$.
+				\item Write $w$ in terms of $X$. Either $w = x\Delta$ for some $x \in X, \Delta \in A^*$, or $w = x_1 \dots x_n\lambda$, with $x_i \in X$.
+				\item \alert{Break} if the $\lambda$-length of $w$ is exactly $1$. \marginnote{On the first iteration the $\lambda$-length is at least $1$. }
+			\end{enumerate}
+		
+		\item At this point, each $w_i = w \a i$ should be in $X$ and belong to a type C orbit.
+		\item \alert{For} each $w_i$:
+		
+		\begin{enumerate}
+				\item \alert{If} $w_i$ is in a doubly infinite orbit, we're okay.
+				\item \alert{Else}, we're still in a left semi-infinite orbit. Go back to step \ref{it:iterate_descendants}, replacing $\ell \from w_i$.
+		\end{enumerate}
+		
+		\item At this stage, we should have $\Gamma'$ such that $w_i = \ell\Gamma'\phi\a i \in X$ belongs to a doubly-infinite orbit. \marginnote{We may have had to concatenate the strings $\Gamma$ and $\a j$ from previous steps to obtain $\Gamma'$.} 		Record this data in a tuple $(\ell, \Gamma'\a i, w_i)$.		
+	\end{enumerate}
+
+\item \label{it:initial_banks}
+	Perform a very similar process \alert{for} each initial element $r$ in $X\ofA \setminus Z\ofA$. (Use $\phi^{-1}$ instead of $\phi$.) We obtain a list of tuples $(r, \Delta'\alpha_i, v_i)$ for which $r\Delta'\phi^{-1}\alpha_i = v_i$ and $v_i \in X$ is in a doubly infinite orbit.
+
+\item Try to match up tuples from step \ref{it:terminal_banks} with tuples from step \ref{it:initial_banks}.
+	\begin{itemize}
+		\item Two such tuples $(\ell, \Gamma, w_i)$ and $(r, \Delta, v_i)$ match if $\Gamma=\Delta$ and $w_i, v_i$ belong to the same $\phi$-orbit. \marginnote{We will need to record which elements of $X$ share orbits as part of finding the quasi-normal basis.}
+		
+		\item \todo{check this.} If two such tuples match, then $\ell$ and $r$ are the banks of a pond-type $\phi$-orbit.
+		\item \todo{check this.} If no tuple containing $\ell$ matches any of the $r$-tuples, then $\ell$ belongs to a genuinely left semi-infinite orbit
+		\item \todo{check this.} Similarly, if no tuple containing $r$ matches any of the $\ell$-tuples, then $r$ belongs to a genuinely right semi-infinite orbit.
+		
+	\end{itemize}
+\item At the end of this process, we will have identified which of the semi-infinite type C components belong to pond orbits and which do not.
+\todo{provided the stuff in red is true.} Associate this information to the object representing $\phi$.
+\end{enumerate}
+
+
+\end{document}

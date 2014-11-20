@@ -2,6 +2,13 @@
 literature/
 #Don't include test SVG files
 scripts/*.svg
+#Don't include LaTeX files other than .tex
+theory/*.aux
+theory/*.log
+theory/*.synctex.gz
+theory/*.pdf
+
+
 
 #Begin Github's defaults for Python projects.
 # Byte-compiled / optimized / DLL files
