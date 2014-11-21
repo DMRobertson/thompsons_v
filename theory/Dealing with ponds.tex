@@ -21,13 +21,46 @@
 \renewcommand*{\raggedrightmarginnote}{\RaggedRight}
 
 \begin{document}
-\onehalfspacing
 
-\subsection*{Identifying pond-type orbits}
+
+\subsection{Useful lemmas}
+\paragraph{Lemma---AJD.} Suppose $b$ is a bank of a pond. Then there is a $\Gamma \in A^*$ such that $b \Gamma$ belongs to a doubly infinite $\phi$-orbit that meets $X$. 
+\begin{proof}Written in an email.\end{proof}
+
+\paragraph{Lemma.} Suppose $\ell \in X\ofA \setminus Y\ofA$ and $r \in X\ofA \setminus Z\ofA$. Let $\Gamma$ be such that $\ell\Gamma$ belongs to a doubly infinite $\phi$-orbit. (Such a $\Gamma$ exists by AJD's lemma.) Then:
+\begin{enumerate}
+	\item \label{it:bank_test_down}
+		If $(\ell, r)$ are banks of a pond, $\ell\Gamma$ and $r\Gamma$ share an orbit.
+	\item \label{it:bank_test_up} 
+		If $\ell\Gamma$ and $r\Gamma$ share an orbit, then there is at most one solution to the equation $\ell\phi^k = r$.
+\end{enumerate}
+\begin{proof}
 
 \begin{enumerate}
-\item Construct the quasi-normal basis X as before.
-\item Compute $X\ofA \setminus Y\ofA$ and $X\ofA \setminus Z\ofA$.
+	\item If $\ell\phi^k = r$, then $\ell\Gamma\phi^k = \ell \phi^k \Gamma = r \Gamma$.
+	\item We will show that
+	\begin{equation*}
+		\ell\Gamma\phi^k = r \Gamma \implies (\text{If $\ell\phi^m = r$, then $k = m$}).
+	\end{equation*}
+	This is a statement of the form $A \implies (B \implies C)$, which is equivalent to the statement $\neg(A \land B \land \neg C)$. We prove the second statement by showing that $A \land B \land \neg C$ causes a contradiction.
+
+	Suppose that $\ell\Gamma\phi^k = r$, $\ell\phi^m = r$, and that $k \neq m$. It follows that  $\ell\Gamma\phi^m = r = \ell\Gamma\phi^k$, meaning that $\ell\Gamma\phi^{m-k} = \ell \Gamma$. Since $k \neq m$, this means that $\ell\Gamma$ belongs to a periodic $\phi$-orbit. But this contradicts the fact that $\Gamma$ is of type C.
+\end{enumerate}
+\end{proof}
+
+Now we outline a procedure to test if $(\ell, r)$ are banks of a pond.
+\begin{enumerate}
+	\item Find an integer $\Gamma$ corresponding to $\ell$ as in AJD's lemma.
+	\item Run the orbit sharing test on $\ell\Gamma$ and $r\Gamma$. Because $\ell\Gamma$ is in a doubly infinite orbit, we don't need to worry about this failing due to a pond.
+	\item \alert{If} the test fails, then $(\ell, r)$ are not the banks of a pond. [This is the contrapositive of part \ref{it:bank_test_down}.]
+	\item \alert{Else} we have $k$ such that $\ell\Gamma\phi^k = r \Gamma$. By part \ref{it:bank_test_up}, $(\ell, r)$ are banks if and only if $\ell\phi^k=r$. We can evaluate this equality.
+
+\end{enumerate}
+
+\subsection{Gathering pond data}
+
+\begin{enumerate}
+\item Construct the quasi-normal basis X as before, and compute $X\ofA \setminus Y\ofA$ and $X\ofA \setminus Z\ofA$.
 \item \label{it:terminal_banks}
 	\alert{For} each terminal element $\ell$ in $X\ofA \setminus Y\ofA$:
 	
@@ -36,49 +69,36 @@
 			Let $\Gamma$ iterate through $A^*$ in shortlex order starting with $\Gamma=1$, the empty word. \alert{For} each $\Gamma$:
 			\begin{enumerate}
 				\item Compute $w = \ell\Gamma \phi$.
-				\item Write $w$ in terms of $X$. Either $w = x\Delta$ for some $x \in X, \Delta \in A^*$, or $w = x_1 \dots x_n\lambda$, with $x_i \in X$.
-				\item \alert{Break} if the $\lambda$-length of $w$ is exactly $1$. \marginnote{On the first iteration the $\lambda$-length is at least $1$. }
+				\item Set $w_i = w \a i$, \alert{for} $i = 1, \dotsc, n$.
+				\item \alert{Break} if each $w_i$ belongs to $X$.
 			\end{enumerate}
 		
-		\item At this point, each $w_i = w \a i$ should be in $X$ and belong to a type C orbit.
-		\item \alert{For} each $w_i$:
+		\item At this point, each $w_i \in X$ should be in a type C $X$-component.
+		\item Choose one of the $w_i$, say $w_1$.
+		\item \alert{If} $w_i$ is in a left semi-infinite component, go back to step \ref{it:iterate_descendants}, replacing $\ell \from w_i$.
 		
-		\begin{enumerate}
-				\item \alert{If} $w_i$ is in a doubly infinite orbit, we're okay.
-				\item \alert{Else}, we're still in a left semi-infinite orbit. Go back to step \ref{it:iterate_descendants}, replacing $\ell \from w_i$.
-		\end{enumerate}
-		
-		\item At this stage, we should have $\Gamma'$ such that $w_i = \ell\Gamma'\phi\a i \in X$ belongs to a doubly-infinite orbit. \marginnote{We may have had to concatenate the strings $\Gamma$ and $\a j$ from previous steps to obtain $\Gamma'$.} 		Record this data in a tuple $(\ell, \Gamma'\a i, w_i)$.		
+		\item At this stage, we should have $\Gamma'$ and $w_i'$ such that $w_i' = \ell\Gamma'\phi\a i \in X$ belongs to a doubly-infinite orbit. \marginnote{We may have had to concatenate the strings $\Gamma$ and $\a j$ from previous steps to obtain $\Gamma'$.} Record the tuple $(\ell, \Gamma'\alpha_i)$.
 	\end{enumerate}
 
-\item \label{it:initial_banks}
-	Perform a very similar process \alert{for} each initial element $r$ in $X\ofA \setminus Z\ofA$. (Use $\phi^{-1}$ instead of $\phi$.) We obtain a list of tuples $(r, \Delta'\alpha_i, v_i)$ for which $r\Delta'\phi^{-1}\alpha_i = v_i$ and $v_i \in X$ is in a doubly infinite orbit.
+\item Let $R$ be a set. Initialise $R$ with the contents of $X\ofA \setminus Z\ofA$.
 
-\item Try to match up tuples from step \ref{it:terminal_banks} with tuples from step \ref{it:initial_banks}.
-	\begin{itemize}
-		\item Two such tuples $(\ell, \Gamma, w_i)$ and $(r, \Delta, v_i)$ match if $\Gamma=\Delta$ and $w_i, v_i$ belong to the same $\phi$-orbit. \marginnote{We will need to record which elements of $X$ share orbits as part of finding the quasi-normal basis.}
-		
-		\item \todo{check this.} If two such tuples match, then $\ell$ and $r$ are the banks of a pond-type $\phi$-orbit.
-		\item \todo{check this.} If no tuple containing $\ell$ matches any of the $r$-tuples, then $\ell$ belongs to a genuinely left semi-infinite orbit
-		\item \todo{check this.} Similarly, if no tuple containing $r$ matches any of the $\ell$-tuples, then $r$ belongs to a genuinely right semi-infinite orbit.
-		
-	\end{itemize}
-\item At the end of this process, we will have identified which of the semi-infinite type C components belong to pond orbits and which do not.
-\todo{provided the stuff in red is true.} Associate this information to the object representing $\phi$.
+\item Try to match $\ell$ to $r\in R$. \alert{For} each $\ell \in X\ofA \setminus Y\ofA$:
+	\begin{enumerate}
+	\item \alert{For} each $r \in R$:
+		\begin{enumerate}
+		\item Use the previous proceedure and the data recorded previously to see if $(\ell, r)$ are banks of a pond.
+		\item \alert{If} so, record this fact, taking note of the value $k$ for which $\ell\phi^k = r$. Then remove $r$ from $R$, \alert{break} and \alert{continue} to the next $\ell' \in L$.
+		\end{enumerate}
+		\item If we exhaust all remaning initial words $r$, then $\ell$ is in a genuinely left semi-infinite $\phi$-orbit.
+	\end{enumerate}
+	\item Any elements remaining in $R$ are in genuinely left semi-infinite $\phi$-orbits.
 \end{enumerate}
 
 
 
-\subsection*{Orbit-sharing test}
+\subsection{Modifications to the orbit-sharing test}
 \begin{enumerate}
-	\item \alert{If} it is not the case that both $u, v \in X\ofA$:
-	\begin{enumerate}
-		\item Choose an integer $s$ so that all strings $\Gamma \in A^*$ of length $s$ satisfy $u\Gamma, v\Gamma \in X\ofA$.
-		\item \alert{For} each such $\Gamma$, run the orbit-sharing test on $u\Gamma$ and $v\Gamma$.
-		\item \alert{Return} the interesection of all the solution sets found.
-	\end{enumerate}
-	
-	Otherwise, $u, v \in X\ofA$. If it is true that $u$ and $v$ share an orbit, then either they belong to the same $X$-component, or they are separated by a pond.
+	\item Let us skip forward to the point where we assume $u, v \in X\ofA$. If it is true that $u$ and $v$ share an orbit, then either they belong to the same $X$-component, or they are separated by a pond.
 	
 	\item Look to see if $u$ is in a pond-orbit. \alert{For} each `bank' word $b$:
 	\begin{enumerate}
