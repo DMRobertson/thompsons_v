@@ -318,8 +318,7 @@ class SolutionSet(BaseSolutionSet):
 		return "{{..., {0}, ...}}".format(", ".join(values))
 
 def extended_gcd(a,b):
-	"""From `this exposition of the extended gcd algorithm <http://anh.cs.luc.edu/331/notes/xgcd.pdf>`. Computes :math:`d = \gcd(a, b)` and returns a triple :math:`(d, x, y)` where :math:`d = ax + by`.
-	"""
+	"""From `this exposition of the extended gcd algorithm <http://anh.cs.luc.edu/331/notes/xgcd.pdf>`. Computes :math:`d = \gcd(a, b)` and returns a triple :math:`(d, x, y)` where :math:`d = ax + by`."""
 	prevx, x = 1, 0; prevy, y = 0, 1
 	while b:
 		q = a//b

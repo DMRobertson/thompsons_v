@@ -67,6 +67,7 @@ class Automorphism(Homomorphism):
 			  range.signature, [format(x) for x in missing]))
 		
 		#Cache attributes
+		self.pond_banks = None
 		self._inv = {}
 		self._qnf_basis = None
 		self.signature = domain.signature
@@ -229,19 +230,18 @@ class Automorphism(Homomorphism):
 		terminal, initial = self.semi_infinite_end_points()
 		terminal_data = set()
 		for term in terminal:
-			print(term)
 			tail = self._descend_to_complete_infinite(term)
 			terminal_data.add((term, tail))
 		initial = set(initial)
 		ponds = []
 		
-		# for (term, tail) in terminal_data:
-			# for init in initial:
-				# power = self._are_banks(term, init, tail)
-				# if power is not None:
-					# ponds.append((term, power, init))
-					# initial.remove(init)
-					# break
+		for (term, tail) in terminal_data:
+			for init in initial:
+				power = self._are_banks(term, init, tail)
+				if power is not None:
+					ponds.append((term, power, init))
+					initial.remove(init)
+					break
 		
 		self.pond_banks = ponds
 		return basis
@@ -434,33 +434,17 @@ class Automorphism(Homomorphism):
 		initial  = basis.descendants_above(img_expansion) #X<A> \ Z<A>
 		return terminal, initial
 	
-	def _descend_to_complete_infinite(self, term):
-		"""Implements the lemma described in AJD's email.
+	def _descend_to_complete_infinite(self, endpt):
+		"""A really crude use of the lemma described in AJD's email.
 		
 		**Lemma.** Let :math:`b` be the bank of a pond. There is a :math:`\Gamma \in A^*` such that :math:`b\Gamma` belongs to a doubly-infinite :math:`\phi`-orbit that meets :math:`X`.
 		"""
-		tail = []
-		endpt = term
 		basis = self.quasinormal_basis()
-		
-		while True:
-			print(endpt)
-			for gamma in free_monoid_on_alphas(self.signature.arity):
-				w = self.image(endpt.extend(gamma))
-				
-				
-				if all(basis.is_above(child) for child in w.expand()):
-					break
-			
-			tail.extend(gamma)
-			tail.append(-1)
-			endpt = w.extend((-1,))
-			
-			right_infinite, _, _, images = self.test_semi_infinite(endpt, basis)
-			if right_infinite:
-				return tuple(tail)
-			else:
-				endpt = images[-1]
+		for gamma in free_monoid_on_alphas(self.signature.arity):
+			w = endpt.extend(gamma)
+			otype, _, _ = self.orbit_type(w, basis)
+			if otype.type == OrbitType._complete_infinite:
+				return gamma
 	
 	def _are_banks(self, term, init, tail):
 		#todo docstring
@@ -541,13 +525,18 @@ class Automorphism(Homomorphism):
 			{..., -1, 5, 11, 17, 23, 29, ...}
 			>>> print(cyclic_order_six.share_orbit(u, v2))
 			{}
-			
+			>>> #Two sides of a pond
+			>>> u = Word('x a1 a1 a1 a1 a1 a1 a1 a2', (2, 1))
+			>>> v = Word('x a2 a2 a1 a1 a2', (2, 1))
+			>>> first_pond_example_phi.share_orbit(u, v)
+			{4}
 		
 		:returns: The (possibly empty) :class:`~thompson.orbits.SolutionSet` of all integers :math:`m` for which :math:`u\psi^m = v`. Note that if :math:`u = v` this method returns :math:`\mathbb{Z}`. 
 		
 		.. seealso:: The implementation is due to lemma 4.24.2 of the paper.
 		"""
 		#TODO a script which randomly checks examples to verify.
+		#TODO pond examples
 		if u == v:
 			return SolutionSet.the_integers()
 		basis = self.quasinormal_basis()
@@ -557,7 +546,7 @@ class Automorphism(Homomorphism):
 			alphas = range(-1, -self.signature.arity - 1, -1)
 			solution_set = SolutionSet.the_integers()
 			
-			# For all strings of length *depth* \Gamma made only from alphas:
+			# For all strings \Gamma of length *depth*:
 			for tail in product(alphas, repeat=depth):
 				u_desc = u.extend(tail)
 				v_desc = v.extend(tail)
@@ -570,14 +559,12 @@ class Automorphism(Homomorphism):
 		#Now we're dealing with simple words below the basis.
 		u_head, u_tail = basis.test_above(u)
 		v_head, v_tail = basis.test_above(v)
-		print("{} = {} | {}".format(u, u_head, format(u_tail)))
-		print("{} = {} | {}".format(v, v_head, format(v_tail)))
 		u_head_type, _, u_head_data = self.orbit_type(u_head, basis)
 		v_head_type, _, v_head_data = self.orbit_type(v_head, basis)
 		
 		#Is either element periodic?
 		if u_head_type.is_type_A() or v_head_type.is_type_A():
-			#If so, do they have different periods?
+			#If so, are they both peroidic with the same period?
 			if u_head_type != v_head_type:
 				return SolutionSet.empty_set()
 			
@@ -589,20 +576,17 @@ class Automorphism(Homomorphism):
 					return SolutionSet(i, period)
 			return SolutionSet.empty_set()
 		
-		#Neither u not v are periodic.
+		#Neither u nor v are periodic.
 		#Move along the orbit until we find a nicer u and v.
 		u_shift, u_head, u_tail = self._type_b_descendant(u_head, u_tail, u_head_data)
 		v_shift, v_head, v_tail = self._type_b_descendant(v_head, v_tail, v_head_data)
 		
 		u = u_head.extend(u_tail)
 		v = v_head.extend(v_tail)
-		print("{} = {} | {}".format(u, u_head, format(u_tail)))
-		print("{} = {} | {}".format(v, v_head, format(v_tail)))
 		
-		type, images, _ = self.orbit_type(v, basis)
-		print(images)
 		type, images, _ = self.orbit_type(u, basis)
-		print(images)
+		if self.pond_banks is not None:
+			self._check_for_ponds(images)
 		for i, image in images.items():
 			if image == v:
 				return SolutionSet.singleton(u_shift + i - v_shift)
@@ -652,6 +636,24 @@ class Automorphism(Homomorphism):
 			i += 1
 		return -power*i, tail[i*n:]
 	
+	def _check_for_ponds(self, images):
+		M = max(images.keys())
+		m = min(images.keys())
+		basis = self.quasinormal_basis()
+		
+		for (ell, k, r) in self.pond_banks:
+			if images[M] == ell:
+				core = self.test_semi_infinite(r, basis)[3]
+				for i, img in enumerate(core):
+					images[M + k + i] = img
+				return
+			
+			elif images[m] == r:
+				core = self.test_semi_infinite(ell, basis, backward=True)[3]
+				for i, img in enumerate(core):
+					images[m - k + i] = img
+				return
+	
 	#Testing conjugacy
 	def test_conjugate_to(self, other):
 		r"""Determines if the current automorphism :math:`\psi` is conjugate to the *other* automorphism :math:`\phi`.
@@ -660,8 +662,6 @@ class Automorphism(Homomorphism):
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
 		
 			>>> psi, phi = random_conjugate_pair()
-			>>> print(psi)
-			>>> print(phi)
 			>>> rho = psi.test_conjugate_to(phi)
 			>>> rho is not None
 			True

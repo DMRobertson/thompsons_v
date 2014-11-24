@@ -603,19 +603,6 @@ def image_for_type_b(word, chosen_endpoint, images, roots, graph, aut):
 	v = predecessor_image.extend(edge_data['start_tail']) #y_i Gamma
 	# v = aut.repeated_image(v, edge_data['power'])         #y_i Gamma phi^k
 	
-	from .word import from_string
-	if u == from_string('x1 a1 a1 a1 a1 a1 a1 a1 a1 a2') and v == from_string('x1 a2 a2 a1 a1 a2'):
-		print('x =', word)
-		print('w =', chosen_endpoint)
-		print('Delta =', edge_data['end_tail'])
-		print('y_i =', predecessor_image)
-		print('Gamma =', edge_data['start_tail'])
-		
-		print('u = w Delta =', u)
-		print('v = y_i Gamma =', v)
-		print('k =', edge_data['power'])
-		print('do', u, 'and', v, 'share an orbit?')
-	
 	solns = aut.share_orbit(u, v)
 	if solns.is_empty():
 		return None
