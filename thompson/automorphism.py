@@ -528,7 +528,7 @@ class Automorphism(Homomorphism):
 			>>> #Two sides of a pond
 			>>> u = Word('x a1 a1 a1 a1 a1 a1 a1 a2', (2, 1))
 			>>> v = Word('x a2 a2 a1 a1 a2', (2, 1))
-			>>> first_pond_example_phi.share_orbit(u, v)
+			>>> print(first_pond_example_phi.share_orbit(u, v))
 			{4}
 		
 		:returns: The (possibly empty) :class:`~thompson.orbits.SolutionSet` of all integers :math:`m` for which :math:`u\psi^m = v`. Note that if :math:`u = v` this method returns :math:`\mathbb{Z}`. 

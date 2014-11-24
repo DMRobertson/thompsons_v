@@ -195,7 +195,9 @@ class PeriodicFactor(AutomorphismFactor):
 			>>> rho_p * phi_p == psi_p * rho_p
 			True
 			
-			>>> psi_p, phi_p = random_conjugate_periodic_pair()
+			>>> psi, phi = random_conjugate_pair()
+			>>> psi_p = psi.free_factors()[0]
+			>>> phi_p = phi.free_factors()[0]
 			>>> rho_p = psi_p.test_conjugate_to(phi_p)
 			>>> rho_p * phi_p == psi_p * rho_p
 			True
