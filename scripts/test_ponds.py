@@ -56,3 +56,11 @@ while True:
 				break
 		if exit: break
 	if exit: break
+
+"""
+The following regex will search for ponds of width (at least) 2
+
+	L', \(\d, \d\)\),.*L', \(\d, \d\)\),
+
+Note that '. matches newline' should be enabled in N++'s find dialogue.
+"""

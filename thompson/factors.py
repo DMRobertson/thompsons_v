@@ -382,8 +382,8 @@ class InfiniteFactor(AutomorphismFactor):
 		"""Form a graph whose vertex set is the QNF basis. The edges store the information which makes two vertices congruent."""
 		basis = self.quasinormal_basis()
 		min_exp = basis.minimal_expansion_for(self)
-		endpts = self.semi_infinite_end_points()
-		
+		terminal, initial = self.semi_infinite_end_points()
+		endpts = sorted(terminal + initial)
 		G = nx.DiGraph()
 		orbit_generators = set(min_exp + endpts)
 		
@@ -478,7 +478,8 @@ class InfiniteFactor(AutomorphismFactor):
 		#todo doctest
 		images_by_char = defaultdict(set)
 		basis = other.quasinormal_basis()
-		for word in other.semi_infinite_end_points():
+		terminal, initial = other.semi_infinite_end_points()
+		for word in terminal + initial:
 			type, _, _ = other.orbit_type(word, basis)
 			if type.is_type_B():
 				print('*', word, type)

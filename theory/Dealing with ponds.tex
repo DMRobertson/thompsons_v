@@ -3,6 +3,7 @@
 	bindingoffset=6mm, left=10mm, right=40mm, marginparsep=5mm, marginparwidth=32.5mm,
 	headheight=15pt, top=25mm, bottom=20mm]{geometry}
 \usepackage{amsmath}
+\usepackage{amsthm}
 \usepackage{xcolor}
 \usepackage{setspace}
 
@@ -25,7 +26,7 @@
 
 \subsection{Useful lemmas}
 \paragraph{Lemma---AJD.} Suppose $b$ is a bank of a pond. Then there is a $\Gamma \in A^*$ such that $b \Gamma$ belongs to a doubly infinite $\phi$-orbit that meets $X$. 
-\begin{proof}Written in an email.\end{proof}
+\begin{proof}Induction on the width of the pond. Written in an email.\end{proof}
 
 \paragraph{Lemma.} Suppose $\ell \in X\ofA \setminus Y\ofA$ and $r \in X\ofA \setminus Z\ofA$. Let $\Gamma$ be such that $\ell\Gamma$ belongs to a doubly infinite $\phi$-orbit. (Such a $\Gamma$ exists by AJD's lemma.) Then:
 \begin{enumerate}
@@ -44,14 +45,14 @@
 	\end{equation*}
 	This is a statement of the form $A \implies (B \implies C)$, which is equivalent to the statement $\neg(A \land B \land \neg C)$. We prove the second statement by showing that $A \land B \land \neg C$ causes a contradiction.
 
-	Suppose that $\ell\Gamma\phi^k = r$, $\ell\phi^m = r$, and that $k \neq m$. It follows that  $\ell\Gamma\phi^m = r = \ell\Gamma\phi^k$, meaning that $\ell\Gamma\phi^{m-k} = \ell \Gamma$. Since $k \neq m$, this means that $\ell\Gamma$ belongs to a periodic $\phi$-orbit. But this contradicts the fact that $\Gamma$ is of type C.
+	Suppose that $\ell\Gamma\phi^k = r\Gamma$, $\ell\phi^m = r$, and that $k \neq m$. It follows that  $\ell\Gamma\phi^m = r\Gamma = \ell\Gamma\phi^k$, meaning that $\ell\Gamma\phi^{m-k} = \ell \Gamma$. Since $k \neq m$, this means that $\ell\Gamma$ belongs to a periodic $\phi$-orbit. But this contradicts the fact that $\ell\Gamma$ is in a doubly-infinite orbit.
 \end{enumerate}
 \end{proof}
 
 Now we outline a procedure to test if $(\ell, r)$ are banks of a pond.
 \begin{enumerate}
-	\item Find an integer $\Gamma$ corresponding to $\ell$ as in AJD's lemma.
-	\item Run the orbit sharing test on $\ell\Gamma$ and $r\Gamma$. Because $\ell\Gamma$ is in a doubly infinite orbit, we don't need to worry about this failing due to a pond.
+	\item Find a string $\Gamma$ for which $\ell\Gamma$ is in a doubly infinite orbit.
+	\item Run the orbit sharing test on $\ell\Gamma$ and $r\Gamma$.
 	\item \alert{If} the test fails, then $(\ell, r)$ are not the banks of a pond. [This is the contrapositive of part \ref{it:bank_test_down}.]
 	\item \alert{Else} we have $k$ such that $\ell\Gamma\phi^k = r \Gamma$. By part \ref{it:bank_test_up}, $(\ell, r)$ are banks if and only if $\ell\phi^k=r$. We can evaluate this equality.
 
@@ -77,7 +78,7 @@ Now we outline a procedure to test if $(\ell, r)$ are banks of a pond.
 		\item Choose one of the $w_i$, say $w_1$.
 		\item \alert{If} $w_i$ is in a left semi-infinite component, go back to step \ref{it:iterate_descendants}, replacing $\ell \from w_i$.
 		
-		\item At this stage, we should have $\Gamma'$ and $w_i'$ such that $w_i' = \ell\Gamma'\phi\a i \in X$ belongs to a doubly-infinite orbit. \marginnote{We may have had to concatenate the strings $\Gamma$ and $\a j$ from previous steps to obtain $\Gamma'$.} Record the tuple $(\ell, \Gamma'\alpha_i)$.
+		\item At this stage, we should have $\Gamma'$ and $w_i'$ such that $w_i' = \ell\Gamma'\phi^k\a i \in X$ belongs to a doubly-infinite orbit (for some $k$). \marginnote{We may have had to concatenate the strings $\Gamma$ and $\a j$ from previous steps to obtain $\Gamma'$.} Record the tuple $(\ell, \Gamma'\alpha_i)$.
 	\end{enumerate}
 
 \item Let $R$ be a set. Initialise $R$ with the contents of $X\ofA \setminus Z\ofA$.

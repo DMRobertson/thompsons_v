@@ -7,10 +7,10 @@
 
 import operator
 from collections import namedtuple
-from itertools import chain
+from itertools import chain, product
 
 __all__ = ["Signature", "Word",
-	"format", "from_string", "validate", "standardise", "are_contractible", "lambda_arguments", "_concat"]
+	"format", "from_string", "validate", "standardise", "are_contractible", "lambda_arguments", "_concat", "free_monoid_on_alphas"]
 
 
 BaseSignature = namedtuple('BaseSignature', 'arity alphabet_size')
@@ -80,6 +80,8 @@ def format(word):
 	
 		>>> format([2, -1, 2, -2, 0])
 		'x2 a1 x2 a2 L'
+		>>> format([])
+		'<the empty word>'
 	"""
 	if len(word) == 0:
 		return "<the empty word>"
@@ -717,3 +719,28 @@ class Word(tuple):
 			  tail_width, len(self)))
 		return self[:-tail_width], self[-tail_width:]
 
+
+#4. Functions for working with the free monoid A*.
+
+def free_monoid_on_alphas(arity):
+	"""An infinite iterator which enumerates the elements of :math:`A^*` in `shortlex order <http://en.wikipedia.org/wiki/Shortlex_order>`_.
+	
+		>>> for i, gamma in enumerate(free_monoid_on_alphas(4)):
+		... 	if i >= 10: break
+		... 	print(format(gamma))
+		<the empty word>
+		a1
+		a2
+		a3
+		a4
+		a1 a1
+		a1 a2
+		a1 a3
+		a1 a4
+		a2 a1
+	"""
+	alphabet = list(range(-1, -arity-1, -1))
+	length = 0
+	while True:
+		yield from product(alphabet, repeat=length)
+		length += 1

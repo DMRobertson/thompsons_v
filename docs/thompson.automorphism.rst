@@ -9,6 +9,7 @@ The Automorphism class
 .. autoclass:: thompson.automorphism.Automorphism
     :members:
     :undoc-members:
+    :exclude-members: inverse
 
 
 Next steps

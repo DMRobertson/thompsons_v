@@ -7,7 +7,9 @@ In other words, a homomorphism is a function which 'commutes' with the algebra o
 
 .. testsetup::
     
+    from thompson.generators import *
     from thompson.homomorphism import *
+    from thompson.automorphism import Automorphism
     from thompson.examples import *
 """
 
@@ -19,19 +21,24 @@ from .word import *
 from .generators import Generators
 from copy import copy
 
+__all__ = ['Homomorphism']
+
 #Extracted the bits responsible for defining a homomorphism from the automorphism class.
 class Homomorphism:
 	r"""Let :math:`f: D \to R` be some map embedding a basis :math:`D` for :math:`V_{n,r}` into another algebra :math:`V_{n,s}` of the same :class:`~thompson.word.Signature`. This map uniquely extends to a homomorphism of algebras :math:`\psi : V_{n,r} \to V_{n,s}`.
 	
 	:ivar domain: a :class:`basis <thompson.generators.Generators>` of preimages 
-	:ivar range:  a :class:`set <thompson.generators.Generators>` of images.
-	
-	:raises TypeError: if the bases are of different sizes.
-	:raises TypeError: if the algebras described by *domain* and *range* have different arities.
-	:raises ValueError: if *domain* is :meth:`not a basis <thompson.generators.Generators.is_basis>`.
+	:ivar range:  a :class:`basis <thompson.generators.Generators>` of images.
 	"""
-	#TODO docstring for reduce
 	def __init__(self, domain, range, reduce=True):
+		"""Creates a homomorphism with the specified *domain* and *range*. Sanity checks are performed so that the arguments do genuinely define a basis.
+		
+		By default, any redudancy in the mapping is reduced. For example, the rules ``x1 a1 a1 -> x1 a2 a1`` and ``x1 a1 a2 -> x1 a2 a2`` reduce to the single rule ``x1 a1 -> x1 a2``. The *reduce* argument can be used to disable this. This option is intended for internal use only. (Sometimes we have to expand :class:`free factors [thompson.factors.AutomorphismFactor]` so that the orbit sizes match up.)
+		
+		:raises TypeError: if the bases are of different sizes.
+		:raises TypeError: if the algebras described by *domain* and *range* have different arities.
+		:raises ValueError: if *domain* is :meth:`not a basis <thompson.generators.Generators.is_basis>`.
+		"""
 		#The boring checks
 		if len(domain) != len(range):
 			raise TypeError("Domain basis has {} elements, but range basis has {} elements.".format(
@@ -137,7 +144,7 @@ class Homomorphism:
 	#Alternative constructors
 	@classmethod
 	def from_file(cls, filename):
-		"""Reads in a file specifying an automorphism and returns a pair *(aut, name)*. Here is an example of the format::
+		"""Reads in a file specifying a homomorphism and returns the homomorphism being described. Here is an example of the format::
 		5
 		(2,1)		->	(2,1)
 		x1 a1 a1 a1	->	x1 a1 a1
@@ -146,9 +153,13 @@ class Homomorphism:
 		x1 a2 a1	->	x1 a2 a2
 		x1 a2 a2	->	x1 a2 a1
 		
-		- number of generators
+		- number of generators/rules
 		- signatures of domain and range
 		- list of rules domain -> range
+		
+		Any lines after this are ignored, and can be treated as comments.
+		
+		.. seealso: The examples directory in the package source.
 		"""
 		with open(filename, encoding='utf-8') as f:
 			num_generators = int(f.readline())
@@ -162,7 +173,22 @@ class Homomorphism:
 		return cls(d, r)
 	
 	def save_to_file(self, filename=None):
-		""""""
+		"""Takes a homomorphism and saves it to the file with the given *filename*. The homomorphism is stored in a format which is compatible with :meth:`from_file`.
+		
+		.. doctest::
+			
+			>>> before = random_automorphism()
+			>>> before.save_to_file('test_saving_homomorphism.aut')
+			>>> after = Automorphism.from_file('test_saving_homomorphism.aut')
+			>>> before == after, before is after
+			(True, False)
+		
+		.. testcleanup::
+			
+			import os
+			os.remove('test_saving_homomorphism.aut')
+			
+		"""
 		#todo docstring
 		#todo test that this is an inverse to from_file
 		if filename is None:
@@ -176,6 +202,12 @@ class Homomorphism:
 	
 	#Simple operations on homomorphisms
 	def __eq__(self, other):
+		"""We can test for equality of homomorphisms by using Python's equality operator ``==``.
+		
+			>>> phi = random_automorphism()
+			>>> phi * ~phi == Automorphism.identity(phi.signature)
+			True
+		"""
 		return all(self.image(w) == other.image(w) for w in chain(self.domain, other.domain))
 	
 	def __mul__(self, other): #self * other is used for the (backwards) composition self then other
@@ -391,6 +423,7 @@ class Homomorphism:
 		return output.getvalue()
 
 def format_table(*columns, sep=None, root_names=None):
+	"""A helper function used to print homomorphisms in a tidy fashion."""
 	for row in zip(*columns):
 		break
 	num_columns = len(row)

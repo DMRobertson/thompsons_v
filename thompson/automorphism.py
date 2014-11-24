@@ -4,7 +4,7 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
  
 .. testsetup::
 	
-	from thompson.word import Word, Signature, from_string
+	from thompson.word import Word, Signature, from_string, free_monoid_on_alphas
 	from thompson import word
 	from thompson.generators import Generators
 	from thompson.automorphism import *
@@ -37,6 +37,7 @@ def modulo_non_zero(x, n):
 class Automorphism(Homomorphism):
 	"""
 	:ivar signature: The :class:`~thompson.word.Signature` shared by the generating sets domain and range.
+	:ivar pond_banks: A list of tuples :math:`(\ell, k, r)` such that :math:`(\ell, r)` are banks of a pond with :math:`\ell\phi^k = r`.
 	"""
 	#todo docstring for reduce
 	def __init__(self, domain, range, reduce=True):
@@ -104,11 +105,26 @@ class Automorphism(Homomorphism):
 	
 	@classmethod
 	def identity(cls, signature):
+		"""Creates a new automorphism which is the identity map on the algebra with the given *signature*.
+		
+			>>> print(Automorphism.identity((3, 2)))
+			Automorphism: V(3, 2) -> V(3, 2) specified by 2 generators (after expansion and reduction).
+			x1 -> x1
+			x2 -> x2
+		"""
 		d = Generators.standard_basis(signature)
 		r = Generators.standard_basis(signature)
 		return cls(d, r)
 	
 	def is_identity(self):
+		"""Returns True if this automorphism is the identity map on the algebra with the given *signature*. Otherwise returns False.
+		
+			>>> aut = Automorphism.identity(random_signature())
+			>>> aut.is_identity()
+			True
+			>>> example_4_25.is_identity()
+			False
+		"""
 		basis = Generators.standard_basis(self.signature)
 		return self.image_of_set(basis) == basis
 	
@@ -174,30 +190,6 @@ class Automorphism(Homomorphism):
 			image = self.image(image, inverse)
 		return image
 	
-	#Finding interesting sets of word
-	def semi_infinite_end_points(self):
-		"""Returns a list of the words :math:`w` which are initial or terminal elements of semi-infinite orbits with respect the current automorphism's :meth:`quasinormal_basis`.
-		
-			>>> Generators.__str__(example_4_5.semi_infinite_end_points())
-			'[x1 a1 a1, x1 a1 a2]'
-			>>> Generators.__str__(example_4_11.semi_infinite_end_points())
-			'[x1 a1, x1 a2]'
-			>>> Generators.__str__(example_4_12.semi_infinite_end_points())
-			'[]'
-			>>> Generators.__str__(example_4_25.semi_infinite_end_points())
-			'[x1 a1, x1 a1 a1, x1 a2 a2, x1 a2 a2 a1]'
-		
-		:rtype: A (sorted) list of :class:`Words <thompson.word.Word>`.
-		
-		.. seealso:: The discussion before lemma 4.6.
-		"""
-		basis = self.quasinormal_basis()
-		min_expansion = basis.minimal_expansion_for(self)
-		img_expansion = self.image_of_set(min_expansion)
-		terminal = basis.descendants_above(min_expansion)
-		initial  = basis.descendants_above(img_expansion)
-		return sorted(initial + terminal)
-	
 	#Generating the quasinormal basis
 	def quasinormal_basis(self):
 		r"""We say that :math:`\phi` is *in semi-normal form* with respect to the basis :math:`X` if no element of :math:`X` lies in an incomplete :math:`X`-component of a :math:`\phi` orbit. See the :mod:`~thompson.orbits` module for more details.
@@ -211,24 +203,47 @@ class Automorphism(Homomorphism):
 			>>> example_5_12_phi.quasinormal_basis()
 			Generators((2, 1), ['x1 a1', 'x1 a2'])
 		
+		.. note:: this method also looks for ponds and caches the data describing any ponds it finds.
+		
 		:rtype: a :class:`~thompson.generators.Generators` instance.
 		
 		.. seealso:: Quasi-normal forms are introduced in section 4.2 of the paper. In particular, this method implements Lemma 4.24.1. Higman first described the idea of quasi-normal forms in section 9 of [Hig]_.
 		"""
+		#0. Have we already computed the basis?
 		if self._qnf_basis is not None:
 			return self._qnf_basis
+		
+		#1. Expand the starting basis until each no element's belongs to a finite X-component.
 		basis = self._seminormal_form_start_point()
-		#expand basis until each no element's orbit has finite intersection with X<A>
 		i = 0
 		while i < len(basis):
 			otype, _, _ = self.orbit_type(basis[i], basis)
-			# print(basis[i], otype)
 			if otype.is_incomplete():
 				basis.expand(i)
 				i = 0
 			else:
 				i += 1
 		self._qnf_basis = basis
+		
+		#2. Look for and remember the details of any pond orbits.
+		terminal, initial = self.semi_infinite_end_points()
+		terminal_data = set()
+		for term in terminal:
+			print(term)
+			tail = self._descend_to_complete_infinite(term)
+			terminal_data.add((term, tail))
+		initial = set(initial)
+		ponds = []
+		
+		# for (term, tail) in terminal_data:
+			# for init in initial:
+				# power = self._are_banks(term, init, tail)
+				# if power is not None:
+					# ponds.append((term, power, init))
+					# initial.remove(init)
+					# break
+		
+		self.pond_banks = ponds
 		return basis
 	
 	def _seminormal_form_start_point(self):
@@ -395,6 +410,71 @@ class Automorphism(Homomorphism):
 					images.append(image)
 					return True, ell, m, images
 			images.append(image)
+	
+	def semi_infinite_end_points(self):
+		r"""Returns the list of terminal :class:`Words <thompson.word.Word>` in left semi-infinite components and the list of initial words in right semi-infinite components. This is all computed with respect the current automorphism's :meth:`quasinormal_basis`. These are the sets :math:`X\langle A\rangle \setminus Y\langle A\rangle` and :math:`X\langle A\rangle \setminus Z\langle A\rangle`.
+		
+			>>> print(*example_4_5.semi_infinite_end_points())
+			[x1 a1 a1] [x1 a1 a2]
+			>>> print(*example_4_11.semi_infinite_end_points())
+			[x1 a1] [x1 a2]
+			>>> print(*example_4_12.semi_infinite_end_points())
+			[] []
+			>>> print(*example_4_25.semi_infinite_end_points())
+			[x1 a2 a2, x1 a2 a2 a1] [x1 a1, x1 a1 a1]
+		
+		:rtype: A pair of :class:`Generators <thompson.generators.Generators>`.
+		
+		.. seealso:: The discussion before lemma 4.6.
+		"""
+		basis = self.quasinormal_basis()                  #X
+		min_expansion = basis.minimal_expansion_for(self) #Y
+		img_expansion = self.image_of_set(min_expansion)  #Z
+		terminal = basis.descendants_above(min_expansion) #X<A> \ Y<A>
+		initial  = basis.descendants_above(img_expansion) #X<A> \ Z<A>
+		return terminal, initial
+	
+	def _descend_to_complete_infinite(self, term):
+		"""Implements the lemma described in AJD's email.
+		
+		**Lemma.** Let :math:`b` be the bank of a pond. There is a :math:`\Gamma \in A^*` such that :math:`b\Gamma` belongs to a doubly-infinite :math:`\phi`-orbit that meets :math:`X`.
+		"""
+		tail = []
+		endpt = term
+		basis = self.quasinormal_basis()
+		
+		while True:
+			print(endpt)
+			for gamma in free_monoid_on_alphas(self.signature.arity):
+				w = self.image(endpt.extend(gamma))
+				
+				
+				if all(basis.is_above(child) for child in w.expand()):
+					break
+			
+			tail.extend(gamma)
+			tail.append(-1)
+			endpt = w.extend((-1,))
+			
+			right_infinite, _, _, images = self.test_semi_infinite(endpt, basis)
+			if right_infinite:
+				return tuple(tail)
+			else:
+				endpt = images[-1]
+	
+	def _are_banks(self, term, init, tail):
+		#todo docstring
+		u = term.extend(tail)
+		v = init.extend(tail)
+		solns = self.share_orbit(u, v)
+		assert not solns.is_sequence(), solns
+		if solns.is_empty():
+			return None
+		power = solns.base
+		if self.repeated_image(term, power) == init:
+			return power
+		else:
+			return None
 	
 	#Orbit sharing test
 	def share_orbit(self, u, v):
