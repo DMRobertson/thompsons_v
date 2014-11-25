@@ -233,9 +233,11 @@ class Automorphism(Homomorphism):
 			tail = self._descend_to_complete_infinite(term)
 			terminal_data.add((term, tail))
 		initial = set(initial)
-		ponds = []
 		
+		ponds = []
+		print('checking muh ponds')
 		for (term, tail) in terminal_data:
+			print(term, tail)
 			for init in initial:
 				power = self._are_banks(term, init, tail)
 				if power is not None:
@@ -341,6 +343,8 @@ class Automorphism(Homomorphism):
 			tail = y.test_above(limages[-1])
 			if tail is None:
 				characteristic = None
+				type_b, tail = basis.test_above(limages[lpow1])
+				type_b_data = -lpow1, type_b, tail
 			else:
 				assert len(tail) > 0
 				assert lpow1 == 0
@@ -351,6 +355,8 @@ class Automorphism(Homomorphism):
 			tail = y.test_above(rimages[-1])
 			if tail is None:
 				characteristic = None
+				type_b, tail = basis.test_above(rimages[rpow1])
+				type_b_data = rpow1, type_b, tail
 			else:
 				assert len(tail) > 0
 				assert rpow1 == 0
@@ -475,7 +481,7 @@ class Automorphism(Homomorphism):
 			>>> print(alphabet_size_two.share_orbit(u, v2))
 			{-2}
 			>>> print(alphabet_size_two.share_orbit(u, u))
-			{..., -1, 0, 1, 2, 3, 4, ...}
+			{0}
 		
 		.. doctest::
 			:hide:
@@ -537,20 +543,21 @@ class Automorphism(Homomorphism):
 		"""
 		#TODO a script which randomly checks examples to verify.
 		#TODO pond examples
-		if u == v:
-			return SolutionSet.the_integers()
+		print('Do {} and {} share an orbit?'.format(u,v))
+		orig_u, orig_v = u, v
 		basis = self.quasinormal_basis()
-		
 		if not (basis.is_above(u) and basis.is_above(v)):
 			depth = max(u.max_depth_to(basis), v.max_depth_to(basis))
+			print('DEPTH = ', depth)
 			alphas = range(-1, -self.signature.arity - 1, -1)
 			solution_set = SolutionSet.the_integers()
-			
 			# For all strings \Gamma of length *depth*:
 			for tail in product(alphas, repeat=depth):
 				u_desc = u.extend(tail)
 				v_desc = v.extend(tail)
-				solution_set &= self.share_orbit(u_desc, v_desc)
+				new = self.share_orbit(u_desc, v_desc)
+				print(new)
+				solution_set &= new
 				if solution_set.is_empty():
 					return solution_set
 			return solution_set
@@ -570,7 +577,7 @@ class Automorphism(Homomorphism):
 			
 			period = u_head_type.characteristic[0]
 			image = u
-			for i in range(1, period):
+			for i in range(1, period+1):
 				image = self.image(image)
 				if image == v:
 					return SolutionSet(i, period)
@@ -586,15 +593,23 @@ class Automorphism(Homomorphism):
 		
 		type, images, _ = self.orbit_type(u, basis)
 		if self.pond_banks is not None:
+			from pprint import pprint
+			pprint(images)
 			self._check_for_ponds(images)
+		if orig_v == Word('x1 a2 a1 a1', (2,1)):
+			from pprint import pprint
+			print(u, u_shift, orig_u)
+			print(v, v_shift, orig_v)
+			pprint(images)
 		for i, image in images.items():
 			if image == v:
+				assert self.repeated_image(orig_u, u_shift + i - v_shift) == orig_v, (format(orig_u), u_shift + i - v_shift)
 				return SolutionSet.singleton(u_shift + i - v_shift)
 		return SolutionSet.empty_set()
 	
 	def _type_b_descendant(self, head, tail, head_data):
 		r"""Takes a pair :math:`(y, \Gamma)` below the quasi-normal basis :math:`X` and returns a triple :math:`(\widetilde{y}, \widetilde{\Gamma}, k) where
-		* The orbit of :math:`\widetilde{y}` is semi-infinite (type B);
+		* The orbit of :math:`\widetilde{y}` is of type B;
 		* :math:`\widetilde{y}\widetilde{\Gamma}` is in the same orbit as :math:`y\Gamma`.
 		* :math:`\widetilde{\Gamma}` does not start with the characteristic multiplier of :math:`\widetilde{y}`.
 		
@@ -606,15 +621,19 @@ class Automorphism(Homomorphism):
 			>>> example_4_25._type_b_descendant(head, from_string('a1 a1 a2'), type_b_data)
 			(1, Word('x1 a2 a2', (2, 1)), (-2,))
 		"""
+		orig_head = head
+		orig = head.extend(tail)
 		if head_data is not None:
 			shift_1, head, prefix = head_data
+			assert self.repeated_image(orig_head, shift_1) == head.extend(prefix), (orig_head, shift_1, head, prefix)
 			tail = prefix + tail
 		else:
 			shift_1 = 0
 		
 		head_type, _, _ = self.orbit_type(head, self.quasinormal_basis())
-		assert head_type.is_type_B()
+		assert head_type.is_type_B(), (head, head_type)
 		shift_2, tail = self._remove_from_start(tail, head_type.characteristic)
+		assert self.repeated_image(orig, shift_1 + shift_2) == head.extend(tail), (shift_1, shift_2)
 		return (shift_1 + shift_2), head, tail
 	
 	@staticmethod
@@ -637,6 +656,7 @@ class Automorphism(Homomorphism):
 		return -power*i, tail[i*n:]
 	
 	def _check_for_ponds(self, images):
+		#todo doctests
 		M = max(images.keys())
 		m = min(images.keys())
 		basis = self.quasinormal_basis()
@@ -651,7 +671,7 @@ class Automorphism(Homomorphism):
 			elif images[m] == r:
 				core = self.test_semi_infinite(ell, basis, backward=True)[3]
 				for i, img in enumerate(core):
-					images[m - k + i] = img
+					images[m - k - i] = img
 				return
 	
 	#Testing conjugacy
@@ -662,6 +682,12 @@ class Automorphism(Homomorphism):
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
 		
 			>>> psi, phi = random_conjugate_pair()
+			>>> rho = psi.test_conjugate_to(phi)
+			>>> rho is not None
+			True
+			>>> psi * rho == rho * phi
+			True
+			>>> psi, phi = first_pond_example_psi, first_pond_example_phi
 			>>> rho = psi.test_conjugate_to(phi)
 			>>> rho is not None
 			True

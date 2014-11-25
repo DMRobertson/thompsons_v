@@ -11,7 +11,7 @@ from random import randint
 
 
 def dump_to_file(aut, name, log):
-	print('{}\n====\n\n{}'.format(name.upper(), aut), file=log)
+	print('\n{}\n====\n\n{}'.format(name.upper(), aut), file=log)
 	if aut is None:
 		try:
 			os.remove(name + '.aut')
@@ -25,6 +25,8 @@ while True:
 	i += 1
 	if i % 100 == 0:
 		print(i)
+	
+	psi, phi, psi_p, phi_p, psi_i, phi_i = None, None, None, None, None, None
 	try:
 		psi, phi = random_conjugate_pair(signature=Signature(2,1))
 		psi_p, psi_i = psi.free_factors()
@@ -42,11 +44,7 @@ while True:
 			if rho_i is None or psi_i * rho_i != rho_i * phi_i:
 				print(repr(rho_i))
 				raise RuntimeError('Problem with infinite')
-	except AssertionError:
-		pass
-	except RuntimeError:
-		pass
-	except AttributeError as e:
+	except Exception as e:
 		with open('results.txt', 'wt', encoding='utf-8') as f:
 			from traceback import print_exception
 			import sys

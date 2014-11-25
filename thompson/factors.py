@@ -295,14 +295,8 @@ class InfiniteFactor(AutomorphismFactor):
 		
 			>>> psi_i = example_5_26_psi_i; phi_i = example_5_26_phi_i
 			>>> rho_i = psi_i.test_conjugate_to(phi_i)
-			>>> print(rho_i)
-			AutomorphismFactor: V(2, 1) -> V(2, 1) specified by 4 generators (after expansion and reduction).
-			This automorphism was derived from a parent automorphism.
-			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
-			x1 a1       ~>    y1 a1       => y1 a1 a1    ~> x1 a1 a1
-			x1 a2 a1 a1 ~>    y1 a2 a1 a1 => y1 a2 a2    ~> x1 a2 a2
-			x1 a2 a1 a2 ~>    y1 a2 a1 a2 => y1 a1 a2    ~> x1 a1 a2
-			x1 a2 a2    ~>    y1 a2 a2    => y1 a2 a1    ~> x1 a2 a1
+			>>> rho_i is not None
+			True
 			>>> rho_i * phi_i == psi_i * rho_i
 			True
 		
@@ -487,6 +481,7 @@ class InfiniteFactor(AutomorphismFactor):
 				print('*', word, type)
 				images_by_char[type.characteristic].add(word)
 			else:
+				pass
 				print(' ', word, type)
 		
 		orbit_endpts = {word : images_by_char[char] for word, char in self_type_b.items()}
@@ -503,24 +498,21 @@ class InfiniteFactor(AutomorphismFactor):
 		
 		#3. Now the hard part---the iteration.
 		for images in maps_satisfying_choices(ladder, choices, deduce_images):
-			domain = Generators(self.signature, sorted(images))
-			range = Generators(self.signature, (images[d] for d in domain))
-			
-			#a. Add in type C images to domain and range
-			for word, data in type_c.items():
-				domain.append(word)
-				img = image_for_type_c(word, data, images, other)
-				range.append(img)
-			
-			#b. Does this define an Automorphism?
 			try:
-				pprint(domain)
-				pprint(range)
+				domain = Generators(self.signature, sorted(images))
+				range = Generators(self.signature, (images[d] for d in domain))
+				
+				#Add in type C images to domain and range
+				for word, data in type_c.items():
+					domain.append(word)
+					img = image_for_type_c(word, data, images, other)
+					range.append(img)
 				rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
-			except ValueError as e:
-				print(e)
+			except ValueError:
+				#We haven't specified an automorphism.
 				continue
-			yield rho
+			else:
+				yield rho
 
 def maps_satisfying_choices(domain, choices, image_for):
 	r"""Suppose we have a list of elements :math:`d` belonging to some list *domain*. We would like to efficiently enumerate the functions :math:`f\colon\text{domain} -> I` where :math:`I` is some set. We would also like these functions :math:`f` to abide by certain rules described below.
@@ -603,13 +595,11 @@ def image_for_type_b(word, chosen_endpoint, images, roots, graph, aut):
 	
 	u = chosen_endpoint.extend(edge_data['end_tail'])     #w   Delta
 	v = predecessor_image.extend(edge_data['start_tail']) #y_i Gamma
-	# v = aut.repeated_image(v, edge_data['power'])         #y_i Gamma phi^k
-	
 	solns = aut.share_orbit(u, v)
 	if solns.is_empty():
 		return None
-	assert not solns.is_sequence(), solns
-	return aut.repeated_image(chosen_endpoint, solns.base)
+	assert not solns.is_sequence(), (u, v, solns)
+	return aut.repeated_image(chosen_endpoint, solns.base + edge_data['power'])
 
 def image_for_type_c(word, type_b_data, images, aut):
 	power, gen, tail = type_b_data
