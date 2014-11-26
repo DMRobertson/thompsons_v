@@ -235,9 +235,9 @@ class Automorphism(Homomorphism):
 		initial = set(initial)
 		
 		ponds = []
-		print('checking muh ponds')
+		# print('checking muh ponds')
 		for (term, tail) in terminal_data:
-			print(term, tail)
+			# print(term, tail)
 			for init in initial:
 				power = self._are_banks(term, init, tail)
 				if power is not None:
@@ -344,7 +344,7 @@ class Automorphism(Homomorphism):
 			if tail is None:
 				characteristic = None
 				type_b, tail = basis.test_above(limages[lpow1])
-				type_b_data = -lpow1, type_b, tail
+				type_b_data = type_b_triple(-lpow1, type_b, tail)
 			else:
 				assert len(tail) > 0
 				assert lpow1 == 0
@@ -356,7 +356,7 @@ class Automorphism(Homomorphism):
 			if tail is None:
 				characteristic = None
 				type_b, tail = basis.test_above(rimages[rpow1])
-				type_b_data = rpow1, type_b, tail
+				type_b_data = type_b_triple(rpow1, type_b, tail)
 			else:
 				assert len(tail) > 0
 				assert rpow1 == 0
@@ -373,7 +373,7 @@ class Automorphism(Homomorphism):
 			else:
 				otype = OrbitType.complete_infinite()
 				type_b, tail = basis.test_above(rimages[rpow1])
-				type_b_data = rpow1, type_b, tail
+				type_b_data = type_b_triple(rpow1, type_b, tail)
 		
 		return otype, images, type_b_data
 	
@@ -624,7 +624,7 @@ class Automorphism(Homomorphism):
 		orig_head = head
 		orig = head.extend(tail)
 		if head_data is not None:
-			shift_1, head, prefix = head_data
+			shift_1, head, prefix = head_data['power'], head_data['target'], head_data['end_tail']
 			assert self.repeated_image(orig_head, shift_1) == head.extend(prefix), (orig_head, shift_1, head, prefix)
 			tail = prefix + tail
 		else:
@@ -911,3 +911,5 @@ def handle_trivial_factors(aut, gens, infinite=False):
 #TODO? Decide if the automorphism is in (the equivalent of) F, T, or V.
 #TODO? The named generators A, B, C, X_n of Thompson's V. Analogues for general G_n,r?
 
+def type_b_triple(power, head, tail):
+	return dict(start_tail = tuple(), power=power, end_tail=tail, target=head)

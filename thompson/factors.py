@@ -370,6 +370,7 @@ class InfiniteFactor(AutomorphismFactor):
 		.. seealso:: Definition 5.17 through to Lemma 5.20; also section 2.2 of the paper.
 		"""
 		G = self._congruence_graph()
+		dump_graph(G, G)
 		self._simplify_graph(G, type_c)
 		roots = self._reduce_to_forest(G)
 		return roots, G
@@ -394,8 +395,10 @@ class InfiniteFactor(AutomorphismFactor):
 			for (pow1, (head1, tail1)), (pow2, (head2, tail2)) in congruent_pairs:
 				if head1 == head2:
 					continue
-				G.add_edge(head1, head2,
-					  start_tail = tail1, power = pow2 - pow1, end_tail = tail2)
+				print('Creating edge', end=' ')
+				data = dict(start_tail = tail1, power = pow2 - pow1, end_tail = tail2)
+				print_edge(head1, head2, data)
+				G.add_edge(head1, head2, data)
 				assert self.repeated_image(head1.extend(tail1), pow2 - pow1) == head2.extend(tail2)
 		return G
 	
@@ -405,41 +408,42 @@ class InfiniteFactor(AutomorphismFactor):
 		print('** Simplify graph **')
 		#2. Remove the type C elements.
 		for word, type_b_data in type_c.items():
-			replacement = type_b_data[1]
-			replacement_in  = G[word][replacement]
-			replacement_out = G[replacement][word]
+			replacement = type_b_data['target']
 			
-			print('Type C: {}, Type B replacement: {}'.format(word, replacement, replacement_in))
-			print_edge(word, replacement, replacement_in)
-			assert self.repeated_image(word.extend(replacement_in['start_tail']), replacement_in['power']) == replacement.extend(replacement_in['end_tail'])
-			print_edge(replacement, word, replacement_out)
-			assert self.repeated_image(replacement.extend(replacement_out['start_tail']), replacement_out['power']) == word.extend(replacement_out['end_tail'])
+			print('Type C: {}, Type B replacement: {}'.format(word, replacement))
+			print('Type_b_data:', end=' ')
+			print_edge(word, replacement, type_b_data)
+			assert self.repeated_image(word, type_b_data['power']) == replacement.extend(type_b_data['end_tail'])
 			
 			#Use the scheme of Lemma 5.24 to avoid type C words.
 			for source, _, incoming in G.in_edges_iter(word, data=True):
 				if source == replacement:
 					continue
+				print('dealing with', end=' ')
+				print_edge(source, word, incoming)
 				data = dict(
 				  start_tail = incoming['start_tail'],
-				  power      = incoming['power'] + replacement_in['power'],
-				  end_tail   = replacement_in['end_tail'] + incoming['end_tail']
+				  power      = incoming['power'] + type_b_data['power'],
+				  end_tail   = type_b_data['end_tail'] + incoming['end_tail']
 				)
 				G.add_edge(source, replacement, data)
 				print('adding', end=' ');
 				print_edge(source, replacement, data)
+				print(self.repeated_image(source.extend(data['start_tail']), data['power']), 'should equal', replacement.extend(data['end_tail']))
 				assert self.repeated_image(source.extend(data['start_tail']), data['power']) == replacement.extend(data['end_tail'])
 				  
 			for _, target, outgoing in G.out_edges_iter(word, data=True):
 				if target == replacement:
 					continue
 				data = dict(
-				  start_tail = replacement_out['start_tail'] + outgoing['start_tail'],
-				  power      = replacement_out['power'] + outgoing['power'],
+				  start_tail = type_b_data['end_tail'] + outgoing['start_tail'],
+				  power      = outgoing['power'] - type_b_data['power'],
 				  end_tail   = outgoing['end_tail']
 				)
 				G.add_edge(replacement, target, data) 
 				print('adding', end=' ');
 				print_edge(replacement, target, data)
+				print(self.repeated_image(replacement.extend(data['start_tail']), data['power']), 'should equal', target.extend(data['end_tail']))
 				assert self.repeated_image(replacement.extend(data['start_tail']), data['power']) == target.extend(data['end_tail'])
 				
 			G.remove_node(word)
