@@ -234,6 +234,8 @@ class Automorphism(Homomorphism):
 			terminal_data.add((term, tail))
 		initial = set(initial)
 		
+		print('Quasi-normal basis')
+		
 		ponds = []
 		# print('checking muh ponds')
 		for (term, tail) in terminal_data:
@@ -245,6 +247,7 @@ class Automorphism(Homomorphism):
 					initial.remove(init)
 					break
 		
+		print('Found all ponds')
 		self.pond_banks = ponds
 		return basis
 	
@@ -735,9 +738,7 @@ class Automorphism(Homomorphism):
 		:returns: None if we discover conjugacy is impossible. Otherwise, returns a pair of booleans *(pure_periodic, pure_infinite)*. Note that even if such a pair is returned, we do **not** know for certain that conjugacy is possible.
 		"""
 		s_qnf = self.quasinormal_basis()
-		print('QNF')
 		o_qnf = other.quasinormal_basis()
-		print('QNF')
 		#Check that we have at at least one element in each basis.
 		#This eliminates the possibility that either s or o is both pure periodic and pure infinite.
 		assert (len(s_qnf) != 0 and len(o_qnf) != 0), "One of the QNF bases consists of 0 elements."

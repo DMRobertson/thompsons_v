@@ -8,7 +8,6 @@ Importing ``*`` from this module will add the :class:`~thompson.word.Word`, :cla
 from .word import Word
 from .generators import Generators
 from .automorphism import Automorphism
-from .examples import *
 
 """
 Global TODO:
