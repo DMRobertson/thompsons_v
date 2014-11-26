@@ -299,6 +299,13 @@ class InfiniteFactor(AutomorphismFactor):
 			True
 			>>> rho_i * phi_i == psi_i * rho_i
 			True
+			
+			>>> psi_i = inf_conj_psi; phi_i = inf_conj_phi
+			>>> rho_i = psi_i.test_conjugate_to(phi_i)
+			>>> rho_i is not None
+			True
+			>>> rho_i * phi_i == psi_i * rho_i
+			True
 		
 		.. seealso:: This implements algorithm 5.27 of the paper---see section 5.4.
 		"""
