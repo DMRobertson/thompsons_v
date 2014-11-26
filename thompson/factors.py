@@ -11,7 +11,6 @@ from collections import defaultdict, deque
 from functools import partial
 from io import StringIO
 from itertools import chain, permutations
-from pprint import pprint
 
 import networkx as nx
 
@@ -114,7 +113,6 @@ class PeriodicFactor(AutomorphismFactor):
 		x1 a2 a2 a2 ~>    y1 a2 a2 a2 => y1 a2 a2 a1    ~> x1 a2 a2 a1
 		>>> sorted(example_5_9_p.cycle_type)
 		[2, 3]
-		>>> from pprint import pprint
 		>>> #Two orbits of size 2, one orbit of size 3
 		>>> pprint(example_5_9_p.multiplicity)
 		{2: 2, 3: 1}
@@ -195,15 +193,14 @@ class PeriodicFactor(AutomorphismFactor):
 			>>> rho_p * phi_p == psi_p * rho_p
 			True
 			
-			>>> psi, phi = random_conjugate_pair()
-			>>> psi_p = psi.free_factors()[0]
-			>>> phi_p = phi.free_factors()[0]
+			>>> psi_p, phi_p = random_conjugate_periodic_factors()
 			>>> rho_p = psi_p.test_conjugate_to(phi_p)
 			>>> rho_p * phi_p == psi_p * rho_p
 			True
 		
 		.. seealso:: This implements algorithm 5.13 of the paper---see section 5.3.
 		"""
+		print('periodic')
 		# todo another doctest
 		if not isinstance(other, PeriodicFactor):
 			raise TypeError('Other automorphism must be a PeriodicFactor.')
@@ -291,8 +288,6 @@ class InfiniteFactor(AutomorphismFactor):
 	def test_conjugate_to(self, other):
 		"""We can determine if two purely infinite automorphisms are conjugate by breaking down the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.quasinormal_basis>` into :meth:`equivalence classes <equivalence_data>`.
 		
-		.. todo:: For the purposes of these doctests, need to have some way of making this output reproduceable. Will depend on how the equivalence graph is formed and iterated over.
-		
 			>>> psi_i = example_5_26_psi_i; phi_i = example_5_26_phi_i
 			>>> rho_i = psi_i.test_conjugate_to(phi_i)
 			>>> rho_i is not None
@@ -307,8 +302,14 @@ class InfiniteFactor(AutomorphismFactor):
 			>>> rho_i * phi_i == psi_i * rho_i
 			True
 		
+			>>> psi_i, phi_i = random_conjugate_infinite_factors()
+			>>> rho_i = psi_i.test_conjugate_to(phi_i)
+			>>> rho_i * phi_i == psi_i * rho_i
+			True
+		
 		.. seealso:: This implements algorithm 5.27 of the paper---see section 5.4.
 		"""
+		print('infinite')
 		#todo another doctest.
 		if not isinstance(other, InfiniteFactor):
 			raise TypeError('Other automorphism must be a InfiniteFactor.')
@@ -316,21 +317,11 @@ class InfiniteFactor(AutomorphismFactor):
 		#1. The QNF bases are computed automatically.
 		#2. Compute the equivalence classes X_1, ... X_m of \equiv on self's QNF basis
 		type_b, type_c = self._split_basis()
-		print('** type B: **')
-		pprint(type_b)
-		print('** type C: **')
-		pprint(type_c)
 		roots, graph = self.equivalence_data(type_b, type_c)
-		print('** Roots: **')
-		pprint(roots)
-		print('** Graph: **')
-		dump_graph(roots, graph)
 		verify_graph(self, roots, graph)
 		#3. Find the initial and terminal elements of SI *other*-orbits.
 		#4. Construct the sets R_i
-		print('** Potential Endpoints: **')
 		potential_endpoints = other.potential_image_endpoints(type_b)
-		pprint(potential_endpoints)
 		
 		#5. Type B representitives for each class are stored in *roots*.
 		#6. Iterate through all the automorhpisms which be conjugators.
@@ -356,7 +347,7 @@ class InfiniteFactor(AutomorphismFactor):
 		return type_b, type_c
 	
 	def equivalence_data(self, type_b, type_c):
-		r"""Let :math:`X` be the quasi-normal basis for the current automorphism :math:`\psi`. We can define an equivalence relation :math:`\equiv` on :math:`X` by taking the relation
+		r"""Let :math:`X` be the quasi-normal basis for the current automorphism :math:`\psi`. We can define an equivalence relation :math:`\equiv` on :math:`X` by taking the non-transitive relation
 		
 		.. math:: x \equiv y \iff \exists k, \Gamma, \Delta : x\Gamma\psi^k = y\Delta
 		
@@ -365,19 +356,18 @@ class InfiniteFactor(AutomorphismFactor):
 		- *graph* is a `DiGraph <https://networkx.github.io/documentation/latest/reference/classes.digraph.html>`_
 		
 			- vertices are type B words in :math:`X`
-			- directed edges :math:`x \to y` correspond to the relation :math:`x \equiv y`
+			- directed edges :math:`x \to y` correspond to the direct relation :math:`x \equiv y`
 			- the *graph* is a directed forest
 		
 		- *roots* is a list of type B words in :math:`X`
 			
-			- *roots* are the roots of the trees in *graph*
+			- Each *root* is the root of a different tree in the forest *graph*.
 		
 		This information allows us to (attempt to) compute the images of :math:`X` under a conjugator given only the images of *roots*.
 		
 		.. seealso:: Definition 5.17 through to Lemma 5.20; also section 2.2 of the paper.
 		"""
 		G = self._congruence_graph()
-		dump_graph(G, G)
 		self._simplify_graph(G, type_c)
 		roots = self._reduce_to_forest(G)
 		return roots, G
@@ -392,7 +382,6 @@ class InfiniteFactor(AutomorphismFactor):
 		orbit_generators = set(min_exp + endpts)
 		
 		#1. Add an edge for every direct conjugacy relationship.
-		print('** edges **')
 		for gen in orbit_generators:
 			type, images, _ = self.orbit_type(gen, basis)
 			for power, img in images.items():
@@ -402,9 +391,7 @@ class InfiniteFactor(AutomorphismFactor):
 			for (pow1, (head1, tail1)), (pow2, (head2, tail2)) in congruent_pairs:
 				if head1 == head2:
 					continue
-				print('Creating edge', end=' ')
 				data = dict(start_tail = tail1, power = pow2 - pow1, end_tail = tail2)
-				print_edge(head1, head2, data)
 				G.add_edge(head1, head2, data)
 				assert self.repeated_image(head1.extend(tail1), pow2 - pow1) == head2.extend(tail2)
 		return G
@@ -412,31 +399,22 @@ class InfiniteFactor(AutomorphismFactor):
 	# @staticmethod
 	def _simplify_graph(self, G, type_c):
 		"""Removes all the type C words from this graph. Edges to and from type C words are removed, but the information they is still stored in the graph."""
-		print('** Simplify graph **')
 		#2. Remove the type C elements.
 		for word, type_b_data in type_c.items():
 			replacement = type_b_data['target']
 			
-			print('Type C: {}, Type B replacement: {}'.format(word, replacement))
-			print('Type_b_data:', end=' ')
-			print_edge(word, replacement, type_b_data)
 			assert self.repeated_image(word, type_b_data['power']) == replacement.extend(type_b_data['end_tail'])
 			
 			#Use the scheme of Lemma 5.24 to avoid type C words.
 			for source, _, incoming in G.in_edges_iter(word, data=True):
 				if source == replacement:
 					continue
-				print('dealing with', end=' ')
-				print_edge(source, word, incoming)
 				data = dict(
 				  start_tail = incoming['start_tail'],
 				  power      = incoming['power'] + type_b_data['power'],
 				  end_tail   = type_b_data['end_tail'] + incoming['end_tail']
 				)
 				G.add_edge(source, replacement, data)
-				print('adding', end=' ');
-				print_edge(source, replacement, data)
-				print(self.repeated_image(source.extend(data['start_tail']), data['power']), 'should equal', replacement.extend(data['end_tail']))
 				assert self.repeated_image(source.extend(data['start_tail']), data['power']) == replacement.extend(data['end_tail'])
 				  
 			for _, target, outgoing in G.out_edges_iter(word, data=True):
@@ -447,10 +425,7 @@ class InfiniteFactor(AutomorphismFactor):
 				  power      = outgoing['power'] - type_b_data['power'],
 				  end_tail   = outgoing['end_tail']
 				)
-				G.add_edge(replacement, target, data) 
-				print('adding', end=' ');
-				print_edge(replacement, target, data)
-				print(self.repeated_image(replacement.extend(data['start_tail']), data['power']), 'should equal', target.extend(data['end_tail']))
+				G.add_edge(replacement, target, data)
 				assert self.repeated_image(replacement.extend(data['start_tail']), data['power']) == target.extend(data['end_tail'])
 				
 			G.remove_node(word)
@@ -466,7 +441,6 @@ class InfiniteFactor(AutomorphismFactor):
 		
 		while unseen_nodes:
 			root = unseen_nodes.pop()
-			print('ROOT:', root)
 			roots.append(root)
 			for edge in nx.dfs_edges(G, root):
 				unvisisted_edges.remove(edge)
@@ -489,11 +463,7 @@ class InfiniteFactor(AutomorphismFactor):
 		for word in terminal + initial:
 			type, _, _ = other.orbit_type(word, basis)
 			if type.is_type_B():
-				print('*', word, type)
 				images_by_char[type.characteristic].add(word)
-			else:
-				pass
-				print(' ', word, type)
 		
 		orbit_endpts = {word : images_by_char[char] for word, char in self_type_b.items()}
 		return orbit_endpts
@@ -509,7 +479,6 @@ class InfiniteFactor(AutomorphismFactor):
 		
 		#3. Now the hard part---the iteration.
 		for images in maps_satisfying_choices(ladder, choices, deduce_images):
-			print('control has been received bravo delta roger roger')
 			try:
 				domain = Generators(self.signature, sorted(images))
 				range = Generators(self.signature, (images[d] for d in domain))
@@ -518,15 +487,10 @@ class InfiniteFactor(AutomorphismFactor):
 				for word, data in type_c.items():
 					domain.append(word)
 					img = image_for_type_c(word, data, images, other)
-					print('type C {} -> {}'.format(word, img))
 					range.append(img)
 				rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
 			except ValueError as e:
-				#We haven't specified an automorphism.
-				print(type(e), e)
-				from traceback import print_exception
-				import sys
-				print_exception(type(e), e, None, file=sys.stdout)
+				#For some reason, domain and range don't describe an automorphism
 				continue
 			else:
 				yield rho
@@ -546,17 +510,15 @@ def maps_satisfying_choices(domain, choices, image_for):
 	
 	:returns: yields mappings which satisfy all the constraints until it is no longer possible to do so.
 	"""
-	print(' ** Maps satisfying choices ** ')
 	#2. Setup the state we need
 	images = {}                             #mapping from ladder to images
 	choice_iterators = [None] * len(domain) #iterators yielding the choices at each rung
 	depth  = 0                              #current position on the ladder
 	ascend = False                          #do we go up or down?
-	print(domain)
+	
 	while True:
 		#If the last choice we made didn't work (or we reached the bottom of the ladder) go up
 		if ascend:
-			print('Going up')
 			current = domain[depth]
 			try:
 				del images[current]
@@ -565,38 +527,30 @@ def maps_satisfying_choices(domain, choices, image_for):
 			choice_iterators[depth] = None
 			depth -= 1
 			if depth < 0:
-				print('break')
 				break
 		ascend = False
 		
 		#Select the next choice for this depth
 		current = domain[depth]
 		if choice_iterators[depth] is None:
-			print('create choice iterator for depth', depth)
 			choice_iterators[depth] = iter(choices[current])
 		try:
 			choice = next(choice_iterators[depth])
-			print('trying the choice', current, '~> orbit ending in', choice)
 		except StopIteration:
-			print('No more choices available')
 			ascend = True
 			continue
 		
 		#Does this choice give us an image?
 		img = image_for(current, choice, images)
 		if img is None:
-			print('This doesn\'t work.')
 			continue
-		print('WORKS, and', current, '->', img)
 		images[current] = img
 		
 		#If we've made it this far, we've chosen an image. Try to go down the ladder.
 		if depth + 1 == len(domain):
-			print("I YIELD CONTROL TO YOU")
 			yield images
 			ascend = True
 		else:
-			print('going down')
 			depth += 1
 
 def image_for_type_b(word, chosen_endpoint, images, roots, graph, aut):
@@ -619,11 +573,12 @@ def image_for_type_b(word, chosen_endpoint, images, roots, graph, aut):
 	return aut.repeated_image(chosen_endpoint, solns.base + edge_data['power'])
 
 def image_for_type_c(word, type_b_data, images, aut):
+	"""The end of Lemma 5.24 shows how we can calculate the image of a type C word given the images of all type B words."""
 	power, gen, tail = type_b_data['power'], type_b_data['target'], type_b_data['end_tail']
 	w = images[gen].extend(tail)
 	return aut.repeated_image(w, -power)
 
-###for debugging only
+#For debugging only
 def fmt_triple(edge_data):
 	return "({}, {}, {})".format(
 		format(edge_data['start_tail']), edge_data['power'], format(edge_data['end_tail'])

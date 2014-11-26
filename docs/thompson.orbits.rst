@@ -3,7 +3,7 @@ Orbits
 
 Let :math:`y` be a word, and let :math:`X` be an expansion of the standard basis :math:`\boldsymbol{x}=\{x_1, \dotsc, x_n\}`; finally let :math:`\phi` be an :class:`~thompson.automorphism.Automorphism`. We call the set :math:`\mathrm{orb}_\phi(y) = \{ y \phi^i\}_{i\in \mathbb Z}` the :math:`\phi`-orbit of :math:`y`. Let us refer to the intersection :math:`\mathrm{orb}_\phi (y) \cap X\langle A \rangle` as the :math:`X` *-component* of (the :math:`\phi`-orbit of) :math:`y`. Higman demonstrated how we could classify these components in [Hig]_ (section 9). 
 
-This module is responsible for two orbit-related data structures. Firstly, :class:`~thompson.orbits.OrbitType` is set up to describe all possible types of orbits according to Higman's scheme. Secondly, the :class:`~thompson.orbits.SolutionSet` describes solutions to the equation :math:`u \phi^i = v`.
+This module is responsible for two orbit-related data structures. Firstly, :class:`~thompson.orbits.ComponentType` is set up to describe all possible types of orbits according to Higman's scheme. Secondly, the :class:`~thompson.orbits.SolutionSet` describes solutions to the equation :math:`u \phi^i = v`.
 
 Types of orbits and components
 ------------------------------
@@ -64,7 +64,7 @@ If that wasn't confusing enough, we have a another way to classify those orbits 
 The SolutionSet structure
 -------------------------
 
-Solutions to the equation :math:`u\psi^m = v` come in specific instances. If there are no solutions, the solution set is :math:`\emptyset`. Otherwise :math:`u` and :math:`v` are distinct elements which share an orbit. If this orbit is periodic, then the solution set is :math:`m + p\mathbb{Z}`, where :math:`p` is the period of the orbit. Otherwise the solution set is a single integer :math:`m`.
+Solutions to the equation :math:`u\psi^m = v` come in specific instances. If there are no solutions, the solution set is :math:`\emptyset`. Otherwise :math:`u` and :math:`v` share an orbit. If this orbit is periodic, then the solution set is of the form :math:`m + p\mathbb{Z}`, where :math:`p` is the period of the orbit. Otherwise the solution set is a single integer :math:`m`.
 
 Internally we represent this as a pair *(base, increment)* of integers. The first element *base* is a solution :math:`m` if it exists; otherwise ``None``. The second element *increment* is the increment *p* between solutions (which occurs for a periodic orbit only).
 
@@ -79,7 +79,7 @@ Helper functions
 .. automodule:: thompson.orbits
     :members:
     :undoc-members:
-    :exclude-members: OrbitType, SolutionSet
+    :exclude-members: ComponentType, SolutionSet
 
 Next steps
 ----------

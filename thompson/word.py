@@ -96,7 +96,7 @@ def from_string(str):
 		>>> print(x); print(format(x))
 		(2, -1, 2, -2, 0)
 		x2 a1 x2 a2 L
-		>>> w = random_word()
+		>>> w = random_simple_word()
 		>>> from_string(str(w)) == w
 		True
 	

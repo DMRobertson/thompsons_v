@@ -8,7 +8,7 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 	from thompson import word
 	from thompson.generators import Generators
 	from thompson.automorphism import *
-	from thompson.orbits import print_orbit_types
+	from thompson.orbits import print_component_types
 	from thompson.examples import *
 """
 
@@ -204,9 +204,9 @@ class Automorphism(Homomorphism):
 			>>> example_5_12_phi.quasinormal_basis()
 			Generators((2, 1), ['x1 a1', 'x1 a2'])
 		
-		.. note:: this method also looks for ponds and caches the data describing any ponds it finds.
-		
 		:rtype: a :class:`~thompson.generators.Generators` instance.
+		
+		.. note:: This method additionally looks for ponds and caches the data describing any ponds it finds.
 		
 		.. seealso:: Quasi-normal forms are introduced in section 4.2 of the paper. In particular, this method implements Lemma 4.24.1. Higman first described the idea of quasi-normal forms in section 9 of [Hig]_.
 		"""
@@ -218,8 +218,8 @@ class Automorphism(Homomorphism):
 		basis = self._seminormal_form_start_point()
 		i = 0
 		while i < len(basis):
-			otype, _, _ = self.orbit_type(basis[i], basis)
-			if otype.is_incomplete():
+			ctype, _, _ = self.orbit_type(basis[i], basis)
+			if ctype.is_incomplete():
 				basis.expand(i)
 				i = 0
 			else:
@@ -276,52 +276,52 @@ class Automorphism(Homomorphism):
 		"""Returns the orbit type of *y* with respect to the given *basis*. Also returns a dictionary of computed images, the list (7) from the paper.
 		
 			>>> #Example 4.5.
-			>>> print_orbit_types(example_4_5, example_4_5.domain)
-			x1 a1 a1 a1: Left semi-infinite orbit with characteristic (-1, a1)
-			x1 a1 a1 a2: Bi-infinite orbit
-			x1 a1 a2: Right semi-infinite orbit with characteristic (1, a2)
-			x1 a2 a1: Periodic orbit of order 2
-			x1 a2 a2: Periodic orbit of order 2
+			>>> print_component_types(example_4_5, example_4_5.domain)
+			x1 a1 a1 a1: Left semi-infinite component with characteristic (-1, a1)
+			x1 a1 a1 a2: Bi-infinite component
+			x1 a1 a2: Right semi-infinite component with characteristic (1, a2)
+			x1 a2 a1: Periodic component of order 2
+			x1 a2 a2: Periodic component of order 2
 			with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
-			>>> print_orbit_types(example_4_5, basis=example_4_5.domain, words=['x', 'x a1', 'x a2'])
-			x: Incomplete orbit
-			x a1: Incomplete orbit
-			x a2: Incomplete orbit
+			>>> print_component_types(example_4_5, basis=example_4_5.domain, words=['x', 'x a1', 'x a2'])
+			x: Incomplete component
+			x a1: Incomplete component
+			x a2: Incomplete component
 			with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 			
 			>>> #Example 4.11
-			>>> print_orbit_types(example_4_11)
-			x1 a1: Left semi-infinite orbit with characteristic (-1, a1)
-			x1 a2: Right semi-infinite orbit with characteristic (1, a2)
+			>>> print_component_types(example_4_11)
+			x1 a1: Left semi-infinite component with characteristic (-1, a1)
+			x1 a2: Right semi-infinite component with characteristic (1, a2)
 			with respect to the basis [x1 a1, x1 a2]
 			
 			>>> #Example 4.12
 			>>> basis = example_4_12._seminormal_form_start_point()
-			>>> print_orbit_types(example_4_12, basis)
-			x1 a1: Incomplete orbit
-			x1 a2: Incomplete orbit
+			>>> print_component_types(example_4_12, basis)
+			x1 a1: Incomplete component
+			x1 a2: Incomplete component
 			with respect to the basis [x1 a1, x1 a2]
 			>>> basis.expand(0)
 			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2'])
-			>>> print_orbit_types(example_4_12, basis)
-			x1 a1 a1: Bi-infinite orbit
-			x1 a1 a2: Bi-infinite orbit
-			x1 a2: Incomplete orbit
+			>>> print_component_types(example_4_12, basis)
+			x1 a1 a1: Bi-infinite component
+			x1 a1 a2: Bi-infinite component
+			x1 a2: Incomplete component
 			with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2]
 			>>> basis.expand(2)
 			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
-			>>> print_orbit_types(example_4_12, basis)
-			x1 a1 a1: Periodic orbit of order 4
-			x1 a1 a2: Periodic orbit of order 4
-			x1 a2 a1: Periodic orbit of order 4
-			x1 a2 a2: Periodic orbit of order 4
+			>>> print_component_types(example_4_12, basis)
+			x1 a1 a1: Periodic component of order 4
+			x1 a1 a2: Periodic component of order 4
+			x1 a2 a1: Periodic component of order 4
+			x1 a2 a2: Periodic component of order 4
 			with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 			
 			>>> #Example 4.25
-			>>> print_orbit_types(example_4_25)
-			x1 a1: Right semi-infinite orbit with characteristic (1, a1 a1)
-			x1 a2 a1: Bi-infinite orbit
-			x1 a2 a2: Left semi-infinite orbit with characteristic (-1, a1 a1)
+			>>> print_component_types(example_4_25)
+			x1 a1: Right semi-infinite component with characteristic (1, a1 a1)
+			x1 a2 a1: Bi-infinite component
+			x1 a2 a2: Left semi-infinite component with characteristic (-1, a1 a1)
 			with respect to the basis [x1 a1, x1 a2 a1, x1 a2 a2]
 		
 		.. seealso:: Lemmas 4.14, 4.24
@@ -337,7 +337,7 @@ class Automorphism(Homomorphism):
 		
 		type_b_data = None
 		if not (linf or rinf):
-			otype = OrbitType.incomplete()
+			ctype = ComponentType.incomplete()
 			
 		elif linf and not rinf:
 			tail = y.test_above(limages[-1])
@@ -349,7 +349,7 @@ class Automorphism(Homomorphism):
 				assert len(tail) > 0
 				assert lpow1 == 0
 				characteristic = -lpow2, tail
-			otype = OrbitType.semi_infinite(characteristic, backward=True)
+			ctype = ComponentType.semi_infinite(characteristic, backward=True)
 		
 		elif rinf and not linf:
 			tail = y.test_above(rimages[-1])
@@ -361,21 +361,21 @@ class Automorphism(Homomorphism):
 				assert len(tail) > 0
 				assert rpow1 == 0
 				characteristic = rpow2, tail
-			otype = OrbitType.semi_infinite(characteristic, backward=False)
+			ctype = ComponentType.semi_infinite(characteristic, backward=False)
 		
 		elif linf and rinf:
 			if limages[-1] == y:
 				assert rimages[-1] == y
 				assert lpow1 == rpow1 == 0
 				assert lpow2 == rpow2
-				otype = OrbitType.periodic(lpow2)
+				ctype = ComponentType.periodic(lpow2)
 			
 			else:
-				otype = OrbitType.complete_infinite()
+				ctype = ComponentType.complete_infinite()
 				type_b, tail = basis.test_above(rimages[rpow1])
 				type_b_data = type_b_triple(rpow1, type_b, tail)
 		
-		return otype, images, type_b_data
+		return ctype, images, type_b_data
 	
 	def test_semi_infinite(self, y, basis, backward=False):
 		r"""Computes the orbit type of *y* under the current automorphism :math:`\psi` with respect to *basis* in the given direction. Let :math:`y\psi^m` be the most recently computed image. The process stops when either:
@@ -388,6 +388,7 @@ class Automorphism(Homomorphism):
 				- images: :math:`y, y\psi, \dotsc, y\psi^{m-1}`.
 			
 			2. For some :math:`0 \le l < m`, :math:`y\psi^l` and :math:`y\psi^m` start with the same basis element.
+			
 				- infinite: ``True``
 				- start: ``l``
 				- end: ``m``
@@ -448,8 +449,8 @@ class Automorphism(Homomorphism):
 		basis = self.quasinormal_basis()
 		for gamma in free_monoid_on_alphas(self.signature.arity):
 			w = endpt.extend(gamma)
-			otype, _, _ = self.orbit_type(w, basis)
-			if otype.type == OrbitType._complete_infinite:
+			ctype, _, _ = self.orbit_type(w, basis)
+			if ctype.type == ComponentType._complete_infinite:
 				return gamma
 	
 	def _are_banks(self, term, init, tail):
@@ -543,21 +544,17 @@ class Automorphism(Homomorphism):
 		"""
 		#TODO a script which randomly checks examples to verify.
 		#TODO pond examples
-		print('Do {} and {} share an orbit?'.format(u,v))
 		orig_u, orig_v = u, v
 		basis = self.quasinormal_basis()
 		if not (basis.is_above(u) and basis.is_above(v)):
 			depth = max(u.max_depth_to(basis), v.max_depth_to(basis))
-			print('DEPTH = ', depth)
 			alphas = range(-1, -self.signature.arity - 1, -1)
 			solution_set = SolutionSet.the_integers()
 			# For all strings \Gamma of length *depth*:
 			for tail in product(alphas, repeat=depth):
 				u_desc = u.extend(tail)
 				v_desc = v.extend(tail)
-				new = self.share_orbit(u_desc, v_desc)
-				print(new)
-				solution_set &= new
+				solution_set &= self.share_orbit(u_desc, v_desc)
 				if solution_set.is_empty():
 					return solution_set
 			return solution_set
@@ -592,15 +589,10 @@ class Automorphism(Homomorphism):
 		v = v_head.extend(v_tail)
 		
 		type, images, _ = self.orbit_type(u, basis)
+		
 		if self.pond_banks is not None:
-			from pprint import pprint
-			pprint(images)
+			#Add on the other side of a pond if neccessary
 			self._check_for_ponds(images)
-		if orig_v == Word('x1 a2 a1 a1', (2,1)):
-			from pprint import pprint
-			print(u, u_shift, orig_u)
-			print(v, v_shift, orig_v)
-			pprint(images)
 		for i, image in images.items():
 			if image == v:
 				assert self.repeated_image(orig_u, u_shift + i - v_shift) == orig_v, (format(orig_u), u_shift + i - v_shift)
@@ -681,6 +673,8 @@ class Automorphism(Homomorphism):
 		:returns: if it exists, a conjugating element :math:`\rho` such that :math:`\rho^{-1}\psi\rho = \phi`. If no such :math:`\rho` exists, returns ``None``.
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
 		
+		.. doctest::
+			
 			>>> psi, phi = random_conjugate_pair()
 			>>> rho = psi.test_conjugate_to(phi)
 			>>> rho is not None
@@ -696,6 +690,7 @@ class Automorphism(Homomorphism):
 		
 		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27; these are the :meth:`periodic <thompson.factors.PeriodicFactor.test_conjugate_to>` and :meth:`infinite <thompson.factors.InfiniteFactor.test_conjugate_to>` tests for conjugacy.
 		"""
+		print('test_conjugate_to')
 		#TODO Doctest: try assembling a conjugator from factors
 		#0. Check that both automorphisms belong to the same G_{n,r}.
 		if self.signature != other.signature:
@@ -704,6 +699,7 @@ class Automorphism(Homomorphism):
 		
 		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
 		result = self._check_parition_sizes(other)
+		print('checked sizes')
 		if result is None:
 			return None
 		pure_periodic, pure_infinite, s_qnf_p, s_qnf_i, o_qnf_p, o_qnf_i = result
@@ -739,7 +735,9 @@ class Automorphism(Homomorphism):
 		:returns: None if we discover conjugacy is impossible. Otherwise, returns a pair of booleans *(pure_periodic, pure_infinite)*. Note that even if such a pair is returned, we do **not** know for certain that conjugacy is possible.
 		"""
 		s_qnf = self.quasinormal_basis()
+		print('QNF')
 		o_qnf = other.quasinormal_basis()
+		print('QNF')
 		#Check that we have at at least one element in each basis.
 		#This eliminates the possibility that either s or o is both pure periodic and pure infinite.
 		assert (len(s_qnf) != 0 and len(o_qnf) != 0), "One of the QNF bases consists of 0 elements."
@@ -807,7 +805,7 @@ class Automorphism(Homomorphism):
 		.. math::
 		
 			&G_{n, r}	&\to		&G_{n, |X|}		&\to		&G_{n, s} \\
-			&\phi		&\mapsto	&\phi|_X		&\mapsto	&\phi\,'
+			&\phi		&\mapsto	&\phi|_{\langle X\rangle}		&\mapsto	&\phi\,'
 		
 		:returns: The transformed automorphism :math:`\phi\, \in G_{n, s}`. Its type is :class:`PeriodicFactor` if *infinite* is False; otherwise its type is :class:`InfiniteFactor`.
 		:raises ValueError: if an empty list of *generators* is provided.
@@ -892,6 +890,7 @@ class Automorphism(Homomorphism):
 	
 	#For convenience
 	def free_factors(self):
+		"""A convenience method that produces the periodic and infinite components of an automorphism."""
 		basis = self.quasinormal_basis()
 		p, i = self._partition_basis(basis)
 		p_factor = handle_trivial_factors(self, p, False)
@@ -907,9 +906,6 @@ def handle_trivial_factors(aut, gens, infinite=False):
 		else:
 			raise e
 	return factor
-#TODO? Invert automorphisms (and implement any functionality left over from TreePair?)
-#TODO? Decide if the automorphism is in (the equivalent of) F, T, or V.
-#TODO? The named generators A, B, C, X_n of Thompson's V. Analogues for general G_n,r?
 
 def type_b_triple(power, head, tail):
 	return dict(start_tail = tuple(), power=power, end_tail=tail, target=head)

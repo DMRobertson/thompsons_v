@@ -1,11 +1,28 @@
-9
-(2, 1) -> (2, 1)
-x1 a1 a1 -> x1 a2 a1 a1 a2
-x1 a1 a2 a1 -> x1 a2 a2
-x1 a1 a2 a2 a1 -> x1 a1 a2 a2
-x1 a1 a2 a2 a2 -> x1 a1 a2 a1
-x1 a2 a1 a1 -> x1 a2 a1 a1 a1 a2
-x1 a2 a1 a2 a1 a1 -> x1 a2 a1 a1 a1 a1
-x1 a2 a1 a2 a1 a2 -> x1 a1 a1 a1
-x1 a2 a1 a2 a2 -> x1 a1 a1 a2
-x1 a2 a2 -> x1 a2 a1 a2
+26
+(4, 5) -> (4, 5)
+x1 -> x2 a2 a2
+x2 a1 -> x4 a2
+x2 a2 a1 a1 a1 -> x4 a3
+x2 a2 a1 a1 a2 -> x2 a3 a3
+x2 a2 a1 a1 a3 -> x2 a3 a2
+x2 a2 a1 a1 a4 -> x2 a4
+x2 a2 a1 a2 -> x2 a1
+x2 a2 a1 a3 -> x4 a1
+x2 a2 a1 a4 -> x2 a3 a1
+x2 a2 a2 -> x1
+x2 a2 a3 -> x5
+x2 a2 a4 -> x4 a4
+x2 a3 a1 -> x2 a2 a4
+x2 a3 a2 -> x3 a3 a1 a3
+x2 a3 a3 -> x3 a3 a1 a2
+x2 a3 a4 -> x3 a4
+x2 a4 -> x3 a3 a1 a4
+x3 -> x2 a2 a1
+x4 a1 -> x2 a2 a3
+x4 a2 -> x3 a3 a3
+x4 a3 -> x3 a3 a1 a1
+x4 a4 a1 -> x3 a3 a4
+x4 a4 a2 -> x3 a1
+x4 a4 a3 -> x3 a3 a2
+x4 a4 a4 -> x3 a2
+x5 -> x2 a3 a4

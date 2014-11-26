@@ -1,74 +1,33 @@
-Traceback (most recent call last):
-  File "H:\thompsons_v\scripts\test_conjugacy.py", line 43, in <module>
-    rho_i = psi_i.test_conjugate_to(phi_i)
-  File "H:\thompsons_v\thompson\factors.py", line 316, in test_conjugate_to
-    roots, graph = self.equivalence_data(type_b, type_c)
-  File "H:\thompsons_v\thompson\factors.py", line 373, in equivalence_data
-    self._simplify_graph(G, type_c)
-  File "H:\thompsons_v\thompson\factors.py", line 430, in _simplify_graph
-    assert self.repeated_image(source.extend(data['start_tail']), data['power']) == replacement.extend(data['end_tail'])
-AssertionError
 
 PSI
 ====
 
-Automorphism: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
-x1 a1 a1       -> x1 a1 a1 a1 a2
-x1 a1 a2       -> x1 a1 a1 a2   
-x1 a2 a1       -> x1 a2         
-x1 a2 a2 a1 a1 -> x1 a1 a1 a1 a1
-x1 a2 a2 a1 a2 -> x1 a1 a2 a1   
-x1 a2 a2 a2    -> x1 a1 a2 a2   
-
-PSI_P
-====
-
-None
-
-PSI_I
-====
-
-InfiniteFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
-This automorphism was derived from a parent automorphism.
-'x' and 'y' represent root words of the parent and current derived algebra, respectively.
-x1 a1 a1       ~>    y1 a1             => y1 a1 a1 a2    ~> x1 a1 a1 a1 a2
-x1 a1 a2       ~>    y1 a2 a1          => y1 a1 a2       ~> x1 a1 a1 a2   
-x1 a2 a1       ~>    y1 a2 a2 a1       => y1 a2 a2       ~> x1 a2         
-x1 a2 a2 a1 a1 ~>    y1 a2 a2 a2 a1 a1 => y1 a1 a1 a1    ~> x1 a1 a1 a1 a1
-x1 a2 a2 a1 a2 ~>    y1 a2 a2 a2 a1 a2 => y1 a2 a1 a1    ~> x1 a1 a2 a1   
-x1 a2 a2 a2    ~>    y1 a2 a2 a2 a2    => y1 a2 a1 a2    ~> x1 a1 a2 a2   
+Automorphism: V(2, 5) -> V(2, 5) specified by 9 generators (after expansion and reduction).
+x1          -> x5      
+x2 a1 a1 a1 -> x4 a1   
+x2 a1 a1 a2 -> x3      
+x2 a1 a2    -> x2 a1 a2
+x2 a2       -> x2 a1 a1
+x3          -> x1 a2   
+x4          -> x1 a1   
+x5 a1       -> x2 a2   
+x5 a2       -> x4 a2   
 
 PHI
 ====
 
-Automorphism: V(2, 1) -> V(2, 1) specified by 9 generators (after expansion and reduction).
-x1 a1 a1          -> x1 a2 a1 a1 a2   
-x1 a1 a2 a1       -> x1 a2 a2         
-x1 a1 a2 a2 a1    -> x1 a1 a2 a2      
-x1 a1 a2 a2 a2    -> x1 a1 a2 a1      
-x1 a2 a1 a1       -> x1 a2 a1 a1 a1 a2
-x1 a2 a1 a2 a1 a1 -> x1 a2 a1 a1 a1 a1
-x1 a2 a1 a2 a1 a2 -> x1 a1 a1 a1      
-x1 a2 a1 a2 a2    -> x1 a1 a1 a2      
-x1 a2 a2          -> x1 a2 a1 a2      
-
-PHI_P
-====
-
-None
-
-PHI_I
-====
-
-InfiniteFactor: V(2, 1) -> V(2, 1) specified by 9 generators (after expansion and reduction).
-This automorphism was derived from a parent automorphism.
-'x' and 'y' represent root words of the parent and current derived algebra, respectively.
-x1 a1 a1          ~>    y1 a1 a1          => y1 a2 a1 a2 a2       ~> x1 a2 a1 a1 a2   
-x1 a1 a2 a1       ~>    y1 a1 a2          => y1 a2 a2 a2          ~> x1 a2 a2         
-x1 a1 a2 a2 a1    ~>    y1 a2 a1 a1 a1    => y1 a2 a1 a1          ~> x1 a1 a2 a2      
-x1 a1 a2 a2 a2    ~>    y1 a2 a1 a1 a2    => y1 a1 a2             ~> x1 a1 a2 a1      
-x1 a2 a1 a1       ~>    y1 a2 a1 a2       => y1 a2 a1 a2 a1 a2    ~> x1 a2 a1 a1 a1 a2
-x1 a2 a1 a2 a1 a1 ~>    y1 a2 a2 a1 a1 a1 => y1 a2 a1 a2 a1 a1    ~> x1 a2 a1 a1 a1 a1
-x1 a2 a1 a2 a1 a2 ~>    y1 a2 a2 a1 a1 a2 => y1 a1 a1 a1          ~> x1 a1 a1 a1      
-x1 a2 a1 a2 a2    ~>    y1 a2 a2 a1 a2    => y1 a1 a1 a2          ~> x1 a1 a1 a2      
-x1 a2 a2          ~>    y1 a2 a2 a2       => y1 a2 a2 a1          ~> x1 a2 a1 a2      
+Automorphism: V(2, 5) -> V(2, 5) specified by 14 generators (after expansion and reduction).
+x1             -> x5 a2 a1 a1 a1      
+x2             -> x5 a2 a2            
+x3 a1 a1       -> x1                  
+x3 a1 a2 a1    -> x5 a1 a1            
+x3 a1 a2 a2 a1 -> x5 a1 a2            
+x3 a1 a2 a2 a2 -> x4                  
+x3 a2          -> x2 a1 a2            
+x4             -> x5 a2 a1 a1 a2 a2 a2
+x5 a1 a1       -> x5 a2 a1 a1 a2 a1   
+x5 a1 a2       -> x5 a2 a1 a1 a2 a2 a1
+x5 a2 a1 a1 a1 -> x2 a1 a1            
+x5 a2 a1 a1 a2 -> x2 a2               
+x5 a2 a1 a2    -> x5 a2 a1 a2         
+x5 a2 a2       -> x3                  

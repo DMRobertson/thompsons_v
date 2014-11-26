@@ -268,12 +268,8 @@ class Generators(list):
 	
 	def minimal_expansion_for(self, *automorphisms):
 		r"""Suppose we are given a finite sequence of *automorphisms* of :math:`V_{n,r}` and that the current generaeting set is a basis :math:`X` for :math:`V_{n,r}`. This methods returns an expansion :math:`Y` of :math:`X` such that each automorphism maps :math:`Y` into :math:`X\langle A\rangle`.
-
 		
-			>>> phi = random_automorphism()
-			>>> basis = phi.quasinormal_basis()
-			>>> basis.minimal_expansion_for(phi) == phi.domain
-			True
+			>>> std_basis = Generators.standard_basis((2, 1))
 			>>> reduced_domain = Generators((2, 1), ["x a1 a1", "x a1 a2 a1", "x a1 a2 a2", "x a2 a1", "x a2 a2"])
 			>>> std_basis.minimal_expansion_for(cyclic_order_six) == reduced_domain
 			True

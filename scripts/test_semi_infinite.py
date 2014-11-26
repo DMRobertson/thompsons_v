@@ -19,7 +19,7 @@ while True:
 	basis = psi.quasinormal_basis()
 	for gen in basis:
 		type, _, _ = psi.orbit_type(gen, basis)
-		if type.type == OrbitType._left_semi_infinite or OrbitType._right_semi_infinite and type.is_type_C():
+		if type.type == ComponentType._left_semi_infinite or ComponentType._right_semi_infinite and type.is_type_C():
 			with open('output.txt', 'wt') as f:
 				print(gen, 'is type C in QNF basis\n', basis, file=f)
 				print(psi, file=f)
