@@ -502,6 +502,7 @@ class InfiniteFactor(AutomorphismFactor):
 		
 		#3. Now the hard part---the iteration.
 		for images in maps_satisfying_choices(ladder, choices, deduce_images):
+			print('control has been received bravo delta roger roger')
 			try:
 				domain = Generators(self.signature, sorted(images))
 				range = Generators(self.signature, (images[d] for d in domain))
@@ -510,10 +511,15 @@ class InfiniteFactor(AutomorphismFactor):
 				for word, data in type_c.items():
 					domain.append(word)
 					img = image_for_type_c(word, data, images, other)
+					print('type C {} -> {}'.format(word, img))
 					range.append(img)
 				rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
-			except ValueError:
+			except ValueError as e:
 				#We haven't specified an automorphism.
+				print(type(e), e)
+				from traceback import print_exception
+				import sys
+				print_exception(type(e), e, None, file=sys.stdout)
 				continue
 			else:
 				yield rho
@@ -606,7 +612,7 @@ def image_for_type_b(word, chosen_endpoint, images, roots, graph, aut):
 	return aut.repeated_image(chosen_endpoint, solns.base + edge_data['power'])
 
 def image_for_type_c(word, type_b_data, images, aut):
-	power, gen, tail = type_b_data
+	power, gen, tail = type_b_data['power'], type_b_data['target'], type_b_data['end_tail']
 	w = images[gen].extend(tail)
 	return aut.repeated_image(w, -power)
 

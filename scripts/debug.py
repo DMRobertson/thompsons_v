@@ -26,10 +26,10 @@ phi_i = Automorphism.from_file('phi_i.aut')
 dump_info()
 dump_info()
 
-print(psi_i.repeated_image(Word('x a2 a2 a1 a2 a2', (2,1)), 4))
-
 rho_i = psi_i.test_conjugate_to(phi_i)
 print(rho_i)
+# pprint({i: phi_i.repeated_image(Word('x a2 a2 a1', (2,1)), i) for i in range(-10, 10)})
+# pprint({i: phi_i.repeated_image(Word('x a1 a1', (2,1)), i) for i in range(-10, 10)})
 print(psi_i * rho_i == rho_i * phi_i)
 
 dump_info()
