@@ -3,11 +3,11 @@
 Words and standard forms
 ========================
 
-By a *word*, we mean a string written using the symbols
+By a *word*, we mean a `string <http://en.wikipedia.org/wiki/Formal_language#Words_over_an_alphabet>`_ written using the symbols
 
 .. math:: X \cup \Omega = \{x_1, \dotsc, x_r\} \cup \{\alpha_1, \dotsc, \alpha_n, \lambda\}.
 
-The :math:`x_i` are constants, the :math:`\alpha_i` are unary operators and :math:`\lambda` is an *n*-ary operation. In this package, we refer to the parameters :math:`n` and :math:`r` as the *arity* and *alphabet size* respectively.
+We treat the :math:`x_i` are constants, the :math:`\alpha_i` are unary operators and :math:`\lambda` as an *n*-ary operation. We refer to the parameters :math:`n` and :math:`r` as the *arity* and *alphabet size* respectively.
 
 Notation
 --------
@@ -20,7 +20,7 @@ If we collect together all such words, we obtain an *algebra* (in the sense of `
 
 .. _type2:
 
-2. :math:`W_\Omega(X)`, the subset of :math:`W(\Omega; X)` whose strings begin with an :math:`x_i`, and represent a :func:`valid <validate>` series of operations. Cohn calls these :math:`\Omega`-words.
+2. :math:`W_\Omega(X)`, the subset of :math:`W(\Omega; X)` whose strings represent a :func:`valid <validate>` series of operations. *Valid* means that each the operations :math:`\alpha_i` and :math:`\lambda` always recieve the correct number of arguments. Cohn calls these :math:`\Omega`-words.
 
 .. _type3:
 
@@ -29,16 +29,20 @@ If we collect together all such words, we obtain an *algebra* (in the sense of `
 	a. :math:`w_1 \dots w_n \lambda \alpha_i = w_i`, where each :math:`w_i` is in standard form.
 	b. :math:`w \alpha_1 \dots w \alpha_n \lambda = w`, where :math:`w` is in standard form.
 
+.. note::
+	
+	We usually drop the :math:`X` in :math:`V_{n, r}(X)`. This is because we don't really need to keep track of the set containing the elements :math:`x_1, \dotsc x_n` which are the constants of our algebra.
+
 Sometimes we need to refer to a string which consists only of :math:`\alpha`-s. Write :math:`A` for the set :math:`\{\alpha_1, \dotsc, \alpha_n\}`. We define :math:`A^*` to be the set of finite strings over :math:`A`. (Formally this is the `free monoid <http://en.wikipedia.org/wiki/Free_monoid>`_ on :math:`A`.)
 
-Finally, let :math:`X` be a set of words. We define :math:`X\langle A\rangle` to be the set of concatenations :math:`x \Gamma`, for some choice of :math:`x \in X` and :math:`\Gamma \in A^*`. It is sometimes helpful to think of :math:`X\langle A\rangle` as the *set of words below* :math:`X`.
+Finally, let :math:`S` be a set of words. We define :math:`X\langle A\rangle` to be the set of concatenations :math:`s \Gamma`, where :math:`s \in S` and :math:`\Gamma \in A^*`. It is sometimes helpful to think of :math:`S\langle A\rangle` as the *set of words below* :math:`S`.
 
 .. seealso:: Definition 2.1, Section 2.3, Remark 3.3 and Definition 3.7 of the paper.
 
 Signatures
 ----------
 
-To each word :math:`w \in V_{n,r}` we associate a :class:`Signature` object. This allows us to pass words around as arguments to functions and keep track of which algebra :math:`V_{n,r}` the word belongs to. Signatures are implemented as glorified :func:`namedtuples <py3:collections.namedtuple>`; in particular this means they are `immutable <https://docs.python.org/3/glossary.html#term-immutable>`_.
+It may happen that we need to work in different algebras :math:`V_{n,r}, V_{m,s}` at the same time. To keep track of the algebras that different words belong to, we associate a :class:`Signature` to each word :math:`w \in V_{n,r}`. [#footnote_why_signatures]_ Signatures are implemented as a glorified :math:`(n, r)`. This means they are `immutable <https://docs.python.org/3/glossary.html#term-immutable>`_.
 
 .. autoclass:: thompson.word.Signature
     :members:
@@ -65,7 +69,7 @@ The Word class
 
 It's important to know when a sequence of letters denotes a word in standard form. The :class:`Word` class addresses this problem by standardising its input upon creation. We can think of a Word object as a fixed list of letters with the guarantee that its are in standard form. Words are also given a :class:`Signature` at creation time, so that we know which algebra the word comes from.
 
-We also need to know that once a Word has been created, it cannot be modified to something not in standard form. We achieve this simply by making it impossible to modify a Word. Words are implemented as (subclasses of) :class:`tuple <py3:tuple>`, which are `immutable <https://docs.python.org/3/glossary.html#term-immutable>`_. One useful side effect of this is that Words can be used as dictionary keys. 
+We also need to know that once a Word has been created, it cannot be modified to something not in standard form. We achieve this simply by making it impossible to modify a Word. Words are implemented as (subclasses of) :class:`tuple <py3:tuple>`, which are `immutable <https://docs.python.org/3/glossary.html#term-immutable>`_. One useful side effect of this is that Words can be used as dictionary keys. [#footnote_immutable_words]_
 
 .. doctest::
 	
@@ -83,6 +87,11 @@ We also need to know that once a Word has been created, it cannot be modified to
 .. autoclass:: Word
     :members:
     :undoc-members:
+
+.. rubric:: **Footnotes**
+
+.. [#footnote_why_signatures] This made it easier to catch bugs before they happened when I was passing words around as arguments to functions. 
+.. [#footnote_immutable_words] This made it so much easier to cache the images of :class:`homomorphisms <thompson.homomorphism.Homomorphism>`, because I could just use a vanilla Python dictionary.
 
 Next steps
 ----------

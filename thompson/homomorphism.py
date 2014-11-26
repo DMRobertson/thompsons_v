@@ -33,7 +33,7 @@ class Homomorphism:
 	def __init__(self, domain, range, reduce=True):
 		"""Creates a homomorphism with the specified *domain* and *range*. Sanity checks are performed so that the arguments do genuinely define a basis.
 		
-		By default, any redudancy in the mapping is reduced. For example, the rules ``x1 a1 a1 -> x1 a2 a1`` and ``x1 a1 a2 -> x1 a2 a2`` reduce to the single rule ``x1 a1 -> x1 a2``. The *reduce* argument can be used to disable this. This option is intended for internal use only. (Sometimes we have to expand :class:`free factors [thompson.factors.AutomorphismFactor]` so that the orbit sizes match up.)
+		By default, any redudancy in the mapping is reduced. For example, the rules ``x1 a1 a1 -> x1 a2 a1`` and ``x1 a1 a2 -> x1 a2 a2`` reduce to the single rule ``x1 a1 -> x1 a2``. The *reduce* argument can be used to disable this. This option is intended for internal use only. [#footnote_why_optional_reduce]_
 		
 		:raises TypeError: if the bases are of different sizes.
 		:raises TypeError: if the algebras described by *domain* and *range* have different arities.
@@ -145,17 +145,20 @@ class Homomorphism:
 	@classmethod
 	def from_file(cls, filename):
 		"""Reads in a file specifying a homomorphism and returns the homomorphism being described. Here is an example of the format::
-		5
-		(2,1)		->	(2,1)
-		x1 a1 a1 a1	->	x1 a1 a1
-		x1 a1 a1 a2	->	x1 a1 a2 a1
-		x1 a1 a2	->	x1 a1 a2 a2
-		x1 a2 a1	->	x1 a2 a2
-		x1 a2 a2	->	x1 a2 a1
 		
-		- number of generators/rules
+			5
+			(2,1)		->	(2,1)
+			x1 a1 a1 a1	->	x1 a1 a1
+			x1 a1 a1 a2	->	x1 a1 a2 a1
+			x1 a1 a2	->	x1 a1 a2 a2
+			x1 a2 a1	->	x1 a2 a2
+			x1 a2 a2	->	x1 a2 a1
+		
+		There are three components
+		
+		- number :math:`k` of generators in domain and range
 		- signatures of domain and range
-		- list of rules domain -> range
+		- list of :math:`k` rules domain -> range
 		
 		Any lines after this are ignored, and can be treated as comments.
 		
@@ -205,6 +208,8 @@ class Homomorphism:
 		"""We can test for equality of homomorphisms by using Python's equality operator ``==``.
 		
 			>>> phi = random_automorphism()
+			>>> phi == phi
+			True
 			>>> phi * ~phi == Automorphism.identity(phi.signature)
 			True
 		"""
@@ -257,8 +262,13 @@ class Homomorphism:
 		
 		The *key* must be given as one of:
 		
-		- a sequence of integers (see the :mod:`~thompson.word` module), or
+		- a string to be passed to :func:`~thompson.word.from_string`;
+		- a sequence of integers (see the :mod:`~thompson.word` module); or
 		- a :class:`~thompson.word.Word` instance.
+		
+		.. note::
+			
+			All other arguments are intended for internal use only. [#footnote_why_optional_image_args]_
 		
 		The input need not be in standard form. This method
 		
@@ -373,9 +383,9 @@ class Homomorphism:
 		return image
 	
 	def image_of_set(self, set, sig_in=None, sig_out=None, cache=None):
-		"""Computes the image of a set of :class:`~thompson.generators.Generators` under the current homomorphism.
+		"""Computes the image of a list of :class:`~thompson.generators.Generators` under the current homomorphism. The order of words in the list is preserved.
 		
-		:rtype: another set of :class:`~thompson.generators.Generators`.
+		:rtype: another list of :class:`~thompson.generators.Generators`.
 		
 		.. doctest::
 			
@@ -423,7 +433,6 @@ class Homomorphism:
 		return output.getvalue()
 
 def format_table(*columns, sep=None, root_names=None):
-	"""A helper function used to print homomorphisms in a tidy fashion."""
 	for row in zip(*columns):
 		break
 	num_columns = len(row)

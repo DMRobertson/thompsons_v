@@ -65,7 +65,6 @@ class Signature(BaseSignature):
 		modulus = self.arity - 1
 		return self.alphabet_size % modulus == other.alphabet_size % modulus
 
-
 def _char(symbol):
 	"""Converts the internal representation of a symbol into a nice string."""
 	if symbol > 0:
@@ -82,6 +81,7 @@ def format(word):
 		'x2 a1 x2 a2 L'
 		>>> format([])
 		'<the empty word>'
+		>>> 
 	"""
 	if len(word) == 0:
 		return "<the empty word>"
@@ -96,6 +96,9 @@ def from_string(str):
 		>>> print(x); print(format(x))
 		(2, -1, 2, -2, 0)
 		x2 a1 x2 a2 L
+		>>> w = random_word()
+		>>> from_string(str(w)) == w
+		True
 	
 	:rtype: :class:`tuple <py3:tuple>` of integers
 	"""
@@ -394,7 +397,7 @@ class Word(tuple):
 	def __lt__(self, other):
 		r"""Let us assign a total order to the alphabet :math:`X \cup \Omega` by declaring:
 		
-		.. math:: \alpha_1 < \alpha_2 < \alpha_3 < \dots < x_1 < x_2 < x_3 < \dots < \lambda 
+		.. math:: \alpha_1 < \dots < \alpha_n < x_1 < \dots < x_r < \lambda 
 		
 		We can use this to order :meth:`simple words <is_simple>` by using `dictionary order <http://en.wikipedia.org/wiki/Lexicographical_order#Motivation_and_uses>`_.
 		
@@ -444,7 +447,7 @@ class Word(tuple):
 		>>> Word('x1 a2', (2, 2)) >= Word('x1', (2, 2))
 		True
 		
-		.. todo:: I think this is a total order---try to prove this. I based the idea on [Zaks]_ (section 2, definition 1) which describes a total order on *k*-ary trees.
+		.. todo:: I think this is a total order---try to prove this. I based the idea on [Zaks]_ (section 2, definition 1) which describes a total order on *k*-ary trees. On another note, isn't this similar to shortlex order?
 		"""
 		return self._compare(other, operator.lt, False)
 	
@@ -607,6 +610,8 @@ class Word(tuple):
 			4
 			>>> Word('x a2', (2, 1)).max_depth_to(basis)
 			0
+		
+		.. warning:: If *basis* doesn't actually generate the algebra we're working in, this method could potentially loop forever.
 		"""
 		max_depth = 0
 		dict = {self: 0}
