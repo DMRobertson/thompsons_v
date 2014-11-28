@@ -245,9 +245,7 @@ class Automorphism(Homomorphism):
 		initial = set(initial)
 		
 		ponds = []
-		# print('checking muh ponds')
 		for (term, tail) in terminal_data:
-			# print(term, tail)
 			for init in initial:
 				power = self._are_banks(term, init, tail)
 				if power is not None:
@@ -412,8 +410,9 @@ class Automorphism(Homomorphism):
 		images = [y]
 		m = 0
 		heads = set()
-		
+		prefix, _ = basis.test_above(y)
 		while True:
+			heads.add(prefix)
 			m += 1
 			image = self.image(image, inverse=backward) #Compute y\phi^{\pm m}
 			result = basis.test_above(image)
@@ -429,7 +428,6 @@ class Automorphism(Homomorphism):
 						images.append(image)
 						return True, ell, m, images
 			images.append(image)
-			heads.add(prefix)
 	
 	def semi_infinite_end_points(self):
 		r"""Returns the list of terminal :class:`Words <thompson.word.Word>` in left semi-infinite components and the list of initial words in right semi-infinite components. This is all computed with respect the current automorphism's :meth:`quasinormal_basis`. These are the sets :math:`X\langle A\rangle \setminus Y\langle A\rangle` and :math:`X\langle A\rangle \setminus Z\langle A\rangle`.
