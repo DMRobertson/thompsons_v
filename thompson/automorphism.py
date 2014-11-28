@@ -411,6 +411,7 @@ class Automorphism(Homomorphism):
 		image = y
 		images = [y]
 		m = 0
+		heads = set()
 		
 		while True:
 			m += 1
@@ -422,11 +423,13 @@ class Automorphism(Homomorphism):
 			
 			#2. Otherwise, is there evidence to conclude that this is this an infinite orbit?
 			prefix, tail = result
-			for ell, previous in enumerate(images):
-					if prefix.is_above(previous):
+			if prefix in heads:
+				for ell, previous in enumerate(images):
+					if prefix == previous[:len(prefix)]:
 						images.append(image)
 						return True, ell, m, images
 			images.append(image)
+			heads.add(prefix)
 	
 	def semi_infinite_end_points(self):
 		r"""Returns the list of terminal :class:`Words <thompson.word.Word>` in left semi-infinite components and the list of initial words in right semi-infinite components. This is all computed with respect the current automorphism's :meth:`quasinormal_basis`. These are the sets :math:`X\langle A\rangle \setminus Y\langle A\rangle` and :math:`X\langle A\rangle \setminus Z\langle A\rangle`.
