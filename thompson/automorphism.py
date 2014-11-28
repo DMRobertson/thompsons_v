@@ -215,15 +215,25 @@ class Automorphism(Homomorphism):
 			return self._qnf_basis
 		
 		#1. Expand the starting basis until each no element's belongs to a finite X-component.
+		confirmed = set()
 		basis = self._seminormal_form_start_point()
+		basis.cache = set(basis)
 		i = 0
 		while i < len(basis):
-			ctype, _, _ = self.orbit_type(basis[i], basis)
+			if basis[i] in confirmed:
+				i += 1
+				continue
+			
+			ctype, images, _ = self.orbit_type(basis[i], basis)
 			if ctype.is_incomplete():
+				basis.cache.remove(basis[i])
 				basis.expand(i)
+				basis.cache.update(basis[i: i + self.signature.arity])
 				i = 0
 			else:
 				i += 1
+				if ctype.is_type_A() or ctype.is_type_B():
+					confirmed.update(images)
 		self._qnf_basis = basis
 		
 		#2. Look for and remember the details of any pond orbits.
@@ -343,7 +353,7 @@ class Automorphism(Homomorphism):
 			tail = y.test_above(limages[-1])
 			if tail is None:
 				characteristic = None
-				type_b, tail = basis.test_above_simple(limages[lpow1])
+				type_b, tail = basis.test_above_cached(limages[lpow1])
 				type_b_data = type_b_triple(-lpow1, type_b, tail)
 			else:
 				assert len(tail) > 0
@@ -355,7 +365,7 @@ class Automorphism(Homomorphism):
 			tail = y.test_above(rimages[-1])
 			if tail is None:
 				characteristic = None
-				type_b, tail = basis.test_above_simple(rimages[rpow1])
+				type_b, tail = basis.test_above_cached(rimages[rpow1])
 				type_b_data = type_b_triple(rpow1, type_b, tail)
 			else:
 				assert len(tail) > 0
@@ -372,7 +382,7 @@ class Automorphism(Homomorphism):
 			
 			else:
 				ctype = ComponentType.complete_infinite()
-				type_b, tail = basis.test_above_simple(rimages[rpow1])
+				type_b, tail = basis.test_above_cached(rimages[rpow1])
 				type_b_data = type_b_triple(rpow1, type_b, tail)
 		
 		return ctype, images, type_b_data
@@ -405,7 +415,7 @@ class Automorphism(Homomorphism):
 		while True:
 			m += 1
 			image = self.image(image, inverse=backward) #Compute y\phi^{\pm m}
-			result = basis.test_above_simple(image)
+			result = basis.test_above_cached(image)
 			#1. Did we fall out of X<A>?
 			if result is None:
 				return False, 0, m-1, images
@@ -413,13 +423,9 @@ class Automorphism(Homomorphism):
 			#2. Otherwise, is there evidence to conclude that this is this an infinite orbit?
 			prefix, tail = result
 			for ell, previous in enumerate(images):
-				try:
 					if prefix.is_above(previous):
 						images.append(image)
 						return True, ell, m, images
-				except AttributeError:
-					print(prefix)
-					raise
 			images.append(image)
 	
 	def semi_infinite_end_points(self):
@@ -565,8 +571,8 @@ class Automorphism(Homomorphism):
 			#A recursive alternative: intersect and return the results of tests on only the children of u, v.
 		
 		#Now we're dealing with simple words below the basis.
-		u_head, u_tail = basis.test_above_simple(u)
-		v_head, v_tail = basis.test_above_simple(v)
+		u_head, u_tail = basis.test_above_cached(u)
+		v_head, v_tail = basis.test_above_cached(v)
 		u_head_type, _, u_head_data = self.orbit_type(u_head, basis)
 		v_head_type, _, v_head_data = self.orbit_type(v_head, basis)
 		
@@ -694,7 +700,6 @@ class Automorphism(Homomorphism):
 		
 		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27; these are the :meth:`periodic <thompson.factors.PeriodicFactor.test_conjugate_to>` and :meth:`infinite <thompson.factors.InfiniteFactor.test_conjugate_to>` tests for conjugacy.
 		"""
-		print('test_conjugate_to')
 		#TODO Doctest: try assembling a conjugator from factors
 		#0. Check that both automorphisms belong to the same G_{n,r}.
 		if self.signature != other.signature:
@@ -703,7 +708,6 @@ class Automorphism(Homomorphism):
 		
 		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
 		result = self._check_parition_sizes(other)
-		print('checked sizes')
 		if result is None:
 			return None
 		pure_periodic, pure_infinite, s_qnf_p, s_qnf_i, o_qnf_p, o_qnf_i = result

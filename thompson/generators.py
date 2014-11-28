@@ -26,6 +26,8 @@ class Generators(list):
 			signature = Signature(*signature)
 		self.signature = signature
 		
+		self.cache = None
+		
 		if generators is not None:
 			for g in generators:
 				self.append(g)
@@ -187,25 +189,20 @@ class Generators(list):
 				return gen, result
 		return None
 	
-	def test_above_simple(self, word):
-		"""A quicker version of :meth:`test_above` which assumes that the current generating set consists of simple words."""
+	def test_above_cached(self, word):
+		"""A quicker version of :meth:`test_above` which assumes that the current generating set consists of simple words. Will not work unless the caller maintains a cache"""
+		#todo document me
 		# if any(not gen.is_simple() for gen in self):
 			# raise ValueError('The generators must all be simple.')
 		
+		if self.cache is None:
+			raise LookupError('Caller must maintain this generating set\'s cache.')
+		
 		if not word.is_simple():
 			return None
-		
-		d = defaultdict(set)
-		L = len(word)
-		for gen in self:
-			ell = len(gen)
-			if ell > L:
-				continue
-			d[ell].add(gen)
-		
-		for ell, gens in d.items():
-			if word[:ell] in gens:
-				head, tail = word.split(ell)
+		for i in range(len(word)+1):
+			if word[:i] in self.cache:
+				head, tail = word.split(i)
 				return Word(head, word.signature, preprocess=False), tail
 		return None
 	
