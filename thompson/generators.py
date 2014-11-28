@@ -181,6 +181,8 @@ class Generators(list):
 			>>> print(basis[i])
 			x1 a2
 		"""
+		if self.cache is not None:
+			return self._test_above_cached(word)
 		for i, gen in enumerate(self):
 			result = gen.test_above(word)
 			if result is not None:
@@ -189,15 +191,11 @@ class Generators(list):
 				return gen, result
 		return None
 	
-	def test_above_cached(self, word):
-		"""A quicker version of :meth:`test_above` which assumes that the current generating set consists of simple words. Will not work unless the caller maintains a cache"""
-		#todo document me
-		# if any(not gen.is_simple() for gen in self):
-			# raise ValueError('The generators must all be simple.')
-		
-		if self.cache is None:
-			raise LookupError('Caller must maintain this generating set\'s cache.')
-		
+	def _test_above_cached(self, word):
+		"""A quicker version of :meth:`test_above` which assumes that the:
+			- a cache set has been maintained for this generating set
+			- each generator is simple
+		"""
 		if not word.is_simple():
 			return None
 		for i in range(len(word)+1):

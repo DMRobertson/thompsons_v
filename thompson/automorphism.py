@@ -353,7 +353,7 @@ class Automorphism(Homomorphism):
 			tail = y.test_above(limages[-1])
 			if tail is None:
 				characteristic = None
-				type_b, tail = basis.test_above_cached(limages[lpow1])
+				type_b, tail = basis.test_above(limages[lpow1])
 				type_b_data = type_b_triple(-lpow1, type_b, tail)
 			else:
 				assert len(tail) > 0
@@ -365,7 +365,7 @@ class Automorphism(Homomorphism):
 			tail = y.test_above(rimages[-1])
 			if tail is None:
 				characteristic = None
-				type_b, tail = basis.test_above_cached(rimages[rpow1])
+				type_b, tail = basis.test_above(rimages[rpow1])
 				type_b_data = type_b_triple(rpow1, type_b, tail)
 			else:
 				assert len(tail) > 0
@@ -382,7 +382,7 @@ class Automorphism(Homomorphism):
 			
 			else:
 				ctype = ComponentType.complete_infinite()
-				type_b, tail = basis.test_above_cached(rimages[rpow1])
+				type_b, tail = basis.test_above(rimages[rpow1])
 				type_b_data = type_b_triple(rpow1, type_b, tail)
 		
 		return ctype, images, type_b_data
@@ -416,7 +416,7 @@ class Automorphism(Homomorphism):
 		while True:
 			m += 1
 			image = self.image(image, inverse=backward) #Compute y\phi^{\pm m}
-			result = basis.test_above_cached(image)
+			result = basis.test_above(image)
 			#1. Did we fall out of X<A>?
 			if result is None:
 				return False, 0, m-1, images
@@ -574,8 +574,8 @@ class Automorphism(Homomorphism):
 			#A recursive alternative: intersect and return the results of tests on only the children of u, v.
 		
 		#Now we're dealing with simple words below the basis.
-		u_head, u_tail = basis.test_above_cached(u)
-		v_head, v_tail = basis.test_above_cached(v)
+		u_head, u_tail = basis.test_above(u)
+		v_head, v_tail = basis.test_above(v)
 		u_head_type, _, u_head_data = self.orbit_type(u_head, basis)
 		v_head_type, _, v_head_data = self.orbit_type(v_head, basis)
 		
