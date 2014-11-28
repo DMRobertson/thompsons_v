@@ -49,6 +49,7 @@
 \end{enumerate}
 \end{proof}
 
+\subsubsection{Test for banks}
 Now we outline a procedure to test if $(\ell, r)$ are banks of a pond.
 \begin{enumerate}
 	\item Find a string $\Gamma$ for which $\ell\Gamma$ is in a doubly infinite orbit.
@@ -67,18 +68,14 @@ Now we outline a procedure to test if $(\ell, r)$ are banks of a pond.
 	
 	\begin{enumerate}
 		\item \label{it:iterate_descendants}
-			Let $\Gamma$ iterate through $A^*$ in shortlex order starting with $\Gamma=1$, the empty word. \alert{For} each $\Gamma$:
+			Let $\Gamma$ iterate through $A^*$, starting with $\Gamma=1$, then words of length $1, 2, \dotsc$. \alert{For} each $\Gamma$:
 			\begin{enumerate}
 				\item Compute $w = \ell\Gamma \phi$.
-				\item Set $w_i = w \a i$, \alert{for} $i = 1, \dotsc, n$.
-				\item \alert{Break} if each $w_i$ belongs to $X$.
+				\item Test to see if $w$ belongs to a doubly-infinite type C $X$-component.
+				\item \alert{If} so, \alert{break}.
 			\end{enumerate}
 		
-		\item At this point, each $w_i \in X$ should be in a type C $X$-component.
-		\item Choose one of the $w_i$, say $w_1$.
-		\item \alert{If} $w_i$ is in a left semi-infinite component, go back to step \ref{it:iterate_descendants}, replacing $\ell \from w_i$.
-		
-		\item At this stage, we should have $\Gamma'$ and $w_i'$ such that $w_i' = \ell\Gamma'\phi^k\a i \in X$ belongs to a doubly-infinite orbit (for some $k$). \marginnote{We may have had to concatenate the strings $\Gamma$ and $\a j$ from previous steps to obtain $\Gamma'$.} Record the tuple $(\ell, \Gamma'\alpha_i)$.
+		\item At this stage, we have $\ell\Gamma$ which belongs to a doubly infinite orbit. \marginnote{When I first wrote this, I used the proof of AJD's lemma to find $\Gamma$. This was probably more efficient but it was tricky to implement. I decided to keep things simple!.} Record the tuple $(\ell, \Gamma)$.
 	\end{enumerate}
 
 \item Let $R$ be a set. Initialise $R$ with the contents of $X\ofA \setminus Z\ofA$.
@@ -87,10 +84,10 @@ Now we outline a procedure to test if $(\ell, r)$ are banks of a pond.
 	\begin{enumerate}
 	\item \alert{For} each $r \in R$:
 		\begin{enumerate}
-		\item Use the previous proceedure and the data recorded previously to see if $(\ell, r)$ are banks of a pond.
+		\item Use the previous procedure and the tuples $(\ell, \Gamma)$ to see if $(\ell, r)$ are banks of a pond.
 		\item \alert{If} so, record this fact, taking note of the value $k$ for which $\ell\phi^k = r$. Then remove $r$ from $R$, \alert{break} and \alert{continue} to the next $\ell' \in L$.
 		\end{enumerate}
-		\item If we exhaust all remaning initial words $r$, then $\ell$ is in a genuinely left semi-infinite $\phi$-orbit.
+		\item If we exhaust all remaining initial words $r$, then $\ell$ is in a genuinely left semi-infinite $\phi$-orbit.
 	\end{enumerate}
 	\item Any elements remaining in $R$ are in genuinely left semi-infinite $\phi$-orbits.
 \end{enumerate}
@@ -111,5 +108,7 @@ Now we outline a procedure to test if $(\ell, r)$ are banks of a pond.
 	\end{enumerate}
 	If we reach this point without returning, then $u$ does not lie in a pond orbit. It may be the case that $v$ \emph{does} lie in a pond orbit; but then this certainly means that $u$ and $v$ do not share an $X$-component. Thus the rest of the tests in Lemma 4.24.2 should conclude that $u$ and $v$ do not share an orbit.
 \end{enumerate}
+
+\paragraph{Remark} This is pretty clunky and involves repeatedly invoking the orbit-sharing test. When I came to implement this, instead of the above I did the following. When we compute the list  $(7)$ of Lemma 4.24, (which I've started calling the \emph{core} part of the component in question), I check to see if it contains a bank $\ell$. If not, then proceed as normal. Otherwise, I check to see which $r$ corresponds to $\ell$, and add the `core' part of the component containing $r$ to the list $(7)$.
 
 \end{document}

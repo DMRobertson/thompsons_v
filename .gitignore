@@ -2,11 +2,11 @@
 literature/
 #Don't include test SVG files
 scripts/*.svg
-#Don't include LaTeX files other than .tex
+#Don't include LaTeX files other than .tex or .pdf
+#TODO: there's almost certainly a better way to d this.
 theory/*.aux
 theory/*.log
 theory/*.synctex.gz
-theory/*.pdf
 
 
 
