@@ -11,8 +11,8 @@ from pprint import pprint
 
 import cProfile
 
-psi = Automorphism.from_file('psi.aut')
-phi = Automorphism.from_file('phi.aut')
+psi = Automorphism.from_file('psi_slow_QNB.aut')
+phi = Automorphism.from_file('phi_slow_QNB.aut')
 print('loaded auts')
 
 print(psi.quasinormal_basis())

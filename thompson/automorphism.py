@@ -234,8 +234,6 @@ class Automorphism(Homomorphism):
 			terminal_data.add((term, tail))
 		initial = set(initial)
 		
-		print('Quasi-normal basis')
-		
 		ponds = []
 		# print('checking muh ponds')
 		for (term, tail) in terminal_data:
@@ -247,7 +245,6 @@ class Automorphism(Homomorphism):
 					initial.remove(init)
 					break
 		
-		print('Found all ponds')
 		self.pond_banks = ponds
 		return basis
 	
@@ -346,7 +343,7 @@ class Automorphism(Homomorphism):
 			tail = y.test_above(limages[-1])
 			if tail is None:
 				characteristic = None
-				type_b, tail = basis.test_above(limages[lpow1])
+				type_b, tail = basis.test_above_simple(limages[lpow1])
 				type_b_data = type_b_triple(-lpow1, type_b, tail)
 			else:
 				assert len(tail) > 0
@@ -358,7 +355,7 @@ class Automorphism(Homomorphism):
 			tail = y.test_above(rimages[-1])
 			if tail is None:
 				characteristic = None
-				type_b, tail = basis.test_above(rimages[rpow1])
+				type_b, tail = basis.test_above_simple(rimages[rpow1])
 				type_b_data = type_b_triple(rpow1, type_b, tail)
 			else:
 				assert len(tail) > 0
@@ -375,7 +372,7 @@ class Automorphism(Homomorphism):
 			
 			else:
 				ctype = ComponentType.complete_infinite()
-				type_b, tail = basis.test_above(rimages[rpow1])
+				type_b, tail = basis.test_above_simple(rimages[rpow1])
 				type_b_data = type_b_triple(rpow1, type_b, tail)
 		
 		return ctype, images, type_b_data
@@ -408,7 +405,7 @@ class Automorphism(Homomorphism):
 		while True:
 			m += 1
 			image = self.image(image, inverse=backward) #Compute y\phi^{\pm m}
-			result = basis.test_above(image)
+			result = basis.test_above_simple(image)
 			#1. Did we fall out of X<A>?
 			if result is None:
 				return False, 0, m-1, images
@@ -416,9 +413,13 @@ class Automorphism(Homomorphism):
 			#2. Otherwise, is there evidence to conclude that this is this an infinite orbit?
 			prefix, tail = result
 			for ell, previous in enumerate(images):
-				if prefix.is_above(previous):
-					images.append(image)
-					return True, ell, m, images
+				try:
+					if prefix.is_above(previous):
+						images.append(image)
+						return True, ell, m, images
+				except AttributeError:
+					print(prefix)
+					raise
 			images.append(image)
 	
 	def semi_infinite_end_points(self):
@@ -564,8 +565,8 @@ class Automorphism(Homomorphism):
 			#A recursive alternative: intersect and return the results of tests on only the children of u, v.
 		
 		#Now we're dealing with simple words below the basis.
-		u_head, u_tail = basis.test_above(u)
-		v_head, v_tail = basis.test_above(v)
+		u_head, u_tail = basis.test_above_simple(u)
+		v_head, v_tail = basis.test_above_simple(v)
 		u_head_type, _, u_head_data = self.orbit_type(u_head, basis)
 		v_head_type, _, v_head_data = self.orbit_type(v_head, basis)
 		

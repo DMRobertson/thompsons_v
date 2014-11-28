@@ -581,11 +581,9 @@ class Word(tuple):
 			return tuple() if self == word else None
 		
 		if self.lambda_length == word.lambda_length == 0:
-			if len(self) >  len(word):
+			if len(self) > len(word) or any(word[i] != self[i] for i in range(len(self))):
 				return None
-			if len(self) <= len(word):
-				head, tail = word.split(len(self))
-				return tail if head == self else None
+			return word[len(self):]
 		
 		if self.lambda_length > word.lambda_length:
 			subwords = lambda_arguments(self)

@@ -200,7 +200,6 @@ class PeriodicFactor(AutomorphismFactor):
 		
 		.. seealso:: This implements algorithm 5.13 of the paper---see section 5.3.
 		"""
-		print('periodic conjugacy test')
 		# todo another doctest
 		if not isinstance(other, PeriodicFactor):
 			raise TypeError('Other automorphism must be a PeriodicFactor.')
@@ -309,7 +308,6 @@ class InfiniteFactor(AutomorphismFactor):
 		
 		.. seealso:: This implements algorithm 5.27 of the paper---see section 5.4.
 		"""
-		print('infinite conjugacy test')
 		#todo another doctest.
 		if not isinstance(other, InfiniteFactor):
 			raise TypeError('Other automorphism must be a InfiniteFactor.')

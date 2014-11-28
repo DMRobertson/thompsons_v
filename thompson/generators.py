@@ -6,6 +6,7 @@ r"""
 	from thompson.examples import *
 """
 from copy import copy
+from collections import defaultdict
 
 from . import word
 from .word import Word, Signature
@@ -184,6 +185,28 @@ class Generators(list):
 				if return_index:
 					return i, result
 				return gen, result
+		return None
+	
+	def test_above_simple(self, word):
+		"""A quicker version of :meth:`test_above` which assumes that the current generating set consists of simple words."""
+		# if any(not gen.is_simple() for gen in self):
+			# raise ValueError('The generators must all be simple.')
+		
+		if not word.is_simple():
+			return None
+		
+		d = defaultdict(set)
+		L = len(word)
+		for gen in self:
+			ell = len(gen)
+			if ell > L:
+				continue
+			d[ell].add(gen)
+		
+		for ell, gens in d.items():
+			if word[:ell] in gens:
+				head, tail = word.split(ell)
+				return Word(head, word.signature, preprocess=False), tail
 		return None
 	
 	def is_above(self, word):
