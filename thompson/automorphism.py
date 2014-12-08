@@ -292,9 +292,9 @@ class Automorphism(Homomorphism):
 			x1 a2 a2: Periodic component of order 2
 			with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 			>>> print_component_types(example_4_5, basis=example_4_5.domain, words=['x', 'x a1', 'x a2'])
-			x: Incomplete component
-			x a1: Incomplete component
-			x a2: Incomplete component
+			x1: Incomplete component
+			x1 a1: Incomplete component
+			x1 a2: Incomplete component
 			with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 			
 			>>> #Example 4.11
@@ -388,7 +388,7 @@ class Automorphism(Homomorphism):
 	def test_semi_infinite(self, y, basis, backward=False):
 		r"""Computes the orbit type of *y* under the current automorphism :math:`\psi` with respect to *basis* in the given direction. Let :math:`y\psi^m` be the most recently computed image. The process stops when either:
 		
-			1. :math:`y\psi^m` is not below the *basis*.
+			1. :math:`y\psi^m` is not below the *basis*, for some :math:`m\geq 0`.
 			
 				- infinite: ``False``
 				- start: ``0``
@@ -410,7 +410,12 @@ class Automorphism(Homomorphism):
 		images = [y]
 		m = 0
 		heads = set()
-		prefix, _ = basis.test_above(y)
+		
+		result = basis.test_above(y)
+		if result is None:
+			return False, 0, m-1, images 
+		
+		prefix, _ = result
 		while True:
 			heads.add(prefix)
 			m += 1

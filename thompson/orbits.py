@@ -9,6 +9,7 @@ from collections import namedtuple
 from numbers import Number
 
 from .word import format
+from .generators import Generators
 
 __all__ = ["ComponentType", "print_component_types", "SolutionSet"]
 
@@ -116,6 +117,8 @@ def print_component_types(aut, basis=None, words=None):
 		basis = aut._seminormal_form_start_point()
 	if words is None:
 		words = basis
+	elif not isinstance(words, Generators):
+		words = Generators(aut.domain.signature, words)
 	for w in words:
 		print("{}: {}".format(
 		  w, aut.orbit_type(w, basis)[0]))
