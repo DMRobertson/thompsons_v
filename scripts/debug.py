@@ -11,16 +11,11 @@ from pprint import pprint
 
 import cProfile
 
-psi = Automorphism.from_file('psi_slow_QNB.aut')
-phi = Automorphism.from_file('phi_slow_QNB.aut')
-print('loaded auts')
-
-print(psi.quasinormal_basis())
-print('psi QNF')
-cProfile.run('X = phi.quasinormal_basis()')
+aut = Automorphism.from_file('QNB_size_344.aut')
+print('profiling the QNB')
+cProfile.run('X = aut.quasinormal_basis()', filename='QNB_size_344.profile')
 print(X)
-print('phi QNF')
 
-rho = psi.test_conjugate_to(phi)
-assert rho is not None
-assert psi*rho == rho*phi
+for x in X:
+	ctype, _, _ = aut.orbit_type(x, X)
+	print(x, ctype)
