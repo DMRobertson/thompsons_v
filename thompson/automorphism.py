@@ -226,11 +226,13 @@ class Automorphism(Homomorphism):
 			
 			ctype, images, _ = self.orbit_type(basis[i], basis)
 			if ctype.is_incomplete():
-				basis.cache.remove(basis[i])
-				basis.expand(i)
-				basis.cache.update(basis[i: i + self.signature.arity])
+				basis._expand_with_cache(i)
 				i = 0
 			else:
+				if ctype.is_type_A():
+					confirmed.update(images.values())
+				elif ctype.is_type_B():
+					confirmed.add(basis[i])
 				i += 1
 				if ctype.is_type_A() or ctype.is_type_B():
 					confirmed.update(images)
@@ -342,10 +344,10 @@ class Automorphism(Homomorphism):
 			images[i] = image
 		
 		#Eliminate the periodic case first.
-		is_periodic = rinf and rimages[-1] == y
-		if is_periodic:
+		if rinf and rimages[rpow2] == y:
 			assert rpow1 == 0
 			ctype = ComponentType.periodic(rpow2)
+			del images[rpow2]
 			return ctype, images, type_b_data
 		
 		#Else, we don't have anything periodic.
@@ -605,7 +607,6 @@ class Automorphism(Homomorphism):
 		
 		u = u_head.extend(u_tail)
 		v = v_head.extend(v_tail)
-		
 		type, images, _ = self.orbit_type(u, basis)
 		
 		if self.pond_banks is not None:
@@ -910,6 +911,12 @@ class Automorphism(Homomorphism):
 		p_factor = handle_trivial_factors(self, p, False)
 		i_factor = handle_trivial_factors(self, i, True)
 		return p_factor, i_factor
+	
+	def dump_QNB(self):
+		basis = self.quasinormal_basis()
+		for gen in basis:
+			ctype, _, _ = self.orbit_type(gen, basis)
+			print(gen, ctype)
 
 def handle_trivial_factors(aut, gens, infinite=False):
 	try:

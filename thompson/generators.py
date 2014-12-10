@@ -340,6 +340,14 @@ class Generators(list):
 		self[index: index+1] = [self[index].alpha(i) for i in range(1, self.signature.arity+1)]
 		return self #allows chaining
 	
+	def _expand_with_cache(self, index):
+		r"""If a cache is being maintained, this function expands() and maintains the cache."""
+		assert self.cache is not None
+		self.cache.remove(self[index])
+		self.expand(index)
+		self.cache.update(self[index : index + self.signature.arity])
+		return self
+	
 	@classmethod
 	def sort_mapping_pair(cls, domain, range):
 		"""Makes copies of the given lists of words *domain* and *range*. The copy of *domain* is sorted according to the :meth:`order <thompson.word.Word.__lt__>` defined on words. The same re-ordering is applied to the *range*, so that the mapping from *domain* to *range* is preserved.

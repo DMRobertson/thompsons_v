@@ -8,7 +8,8 @@ theory/*.aux
 theory/*.log
 theory/*.synctex.gz
 
-
+#Go away Windows
+Thumbs.db
 
 #Begin Github's defaults for Python projects.
 # Byte-compiled / optimized / DLL files

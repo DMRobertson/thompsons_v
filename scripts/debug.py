@@ -11,17 +11,21 @@ from pycallgraph.output import GraphvizOutput
 from thompson import Automorphism
 from thompson.examples import *
 
-c_profile = False
+profile = 'cProfile'
+
 filename = 'QNB_size_206'
+# filename = 'QNB_size_344'
 aut = Automorphism.from_file(filename + '.aut')
 
-if c_profile:
+if profile == 'cProfile':
 	print('profiling with cProfile')
-	cProfile.run('X = aut.quasinormal_basis()', filename=filename+'.profile')
-else:
+	cProfile.run('X = aut.quasinormal_basis()')#, filename=filename+'.profile')
+elif profile == 'callgraph':
 	print('profiling with PyCallGraph')
 	with PyCallGraph(output=GraphvizOutput()):
 		X = aut.quasinormal_basis()
+else:
+	X = aut.quasinormal_basis()
 
 print(X)
 for x in X:
