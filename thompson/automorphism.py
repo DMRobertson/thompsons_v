@@ -334,16 +334,25 @@ class Automorphism(Homomorphism):
 		
 		.. seealso:: Lemmas 4.14, 4.24
 		"""
-		rinf, rpow1, rpow2, rimages = self.test_semi_infinite(y, basis, backward=False)
-		linf, lpow1, lpow2, limages = self.test_semi_infinite(y, basis, backward=True)
-		
 		images = {}
+		type_b_data = None
+		
+		rinf, rpow1, rpow2, rimages = self.test_semi_infinite(y, basis, backward=False)
 		for i, image in enumerate(rimages):
 			images[i] = image
+		
+		#Eliminate the periodic case first.
+		is_periodic = rinf and rimages[-1] == y
+		if is_periodic:
+			assert rpow1 == 0
+			ctype = ComponentType.periodic(rpow2)
+			return ctype, images, type_b_data
+		
+		#Else, we don't have anything periodic.
+		linf, lpow1, lpow2, limages = self.test_semi_infinite(y, basis, backward=True)
 		for i, image in enumerate(limages):
 			images[-i] = image
 		
-		type_b_data = None
 		if not (linf or rinf):
 			ctype = ComponentType.incomplete()
 			
@@ -372,16 +381,9 @@ class Automorphism(Homomorphism):
 			ctype = ComponentType.semi_infinite(characteristic, backward=False)
 		
 		elif linf and rinf:
-			if limages[-1] == y:
-				assert rimages[-1] == y
-				assert lpow1 == rpow1 == 0
-				assert lpow2 == rpow2
-				ctype = ComponentType.periodic(lpow2)
-			
-			else:
-				ctype = ComponentType.complete_infinite()
-				type_b, tail = basis.test_above(rimages[rpow1])
-				type_b_data = type_b_triple(rpow1, type_b, tail)
+			ctype = ComponentType.complete_infinite()
+			type_b, tail = basis.test_above(rimages[rpow1])
+			type_b_data = type_b_triple(rpow1, type_b, tail)
 		
 		return ctype, images, type_b_data
 	
