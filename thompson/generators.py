@@ -181,7 +181,7 @@ class Generators(list):
 			>>> print(basis[i])
 			x1 a2
 		"""
-		if self.cache is not None:
+		if not return_index and self.cache is not None:
 			return self._test_above_cached(word)
 		for i, gen in enumerate(self):
 			result = gen.test_above(word)

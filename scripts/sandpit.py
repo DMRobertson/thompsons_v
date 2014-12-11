@@ -3,16 +3,14 @@ setup_script(__file__)
 
 """A place to write rough and ready debug scripts."""
 
-from thompson.automorphism import Automorphism
-from thompson.orbits import *
-# from thompson.examples import *
-from thompson.word import Word
-from pprint import pprint
+from thompson import *
+from thompson.examples import *
 
-aut = Automorphism.from_file('../thompson/examples/example_5_3.aut')
-# p, i = aut.free_factors()
+#Two sides of a pond
+u = Word('x a1 a1 a1 a1 a1 a1 a1 a2', (2, 1))
+v = Word('x a2 a2 a1 a1 a2', (2, 1))
 
-print(aut)
-print(aut.quasinormal_basis())
-# print(p)
-# print(i)
+print(first_pond_example_phi.quasinormal_basis())
+print(first_pond_example_phi.pond_banks)
+
+print(first_pond_example_phi.share_orbit(u, v))

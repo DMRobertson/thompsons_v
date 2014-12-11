@@ -219,23 +219,35 @@ class Automorphism(Homomorphism):
 		basis = self._seminormal_form_start_point()
 		basis.cache = set(basis)
 		i = 0
-		while i < len(basis):
+		checks_needed = len(basis)
+		
+		while checks_needed > 0:
 			if basis[i] in confirmed:
-				i += 1
+				i = (i + 1) % len(basis)
+				checks_needed -= 1
 				continue
 			
 			ctype, images, _ = self.orbit_type(basis[i], basis)
 			if ctype.is_incomplete():
 				basis._expand_with_cache(i)
-				i = 0
+				checks_needed = len(basis)
 			else:
 				if ctype.is_type_A():
 					confirmed.update(images.values())
+					#expand basis until each of the images is below basis
+					for img in images.values():
+						#TODO. I think this operation takes O(len(basis)).
+						index, tail = basis.test_above(img, return_index=True)
+						for j in range(len(tail)):
+							basis._expand_with_cache(index)
+							index += -tail[j] - 1
+							checks_needed += self.signature.arity - 1
+						assert img in basis
+				
 				elif ctype.is_type_B():
 					confirmed.add(basis[i])
-				i += 1
-				if ctype.is_type_A() or ctype.is_type_B():
-					confirmed.update(images)
+				i = (i + 1) % len(basis)
+		
 		self._qnf_basis = basis
 		
 		#2. Look for and remember the details of any pond orbits.
@@ -404,7 +416,11 @@ class Automorphism(Homomorphism):
 				- infinite: ``True``
 				- start: ``l``
 				- end: ``m``
-				- images: :math:`y, y\psi, \dotsc, y\psi^m`.
+				- images: :math:`y, y\psi, \dotsc, y\psi^{m}`.
+				
+			.. note::
+				
+				The word :math:`y\psi^m` is not strictly in the core part of the orbit of Lemma 4.24. We return this as part of *images* so that we can compute the characteristic multiplier in :meth:`orbit_type`.
 		
 		:returns: the tuple *(infinite, start, end, images)*.
 		

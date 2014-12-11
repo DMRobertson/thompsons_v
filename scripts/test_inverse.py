@@ -3,6 +3,8 @@ setup_script(__file__)
 
 from thompson.examples import *
 
+"""Computes the products phi * phi^-1 and phi^-1 * phi and checks that they're both equal to the identity."""
+
 i = 0
 while True:
 	i += 1

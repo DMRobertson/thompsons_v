@@ -5,7 +5,7 @@ from thompson.examples import *
 
 import os
 
-"""A script for testing the implentation of the conjugacy test."""
+"""Runs the conjugacy test on randomly generated conjugate pairs to ensure that the conjugacy test isn't producing false negatives."""
 
 def dump_to_file(aut, name, log):
 	print('\n{}\n====\n\n{}'.format(name.upper(), aut), file=log)

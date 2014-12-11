@@ -11,12 +11,13 @@ from pycallgraph.output import GraphvizOutput
 from thompson import Automorphism
 from thompson.examples import *
 
-profile = 'cProfile'
-
 filename = 'QNB_size_206'
-# filename = 'QNB_size_344'
+filename = 'QNB_size_344'
 aut = Automorphism.from_file(filename + '.aut')
 
+profile = 'cProfile'
+
+print(aut)
 if profile == 'cProfile':
 	print('profiling with cProfile')
 	cProfile.run('X = aut.quasinormal_basis()')#, filename=filename+'.profile')
