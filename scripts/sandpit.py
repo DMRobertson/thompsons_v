@@ -6,11 +6,8 @@ setup_script(__file__)
 from thompson import *
 from thompson.examples import *
 
-#Two sides of a pond
-u = Word('x a1 a1 a1 a1 a1 a1 a1 a2', (2, 1))
-v = Word('x a2 a2 a1 a1 a2', (2, 1))
-
-print(first_pond_example_phi.quasinormal_basis())
-print(first_pond_example_phi.pond_banks)
-
-print(first_pond_example_phi.share_orbit(u, v))
+print(nathan_pond_example)
+nathan_pond_example.quasinormal_basis()
+nathan_pond_example.dump_QNB()
+for (ell, k, r) in nathan_pond_example.pond_banks:
+	print(ell, k, r)
