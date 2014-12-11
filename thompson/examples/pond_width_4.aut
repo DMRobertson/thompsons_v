@@ -1,0 +1,36 @@
+9
+(2, 4)   -> (2, 4)    
+x1       -> x4 a1      
+x2 a1    -> x2         
+x2 a2 a1 -> x1 a1 a2   
+x2 a2 a2 -> x1 a1 a1   
+x3 a1    -> x1 a2 a2 a2
+x3 a2    -> x1 a2 a2 a1
+x4 a1    -> x4 a2      
+x4 a2 a1 -> x3         
+x4 a2 a2 -> x1 a2 a1   
+
+I haven't looked at this in detail; this is just what the script produced. Python believes that the QNB consists of the following:
+
+x1 a1 a1 Bi-infinite component
+x1 a1 a2 Bi-infinite component
+x1 a2 Right semi-infinite component with characteristic (3, a1)
+x2 Left semi-infinite component with characteristic (-1, a1)
+x3 a1 Bi-infinite component
+x3 a2 Bi-infinite component
+x4 a1 a1 a1 Bi-infinite component
+x4 a1 a1 a2 Bi-infinite component
+x4 a1 a2 Right semi-infinite component with characteristic (3, a1)
+x4 a2 a1 a1 Bi-infinite component
+x4 a2 a1 a2 Bi-infinite component
+x4 a2 a2 Right semi-infinite component with characteristic (3, a1)
+
+The pond in question is:
+x2 a1 a2
+x2 a2
+x1 a1 a2 x1 a1 a1 L
+x4 a1 a1 a2 x4 a1 a1 a1 L
+x4 a2 a1 a2 x4 a2 a1 a1 L
+x3 a2 x3 a1 L
+x1 a2 a2
+x4 a1 a2 a2
