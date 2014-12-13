@@ -6,6 +6,7 @@ scripts/*.svg
 #TODO: there's almost certainly a better way to d this.
 theory/*.aux
 theory/*.log
+theory/*.pdf
 theory/*.synctex.gz
 
 #Go away Windows
