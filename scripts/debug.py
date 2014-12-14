@@ -3,11 +3,6 @@ setup_script(__file__)
 
 """A place to write rough and ready debug scripts."""
 
-import cProfile
-
-from pycallgraph import PyCallGraph
-from pycallgraph.output import GraphvizOutput
-
 from thompson import Automorphism
 from thompson.examples import *
 
@@ -18,10 +13,16 @@ aut = Automorphism.from_file(filename + '.aut')
 profile = 'cProfile'
 
 print(aut)
+
 if profile == 'cProfile':
+	import cProfile
 	print('profiling with cProfile')
 	cProfile.run('X = aut.quasinormal_basis()')#, filename=filename+'.profile')
+	
 elif profile == 'callgraph':
+	from pycallgraph import PyCallGraph
+	from pycallgraph.output import GraphvizOutput
+	
 	print('profiling with PyCallGraph')
 	with PyCallGraph(output=GraphvizOutput()):
 		X = aut.quasinormal_basis()
