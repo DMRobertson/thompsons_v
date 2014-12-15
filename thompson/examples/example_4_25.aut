@@ -5,3 +5,4 @@ x a2 a1			->	x a1 a1 a2
 x a2 a2 a1 a1	->	x a2 a2
 x a2 a2 a1 a2	->	x a1 a2
 x a2 a2 a2		->	x a2 a1
+This example is used in the paper to illustrate the process of finding the :meth:`~thompson.automorphism.Automorphism.quasinormal_basis`.

@@ -3,3 +3,4 @@
 x a1 a1	->	x a2 a2
 x a1 a2	->	x a2 a1
 x a2	->	x a1
+This example is used in the paper to illustrate the meaning of a semi-normal form. This example needs to be expanded from its minimal representation (above) to find a semi-normal (in fact quasi-normal) form.

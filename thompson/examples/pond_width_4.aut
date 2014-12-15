@@ -9,6 +9,7 @@ x3 a2    -> x1 a2 a2 a1
 x4 a1    -> x4 a2      
 x4 a2 a1 -> x3         
 x4 a2 a2 -> x1 a2 a1   
+An example found by random search of a pond orbit of width 4. Prior to this we had only seen ponds of width 1 or 2. 
 
 I haven't looked at this in detail; this is just what the script produced. Python believes that the QNB consists of the following:
 

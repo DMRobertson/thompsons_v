@@ -9,3 +9,4 @@ x1 a2 a2 a1 a1 a1 -> x1 a2 a1 a2 a1 a1
 x1 a2 a2 a1 a1 a2 -> x1 a1 a1 a1
 x1 a2 a2 a1 a2 -> x1 a1 a1 a2
 x1 a2 a2 a2 -> x1 a2 a2 a1
+An example used to debug the :meth:`infinite conjugacy test <thompson.factors.InfiniteFactor.test_conjugate_to>`.

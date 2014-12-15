@@ -1,4 +1,8 @@
-"""A list of examples for use in doctests."""
+"""
+.. testsetup::
+	
+	from thompson.examples import *
+"""
 
 import pkg_resources
 import string

@@ -7,3 +7,4 @@ x1 a2		->	x1 a3 a2
 x1 a3 a1	->	x1 a3 a3 a3
 x1 a3 a2	->	x1 a3 a3 a2
 x1 a3 a3	->	x1 a3 a3 a1
+A toy example created to test the beahviour of the program with automorphisms of arity 3. This automorphism is of infinite order and is (I think? TODO: check this) purely infinite.

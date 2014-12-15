@@ -160,7 +160,7 @@ class Homomorphism:
 		- signatures of domain and range
 		- list of :math:`k` rules domain -> range
 		
-		Any lines after this are ignored, and can be treated as comments.
+		Any lines after this are ignored, and can be treated as comments. Comments are read in and added to the __doc__ attribute of the homomorphism that gets created.
 		
 		.. seealso: The examples directory in the package source.
 		"""
@@ -173,7 +173,11 @@ class Homomorphism:
 				d_word, r_word = (word.strip() for word in f.readline().split('->'))
 				d.append(d_word)
 				r.append(r_word)
-		return cls(d, r)
+			hom = cls(d, r)
+			hom.__doc__ = f.read()
+			if len(hom.__doc__.strip()) == 0:
+				del hom.__doc__
+		return hom
 	
 	def save_to_file(self, filename=None):
 		"""Takes a homomorphism and saves it to the file with the given *filename*. The homomorphism is stored in a format which is compatible with :meth:`from_file`.

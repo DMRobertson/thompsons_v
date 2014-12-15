@@ -6,3 +6,4 @@ x1 a3	->	x2
 x2 a1	->	x1 a3
 x2 a2	->	x1 a2 a2
 x2 a3	->	x1 a2 a1
+A toy example to test that the program works with :math:`n > 2` and :math:`r > 1`.

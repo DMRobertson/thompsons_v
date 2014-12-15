@@ -736,6 +736,22 @@ class Automorphism(Homomorphism):
 			>>> psi * rho == rho * phi
 			True
 		
+		..doctest::
+			:hide:
+			
+			>>> rho = nathan_pond_example.test_conjugate_to(nathan1_example)
+			>>> rho is None
+			True
+			>>> rho = nathan2_example.test_conjugate_to(nathan3_example)
+			>>> rho is not None
+			True
+			>>> nathan2_example * rho == rho * nathan3_example
+			True
+			>>> rho = nathan4_example
+			>>> nathan2_example * rho == rho * nathan3_example
+			True
+			
+		
 		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27; these are the :meth:`periodic <thompson.factors.PeriodicFactor.test_conjugate_to>` and :meth:`infinite <thompson.factors.InfiniteFactor.test_conjugate_to>` tests for conjugacy.
 		"""
 		#TODO Doctest: try assembling a conjugator from factors

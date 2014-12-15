@@ -7,3 +7,4 @@ x a1 a1 a2 a2	->	x a2 a1
 x a1 a2			->	x a1 a2 a1 a2
 x a2 a1			->	x a1 a2 a2 a2
 x a2 a2			->	x a1 a2 a2 a1
+Nathan's example of an automorphism containing a pond. This was simpler than the first example found.

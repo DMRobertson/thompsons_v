@@ -20,3 +20,4 @@ x3 a3 a4 -> x5 a1 a4 a1 a1
 x3 a4 -> x5 a1 a4 a2
 x4 -> x5 a3 a4
 x5 -> x2
+This purely periodic automorphism (again found by random search) has a quasinormal basis of size 344. TODO: verify this!

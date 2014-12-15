@@ -10,3 +10,4 @@ x1 a4 a1	->	x1 a3 a4
 x1 a4 a2	->	x1 a2
 x1 a4 a3	->	x1 a3 a1
 x1 a4 a4	->	x1 a4
+An example created to test that the package works with examples of arity four.

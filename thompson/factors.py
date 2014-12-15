@@ -60,6 +60,8 @@ class AutomorphismFactor(Automorphism):
 		
 		:raises AttributeError: if the factor has not been assigned any relabellers.
 		
+		.. doctest::
+			
 			>>> psi = example_5_12_psi; phi = example_5_12_phi
 			>>> rho = psi.test_conjugate_to(phi)
 			>>> print(rho)
