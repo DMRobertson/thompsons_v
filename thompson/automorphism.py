@@ -192,6 +192,10 @@ class Automorphism(Homomorphism):
 		return image
 	
 	#Generating the quasinormal basis
+	#Some ideas for making this process faster:
+	#	Cache the component types (wrt QNB) for the QNB elements
+	#	Put some part of the core of type B orbits into confirmed? See /theory/Characteristic components and the QNB.tex
+	#	Cache the powers (-ell, m) which determine the core part of a component
 	def quasinormal_basis(self):
 		r"""We say that :math:`\phi` is *in semi-normal form* with respect to the basis :math:`X` if no element of :math:`X` lies in an incomplete :math:`X`-component of a :math:`\phi` orbit. See the :mod:`~thompson.orbits` module for more details.
 		
@@ -399,6 +403,15 @@ class Automorphism(Homomorphism):
 			type_b, tail = basis.test_above(rimages[rpow1])
 			type_b_data = type_b_triple(rpow1, type_b, tail)
 		
+		#Test_semi_infinite returns one more word than is needed for the 'core'.
+		#When appropriate, we remove this extra word.
+		#TODO this breaks the conjugacy test and needs to be implemented properly.
+		# for index in (rpow2, -lpow2):
+			# if abs(index) > 0:
+				# try:
+					# del images[index]
+				# except KeyError:
+					# pass
 		return ctype, images, type_b_data
 	
 	def test_semi_infinite(self, y, basis, backward=False):
