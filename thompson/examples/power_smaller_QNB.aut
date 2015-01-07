@@ -1,0 +1,11 @@
+8
+(2, 1)         -> (2, 1)
+x1 a1 a1       -> x1 a2 a1 a2
+x1 a1 a2 a1    -> x1 a2 a2 a1
+x1 a1 a2 a2 a1 -> x1 a2 a2 a2
+x1 a1 a2 a2 a2 -> x1 a1 a1
+x1 a2 a1 a1    -> x1 a1 a2 a1 a2
+x1 a2 a1 a2    -> x1 a1 a2 a2
+x1 a2 a2 a1    -> x1 a1 a2 a1 a1
+x1 a2 a2 a2    -> x1 a2 a1 a1
+The square of this automorphism appears to have a QNB above the QNB of the original automorphism.
