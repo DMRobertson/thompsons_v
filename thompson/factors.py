@@ -14,10 +14,11 @@ from itertools import chain, permutations
 
 import networkx as nx
 
+from .number_theory import lcm
+from .word import Word
 from .generators import Generators
 from .homomorphism import format_table
 from .automorphism import Automorphism
-from .word import Word
 
 __all__ = ["PeriodicFactor", "InfiniteFactor"]
 
@@ -95,6 +96,8 @@ class AutomorphismFactor(Automorphism):
 			output.write('\n')
 			output.write(row)
 		return output.getvalue()
+	
+	power_conjugacy_bounds = NotImplemented
 
 def get_factor_class(infinite):
 	return InfiniteFactor if infinite else PeriodicFactor
@@ -122,6 +125,7 @@ class PeriodicFactor(AutomorphismFactor):
 	
 	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)` where :math:`\phi` is the current automorphism and :math:`X_\phi` is the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.quasinormal_basis>` for :math:`\phi`.
 	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`
+	:ivar order: the smallest positive number :math:`n` for which :math:`phi^n` is the identity. (This is the lcm of the cycle type.)
 	"""
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -142,6 +146,8 @@ class PeriodicFactor(AutomorphismFactor):
 			orbit_size = type.characteristic[0]
 			self.cycle_type.add(orbit_size)
 			counts[orbit_size] += 1
+		
+		self.order = lcm(self.cycle_type)
 		
 		for orbit_size, occurances in counts.items():
 			assert occurances % orbit_size == 0
@@ -246,6 +252,12 @@ class PeriodicFactor(AutomorphismFactor):
 		
 		rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
 		return rho
+	
+	def power_conjugacy_bounds(self, other):
+		"""We simply try all powers of both automorphisms.
+		
+		.. seealso:: Section 6.1."""
+		return self.order, other.order
 
 def expand_orbits(deque, num_expansions):
 	r"""Takes a *deque* whose elements are a list of words. The following process is repeated *num_expansions* times.
@@ -494,6 +506,10 @@ class InfiniteFactor(AutomorphismFactor):
 				continue
 			else:
 				yield rho
+	
+	def power_conjugacy_bounds(self, other):
+		#TODO Implement the discussion after prop 6.6
+		pass
 
 def maps_satisfying_choices(domain, choices, image_for):
 	r"""Suppose we have a list of elements :math:`d` belonging to some list *domain*. We would like to efficiently enumerate the functions :math:`f\colon\text{domain} -> I` where :math:`I` is some set. We would also like these functions :math:`f` to abide by certain rules described below.
@@ -605,8 +621,3 @@ def verify_graph(aut, roots, graph):
 			for source, target in graph.out_edges_iter(node):
 				data = graph[source][target]
 				assert aut.repeated_image(source.extend(data['start_tail']), data['power']) == target.extend(data['end_tail'])
-
-
-
-
-
