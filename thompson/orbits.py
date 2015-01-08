@@ -8,6 +8,7 @@
 from collections import namedtuple
 from numbers import Number
 
+from .number_theory import extended_gcd, solve_linear_diophantine
 from .word import format
 from .generators import Generators
 
@@ -314,32 +315,3 @@ class SolutionSet(BaseSolutionSet):
 		values = (self.base + i * self.increment for i in range(-1, 5))
 		values = (str(num) for num in values)
 		return "{{..., {0}, ...}}".format(", ".join(values))
-
-def extended_gcd(a,b):
-	"""From `this exposition of the extended gcd algorithm <http://anh.cs.luc.edu/331/notes/xgcd.pdf>`. Computes :math:`d = \gcd(a, b)` and returns a triple :math:`(d, x, y)` where :math:`d = ax + by`."""
-	prevx, x = 1, 0; prevy, y = 0, 1
-	while b:
-		q = a//b
-		x, prevx = prevx - q*x, x
-		y, prevy = prevy - q*y, y
-		a, b = b, a % b
-	return a, prevx, prevy
-
-def solve_linear_diophantine(a, b, c):
-	r"""Solves the equation :math:`ax + by = c` for integers :math:`x, y \in\mathbb{Z}`.
-	
-	:rtype: ``None`` if no solution exists; otherwise a triple (base, inc, lcm).
-	"""
-	d, x, y = extended_gcd(a, b)
-	if c % d != 0:
-		#Solution exists iff d divides c
-		return None
-	scale = c // d
-	x *= scale
-	y *= scale
-	assert a*x + b*y == c
-	base = (x, y)
-	inc = (b // d, a // d)
-	lcm = a * b // d
-	return base, inc, lcm
-

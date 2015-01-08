@@ -765,6 +765,7 @@ class Automorphism(Homomorphism):
 		if result is None:
 			return None
 		pure_periodic, pure_infinite, s_qnf_p, s_qnf_i, o_qnf_p, o_qnf_i = result
+		
 		#4. If necessary, test the periodic factors.
 		if pure_infinite:
 			rho_p = None
@@ -962,6 +963,99 @@ class Automorphism(Homomorphism):
 		for gen in basis:
 			ctype, _, _ = self.orbit_type(gen, basis)
 			print(gen, ctype)
+	
+	#Power conjugacy
+	def test_power_conjugate(self, other):
+		r"""Determines if some power of the current automorphism :math:`\psi` is conjugate to some power of the *other* automorphism :math:`\phi`.
+		
+		:returns: if it exists, a triple :math:`(a, b, \rho)` such that :math:`\rho^{-1}\psi^a\rho = \phi^b`. If no such triple exists, returns ``None``.
+		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
+		
+		.. seealso:: This is an implementation of Algorithm 6.12 in the paper. It depends on Algorithms 5.6 (the :meth:`conjugacy test <test_conjugate_to>`) and 6.10 (the :meth:`infinite power conjugate test <thompson.factors.InfiniteFactor.find_power_conjugators>.`)
+		"""
+		#0. Check that both automorphisms belong to the same G_{n,r}.
+		if self.signature != other.signature:
+			raise ValueError('Automorphism\'s signatures {} and {} do not match.'.format(
+			  self.signature, other.signature))
+		
+		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
+		result = self._check_parition_sizes(other)
+		if result is None:
+			return None
+		pure_periodic, pure_infinite, s_qnf_p, s_qnf_i, o_qnf_p, o_qnf_i = result
+		
+		#2. Construct PC_p, the set of conjugators that act on the periodic factor
+		if not pure_infinite:
+			#Extract the periodic factors
+			s_p = self.free_factor(s_qnf_p, infinite=False)
+			o_p = other.free_factor(o_qnf_p, infinite=False)
+			
+			#Preprare to brute force search
+			bounds = s_p.power_conjugacy_bounds(o_p)
+			periodic_conjugators = []
+			for data in s_p._test_power_conjugate_upto(*bounds):
+				if pure_periodic:
+					#TODO RELABELLED VERSION
+					return data
+				periodic_conjugators.append(data)
+			if len(periodic_conjugators) == 0:
+				return None
+		
+		#Step 4. Construct PC_I, the set of conjugators that act on the infinite factor
+		if not pure_periodic:
+			#Extract the periodic factors
+			s_i = self.free_factor(s_qnf_i, infinite=True)
+			o_i = other.free_factor(o_qnf_i, infinite=True)
+			
+			#Preprare to brute force search
+			bounds = s_i.power_conjugacy_bounds(o_i)
+			infinite_conjugators = []
+			#TODO Implement this
+			for data in s_i._test_power_conjugate_upto(o_i, *bounds):
+				if pure_infinite:
+					#TODO RELABELLED VERSION
+					return data
+				infinite_conjugators.append(data)
+			if len(infinite_conjugators) == 0:
+				return None
+		
+		#5. Try to recombine.
+		for alpha, beta, rho_i in infinite_conjugators:
+			for c, d, rho_p in periodic_conjugators:
+				soln = solve_linear_congruence([alpha, beta], [c, d], [s_p.order, o_p.order])
+				if soln is not None:
+					#TODO recombine
+					return (alpha*soln, beta*soln, rho_p * rho_i)
+		#6. If we've got this far, we're out of luck.
+		return None
+		
+		
+	def _test_power_conjugate_upto(self, other, sbound, obound):
+		r"""In both the periodic and infinite cases, we establish bounds on the powers :math:`1 \leq a \leq \hat a` and :math:`1 \leq b \leq \hat b` required for conjugacy. The rest is brute force. This method tests to see if :math:`\psi^a` is conjugate to :math:`\phi^b` with :math:`a, b` as above. Should it find a conjugator :math:`\rho`, this method yields a triple :math:`(a, b, \rho)`.
+		"""
+		if sbound < 1:
+			raise ValueError('sbound parameter should be at least 1 (received {}).'.format(sbound))
+		if obound < 1:
+			raise ValueError('obound parameter should be at least 1 (received {}).'.format(obound))
+		#WLOG we may assume that sbound is the larger number
+		if sbound < obound:
+			sbound, obound = obound, sbound
+			self, other = other, self
+		
+		#Assuming that computation is more expensive than storage space.
+		s_powers = [self]*sbound
+		for i in range(1, sbound):
+			s_powers[i] = s_powers[i-1] * self
+		
+		o_powers = [other]*obound
+		for i in range(1, obound):
+			o_powers[i] = o_powers[i-1] * other
+		
+		for a, spow in enumerate(s_powers):
+			for b, opow in enumerate(o_powers):
+				rho = spow.test_conjugate_to(opow)
+				if rho is not None:
+					yield a+1, b+1, rho
 
 def handle_trivial_factors(aut, gens, infinite=False):
 	try:
