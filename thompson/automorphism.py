@@ -523,8 +523,12 @@ class Automorphism(Homomorphism):
 	def characteristics(self, print_chars=False):
 		"""This method computes the set of characteristics :math:`(m, \Gamma)` of all characteristic words with respect to the :meth:`quasinormal_basis`.
 		
-		:param bool print_chars: if True, prints the characteristics in a nicely formatted way.
+		:param bool print_chars: if True, prints the characteristics in a nicely formatted way and does **not** return anything.
 		
+		:rtype: a :class:`set`.
+		
+		.. doctest::
+			
 			>>> from pprint import pprint
 			>>> example_4_25.characteristics(print_chars=True)
 			(-1, a1 a1)
@@ -537,7 +541,7 @@ class Automorphism(Homomorphism):
 			(-1, a1)
 			(1, a2 a2)
 		
-		..doctest ::
+		.. doctest::
 			:hide:
 			
 			>>> #Lemma 6.1
