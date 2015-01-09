@@ -1071,8 +1071,9 @@ class Automorphism(Homomorphism):
 		#5. Try to recombine.
 		for alpha, beta, rho_i in infinite_conjugators:
 			for c, d, rho_p in periodic_conjugators:
-				soln = solve_linear_congruence([alpha, beta], [c, d], [s_p.order, o_p.order])
-				if soln is not None:
+				solns = solve_linear_congruence(a, c, s_p.order) & solve_linear_congruence(b, d, o_p.order)
+				if not solns.is_empty():
+					soln = solns.base % lcm(s_p.order, o_p.order)
 					rho = self._combine_factors(rho_p, rho_i)
 					return alpha*soln, beta*soln, rho
 		

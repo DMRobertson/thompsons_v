@@ -33,8 +33,15 @@ else:
 			return False
 		return skip
 
+def missing_reference(app, env, node, contnode):
+	try:
+		print("Missing reference target:", node.refid)
+	except AttributeError:
+		print("Missing reference target:", node)
+
 def setup(app):
 	app.connect("autodoc-skip-member", skip)
+	# app.connect("missing-reference", missing_reference)
 
 #Methods and attributes which are documented are displayed in the same order as their docstrings are defined.
 autodoc_member_order = 'bysource'
