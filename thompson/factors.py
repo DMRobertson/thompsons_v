@@ -28,7 +28,6 @@ class AutomorphismFactor(Automorphism):
 	:ivar domain_relabeller: the homomorphism which maps relabelled words back into the original algebra that this automorphism came from.
 	:ivar range_relabeller: the homomorphism which maps relabelled words back into the original algebra that this automorphism came from.
 	"""
-	#todo docstring for reduce
 	def __init__(self, domain, range, domain_relabeller=None, range_relabeller=None, reduce=True):
 		"""In addition to creating an automorphism, we allow optional relabelling homomorphisms to be stored. This allows us to turn words in the factor back into words in the parent algebra.
 		
@@ -508,8 +507,8 @@ class InfiniteFactor(AutomorphismFactor):
 				yield rho
 	
 	def power_conjugacy_bounds(self, other):
-		#TODO Implement the discussion after prop 6.6
-		pass
+		s_char = self.characteristics()
+		o_char = other.characteristics()
 
 def maps_satisfying_choices(domain, choices, image_for):
 	r"""Suppose we have a list of elements :math:`d` belonging to some list *domain*. We would like to efficiently enumerate the functions :math:`f\colon\text{domain} -> I` where :math:`I` is some set. We would also like these functions :math:`f` to abide by certain rules described below.

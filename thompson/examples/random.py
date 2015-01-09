@@ -6,7 +6,6 @@ from ..generators import Generators
 from ..automorphism import Automorphism
 from ..factors import PeriodicFactor, InfiniteFactor
 
-#todo docstrings
 __all__ = ['random_signature', 'random_simple_word', 'random_basis',
 	'random_automorphism', 'random_conjugate_pair',
 	'random_conjugate_factors', 'random_conjugate_periodic_factors', 'random_conjugate_infinite_factors']

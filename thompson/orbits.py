@@ -125,6 +125,7 @@ def print_component_types(aut, basis=None, words=None):
 		  w, aut.orbit_type(w, basis)[0]))
 	print('with respect to the basis', basis)
 
+#Not sure if this should be moved to the number theory module
 BaseSolutionSet = namedtuple('BaseSolutionSet', 'base increment')
 class SolutionSet(BaseSolutionSet):
 	r"""Create solution sets as follows:

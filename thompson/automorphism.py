@@ -10,6 +10,7 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 	from thompson.automorphism import *
 	from thompson.orbits import print_component_types
 	from thompson.examples import *
+	from thompson.number_theory import gcd
 """
 
 __all__ = ["Automorphism"]
@@ -71,6 +72,7 @@ class Automorphism(Homomorphism):
 		self._inv = {}
 		self._qnf_basis = None
 		self.signature = domain.signature
+		self._characteristics = None
 		
 		super().__init__(domain, range, reduce)
 		
@@ -224,6 +226,7 @@ class Automorphism(Homomorphism):
 		basis.cache = set(basis)
 		i = 0
 		checks_needed = len(basis)
+		self._characteristics = set()
 		
 		while checks_needed > 0:
 			if basis[i] in confirmed:
@@ -250,6 +253,7 @@ class Automorphism(Homomorphism):
 				
 				elif ctype.is_type_B():
 					confirmed.add(basis[i])
+					self._characteristics.add(ctype.characteristic)
 				i = (i + 1) % len(basis)
 		
 		self._qnf_basis = basis
@@ -515,6 +519,52 @@ class Automorphism(Homomorphism):
 			return power
 		else:
 			return None
+	
+	def characteristics(self, print_chars=False):
+		"""This method computes the set of characteristics :math:`(m, \Gamma)` of all characteristic words with respect to the :meth:`quasinormal_basis`.
+		
+		:param bool print_chars: if True, prints the characteristics in a nicely formatted way.
+		
+			>>> from pprint import pprint
+			>>> example_4_25.characteristics(print_chars=True)
+			(-1, a1 a1)
+			(1, a1 a1)
+			>>> psi, phi = random_conjugate_pair()
+			>>> #Lemma 5.16
+			>>> psi.characteristics() == phi.characteristics()
+			True
+			>>> (example_6_2 * example_6_2).characteristics(print_chars=True)
+			(-1, a1)
+			(1, a2 a2)
+		
+		..doctest ::
+			:hide:
+			
+			>>> #Lemma 6.1
+			>>> from random import randint
+			>>> psi = random_conjugate_infinite_factors()[0]
+			>>> original_chars = psi.characteristics()
+			>>> power = psi
+			>>> a = randint(2, 6)
+			>>> for _ in range(a - 1): 
+			... 	power *= psi
+			>>> chars = set()
+			>>> for mult, char in original_chars:
+			... 	d = gcd(mult, a)
+			... 	q = abs(a // d)
+			... 	chars.add((mult//d, char*q))
+			>>> chars == power.characteristics()
+			True
+		
+		.. seealso:: Defintion 5.14.
+		"""
+		if self._characteristics is None:
+			self.quasinormal_basis()
+		if print_chars:
+			for power, mult in sorted(self._characteristics):
+				print('({}, {})'.format(power, format(mult)))
+		else:
+			return self._characteristics
 	
 	#Orbit sharing test
 	def share_orbit(self, u, v):
@@ -993,10 +1043,10 @@ class Automorphism(Homomorphism):
 			#Preprare to brute force search
 			bounds = s_p.power_conjugacy_bounds(o_p)
 			periodic_conjugators = []
-			for data in s_p._test_power_conjugate_upto(*bounds):
+			for data in s_p._test_power_conjugate_upto(o_p, *bounds):
 				if pure_periodic:
-					#TODO RELABELLED VERSION
-					return data
+					a, b, rho_p = data
+					return a, b, self._combine_factors(rho_p, None)
 				periodic_conjugators.append(data)
 			if len(periodic_conjugators) == 0:
 				return None
@@ -1010,11 +1060,10 @@ class Automorphism(Homomorphism):
 			#Preprare to brute force search
 			bounds = s_i.power_conjugacy_bounds(o_i)
 			infinite_conjugators = []
-			#TODO Implement this
 			for data in s_i._test_power_conjugate_upto(o_i, *bounds):
 				if pure_infinite:
-					#TODO RELABELLED VERSION
-					return data
+					a, b, rho_i = data
+					return a, b, self._combine_factors(None, rho_i)
 				infinite_conjugators.append(data)
 			if len(infinite_conjugators) == 0:
 				return None
@@ -1024,11 +1073,11 @@ class Automorphism(Homomorphism):
 			for c, d, rho_p in periodic_conjugators:
 				soln = solve_linear_congruence([alpha, beta], [c, d], [s_p.order, o_p.order])
 				if soln is not None:
-					#TODO recombine
-					return (alpha*soln, beta*soln, rho_p * rho_i)
+					rho = self._combine_factors(rho_p, rho_i)
+					return alpha*soln, beta*soln, rho
+		
 		#6. If we've got this far, we're out of luck.
 		return None
-		
 		
 	def _test_power_conjugate_upto(self, other, sbound, obound):
 		r"""In both the periodic and infinite cases, we establish bounds on the powers :math:`1 \leq a \leq \hat a` and :math:`1 \leq b \leq \hat b` required for conjugacy. The rest is brute force. This method tests to see if :math:`\psi^a` is conjugate to :math:`\phi^b` with :math:`a, b` as above. Should it find a conjugator :math:`\rho`, this method yields a triple :math:`(a, b, \rho)`.
@@ -1037,10 +1086,6 @@ class Automorphism(Homomorphism):
 			raise ValueError('sbound parameter should be at least 1 (received {}).'.format(sbound))
 		if obound < 1:
 			raise ValueError('obound parameter should be at least 1 (received {}).'.format(obound))
-		#WLOG we may assume that sbound is the larger number
-		if sbound < obound:
-			sbound, obound = obound, sbound
-			self, other = other, self
 		
 		#Assuming that computation is more expensive than storage space.
 		s_powers = [self]*sbound
