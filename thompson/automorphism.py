@@ -15,9 +15,10 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 
 __all__ = ["Automorphism"]
 
+from builtins import print as builtin_print
 from copy import copy
 from io import StringIO
-from itertools import product
+from itertools import product, chain
 
 from .word import *
 from .generators import *
@@ -226,7 +227,6 @@ class Automorphism(Homomorphism):
 		basis.cache = set(basis)
 		i = 0
 		checks_needed = len(basis)
-		self._characteristics = set()
 		
 		while checks_needed > 0:
 			if basis[i] in confirmed:
@@ -253,7 +253,6 @@ class Automorphism(Homomorphism):
 				
 				elif ctype.is_type_B():
 					confirmed.add(basis[i])
-					self._characteristics.add(ctype.characteristic)
 				i = (i + 1) % len(basis)
 		
 		self._qnf_basis = basis
@@ -520,17 +519,17 @@ class Automorphism(Homomorphism):
 		else:
 			return None
 	
-	def characteristics(self, print_chars=False):
+	def characteristics(self, print=False):
 		"""This method computes the set of characteristics :math:`(m, \Gamma)` of all characteristic words with respect to the :meth:`quasinormal_basis`.
 		
-		:param bool print_chars: if True, prints the characteristics in a nicely formatted way and does **not** return anything.
+		:param bool print: if True, prints the characteristics in a nicely formatted way and does **not** return anything.
 		
 		:rtype: a :class:`set`.
 		
 		.. doctest::
 			
 			>>> from pprint import pprint
-			>>> example_4_25.characteristics(print_chars=True)
+			>>> example_4_25.characteristics(print=True)
 			(-1, a1 a1)
 			(1, a1 a1)
 			>>> psi, phi = random_conjugate_pair()
@@ -542,7 +541,7 @@ class Automorphism(Homomorphism):
 			... 	print(phi.characteristics())
 			... 	psi.save_to_file('psi.aut')
 			... 	phi.save_to_file('phi.aut')
-			>>> (example_6_2 * example_6_2).characteristics(print_chars=True)
+			>>> (example_6_2 * example_6_2).characteristics(print=True)
 			(-1, a1)
 			(1, a2 a2)
 		
@@ -568,10 +567,16 @@ class Automorphism(Homomorphism):
 		.. seealso:: Defintion 5.14.
 		"""
 		if self._characteristics is None:
-			self.quasinormal_basis()
-		if print_chars:
+			basis = self.quasinormal_basis()
+			self._characteristics = set()
+			initial, terminal = self.semi_infinite_end_points()
+			for endpt in chain(initial, terminal):
+				ctype, _, _ = self.orbit_type(endpt, basis)
+				if ctype.is_type_B():
+					self._characteristics.add(ctype.characteristic)
+		if print:
 			for power, mult in sorted(self._characteristics):
-				print('({}, {})'.format(power, format(mult)))
+				builtin_print('({}, {})'.format(power, format(mult)))
 		else:
 			return self._characteristics
 	

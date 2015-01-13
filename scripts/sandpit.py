@@ -11,11 +11,13 @@ assert phi.test_conjugate_to(psi) is not None
 
 print(phi)
 phi.dump_QNB()
-phi.characteristics(print_chars=True)
+phi.characteristics(print=True)
 print(phi.semi_infinite_end_points())
 print()
 
 print(psi)
 psi.dump_QNB()
-psi.characteristics(print_chars=True)
+psi.characteristics(print=True)
 print(psi.semi_infinite_end_points())
+
+assert phi.characteristics() == psi.characteristics()
