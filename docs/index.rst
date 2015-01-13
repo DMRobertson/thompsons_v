@@ -41,6 +41,7 @@ Documentation contents
    Free Factors and conjugacy <thompson.factors>
    Examples <thompson.examples>
    References <references>
+   Number Theory <thompson.number_theory>
 
 Indices
 -------

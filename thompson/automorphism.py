@@ -537,6 +537,11 @@ class Automorphism(Homomorphism):
 			>>> #Lemma 5.16
 			>>> psi.characteristics() == phi.characteristics()
 			True
+			>>> if not psi.characteristics() == phi.characteristics():
+			... 	print(psi.characteristics())
+			... 	print(phi.characteristics())
+			... 	psi.save_to_file('psi.aut')
+			... 	phi.save_to_file('phi.aut')
 			>>> (example_6_2 * example_6_2).characteristics(print_chars=True)
 			(-1, a1)
 			(1, a2 a2)

@@ -159,7 +159,7 @@ class SolutionSet(BaseSolutionSet):
 			>>> print(SolutionSet(1, 18) & SolutionSet(5, 24))
 			{}
 			>>> print(SolutionSet(1, 18) & SolutionSet(13, 24))
-			{..., -107, -35, 37, 109, 181, 253, ...}
+			{..., -35, 37, 109, 181, 253, 325, ...}
 			>>> print(SolutionSet(1, 3) & Z)
 			{..., -2, 1, 4, 7, 10, 13, ...}
 			>>> print(Z & Z)
@@ -197,6 +197,7 @@ class SolutionSet(BaseSolutionSet):
 			return SolutionSet.empty_set()
 		base, inc, lcm = result
 		new_base = self.base + base[0] * self.increment
+		new_base %= lcm
 		assert new_base in self and new_base in other
 		return SolutionSet(new_base, lcm)
 	
@@ -211,7 +212,7 @@ class SolutionSet(BaseSolutionSet):
 
 
 def extended_gcd(a,b):
-	"""From `this exposition of the extended gcd algorithm <http://anh.cs.luc.edu/331/notes/xgcd.pdf>`. Computes :math:`d = \gcd(a, b)` and returns a triple :math:`(d, x, y)` where :math:`d = ax + by`."""
+	"""From `this exposition of the extended gcd algorithm <http://anh.cs.luc.edu/331/notes/xgcd.pdf>`_. Computes :math:`d = \gcd(a, b)` and returns a triple :math:`(d, x, y)` where :math:`d = ax + by`."""
 	prevx, x = 1, 0; prevy, y = 0, 1
 	while b:
 		q = a//b
@@ -223,7 +224,7 @@ def extended_gcd(a,b):
 def solve_linear_diophantine(a, b, c):
 	r"""Solves the equation :math:`ax + by = c` for integers :math:`x, y \in\mathbb{Z}`.
 	
-	:rtype: ``None`` if no solution exists; otherwise a triple (base, inc, lcm).
+	:rtype: ``None`` if no solution exists; otherwise a triple (base, inc, lcm) of integers.
 	"""
 	d, x, y = extended_gcd(a, b)
 	if c % d != 0:
@@ -253,13 +254,31 @@ def solve_linear_congruence(a, b, n):
 	"""Solves the congruence :math:`ax \equiv b \pmod n`.
 	
 	:rtype: a :class:`SolutionSet`.
+	
+	.. doctest::
+		:options: -ELLIPSIS
+		
+		>>> x = solve_linear_congruence(6, 12, 18)
+		>>> print(x)
+		{..., -1, 2, 5, 8, 11, 14, ...}
+		>>> y = solve_linear_congruence(5, 7, 11)
+		>>> print(y)
+		{..., -3, 8, 19, 30, 41, 52, ...}
+		>>> print(x & y)
+		{..., -25, 8, 41, 74, 107, 140, ...}
 	"""
 	d = gcd(a, n)
-	if b % d == 0:
+	#1. A solution exists iff d divides b.
+	if b % d != 0:
 		return SolutionSet.empty_set()
-	a /= d
-	b /= d
-	n /= d
-	
-	extended_gcd
+	#2. Divide through by d to obtain an equivalent equation with smaller modulus.
+	a //= d
+	b //= d
+	n //= d
+	#3. At this stage, gcd(a, n) = 1. Appeal to Euclid to compute x = a^-1 mod n.
+	d, x, y = extended_gcd(a, n)
+	assert a*x + n*y == d == 1
+	#4. We have one concrete solution. Add multiples of n to get the rest.
+	base = (x*b) % n
+	return SolutionSet(base, n)
 
