@@ -1057,7 +1057,7 @@ class Automorphism(Homomorphism):
 			#Preprare to brute force search
 			bounds = s_p.power_conjugacy_bounds(o_p)
 			periodic_conjugators = []
-			for data in s_p._test_power_conjugate_upto(o_p, *bounds):
+			for data in s_p._test_power_conjugate_upto(o_p, *bounds, inverses=False):
 				if pure_periodic:
 					a, b, rho_p = data
 					return a, b, self._combine_factors(rho_p, None)
@@ -1074,7 +1074,7 @@ class Automorphism(Homomorphism):
 			#Preprare to brute force search
 			bounds = s_i.power_conjugacy_bounds(o_i)
 			infinite_conjugators = []
-			for data in s_i._test_power_conjugate_upto(o_i, *bounds):
+			for data in s_i._test_power_conjugate_upto(o_i, *bounds, inverses=True):
 				if pure_infinite:
 					a, b, rho_i = data
 					return a, b, self._combine_factors(None, rho_i)
@@ -1094,28 +1094,45 @@ class Automorphism(Homomorphism):
 		#6. If we've got this far, we're out of luck.
 		return None
 		
-	def _test_power_conjugate_upto(self, other, sbound, obound):
-		r"""In both the periodic and infinite cases, we establish bounds on the powers :math:`1 \leq a \leq \hat a` and :math:`1 \leq b \leq \hat b` required for conjugacy. The rest is brute force. This method tests to see if :math:`\psi^a` is conjugate to :math:`\phi^b` with :math:`a, b` as above. Should it find a conjugator :math:`\rho`, this method yields a triple :math:`(a, b, \rho)`.
+	def _test_power_conjugate_upto(self, other, sbound, obound, inverses=False):
+		r"""In both the periodic and infinite cases, we establish bounds on the powers :math:`a, b` for conjugacy; the rest is brute force.  This method tests to see if :math:`\psi^a` is conjugate to :math:`\phi^b` within the supplied bounds. Should it find a conjugator :math:`\rho`, this method yields a triple :math:`(a, b, \rho)`.
+		
+		Let :math:`\hat a, \hat b` denote *sbound* and *obound* respectively. If *inverses* is False, then we search over the ranges :math:`1 \le a \le \hat a` and :math:`1 \le b \le \hat b`. If *inverses* is True, we search over the (four times larger) range `1 \le |a| \le \hat a` and :math:`1 \leq |b| \le \hat b`
 		"""
-		if sbound < 1:
-			raise ValueError('sbound parameter should be at least 1 (received {}).'.format(sbound))
-		if obound < 1:
-			raise ValueError('obound parameter should be at least 1 (received {}).'.format(obound))
+		if sbound < 0:
+			raise ValueError('sbound parameter should be at least 0 (received {}).'.format(sbound))
+		if obound < 0:
+			raise ValueError('obound parameter should be at least 0 (received {}).'.format(obound))
+		
+		if sbound == 0 or obound == 0:
+			return
 		
 		#Assuming that computation is more expensive than storage space.
-		s_powers = [self]*sbound
-		for i in range(1, sbound):
+		s_powers = dict()
+		s_powers[1] = self
+		if inverses:
+			s_powers[-1] = ~self
+		
+		o_powers = dict()
+		o_powers[1] = other
+		if inverses:
+			o_powers[-1] = ~other
+		
+		for i in range(2, sbound + 1):
 			s_powers[i] = s_powers[i-1] * self
+			if inverse:
+				s_powers[-i] = s_powers[1-i] * s_powers[-1]
 		
-		o_powers = [other]*obound
-		for i in range(1, obound):
+		for i in range(2, obound + 1):
 			o_powers[i] = o_powers[i-1] * other
+			if inverse:
+				o_powers[-i] = o_powers[1-i] * o_powers[-1]
 		
-		for a, spow in enumerate(s_powers):
-			for b, opow in enumerate(o_powers):
+		for a, spow in s_powers.items():
+			for b, opow in o_powers.items():
 				rho = spow.test_conjugate_to(opow)
 				if rho is not None:
-					yield a+1, b+1, rho
+					yield a, b, rho
 
 def handle_trivial_factors(aut, gens, infinite=False):
 	try:

@@ -14,7 +14,7 @@ from itertools import chain, permutations
 
 import networkx as nx
 
-from .number_theory import lcm
+from .number_theory import lcm, prod
 from .word import Word
 from .generators import Generators
 from .homomorphism import format_table
@@ -253,7 +253,7 @@ class PeriodicFactor(AutomorphismFactor):
 		return rho
 	
 	def power_conjugacy_bounds(self, other):
-		"""We simply try all powers of both automorphisms.
+		"""We simply try all powers of both automorphisms. There are only finitely many, because everything is periodic.
 		
 		.. seealso:: Section 6.1."""
 		return self.order, other.order
@@ -507,8 +507,45 @@ class InfiniteFactor(AutomorphismFactor):
 				yield rho
 	
 	def power_conjugacy_bounds(self, other):
-		s_char = self.characteristics()
-		o_char = other.characteristics()
+		"""Compute the bounds :math:`\hat a, \hat b`.
+		.. seealso Prop 6.6. and Cor 6.7
+		"""
+		s_parts = self.minimal_partition()
+		o_parts = other.minimal_partition()
+		#If the root sets are different, there's no hope of power conjugacy.
+		if s_parts.keys() != o_parts.keys():
+			return 0, 0
+		s_bound = self.compute_bounds(s_parts, o_parts)
+		o_bound = self.compute_bounds(o_parts, s_parts)
+		return s_bound, o_bound
+	
+	def minimal_partition(self):
+		"""Let :math:`\psi` be the current automorphism. This method partitions the :meth:`~thompson.automorphism.Automorphism.characteristics` :math:`M_\psi` into cells :math:`P_1 \sqcup \dots \sqcup P_L`, where
+		- The multipliers :math:`\Gamma` all have the same :func:`~thompson.word.root`, for all :math:`(m, \Gamma)` in each :math:`P_i`.
+		- :math:`L` is minimal with this property.
+		
+		:returns: a dictionary of sets. The keys of this dictionary are the roots :math:`\sqrt\Gamma`; the values are the cells :math:`P_i`. An element of a cell looks like :math:`m, \Gamma, r` where :math:`m, \Gamma` is a characteristic and :math:`r` is the root power corresponding to :math:`\sqrt\Gamma`.
+		
+		.. seealso:: the discussion following Cor. 6.7
+		"""
+		chars = self.characteristics()
+		parts = defaultdict(set)
+		for power, mult in chars:
+			root_mult, root_power = root(mult)
+			parts[root_mult].add((power, mult, root_power))
+		return parts
+	
+	@staticmethod
+	def compute_bounds(s_parts, o_parts):
+		"""Computes the bounds :math:`\hat a, \hat b` (in terms of the partitions :math:`P, Q` given by *s_parts* and *o_parts*) as in eqns (14) and (15) of the paper.
+		"""
+		bound = 1
+		for root in s_parts:
+			P_i = s_parts[key]
+			Q_i = o_parts[key]
+			bound *= prod(abs(power) for power, mult, root_power in P_i) ** len(Q_i)
+			bound *= prod(root_power for power, mult, root_power in Q_i) ** len(P_i)
+		return bound
 
 def maps_satisfying_choices(domain, choices, image_for):
 	r"""Suppose we have a list of elements :math:`d` belonging to some list *domain*. We would like to efficiently enumerate the functions :math:`f\colon\text{domain} -> I` where :math:`I` is some set. We would also like these functions :math:`f` to abide by certain rules described below.

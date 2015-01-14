@@ -8,9 +8,12 @@ r"""Functions implementing various number-theoretic algorithms.
 
 from collections import namedtuple
 from fractions import gcd
+from functools import reduce
+from operator import mul
 from numbers import Number
 
-__all__ = ['lcm', 'gcd', 'extended_gcd', 'solve_linear_diophantine', 'solve_linear_congruence']
+__all__ = ['lcm', 'gcd', 'extended_gcd', 'solve_linear_diophantine', 'solve_linear_congruence',
+	'divisors', 'prod']
 
 BaseSolutionSet = namedtuple('BaseSolutionSet', 'base increment')
 class SolutionSet(BaseSolutionSet):
@@ -239,6 +242,7 @@ def solve_linear_diophantine(a, b, c):
 	lcm = a * b // d
 	return base, inc, lcm
 
+#TODO I think we can use reduce() to make this tidier
 def lcm(a, b=None):
 	if b is None:
 		if len(a) == 0:
@@ -281,4 +285,29 @@ def solve_linear_congruence(a, b, n):
 	#4. We have one concrete solution. Add multiples of n to get the rest.
 	base = (x*b) % n
 	return SolutionSet(base, n)
+
+def divisors(n, include_one=True):
+	"""An iterator that yields the positive divisors :math:`d \mid n`.
+	:param bool include_one: set to False to exlude :math:`d = 1`.
+	
+		>>> list(divisors(12))
+		[1, 2, 3, 4, 6, 12]
+		>>> list(divisors(125, include_one=False))
+		[5, 25, 125]
+	"""
+	if include_one:
+		yield 1
+	for i in range(2, n):
+		if n % i == 0:
+			yield i
+	yield n
+
+def prod(iterable):
+	"""Handy function for computing the product of an iterable collection of numbers.
+	From `Stack Overflow <http://stackoverflow.com/a/7948307>`_.
+	
+		>>> prod(range(1, 5))
+		24
+	"""
+	return reduce(mul, iterable, 1)
 

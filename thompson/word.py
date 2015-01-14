@@ -9,9 +9,10 @@ import operator
 from collections import namedtuple
 from itertools import chain, product
 
-__all__ = ["Signature", "Word",
-	"format", "from_string", "validate", "standardise", "are_contractible", "lambda_arguments", "_concat", "free_monoid_on_alphas"]
+from .number_theory import divisors
 
+__all__ = ["Signature", "Word",
+	"format", "from_string", "validate", "standardise", "are_contractible", "lambda_arguments", "_concat", "free_monoid_on_alphas", "root"]
 
 BaseSignature = namedtuple('BaseSignature', 'arity alphabet_size')
 class Signature(BaseSignature):
@@ -724,7 +725,6 @@ class Word(tuple):
 
 
 #4. Functions for working with the free monoid A*.
-
 def free_monoid_on_alphas(arity):
 	"""An infinite iterator which enumerates the elements of :math:`A^*` in `shortlex order <http://en.wikipedia.org/wiki/Shortlex_order>`_.
 	
@@ -747,3 +747,29 @@ def free_monoid_on_alphas(arity):
 	while True:
 		yield from product(alphabet, repeat=length)
 		length += 1
+
+def root(sequence):
+	r"""Given a sequence :math:`\Gamma\in A^*`, this function computes the root :math:`\sqrt\Gamma \in A^*` and the root power :math:`r \in \mathbb N`. These are objects such that :math:`(\sqrt\Gamma)^r = \Gamma`, and :math:`r` is maximal with this property.
+	
+	:returns: the pair :math:`(\sqrt\Gamma, r)`
+	
+	
+	.. doctest::
+		
+		>>> root('abababab')
+		('ab', 4)
+		>>> root([1, 2, 3, 1, 2, 3])
+		([1, 2, 3], 2)
+	
+	.. seealso Discussion following Cor. 6.7
+	"""
+	#TODO examples
+	power = 1
+	n = len(sequence)
+	for d in divisors(n, include_one=False): #d*q = n, d>1
+		candidate = sequence[:n//d]
+		if candidate * d != sequence:
+			break
+		else:
+			power = d
+	return sequence[: n // power], power
