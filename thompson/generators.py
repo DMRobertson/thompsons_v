@@ -193,8 +193,12 @@ class Generators(list):
 	
 	def _test_above_cached(self, word):
 		"""A quicker version of :meth:`test_above` which assumes that the:
-			- a cache set has been maintained for this generating set
-			- each generator is simple
+			- a cache set has been maintained for this generating set, and
+			- each generator is simple.
+		
+		.. todo::
+			
+			The bulk of the speedup seemed to be properly using all the information available. Do we still need this cache? Given the fact that the QNB is used virtually all the time it might be a good idea.
 		"""
 		if not word.is_simple():
 			return None

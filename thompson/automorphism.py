@@ -215,6 +215,8 @@ class Automorphism(Homomorphism):
 		
 		.. note:: This method additionally looks for ponds and caches the data describing any ponds it finds.
 		
+		.. todo:: Make the QNB read-only somehow, so that it cannot be expanded once computed.
+		
 		.. seealso:: Quasi-normal forms are introduced in section 4.2 of the paper. In particular, this method implements Lemma 4.24.1. Higman first described the idea of quasi-normal forms in section 9 of [Hig]_.
 		"""
 		#0. Have we already computed the basis?
