@@ -12,7 +12,7 @@ def format(word):
 
 def render_basis(aut, name):
 	'''only works for quasinormal'''
-	basis = aut.quasinormal_basis()
+	basis = aut.quasinormal_basis
 	with open(name + '.dot', 'wt') as f:
 		f.write('strict digraph G {\n')
 		

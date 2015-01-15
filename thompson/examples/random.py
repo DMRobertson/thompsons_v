@@ -1,10 +1,9 @@
 from random import randint, shuffle 
 from copy import copy
 
-from ..word import Signature, Word
-from ..generators import Generators
-from ..mixed import MixedAut
-from ..factors import PeriodicAut, InfiniteFactor
+from ..word         import Signature, Word
+from ..generators   import Generators
+from ..automorphism import Automorphism
 
 __all__ = ['random_signature', 'random_simple_word', 'random_basis',
 	'random_automorphism', 'random_conjugate_pair',
@@ -68,7 +67,7 @@ def random_automorphism(num_expansions, signature):
 	domain = random_basis(num_expansions, signature)
 	range  = random_basis(num_expansions, signature)
 	shuffle(range)
-	return MixedAut(domain, range)
+	return Automorphism(domain, range)
 
 @needs_defaults
 def random_conjugate_pair(num_expansions, signature):
@@ -104,5 +103,5 @@ def random_conjugate_infinite_factors(num_expansions, signature):
 	psi_i = phi_i = None
 	while psi_i is None or phi_i is None:
 		_, psi_i, _, phi_i = random_conjugate_factors()
-	assert isinstance(psi_i, InfiniteFactor)
+	assert isinstance(psi_i, InfiniteAut)
 	return psi_i, phi_i

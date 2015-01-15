@@ -17,7 +17,7 @@ while True:
 		print('tried', num_attempts, 'automorphisms')
 	
 	psi = random_automorphism()
-	X = psi.quasinormal_basis()
+	X = psi.quasinormal_basis
 	
 	if len(psi.pond_banks) == 0:
 		continue

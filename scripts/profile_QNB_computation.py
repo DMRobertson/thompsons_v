@@ -17,7 +17,7 @@ print(aut)
 if profile == 'cProfile':
 	import cProfile
 	print('profiling with cProfile')
-	cProfile.run('X = aut.quasinormal_basis()')#, filename=filename+'.profile')
+	cProfile.run('X = aut.quasinormal_basis')#, filename=filename+'.profile')
 	
 elif profile == 'callgraph':
 	from pycallgraph import PyCallGraph
@@ -25,9 +25,9 @@ elif profile == 'callgraph':
 	
 	print('profiling with PyCallGraph')
 	with PyCallGraph(output=GraphvizOutput()):
-		X = aut.quasinormal_basis()
+		X = aut.quasinormal_basis
 else:
-	X = aut.quasinormal_basis()
+	X = aut.quasinormal_basis
 
 print(X)
 for x in X:

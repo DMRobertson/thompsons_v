@@ -11,7 +11,7 @@ while not finished:
 	if i % 50 == 0:
 		print(i)
 	aut = random_automorphism()
-	basis = aut.quasinormal_basis()
+	basis = aut.quasinormal_basis
 	for gen in basis:
 		ctype, images, _ = aut.orbit_type(gen, basis)
 		if ctype.is_type_B():
