@@ -9,8 +9,8 @@ import string
 
 from ..generators import Generators
 from ..homomorphism import Homomorphism
-from ..automorphism import Automorphism
-from ..factors import PeriodicFactor, InfiniteFactor
+from ..mixed import MixedAut
+from ..factors import PeriodicAut, InfiniteFactor
 
 from . import random
 from .random import *
@@ -25,7 +25,7 @@ def add_module_attribute(name, value):
 
 remove_whitespace = str.maketrans('', '', string.whitespace)
 
-class_by_extension = {'.hom': Homomorphism, '.aut': Automorphism, '.paut': PeriodicFactor, '.iaut': InfiniteFactor}
+class_by_extension = {'.hom': Homomorphism, '.aut': MixedAut, '.paut': PeriodicAut, '.iaut': InfiniteFactor}
 
 def read_examples():
 	#1. Read in examples.

@@ -16,9 +16,9 @@ The Homomorphism Class
 
 .. rubric:: **Footnotes**
 
-.. [#footnote_why_optional_reduce] Sometimes we have to expand :class:`free factors <thompson.factors.AutomorphismFactor>` so that the orbit sizes match up.
+.. [#footnote_why_optional_reduce] Sometimes we have to expand :class:`free factors <thompson.factors.MixedAutFactor>` so that the orbit sizes match up.
 
-.. [#footnote_why_optional_image_args] Exposing more arguments means I can write this function in a more general manner. Doing so makes it easy to compute :meth:`inverse images <thompson.automorphism.Automorphism.image>` under an :class:`~thompson.automorphism.Automorphism`.
+.. [#footnote_why_optional_image_args] Exposing more arguments means I can write this function in a more general manner. Doing so makes it easy to compute :meth:`inverse images <thompson.mixed.MixedAut.image>` under an :class:`~thompson.mixed.MixedAut`.
 
 Next steps
 ----------

@@ -7,13 +7,13 @@ This module works with automorphisms of :math:`V_{n,r}(\boldsymbol{x})`. The gro
 	from thompson.word import Word, Signature, from_string, free_monoid_on_alphas
 	from thompson import word
 	from thompson.generators import Generators
-	from thompson.automorphism import *
+	from thompson.mixed import *
 	from thompson.orbits import print_component_types
 	from thompson.examples import *
 	from thompson.number_theory import gcd
 """
 
-__all__ = ["Automorphism"]
+__all__ = ["MixedAut"]
 
 from builtins import print as builtin_print
 from copy import copy
@@ -36,7 +36,7 @@ def modulo_non_zero(x, n):
 		return n
 	return x
 
-class Automorphism(Homomorphism):
+class MixedAut(Homomorphism):
 	"""
 	:ivar signature: The :class:`~thompson.word.Signature` shared by the generating sets domain and range.
 	:ivar pond_banks: A list of tuples :math:`(\ell, k, r)` such that :math:`(\ell, r)` are banks of a pond with :math:`\ell\phi^k = r`.
@@ -95,7 +95,7 @@ class Automorphism(Homomorphism):
 			>>> phi * ~phi == ~phi * phi
 			True
 			>>> print(phi * ~phi)
-			Automorphism: V(2, 1) -> V(2, 1) specified by 1 generators (after expansion and reduction).
+			MixedAut: V(2, 1) -> V(2, 1) specified by 1 generators (after expansion and reduction).
 			x1 -> x1
 		"""
 		inv = copy(self)
@@ -743,10 +743,10 @@ class Automorphism(Homomorphism):
 			
 			>>> tail = from_string('a1 a2 a1 a2 a1 a2 a3')
 			>>> multiplier = from_string('a1 a2')
-			>>> Automorphism._remove_from_start(tail, (2, multiplier))
+			>>> MixedAut._remove_from_start(tail, (2, multiplier))
 			(-6, (-3,))
 			>>> multiplier = from_string('a1')
-			>>> Automorphism._remove_from_start(tail, (2, multiplier))
+			>>> MixedAut._remove_from_start(tail, (2, multiplier))
 			(-2, (-2, -1, -2, -1, -2, -3))
 		"""
 		power, multiplier = characteristic
@@ -813,12 +813,12 @@ class Automorphism(Homomorphism):
 			True
 			
 		
-		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27; these are the :meth:`periodic <thompson.factors.PeriodicFactor.test_conjugate_to>` and :meth:`infinite <thompson.factors.InfiniteFactor.test_conjugate_to>` tests for conjugacy.
+		.. seealso:: This is an implementation of Algorithm 5.6 in the paper. It depends on Algorithms 5.13 and 5.27; these are the :meth:`periodic <thompson.factors.PeriodicAut.test_conjugate_to>` and :meth:`infinite <thompson.factors.InfiniteFactor.test_conjugate_to>` tests for conjugacy.
 		"""
 		#TODO Doctest: try assembling a conjugator from factors
 		#0. Check that both automorphisms belong to the same G_{n,r}.
 		if self.signature != other.signature:
-			raise ValueError('Automorphism\'s signatures {} and {} do not match.'.format(
+			raise ValueError('MixedAut\'s signatures {} and {} do not match.'.format(
 			  self.signature, other.signature))
 		
 		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
@@ -914,7 +914,7 @@ class Automorphism(Homomorphism):
 		for gen in basis:
 			type, _, _ = self.orbit_type(gen, basis)
 			if type.is_incomplete():
-				raise ValueError('Automorphism is not in semi-normal form with respect to the given basis.')
+				raise ValueError('MixedAut is not in semi-normal form with respect to the given basis.')
 			elif type.is_type_A():
 				periodic.append(gen)
 			else:
@@ -929,7 +929,7 @@ class Automorphism(Homomorphism):
 			&G_{n, r}	&\to		&G_{n, |X|}		&\to		&G_{n, s} \\
 			&\phi		&\mapsto	&\phi|_{\langle X\rangle}		&\mapsto	&\phi\,'
 		
-		:returns: The transformed automorphism :math:`\phi\, \in G_{n, s}`. Its type is :class:`PeriodicFactor` if *infinite* is False; otherwise its type is :class:`InfiniteFactor`.
+		:returns: The transformed automorphism :math:`\phi\, \in G_{n, s}`. Its type is :class:`PeriodicAut` if *infinite* is False; otherwise its type is :class:`InfiniteFactor`.
 		:raises ValueError: if an empty list of *generators* is provided.
 		
 		.. doctest::
@@ -938,7 +938,7 @@ class Automorphism(Homomorphism):
 			>>> qnb = example_5_3.quasinormal_basis()
 			>>> p, i = example_5_3._partition_basis(qnb)
 			>>> print(example_5_3.free_factor(p, infinite=False))
-			PeriodicFactor: V(2, 1) -> V(2, 1) specified by 2 generators (after expansion and reduction).
+			PeriodicAut: V(2, 1) -> V(2, 1) specified by 2 generators (after expansion and reduction).
 			This automorphism was derived from a parent automorphism.
 			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
 			x1 a1 a2 a1 ~>    y1 a1 => y1 a2    ~> x1 a1 a2 a2
@@ -950,7 +950,7 @@ class Automorphism(Homomorphism):
 			>>> qnb = alphabet_size_two.quasinormal_basis()
 			>>> p, i = alphabet_size_two._partition_basis(qnb)
 			>>> print(alphabet_size_two.free_factor(p, infinite=False))
-			PeriodicFactor: V(3, 1) -> V(3, 1) specified by 1 generators (after expansion and reduction).
+			PeriodicAut: V(3, 1) -> V(3, 1) specified by 1 generators (after expansion and reduction).
 			This automorphism was derived from a parent automorphism.
 			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
 			x1 a1 ~>    y1 => y1    ~> x1 a1
@@ -1008,7 +1008,7 @@ class Automorphism(Homomorphism):
 		domain = Generators(self.signature, domain)
 		range = Generators(self.signature, range)
 		
-		return Automorphism(domain, range)
+		return MixedAut(domain, range)
 	
 	#For convenience
 	def free_factors(self):
@@ -1044,7 +1044,7 @@ class Automorphism(Homomorphism):
 		"""
 		#0. Check that both automorphisms belong to the same G_{n,r}.
 		if self.signature != other.signature:
-			raise ValueError('Automorphism\'s signatures {} and {} do not match.'.format(
+			raise ValueError('MixedAut\'s signatures {} and {} do not match.'.format(
 			  self.signature, other.signature))
 		
 		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
@@ -1062,8 +1062,8 @@ class Automorphism(Homomorphism):
 			#Preprare to brute force search
 			soln_iterator = s_p.test_power_conjugate_to(o_p, multiple_solns = True)
 			if pure_periodic:
-				
-			periodic_conjugators = list(
+				pass
+			periodic_conjugators = list()
 			if len(periodic_conjugators) == 0:
 				return None
 				a, b, rho_p = periodic_conjugators[0]

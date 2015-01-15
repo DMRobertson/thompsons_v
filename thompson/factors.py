@@ -19,11 +19,11 @@ from .number_theory import lcm, prod
 from .word import Word, root
 from .generators import Generators
 from .homomorphism import format_table
-from .automorphism import Automorphism
+from .mixed import MixedAut
 
-__all__ = ["PeriodicFactor", "InfiniteFactor"]
+__all__ = ["PeriodicAut", "InfiniteFactor"]
 
-class AutomorphismFactor(Automorphism):
+class MixedAutFactor(MixedAut):
 	"""An automorphism derived from a larger parent automorphism.
 	
 	:ivar domain_relabeller: the homomorphism which maps relabelled words back into the original algebra that this automorphism came from.
@@ -32,12 +32,12 @@ class AutomorphismFactor(Automorphism):
 	def __init__(self, domain, range, domain_relabeller=None, range_relabeller=None, reduce=True):
 		"""In addition to creating an automorphism, we allow optional relabelling homomorphisms to be stored. This allows us to turn words in the factor back into words in the parent algebra.
 		
-		Instances of this class are returned by :meth:`~thompson.automorphism.Automorphism.free_factor` and don't need to be instantiated by the user.
+		Instances of this class are returned by :meth:`~thompson.mixed.MixedAut.free_factor` and don't need to be instantiated by the user.
 		
 		:raises LookupError: if a relabeller is provided and the relabeller's signature does not match that of *domain* or *range*
 		:raises TypeError: if a relabeller is provided and the relabeller's signature does not match that of *domain* or *range* (as appropriate)
 		
-		.. seealso:: :meth:`thompson.automorphism.Automorphism.__init__`, :meth:`~thompson.automorphism.Automorphism.free_factor`
+		.. seealso:: :meth:`thompson.mixed.MixedAut.__init__`, :meth:`~thompson.mixed.MixedAut.free_factor`
 		"""
 		if (domain_relabeller is None) != (range_relabeller is None):
 			raise LookupError("Must either specify both relabellers or neither.", domain_relabeller, range_relabeller)
@@ -57,7 +57,7 @@ class AutomorphismFactor(Automorphism):
 	def relabel(self):
 		r"""Used to convert back to the parent algebra after doing computations in the derived algebra.
 		
-		In the following example :meth:`~thompson.automorphism.Automorphism.test_conjugate_to` takes a pure periodic automorphism and extracts factors. A conjugator :math:`\rho` is produced by :meth:`the overridden version of this method <thompson.factors.PeriodicFactor.test_conjugate_to>`. Finally :math:`\rho` is relabelled back to the parent algebra.
+		In the following example :meth:`~thompson.mixed.MixedAut.test_conjugate_to` takes a pure periodic automorphism and extracts factors. A conjugator :math:`\rho` is produced by :meth:`the overridden version of this method <thompson.factors.PeriodicAut.test_conjugate_to>`. Finally :math:`\rho` is relabelled back to the parent algebra.
 		
 		:raises AttributeError: if the factor has not been assigned any relabellers.
 		
@@ -66,7 +66,7 @@ class AutomorphismFactor(Automorphism):
 			>>> psi = example_5_12_psi; phi = example_5_12_phi
 			>>> rho = psi.test_conjugate_to(phi)
 			>>> print(rho)
-			AutomorphismFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
+			MixedAutFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
 			x1 a1 a1 a1 a1 -> x1 a1 a2   
 			x1 a1 a1 a1 a2 -> x1 a2 a2   
 			x1 a1 a1 a2    -> x1 a1 a1 a1
@@ -100,20 +100,20 @@ class AutomorphismFactor(Automorphism):
 	power_conjugacy_bounds = NotImplemented
 
 def get_factor_class(infinite):
-	return InfiniteFactor if infinite else PeriodicFactor
+	return InfiniteFactor if infinite else PeriodicAut
 
 def cast_as_factor(object, infinite):
 	"""A really naughty trick that I feel dirty for."""
-	assert isinstance(object, Automorphism)
+	assert isinstance(object, MixedAut)
 	object.__class__ = get_factor_class(infinite)
 	object.domain_relabeller = None
 	object.range_relabeller = None
 
-class PeriodicFactor(AutomorphismFactor):
+class PeriodicAut(MixedAutFactor):
 	r"""A purely periodic free factor which has been extracted from another automorphism.
 	
 		>>> print(example_5_9)
-		PeriodicFactor: V(2, 1) -> V(2, 1) specified by 7 generators (after expansion and reduction).
+		PeriodicAut: V(2, 1) -> V(2, 1) specified by 7 generators (after expansion and reduction).
 		x1 a1 a1 a1 -> x1 a1 a1 a2
 		x1 a1 a1 a2 -> x1 a1 a2   
 		x1 a1 a2    -> x1 a1 a1 a1
@@ -128,7 +128,7 @@ class PeriodicFactor(AutomorphismFactor):
 		{2: 2, 3: 1}
 		
 	
-	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)` where :math:`\phi` is the current automorphism and :math:`X_\phi` is the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.quasinormal_basis>` for :math:`\phi`.
+	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)` where :math:`\phi` is the current automorphism and :math:`X_\phi` is the :meth:`quasi-normal basis <thompson.mixed.MixedAut.quasinormal_basis>` for :math:`\phi`.
 	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`
 	:ivar order: the smallest positive number :math:`n` for which :math:`phi^n` is the identity. (This is the lcm of the cycle type.)
 	"""
@@ -194,7 +194,7 @@ class PeriodicFactor(AutomorphismFactor):
 			>>> psi_p = example_5_12_psi; phi_p = example_5_12_phi
 			>>> rho_p = psi_p.test_conjugate_to(phi_p)
 			>>> print(rho_p)
-			AutomorphismFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
+			MixedAutFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
 			x1 a1 a1 a1 a1 -> x1 a1 a2   
 			x1 a1 a1 a1 a2 -> x1 a2 a2   
 			x1 a1 a1 a2    -> x1 a1 a1 a1
@@ -214,7 +214,7 @@ class PeriodicFactor(AutomorphismFactor):
 		# todo another doctest
 		if isinstance(other, InfiniteFactor):
 			return None
-		elif not isinstance(other, PeriodicFactor):
+		elif not isinstance(other, PeriodicAut):
 			return super.test_conjugate_to(other)
 		
 		# 1. The quasi-normal bases are constructed in initialisation.
@@ -255,12 +255,12 @@ class PeriodicFactor(AutomorphismFactor):
 					domain.append(s_word)
 					range.append(o_word)
 		
-		rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
+		rho = MixedAutFactor(domain, range, self.domain_relabeller, other.range_relabeller)
 		return rho
 	
 	def test_power_conjugate_to(self, other, multiple_solns=False):
 		"""Tests two periodic factors to see if they are power conjugate. If *multiple_solns* is true, yields minimal soln (a, b, rho). Otherwise yields a single soln. If there are no solns, returns None."""
-		if not isinstance(other, PeriodicFactor):
+		if not isinstance(other, PeriodicAut):
 			return super().test_power_conjugate_to(self, other, multiple_solns)
 			
 		bounds = self.power_conjugacy_bounds(other)
@@ -296,7 +296,7 @@ def expand_orbits(deque, num_expansions):
 			new_orbit = [w.alpha(i) for w in orbit]
 			deque.append(new_orbit)
 
-class InfiniteFactor(AutomorphismFactor):
+class InfiniteFactor(MixedAutFactor):
 	"""A purely infinite free factor which has been extracted from another automorphism.
 	
 		>>> print(example_5_3_i)
@@ -318,7 +318,7 @@ class InfiniteFactor(AutomorphismFactor):
 		assert self.quasinormal_basis().minimal_expansion_for(self) == self.domain
 	
 	def test_conjugate_to(self, other):
-		"""We can determine if two purely infinite automorphisms are conjugate by breaking down the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.quasinormal_basis>` into :meth:`equivalence classes <equivalence_data>`.
+		"""We can determine if two purely infinite automorphisms are conjugate by breaking down the :meth:`quasi-normal basis <thompson.mixed.MixedAut.quasinormal_basis>` into :meth:`equivalence classes <equivalence_data>`.
 		
 			>>> psi_i = example_5_26_psi; phi_i = example_5_26_phi
 			>>> rho_i = psi_i.test_conjugate_to(phi_i)
@@ -342,7 +342,7 @@ class InfiniteFactor(AutomorphismFactor):
 		.. seealso:: This implements algorithm 5.27 of the paper---see section 5.4.
 		"""
 		#todo another doctest.
-		if isinstance(other, PeriodicFactor):
+		if isinstance(other, PeriodicAut):
 			return None
 		elif not isinstance(other, InfiniteFactor):
 			return super.test_conjugate_to(other)
@@ -521,7 +521,7 @@ class InfiniteFactor(AutomorphismFactor):
 					domain.append(word)
 					img = image_for_type_c(word, data, images, other)
 					range.append(img)
-				rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
+				rho = MixedAutFactor(domain, range, self.domain_relabeller, other.range_relabeller)
 			except ValueError as e:
 				#For some reason, domain and range don't describe an automorphism
 				continue
@@ -542,7 +542,7 @@ class InfiniteFactor(AutomorphismFactor):
 		return s_bound, o_bound
 	
 	def minimal_partition(self):
-		r"""Let :math:`\psi` be the current automorphism. This method partitions the :meth:`~thompson.automorphism.Automorphism.characteristics` :math:`M_\psi` into cells :math:`P_1 \sqcup \dots \sqcup P_L`, where
+		r"""Let :math:`\psi` be the current automorphism. This method partitions the :meth:`~thompson.mixed.MixedAut.characteristics` :math:`M_\psi` into cells :math:`P_1 \sqcup \dots \sqcup P_L`, where
 		- The multipliers :math:`\Gamma` all have the same :func:`~thompson.word.root`, for all :math:`(m, \Gamma)` in each :math:`P_i`.
 		- :math:`L` is minimal with this property.
 		
