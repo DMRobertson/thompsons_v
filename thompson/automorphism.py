@@ -210,6 +210,10 @@ class Automorphism(Homomorphism):
 			Generators((3, 2), ['x1 a1', 'x1 a2', 'x1 a3', 'x2'])
 			>>> example_5_12_phi.quasinormal_basis()
 			Generators((2, 1), ['x1 a1', 'x1 a2'])
+			>>> example_6_2.quasinormal_basis()
+			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2'])
+			>>> example_6_8_phi.quasinormal_basis()
+			Generators((2, 1), ['x1 a1', 'x1 a2'])
 		
 		:rtype: a :class:`~thompson.generators.Generators` instance.
 		
@@ -483,6 +487,8 @@ class Automorphism(Homomorphism):
 			[] []
 			>>> print(*example_4_25.semi_infinite_end_points())
 			[x1 a2 a2, x1 a2 a2 a1] [x1 a1, x1 a1 a1]
+			>>> print(*example_6_2.semi_infinite_end_points())
+			[x1 a1 a1] [x1 a2]
 		
 		:rtype: A pair of :class:`Generators <thompson.generators.Generators>`.
 		
@@ -546,6 +552,9 @@ class Automorphism(Homomorphism):
 			>>> (example_6_2 * example_6_2).characteristics(print=True)
 			(-1, a1)
 			(1, a2 a2)
+			>>> example_6_8_phi.characteristics(print=True)
+			(-1, a1 a1 a1)
+			(1, a2 a2 a2)
 		
 		.. doctest::
 			:hide:

@@ -3,12 +3,14 @@
 	
 	from thompson.examples import *
 """
-
+import os.path
 import pkg_resources
 import string
 
 from ..generators import Generators
+from ..homomorphism import Homomorphism
 from ..automorphism import Automorphism
+from ..factors import PeriodicFactor, InfiniteFactor
 
 from . import random
 from .random import *
@@ -23,16 +25,22 @@ def add_module_attribute(name, value):
 
 remove_whitespace = str.maketrans('', '', string.whitespace)
 
+class_by_extension = {'.hom': Homomorphism, '.aut': Automorphism, '.paut': PeriodicFactor, '.iaut': InfiniteFactor}
+
 def read_examples():
 	#1. Read in examples.
 	files = pkg_resources.resource_listdir("thompson", "examples")
-	files = [filename for filename in files if filename.endswith('.aut')]
 	for filename in files:
+		name, ext = os.path.splitext(filename)
+		try:
+			cls = class_by_extension[ext]
+		except KeyError:
+			continue
 		path = pkg_resources.resource_filename("thompson.examples", filename)
-		aut = Automorphism.from_file(path)
-		add_module_attribute(filename[:-4], aut)
+		aut = cls.from_file(path)
+		add_module_attribute(name, aut)
 	
-	#2. Extract any free factors which are useful.
+	#2. Extract any free factors from mixed periodic/infinite automorphisms.
 	free_factors = pkg_resources.resource_filename("thompson.examples", "free_factors.txt")
 	with open(free_factors, encoding='utf-8') as f:
 		for line in f:

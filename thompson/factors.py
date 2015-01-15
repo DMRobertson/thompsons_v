@@ -65,7 +65,7 @@ class AutomorphismFactor(Automorphism):
 			>>> psi = example_5_12_psi; phi = example_5_12_phi
 			>>> rho = psi.test_conjugate_to(phi)
 			>>> print(rho)
-			Automorphism: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
+			AutomorphismFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
 			x1 a1 a1 a1 a1 -> x1 a1 a2   
 			x1 a1 a1 a1 a2 -> x1 a2 a2   
 			x1 a1 a1 a2    -> x1 a1 a1 a1
@@ -104,21 +104,19 @@ def get_factor_class(infinite):
 class PeriodicFactor(AutomorphismFactor):
 	r"""A purely periodic free factor which has been extracted from another automorphism.
 	
-		>>> print(example_5_9_p)
+		>>> print(example_5_9)
 		PeriodicFactor: V(2, 1) -> V(2, 1) specified by 7 generators (after expansion and reduction).
-		This automorphism was derived from a parent automorphism.
-		'x' and 'y' represent root words of the parent and current derived algebra, respectively.
-		x1 a1 a1 a1 ~>    y1 a1 a1    => y1 a1 a2 a1    ~> x1 a1 a1 a2
-		x1 a1 a1 a2 ~>    y1 a1 a2 a1 => y1 a1 a2 a2    ~> x1 a1 a2   
-		x1 a1 a2    ~>    y1 a1 a2 a2 => y1 a1 a1       ~> x1 a1 a1 a1
-		x1 a2 a1 a1 ~>    y1 a2 a1 a1 => y1 a2 a1 a2    ~> x1 a2 a1 a2
-		x1 a2 a1 a2 ~>    y1 a2 a1 a2 => y1 a2 a1 a1    ~> x1 a2 a1 a1
-		x1 a2 a2 a1 ~>    y1 a2 a2 a1 => y1 a2 a2 a2    ~> x1 a2 a2 a2
-		x1 a2 a2 a2 ~>    y1 a2 a2 a2 => y1 a2 a2 a1    ~> x1 a2 a2 a1
-		>>> sorted(example_5_9_p.cycle_type)
+		x1 a1 a1 a1 -> x1 a1 a1 a2
+		x1 a1 a1 a2 -> x1 a1 a2   
+		x1 a1 a2    -> x1 a1 a1 a1
+		x1 a2 a1 a1 -> x1 a2 a1 a2
+		x1 a2 a1 a2 -> x1 a2 a1 a1
+		x1 a2 a2 a1 -> x1 a2 a2 a2
+		x1 a2 a2 a2 -> x1 a2 a2 a1
+		>>> sorted(example_5_9.cycle_type)
 		[2, 3]
 		>>> #Two orbits of size 2, one orbit of size 3
-		>>> pprint(example_5_9_p.multiplicity)
+		>>> pprint(example_5_9.multiplicity)
 		{2: 2, 3: 1}
 		
 	
@@ -161,13 +159,13 @@ class PeriodicFactor(AutomorphismFactor):
 			... 		print('Orbits of length', key)
 			... 		for list in orbits_by_size[key]:
 			... 			print('...', *list, sep=' -> ', end=' -> ...\n')
-			>>> orbits_by_size = example_5_9_p.enumerate_orbits(example_5_9_p.quasinormal_basis())
+			>>> orbits_by_size = example_5_9.enumerate_orbits(example_5_9.quasinormal_basis())
 			>>> display_orbits(orbits_by_size)
 			Orbits of length 2
 			... -> x1 a2 a1 a1 -> x1 a2 a1 a2 -> ...
 			... -> x1 a2 a2 a1 -> x1 a2 a2 a2 -> ...
 			Orbits of length 3
-			... -> x1 a1 a1 -> x1 a1 a2 a1 -> x1 a1 a2 a2 -> ...
+			... -> x1 a1 a1 a1 -> x1 a1 a1 a2 -> x1 a1 a2 -> ...
 		"""
 		#TODO another doctest
 		orbits_by_size = defaultdict(deque)
@@ -185,18 +183,16 @@ class PeriodicFactor(AutomorphismFactor):
 	def test_conjugate_to(self, other):
 		"""We can determine if two purely periodic automorphisms are conjugate by examining their orbits.
 		
-			>>> psi_p = example_5_12_psi_p; phi_p = example_5_12_phi_p
+			>>> psi_p = example_5_12_psi; phi_p = example_5_12_phi
 			>>> rho_p = psi_p.test_conjugate_to(phi_p)
 			>>> print(rho_p)
 			AutomorphismFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
-			This automorphism was derived from a parent automorphism.
-			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
-			x1 a1 a1 a1 a1 ~>    y1 a1 a1    => y1 a1 a2       ~> x1 a1 a2   
-			x1 a1 a1 a1 a2 ~>    y1 a1 a2    => y1 a2 a2       ~> x1 a2 a2   
-			x1 a1 a1 a2    ~>    y1 a2 a1 a1 => y1 a1 a1 a1    ~> x1 a1 a1 a1
-			x1 a1 a2       ~>    y1 a2 a1 a2 => y1 a2 a1 a1    ~> x1 a2 a1 a1
-			x1 a2 a1       ~>    y1 a2 a2 a1 => y1 a1 a1 a2    ~> x1 a1 a1 a2
-			x1 a2 a2       ~>    y1 a2 a2 a2 => y1 a2 a1 a2    ~> x1 a2 a1 a2
+			x1 a1 a1 a1 a1 -> x1 a1 a2   
+			x1 a1 a1 a1 a2 -> x1 a2 a2   
+			x1 a1 a1 a2    -> x1 a1 a1 a1
+			x1 a1 a2       -> x1 a2 a1 a1
+			x1 a2 a1       -> x1 a1 a1 a2
+			x1 a2 a2       -> x1 a2 a1 a2
 			>>> rho_p * phi_p == psi_p * rho_p
 			True
 			
@@ -208,8 +204,10 @@ class PeriodicFactor(AutomorphismFactor):
 		.. seealso:: This implements algorithm 5.13 of the paper---see section 5.3.
 		"""
 		# todo another doctest
-		if not isinstance(other, PeriodicFactor):
-			raise TypeError('Other automorphism must be a PeriodicFactor.')
+		if isinstance(other, InfiniteFactor):
+			return None
+		elif not isinstance(other, PeriodicFactor):
+			return super.test_conjugate_to(other)
 		
 		# 1. The quasi-normal bases are constructed in initialisation.
 		# Note that the QNF basis should be just the domain. TODO Checkme
@@ -300,7 +298,7 @@ class InfiniteFactor(AutomorphismFactor):
 	def test_conjugate_to(self, other):
 		"""We can determine if two purely infinite automorphisms are conjugate by breaking down the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.quasinormal_basis>` into :meth:`equivalence classes <equivalence_data>`.
 		
-			>>> psi_i = example_5_26_psi_i; phi_i = example_5_26_phi_i
+			>>> psi_i = example_5_26_psi; phi_i = example_5_26_phi
 			>>> rho_i = psi_i.test_conjugate_to(phi_i)
 			>>> rho_i is not None
 			True
@@ -322,8 +320,10 @@ class InfiniteFactor(AutomorphismFactor):
 		.. seealso:: This implements algorithm 5.27 of the paper---see section 5.4.
 		"""
 		#todo another doctest.
-		if not isinstance(other, InfiniteFactor):
-			raise TypeError('Other automorphism must be a InfiniteFactor.')
+		if isinstance(other, PeriodicFactor):
+			return None
+		elif not isinstance(other, InfiniteFactor):
+			return super.test_conjugate_to(other)
 		
 		#1. The QNF bases are computed automatically.
 		#2. Compute the equivalence classes X_1, ... X_m of \equiv on self's QNF basis
