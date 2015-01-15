@@ -1,2 +1,5 @@
 example_5_26_phi		=	example_4_25
 example_4_1				=	example_4_11
+example_6_8_psi			=	example_4_1
+example_6_9_psi			=	example_6_8_psi
+example_6_9_phi			=	example_6_2

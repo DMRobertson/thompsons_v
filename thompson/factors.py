@@ -4,6 +4,7 @@
 	from pprint import pprint
 	from collections import deque
 	
+	from thompson.word import format
 	from thompson.factors import *
 	from thompson.examples import *
 """
@@ -15,7 +16,7 @@ from itertools import chain, permutations
 import networkx as nx
 
 from .number_theory import lcm, prod
-from .word import Word
+from .word import Word, root
 from .generators import Generators
 from .homomorphism import format_table
 from .automorphism import Automorphism
@@ -520,9 +521,26 @@ class InfiniteFactor(AutomorphismFactor):
 		return s_bound, o_bound
 	
 	def minimal_partition(self):
-		"""Let :math:`\psi` be the current automorphism. This method partitions the :meth:`~thompson.automorphism.Automorphism.characteristics` :math:`M_\psi` into cells :math:`P_1 \sqcup \dots \sqcup P_L`, where
+		r"""Let :math:`\psi` be the current automorphism. This method partitions the :meth:`~thompson.automorphism.Automorphism.characteristics` :math:`M_\psi` into cells :math:`P_1 \sqcup \dots \sqcup P_L`, where
 		- The multipliers :math:`\Gamma` all have the same :func:`~thompson.word.root`, for all :math:`(m, \Gamma)` in each :math:`P_i`.
 		- :math:`L` is minimal with this property.
+		
+			>>> def print_partition(p):
+			... 	for root in sorted(p.keys(), reverse=True):
+			... 		print(format(root), end = ':')
+			... 		for power, mult, _ in p[root]:
+			... 			print(' ({}, {})'.format(power, format(mult)), end='')
+			... 		print()
+			>>> print_partition(example_6_8_psi.minimal_partition())
+			a1: (-1, a1)
+			a2: (1, a2)
+			>>> print_partition(example_6_8_phi.minimal_partition())
+			a1: (-1, a1 a1 a1)
+			a2: (1, a2 a2 a2)
+			>>> print_partition(example_6_9_phi.minimal_partition())
+			a1: (-2, a1)
+			a2: (1, a2)
+			
 		
 		:returns: a dictionary of sets. The keys of this dictionary are the roots :math:`\sqrt\Gamma`; the values are the cells :math:`P_i`. An element of a cell looks like :math:`m, \Gamma, r` where :math:`m, \Gamma` is a characteristic and :math:`r` is the root power corresponding to :math:`\sqrt\Gamma`.
 		
@@ -538,11 +556,22 @@ class InfiniteFactor(AutomorphismFactor):
 	@staticmethod
 	def compute_bounds(s_parts, o_parts):
 		"""Computes the bounds :math:`\hat a, \hat b` (in terms of the partitions :math:`P, Q` given by *s_parts* and *o_parts*) as in eqns (14) and (15) of the paper.
+		
+			>>> def bounds(s, o):
+			... 	P = s.minimal_partition()
+			... 	Q = o.minimal_partition()
+			... 	a_hat = InfiniteFactor.compute_bounds(P, Q)
+			... 	b_hat = InfiniteFactor.compute_bounds(Q, P)
+			... 	return a_hat, b_hat
+			>>> bounds(example_6_8_psi, example_6_8_phi)
+			(9, 1)
+			>>> bounds(example_6_9_psi, example_6_9_phi)
+			(1, 2)
 		"""
 		bound = 1
 		for root in s_parts:
-			P_i = s_parts[key]
-			Q_i = o_parts[key]
+			P_i = s_parts[root]
+			Q_i = o_parts[root]
 			bound *= prod(abs(power) for power, mult, root_power in P_i) ** len(Q_i)
 			bound *= prod(root_power for power, mult, root_power in Q_i) ** len(P_i)
 		return bound
