@@ -25,6 +25,6 @@ Periodic Factors
 Infinite Factors
 ----------------
 
-.. autoclass:: InfiniteFactor
+.. autoclass:: InfiniteAut
     :members:
     :undoc-members:

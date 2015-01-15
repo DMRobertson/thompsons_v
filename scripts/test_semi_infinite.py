@@ -16,7 +16,7 @@ while True:
 	num_expansions = randint(1, 20)
 	signature = Signature(2,1)
 	psi = random_automorphism(num_expansions, signature)
-	basis = psi.quasinormal_basis()
+	basis = psi.quasinormal_basis
 	for gen in basis:
 		type, _, _ = psi.orbit_type(gen, basis)
 		if type.type == ComponentType._left_semi_infinite or ComponentType._right_semi_infinite and type.is_type_C():

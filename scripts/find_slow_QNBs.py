@@ -15,7 +15,7 @@ slowest_aut = None
 for i in range(1, num_examples+1):
 	aut = random_automorphism()
 	start = time.time()
-	aut.quasinormal_basis()
+	aut.quasinormal_basis
 	runtime = time.time() - start
 	
 	if runtime > max_runtime:

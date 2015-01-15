@@ -1,15 +1,15 @@
 r"""The algebra of :mod:`words <thompson.word>` has its own structure, and just like groups, rings etc. there exist homomorphisms which preserve this structure. In our specific case, a homomorphism :math:`\phi: V_{n,r} \to V_{n,s}` is a function satisfying
 
 .. math:: w \alpha_i \phi = w \phi \alpha_i \qquad \text{and} \qquad
-          w_1 \dots w_n \lambda \phi = w_1 \phi \dots w_n \phi \lambda.
+          w_1 \dots w_n \lambda \phi = aw_1 \phi \dots w_n \phi \lambda.
 
 In other words, a homomorphism is a function which 'commutes' with the algebra operations :math:`\alpha_i` and :math:`\lambda`.
 
 .. testsetup::
     
-    from thompson.generators import *
+    from thompson.generators import Generators
     from thompson.homomorphism import *
-    from thompson.mixed import MixedAut
+    from thompson.automorphism import Automorphism
     from thompson.examples import *
 """
 
@@ -23,13 +23,19 @@ from copy import copy
 
 __all__ = ['Homomorphism']
 
-#Extracted the bits responsible for defining a homomorphism from the automorphism class.
 class Homomorphism:
 	r"""Let :math:`f: D \to R` be some map embedding a basis :math:`D` for :math:`V_{n,r}` into another algebra :math:`V_{n,s}` of the same :class:`~thompson.word.Signature`. This map uniquely extends to a homomorphism of algebras :math:`\psi : V_{n,r} \to V_{n,s}`.
 	
 	:ivar domain: a :class:`basis <thompson.generators.Generators>` of preimages 
 	:ivar range:  a :class:`basis <thompson.generators.Generators>` of images.
+	
+	The next few attributes are used internally when constructing free factors. We need to have a way to map back to the parent automorphisms.
+	
+	:ivar domain_relabeller: the homomorphism which maps relabelled words back into the original algebra that this automorphism came from.
+	:ivar range_relabeller: the same.
 	"""
+	
+	#Initialisation
 	def __init__(self, domain, range, reduce=True):
 		"""Creates a homomorphism with the specified *domain* and *range*. Sanity checks are performed so that the arguments do genuinely define a basis.
 		
@@ -71,6 +77,8 @@ class Homomorphism:
 		
 		self.domain = domain
 		self.range = range
+		self.domain_relabeller = None
+		self.range_relabeller = None
 		
 		#Setup the mapping cache
 		self._map = {}
@@ -106,7 +114,7 @@ class Homomorphism:
 			
 			>>> #This is given by 6 generators, but after reduction consists of 5:
 			>>> print(cyclic_order_six)
-			MixedAut: V(2, 1) -> V(2, 1) specified by 5 generators (after expansion and reduction).
+			PeriodicAut: V(2, 1) -> V(2, 1) specified by 5 generators (after expansion and reduction).
 			x1 a1 a1    -> x1 a1 a1      
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
 			x1 a1 a2 a2 -> x1 a2         
@@ -135,13 +143,14 @@ class Homomorphism:
 			else:
 				i += 1
 	
+	#Computing Images
 	def _set_image(self, d, r, sig_in, sig_out, cache):
 		"""Stores the rule that phi(d) = r in the mapping dictionary and ensure that d and r are both Words."""
 		assert d in sig_in, repr(d)
 		assert r in sig_out, repr(r)
 		cache[d] = r
 	
-	#Alternative constructors
+	#Input/Output
 	@classmethod
 	def from_file(cls, filename):
 		"""Reads in a file specifying a homomorphism and returns the homomorphism being described. Here is an example of the format::
@@ -186,7 +195,7 @@ class Homomorphism:
 			
 			>>> before = random_automorphism()
 			>>> before.save_to_file('test_saving_homomorphism.aut')
-			>>> after = MixedAut.from_file('test_saving_homomorphism.aut')
+			>>> after = Automorphism.from_file('test_saving_homomorphism.aut')
 			>>> before == after, before is after
 			(True, False)
 		
@@ -214,7 +223,7 @@ class Homomorphism:
 			>>> phi = random_automorphism()
 			>>> phi == phi
 			True
-			>>> phi * ~phi == MixedAut.identity(phi.signature)
+			>>> phi * ~phi == Homomorphism.identity(phi.signature)
 			True
 		"""
 		return all(self.image(w) == other.image(w) for w in chain(self.domain, other.domain))
@@ -229,7 +238,7 @@ class Homomorphism:
 		.. doctest::
 			
 			>>> print(alphabet_size_two * alphabet_size_two)
-			MixedAut: V(3, 2) -> V(3, 2) specified by 8 generators (after expansion and reduction).
+			PeriodicAut: V(3, 2) -> V(3, 2) specified by 8 generators (after expansion and reduction).
 			x1 a1    -> x1 a1      
 			x1 a2    -> x1 a2 a3 a3
 			x1 a3 a1 -> x1 a3      
@@ -265,13 +274,14 @@ class Homomorphism:
 		"""Creates a new homo/automorphism which is the identity map on the algebra with the given *signature*.
 		
 			>>> print(Homomorphism.identity((3, 2)))
-			MixedAut: V(3, 2) -> V(3, 2) specified by 2 generators (after expansion and reduction).
+			PeriodicAut: V(3, 2) -> V(3, 2) specified by 2 generators (after expansion and reduction).
 			x1 -> x1
 			x2 -> x2
 		"""
 		d = Generators.standard_basis(signature)
 		r = Generators.standard_basis(signature)
-		return cls(d, r)
+		from .periodic import PeriodicAut
+		return PeriodicAut(d, r)
 	
 	def is_identity(self):
 		"""Returns True if this automorphism is the identity map on the algebra with the given *signature*. Otherwise returns False.
@@ -446,20 +456,57 @@ class Homomorphism:
 		"""Printing an automorphism gives its arity, alphabet_size, and lists the images of its domain elements.
 		
 			>>> print(cyclic_order_six)
-			MixedAut: V(2, 1) -> V(2, 1) specified by 5 generators (after expansion and reduction).
+			PeriodicAut: V(2, 1) -> V(2, 1) specified by 5 generators (after expansion and reduction).
 			x1 a1 a1    -> x1 a1 a1      
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
 			x1 a1 a2 a2 -> x1 a2         
 			x1 a2 a1    -> x1 a1 a2 a2 a1
 			x1 a2 a2    -> x1 a1 a2 a1   
 		"""
+		relabelled = self.domain_relabeller is not None
 		output = StringIO()
 		output.write(self._string_header())
-		rows = format_table(self.domain, self.range)
+		
+		if relabelled:
+			output.write("\nThis automorphism was derived from a parent automorphism.\n'x' and 'y' represent root words of the parent and current derived algebra, respectively.")
+			domain_relabelled, range_relabelled = self.relabel()
+			rows = format_table(
+				domain_relabelled, self.domain, self.range, range_relabelled,
+				sep = ['~>   ', '=>', '   ~>'], root_names = 'xyyx')
+		else:
+			rows = format_table(self.domain, self.range)
+		
 		for row in rows:
 			output.write('\n')
 			output.write(row)
 		return output.getvalue()
+	
+	#Relabelling
+	def relabel(self):
+		r"""If this automorphism was derived from a parent automorphism, this converts back to the parent algebra after doing computations in the derived algebra.
+		
+		In the following example :meth:`~thompson.mixed.MixedAut.test_conjugate_to` takes a pure periodic automorphism and extracts factors. A conjugator :math:`\rho` is produced by :meth:`the overridden version of this method <thompson.factors.PeriodicAut.test_conjugate_to>`. Finally :math:`\rho` is relabelled back to the parent algebra.
+		
+		:raises AttributeError: if the factor has not been assigned any relabellers.
+		
+		.. doctest::
+			
+			>>> psi = example_5_12_psi; phi = example_5_12_phi
+			>>> rho = psi.test_conjugate_to(phi)
+			>>> print(rho)
+			MixedAutFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
+			x1 a1 a1 a1 a1 -> x1 a1 a2   
+			x1 a1 a1 a1 a2 -> x1 a2 a2   
+			x1 a1 a1 a2    -> x1 a1 a1 a1
+			x1 a1 a2       -> x1 a2 a1 a1
+			x1 a2 a1       -> x1 a1 a1 a2
+			x1 a2 a2       -> x1 a2 a1 a2
+			>>> rho * phi == psi * rho
+			True
+		"""
+		if self.domain_relabeller is None or self.range_relabeller is None:
+			raise AttributeError("This factor has not been assigned relabellers.")
+		return self.domain_relabeller.image_of_set(self.domain), self.range_relabeller.image_of_set(self.range)
 
 def format_table(*columns, sep=None, root_names=None):
 	for row in zip(*columns):

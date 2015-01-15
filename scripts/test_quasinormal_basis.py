@@ -13,7 +13,7 @@ while True:
 		print(i)
 	aut = random_automorphism()
 	try:
-		aut.quasinormal_basis()
+		aut.quasinormal_basis
 	except BaseException:
 		aut.save_to_file('problem.aut')
 		raise

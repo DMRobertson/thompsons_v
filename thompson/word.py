@@ -1,13 +1,13 @@
 """
 .. testsetup:: 
 	
-	from thompson.word import *
-	from thompson.examples import *
+	from thompson.word            import *
+	from thompson.examples.random import *
 """
 
 import operator
 from collections import namedtuple
-from itertools import chain, product
+from itertools   import chain, product
 
 from .number_theory import divisors
 

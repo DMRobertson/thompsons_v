@@ -2,15 +2,14 @@ r"""Functions implementing various number-theoretic algorithms.
  
 .. testsetup::
 	
-	from thompson.examples import *
 	from thompson.number_theory import *
 """
 
 from collections import namedtuple
-from fractions import gcd
-from functools import reduce
-from operator import mul
-from numbers import Number
+from fractions   import gcd
+from functools   import reduce
+from operator    import mul
+from numbers     import Number
 
 __all__ = ['lcm', 'gcd', 'extended_gcd', 'solve_linear_diophantine', 'solve_linear_congruence',
 	'divisors', 'prod']

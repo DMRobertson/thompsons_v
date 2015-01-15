@@ -245,7 +245,7 @@ class Generators(list):
 	def descendants_above(self, floor):
 		r"""Suppose we have a basis *floor* below the current basis *ceiling*. There are a finite number of elements below *ceiling* which are not below *floor*. This method enumerates them. In symbols, we are enumerating the set :math:`X\langle A\rangle \setminus F\langle A\rangle`, where :math:`X` is the current basis and :math:`F` is the *floor*.
 		
-			>>> X = example_4_25.quasinormal_basis()
+			>>> X = example_4_25.quasinormal_basis
 			>>> Y = X.minimal_expansion_for(example_4_25)
 			>>> Z = example_4_25.image_of_set(Y)
 			>>> terminal = X.descendants_above(Y)
@@ -295,7 +295,7 @@ class Generators(list):
 			>>> reduced_domain = Generators((2, 1), ["x a1 a1", "x a1 a2 a1", "x a1 a2 a2", "x a2 a1", "x a2 a2"])
 			>>> std_basis.minimal_expansion_for(cyclic_order_six) == reduced_domain
 			True
-			>>> basis = example_5_3.quasinormal_basis()
+			>>> basis = example_5_3.quasinormal_basis
 			>>> print(basis.minimal_expansion_for(example_5_3))
 			[x1 a1 a1 a1 a1, x1 a1 a1 a1 a2, x1 a1 a1 a2, x1 a1 a2 a1, x1 a1 a2 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2]
 		
