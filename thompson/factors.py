@@ -39,8 +39,8 @@ class AutomorphismFactor(Automorphism):
 		
 		.. seealso:: :meth:`thompson.automorphism.Automorphism.__init__`, :meth:`~thompson.automorphism.Automorphism.free_factor`
 		"""
-		if domain_relabeller is None != range_relabeller is None:
-			raise LookupError("Must either specify both relabellers or neither.")
+		if (domain_relabeller is None) != (range_relabeller is None):
+			raise LookupError("Must either specify both relabellers or neither.", domain_relabeller, range_relabeller)
 		
 		if domain_relabeller is not None and domain_relabeller.domain.signature != domain.signature:
 			raise TypeError('Domain relabeller signature {} does not match automorphism\'s domain signature {}.'.format(
@@ -101,6 +101,13 @@ class AutomorphismFactor(Automorphism):
 
 def get_factor_class(infinite):
 	return InfiniteFactor if infinite else PeriodicFactor
+
+def cast_as_factor(object, infinite):
+	"""A really naughty trick that I feel dirty for."""
+	assert isinstance(object, Automorphism)
+	object.__class__ = get_factor_class(infinite)
+	object.domain_relabeller = None
+	object.range_relabeller = None
 
 class PeriodicFactor(AutomorphismFactor):
 	r"""A purely periodic free factor which has been extracted from another automorphism.
@@ -250,6 +257,20 @@ class PeriodicFactor(AutomorphismFactor):
 		
 		rho = AutomorphismFactor(domain, range, self.domain_relabeller, other.range_relabeller)
 		return rho
+	
+	def test_power_conjugate_to(self, other, multiple_solns=False):
+		"""Tests two periodic factors to see if they are power conjugate. If *multiple_solns* is true, yields minimal soln (a, b, rho). Otherwise yields a single soln. If there are no solns, returns None."""
+		if not isinstance(other, PeriodicFactor):
+			return super().test_power_conjugate_to(self, other, multiple_solns)
+			
+		bounds = self.power_conjugacy_bounds(other)
+		soln_iterator = self._test_power_conjugate_upto(other, *bounds, inverses=False)
+		
+		if multiple_solns:
+			yield from soln_iterator
+		else:
+			return next(soln_iterator)
+		return None
 	
 	def power_conjugacy_bounds(self, other):
 		"""We simply try all powers of both automorphisms. There are only finitely many, because everything is periodic.

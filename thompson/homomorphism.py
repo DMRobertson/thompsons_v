@@ -260,6 +260,31 @@ class Homomorphism:
 				pass
 		raise e
 	
+	@classmethod
+	def identity(cls, signature):
+		"""Creates a new homo/automorphism which is the identity map on the algebra with the given *signature*.
+		
+			>>> print(Homomorphism.identity((3, 2)))
+			Automorphism: V(3, 2) -> V(3, 2) specified by 2 generators (after expansion and reduction).
+			x1 -> x1
+			x2 -> x2
+		"""
+		d = Generators.standard_basis(signature)
+		r = Generators.standard_basis(signature)
+		return cls(d, r)
+	
+	def is_identity(self):
+		"""Returns True if this automorphism is the identity map on the algebra with the given *signature*. Otherwise returns False.
+		
+			>>> aut = Homomorphism.identity(random_signature())
+			>>> aut.is_identity()
+			True
+			>>> example_4_25.is_identity()
+			False
+		"""
+		basis = Generators.standard_basis(self.signature)
+		return self.image_of_set(basis) == basis
+	
 	#Finding images of words
 	def image(self, key, sig_in=None, sig_out=None, cache=None):
 		"""Computes the image of a *key* under the given homomorphism. The result is cached for further usage later.

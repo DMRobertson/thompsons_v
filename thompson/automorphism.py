@@ -97,7 +97,6 @@ class Automorphism(Homomorphism):
 			>>> print(phi * ~phi)
 			Automorphism: V(2, 1) -> V(2, 1) specified by 1 generators (after expansion and reduction).
 			x1 -> x1
-			
 		"""
 		inv = copy(self)
 		inv.domain, inv.range = Generators.sort_mapping_pair(self.range, self.domain)
@@ -106,31 +105,6 @@ class Automorphism(Homomorphism):
 		return inv
 		
 	inverse = __invert__
-	
-	@classmethod
-	def identity(cls, signature):
-		"""Creates a new automorphism which is the identity map on the algebra with the given *signature*.
-		
-			>>> print(Automorphism.identity((3, 2)))
-			Automorphism: V(3, 2) -> V(3, 2) specified by 2 generators (after expansion and reduction).
-			x1 -> x1
-			x2 -> x2
-		"""
-		d = Generators.standard_basis(signature)
-		r = Generators.standard_basis(signature)
-		return cls(d, r)
-	
-	def is_identity(self):
-		"""Returns True if this automorphism is the identity map on the algebra with the given *signature*. Otherwise returns False.
-		
-			>>> aut = Automorphism.identity(random_signature())
-			>>> aut.is_identity()
-			True
-			>>> example_4_25.is_identity()
-			False
-		"""
-		basis = Generators.standard_basis(self.signature)
-		return self.image_of_set(basis) == basis
 	
 	#Computing images
 	def image(self, key, inverse=False):
@@ -231,6 +205,8 @@ class Automorphism(Homomorphism):
 		confirmed = set()
 		basis = self._seminormal_form_start_point()
 		basis.cache = set(basis)
+		type_A_count = 0
+		
 		i = 0
 		checks_needed = len(basis)
 		
@@ -246,6 +222,7 @@ class Automorphism(Homomorphism):
 				checks_needed = len(basis)
 			else:
 				if ctype.is_type_A():
+					type_A_count += len(images)
 					confirmed.update(images.values())
 					#expand basis until each of the images is below basis
 					for img in images.values():
@@ -281,6 +258,15 @@ class Automorphism(Homomorphism):
 					break
 		
 		self.pond_banks = ponds
+		
+		#3. This is a bit naughty. If we find a pure infinite or pure periodic automorphism, change the class.
+		if type_A_count == 0:
+			from .factors import cast_as_factor
+			cast_as_factor(self, infinite=True)
+		elif type_A_count == len(basis):
+			from .factors import cast_as_factor
+			cast_as_factor(self, infinite=False)
+		
 		return basis
 	
 	def _seminormal_form_start_point(self):
@@ -1040,11 +1026,19 @@ class Automorphism(Homomorphism):
 			print(gen, ctype)
 	
 	#Power conjugacy
-	def test_power_conjugate(self, other):
+	def test_power_conjugate_to(self, other):
 		r"""Determines if some power of the current automorphism :math:`\psi` is conjugate to some power of the *other* automorphism :math:`\phi`.
 		
 		:returns: if it exists, a triple :math:`(a, b, \rho)` such that :math:`\rho^{-1}\psi^a\rho = \phi^b`. If no such triple exists, returns ``None``.
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
+		
+			>>> example_6_8_psi
+			>>> example_6_8_phi
+			>>> result = example_6_8_psi.test_power_conjugate_to(example_6_8_phi)
+			>>> result is not None
+			True
+			>>> a, b, rho = result
+			>>> (example_6_8_psi ** a) * rho == rho * (example_6_8_phi ** b)
 		
 		.. seealso:: This is an implementation of Algorithm 6.12 in the paper. It depends on Algorithms 5.6 (the :meth:`conjugacy test <test_conjugate_to>`) and 6.10 (the :meth:`infinite power conjugate test <thompson.factors.InfiniteFactor.find_power_conjugators>.`)
 		"""
@@ -1066,15 +1060,14 @@ class Automorphism(Homomorphism):
 			o_p = other.free_factor(o_qnf_p, infinite=False)
 			
 			#Preprare to brute force search
-			bounds = s_p.power_conjugacy_bounds(o_p)
-			periodic_conjugators = []
-			for data in s_p._test_power_conjugate_upto(o_p, *bounds, inverses=False):
-				if pure_periodic:
-					a, b, rho_p = data
-					return a, b, self._combine_factors(rho_p, None)
-				periodic_conjugators.append(data)
+			soln_iterator = s_p.test_power_conjugate_to(o_p, multiple_solns = True)
+			if pure_periodic:
+				
+			periodic_conjugators = list(
 			if len(periodic_conjugators) == 0:
 				return None
+				a, b, rho_p = periodic_conjugators[0]
+				return a, b, self._combine_factors(rho_p, None)
 		
 		#Step 4. Construct PC_I, the set of conjugators that act on the infinite factor
 		if not pure_periodic:
@@ -1131,16 +1124,21 @@ class Automorphism(Homomorphism):
 		
 		for i in range(2, sbound + 1):
 			s_powers[i] = s_powers[i-1] * self
-			if inverse:
+			if inverses:
 				s_powers[-i] = s_powers[1-i] * s_powers[-1]
 		
 		for i in range(2, obound + 1):
 			o_powers[i] = o_powers[i-1] * other
-			if inverse:
+			if inverses:
 				o_powers[-i] = o_powers[1-i] * o_powers[-1]
-		
+		print(s_powers[1] is self)
+		print(self)
+		print(other)
 		for a, spow in s_powers.items():
 			for b, opow in o_powers.items():
+				print(a, b)
+				print(spow.domain_relabeller is None, spow.range_relabeller is None, opow.domain_relabeller is None, opow.range_relabeller is None)
+				print(type(spow), type(opow))
 				rho = spow.test_conjugate_to(opow)
 				if rho is not None:
 					yield a, b, rho
