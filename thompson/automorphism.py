@@ -536,25 +536,22 @@ class Automorphism(Homomorphism):
 		
 		.. doctest::
 			
-			>>> from pprint import pprint
+			>>> example_4_1.characteristics(print=True)
+			(-1, a1)
+			(1, a2)
 			>>> example_4_25.characteristics(print=True)
 			(-1, a1 a1)
 			(1, a1 a1)
-			>>> psi, phi = random_conjugate_pair()
-			>>> #Lemma 5.16
-			>>> psi.characteristics() == phi.characteristics()
-			True
-			>>> if not psi.characteristics() == phi.characteristics():
-			... 	print(psi.characteristics())
-			... 	print(phi.characteristics())
-			... 	psi.save_to_file('psi.aut')
-			... 	phi.save_to_file('phi.aut')
 			>>> (example_6_2 * example_6_2).characteristics(print=True)
 			(-1, a1)
 			(1, a2 a2)
 			>>> example_6_8_phi.characteristics(print=True)
 			(-1, a1 a1 a1)
 			(1, a2 a2 a2)
+			>>> #Lemma 5.16
+			>>> psi, phi = random_conjugate_pair()
+			>>> psi.characteristics() == phi.characteristics()
+			True
 		
 		.. doctest::
 			:hide:
