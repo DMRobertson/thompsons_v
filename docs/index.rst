@@ -20,10 +20,10 @@ This all began as a series of tools to represent tree pair diagrams in `Thompson
 
 The main algorithms from the paper are:
 
-- Determining the :meth:`orbit type of an element <thompson.automorphism.Automorphism.orbit_type>` [Thm. 4.24.1]
-- Generating a :meth:`quasi-normal basis <thompson.automorphism.Automorphism.quasinormal_basis>` [Thm. 4.24.1]
-- The :meth:`orbit-sharing test <thompson.automorphism.Automorphism.share_orbit>`, [Thm. 4.24.2]
-- The :meth:`conjugacy test <thompson.automorphism.Automorphism.test_conjugate_to>`, [Alg. 5.6]
+- Determining the :meth:`orbit type of an element <thompson.mixed.MixedAut.orbit_type>` [Thm. 4.24.1]
+- Generating a :meth:`quasi-normal basis <thompson.mixed.MixedAut.quasinormal_basis>` [Thm. 4.24.1]
+- The :meth:`orbit-sharing test <thompson.mixed.MixedAut.share_orbit>`, [Thm. 4.24.2]
+- The :meth:`conjugacy test <thompson.mixed.MixedAut.test_conjugate_to>`, [Alg. 5.6]
 
 In the future, I'd like to implement the power conjugacy test that NB and AJD describe.
 
@@ -37,7 +37,7 @@ Documentation contents
    Generating sets and bases <thompson.generators>
    Homomorphisms <thompson.homomorphism>
    Orbits <thompson.orbits>
-   Automorphisms <thompson.automorphism>
+   MixedAuts <thompson.mixed>
    Free Factors and conjugacy <thompson.factors>
    Examples <thompson.examples>
    References <references>

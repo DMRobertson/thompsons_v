@@ -3,8 +3,8 @@ from copy import copy
 
 from ..word import Signature, Word
 from ..generators import Generators
-from ..automorphism import Automorphism
-from ..factors import PeriodicFactor, InfiniteFactor
+from ..mixed import MixedAut
+from ..factors import PeriodicAut, InfiniteFactor
 
 __all__ = ['random_signature', 'random_simple_word', 'random_basis',
 	'random_automorphism', 'random_conjugate_pair',
@@ -68,7 +68,7 @@ def random_automorphism(num_expansions, signature):
 	domain = random_basis(num_expansions, signature)
 	range  = random_basis(num_expansions, signature)
 	shuffle(range)
-	return Automorphism(domain, range)
+	return MixedAut(domain, range)
 
 @needs_defaults
 def random_conjugate_pair(num_expansions, signature):
@@ -80,7 +80,7 @@ def random_conjugate_pair(num_expansions, signature):
 
 @needs_defaults
 def random_conjugate_factors(num_expansions, signature):
-	r"""Calls :func:`random_conjugate_pair` to create two automorphisms :math:`\psi` and :math:`\phi`. Returns the :meth:`~thompson.automorphism.Automorphism.free_factors` :math:`\psi_P, \psi_I, \phi_P, \phi_I.`
+	r"""Calls :func:`random_conjugate_pair` to create two automorphisms :math:`\psi` and :math:`\phi`. Returns the :meth:`~thompson.mixed.MixedAut.free_factors` :math:`\psi_P, \psi_I, \phi_P, \phi_I.`
 	
 	.. note:: Some of the factors may be ``None`` if they are trivial.
 	"""
@@ -95,7 +95,7 @@ def random_conjugate_periodic_factors(num_expansions, signature):
 	psi_p = phi_p = None
 	while psi_p is None or phi_p is None:
 		psi_p, _, phi_p, _ = random_conjugate_factors()
-	assert isinstance(psi_p, PeriodicFactor)
+	assert isinstance(psi_p, PeriodicAut)
 	return psi_p, phi_p
 
 @needs_defaults
