@@ -1,10 +1,11 @@
 """
 .. testsetup::
 	
-	from pprint import pprint
+	from pprint      import pprint
 	from collections import deque
 	
-	from thompson.word import format
+	from thompson.word     import format
+	from thompson.infinite import *
 	from thompson.examples import *
 """
 from collections import defaultdict
@@ -15,7 +16,7 @@ from itertools import chain, permutations
 import networkx as nx
 
 from .number_theory import lcm, prod
-from .word          import Word, root
+from .word          import Word, root, format
 from .generators    import Generators
 from .homomorphism  import format_table
 from .automorphism  import Automorphism
@@ -40,6 +41,68 @@ class InfiniteAut(Automorphism):
 		x1 a2 a2 a1    ~>    y1 a2 a2 a1 => y1 a2 a1 a2    ~> x1 a2 a1 a2   
 		x1 a2 a2 a2    ~>    y1 a2 a2 a2 => y1 a2 a2       ~> x1 a2 a2      
 	"""
+	
+	def setup(self):
+		"""This method computes the set of characteristics :math:`(m, \Gamma)` of all characteristic words with respect to the :attr:`quasinormal_basis`.
+		
+		:param bool print: if True, prints the characteristics in a nicely formatted way and does **not** return anything.
+		
+		:rtype: a :class:`set`.
+		
+		.. doctest::
+			
+			>>> example_4_1.print_characteristics()
+			(-1, a1)
+			(1, a2)
+			>>> example_4_25.print_characteristics()
+			(-1, a1 a1)
+			(1, a1 a1)
+			>>> example_6_2.print_characteristics()
+			(-2, a1)
+			(1, a2)
+			>>> (example_6_2 * example_6_2).print_characteristics()
+			(-1, a1)
+			(1, a2 a2)
+			>>> example_6_8_phi.print_characteristics()
+			(-1, a1 a1 a1)
+			(1, a2 a2 a2)
+			>>> #Lemma 5.16
+			>>> psi, phi = random_conjugate_pair()
+			>>> psi.characteristics == phi.characteristics
+			True
+		
+		.. doctest::
+			:hide:
+			
+			>>> #Lemma 6.1
+			>>> from random import randint
+			>>> psi = random_conjugate_infinite_factors()[0]
+			>>> original_chars = psi.characteristics
+			>>> power = psi
+			>>> a = randint(2, 6)
+			>>> for _ in range(a - 1): 
+			... 	power *= psi
+			>>> chars = set()
+			>>> for mult, char in original_chars:
+			... 	d = gcd(mult, a)
+			... 	q = abs(a // d)
+			... 	chars.add((mult//d, char*q))
+			>>> chars == power.characteristics
+			True
+		
+		.. seealso:: Defintion 5.14.
+		"""
+		basis = self.quasinormal_basis
+		self.characteristics = set()
+		initial, terminal = self.semi_infinite_end_points()
+		for endpt in chain(initial, terminal):
+			ctype, _, _ = self.orbit_type(endpt, basis)
+			if ctype.is_type_B():
+				self.characteristics.add(ctype.characteristic)
+	
+	def print_characteristics(self):
+		for power, mult in sorted(self.characteristics):
+			print('({}, {})'.format(power, format(mult)))
 	
 	def test_conjugate_to(self, other):
 		"""We can determine if two purely infinite automorphisms are conjugate by breaking down the :meth:`quasi-normal basis <thompson.mixed.MixedAut.quasinormal_basis>` into :meth:`equivalence classes <equivalence_data>`.
@@ -242,7 +305,8 @@ class InfiniteAut(Automorphism):
 					domain.append(word)
 					img = image_for_type_c(word, data, images, other)
 					range.append(img)
-				rho = MixedAut(domain, range, self.domain_relabeller, other.range_relabeller)
+				rho = Automorphism(domain, range)
+				rho.add_relabellers(self.domain_relabeller, other.range_relabeller)
 			except ValueError as e:
 				#For some reason, domain and range don't describe an automorphism
 				continue
@@ -288,7 +352,7 @@ class InfiniteAut(Automorphism):
 		
 		.. seealso:: the discussion following Cor. 6.7
 		"""
-		chars = self.characteristics()
+		chars = self.characteristics
 		parts = defaultdict(set)
 		for power, mult in chars:
 			root_mult, root_power = root(mult)

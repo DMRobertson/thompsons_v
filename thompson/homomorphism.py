@@ -482,6 +482,24 @@ class Homomorphism:
 		return output.getvalue()
 	
 	#Relabelling
+	def add_relabellers(self, domain_relabeller, range_relabeller):
+		""":raises LookupError: if a relabeller is provided and the relabeller's signature does not match that of *domain* or *range*
+		:raises TypeError: if a relabeller is provided and the relabeller's signature does not match that of *domain* or *range* (as appropriate)
+		"""
+		if (domain_relabeller is None) != (range_relabeller is None):
+			raise LookupError("Must either specify both relabellers or neither.", domain_relabeller, range_relabeller)
+		
+		if domain_relabeller is not None and domain_relabeller.domain.signature != self.domain.signature:
+			raise TypeError('Domain relabeller signature {} does not match automorphism\'s domain signature {}.'.format(
+			  domain_relabeller.domain.signature, domain.signature))
+		
+		if range_relabeller is not None and range_relabeller.domain.signature != self.range.signature:
+			raise TypeError('Range relabeller signature {} does not match automorphism\'s range signature {}.'.format(
+			  range_relabeller.domain.signature, range.signature))
+		
+		self.domain_relabeller = domain_relabeller
+		self.domain_relabeller = range_relabeller
+	
 	def relabel(self):
 		r"""If this automorphism was derived from a parent automorphism, this converts back to the parent algebra after doing computations in the derived algebra.
 		
@@ -494,7 +512,7 @@ class Homomorphism:
 			>>> psi = example_5_12_psi; phi = example_5_12_phi
 			>>> rho = psi.test_conjugate_to(phi)
 			>>> print(rho)
-			MixedAutFactor: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
+			PeriodicAut: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
 			x1 a1 a1 a1 a1 -> x1 a1 a2   
 			x1 a1 a1 a1 a2 -> x1 a2 a2   
 			x1 a1 a1 a2    -> x1 a1 a1 a1

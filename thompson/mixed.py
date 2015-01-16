@@ -5,7 +5,6 @@
 	from thompson import word
 	from thompson.generators import Generators
 	from thompson.mixed import *
-	from thompson.orbits import print_component_types
 	from thompson.examples import *
 	from thompson.number_theory import gcd
 """
@@ -155,10 +154,6 @@ class MixedAut(Automorphism):
 		
 		.. doctest::
 			
-			>>> basis = example_4_25.quasinormal_basis
-			>>> print(*example_4_25._partition_basis(basis), sep='\n')
-			[]
-			[x1 a1, x1 a2 a1, x1 a2 a2]
 			>>> basis = example_4_5.quasinormal_basis
 			>>> print(*example_4_5._partition_basis(basis), sep='\n')
 			[x1 a2 a1, x1 a2 a2]
@@ -246,9 +241,10 @@ class MixedAut(Automorphism):
 		inverse_relabeller = Homomorphism(copy(generators_relabelled), copy(generators), reduce=False)
 		
 		#3. Return the factor
-		from .factors import get_factor_class
-		type = get_factor_class(infinite)
-		factor = type(domain, range, inverse_relabeller, inverse_relabeller, reduce=False)
+		# from .factors import get_factor_class
+		# type = get_factor_class(infinite)
+		factor = Automorphism(domain, range, reduce=False)
+		factor.add_relabellers(inverse_relabeller, inverse_relabeller)
 		#TODO We know a priori what the quasi-normal basis is. We could pass this info on to the factor?
 		#TODO Would also be able to relabel type b data for bi-infinite orbit types
 		return factor
@@ -296,8 +292,6 @@ class MixedAut(Automorphism):
 		:returns: if it exists, a triple :math:`(a, b, \rho)` such that :math:`\rho^{-1}\psi^a\rho = \phi^b`. If no such triple exists, returns ``None``.
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
 		
-			>>> example_6_8_psi
-			>>> example_6_8_phi
 			>>> result = example_6_8_psi.test_power_conjugate_to(example_6_8_phi)
 			>>> result is not None
 			True
@@ -396,12 +390,8 @@ class MixedAut(Automorphism):
 			if inverses:
 				o_powers[-i] = o_powers[1-i] * o_powers[-1]
 		print(s_powers[1] is self)
-		print(self)
-		print(other)
 		for a, spow in s_powers.items():
 			for b, opow in o_powers.items():
-				print(a, b)
-				print(spow.domain_relabeller is None, spow.range_relabeller is None, opow.domain_relabeller is None, opow.range_relabeller is None)
 				print(type(spow), type(opow))
 				rho = spow.test_conjugate_to(opow)
 				if rho is not None:

@@ -1,10 +1,14 @@
-r"""As usual, a bijective homomorphism is called an *isomorphism*, and an isomorphism from an algebra to itself is called an *automorphism*. A collection of automorphisms of an object :math:`O` forms a group :math:`\mathrm{Aut}(O)` under composition. The group of automorphisms :math:`\mathrm{Aut}(V_{n,r})` is known as :math:`G_{n,r}`.
-
-We consider three different classes of automorphism; this module implements functionality common to each class.
+"""
+.. testsetup::
+	
+	from thompson.word         import from_string
+	from thompson.orbits       import print_component_types
+	from thompson.automorphism import *
+	from thompson.examples     import *
 """
 
 from copy      import copy
-from itertools import chain
+from itertools import chain, product
 
 from .word         import Word, free_monoid_on_alphas
 from .generators   import Generators
@@ -52,7 +56,7 @@ class Automorphism(Homomorphism):
 		self.signature = domain.signature
 		self.quasinormal_basis = None
 		self.pond_banks = None
-		self._characteristics = None
+		self.characteristics = None
 		
 		super().__init__(domain, range, reduce)
 		
@@ -214,13 +218,12 @@ class Automorphism(Homomorphism):
 		
 		#2. Look for and remember the details of any pond orbits.
 		self.pond_banks = self._find_ponds()
-		#3. Compute the set of characteristics.
-		self.characteristics = self._find_characteristics()
 		
-		#3. This is a bit naughty. If we find a pure infinite or pure periodic automorphism, change the class.
+		#3. This is a bit naughty. Cast this class as a pure/mixed/infinite aut as appropriate.
 		if type_A_count == 0:
 			from .infinite import InfiniteAut
 			self.__class__ = InfiniteAut
+			self.setup()
 		elif type_A_count == len(basis):
 			from .periodic import PeriodicAut
 			self.__class__ = PeriodicAut
@@ -246,68 +249,6 @@ class Automorphism(Homomorphism):
 					initial.remove(init)
 					break
 		return ponds
-	
-	def _find_characteristics(self, print=False):
-		"""This method computes the set of characteristics :math:`(m, \Gamma)` of all characteristic words with respect to the :meth:`quasinormal_basis`.
-		
-		:param bool print: if True, prints the characteristics in a nicely formatted way and does **not** return anything.
-		
-		:rtype: a :class:`set`.
-		
-		.. doctest::
-			
-			>>> example_4_1.characteristics(print=True)
-			(-1, a1)
-			(1, a2)
-			>>> example_4_25.characteristics(print=True)
-			(-1, a1 a1)
-			(1, a1 a1)
-			>>> example_6_2.characteristics(print=True)
-			(-2, a1)
-			(1, a2)
-			>>> (example_6_2 * example_6_2).characteristics(print=True)
-			(-1, a1)
-			(1, a2 a2)
-			>>> example_6_8_phi.characteristics(print=True)
-			(-1, a1 a1 a1)
-			(1, a2 a2 a2)
-			>>> #Lemma 5.16
-			>>> psi, phi = random_conjugate_pair()
-			>>> psi.characteristics() == phi.characteristics()
-			True
-		
-		.. doctest::
-			:hide:
-			
-			>>> #Lemma 6.1
-			>>> from random import randint
-			>>> psi = random_conjugate_infinite_factors()[0]
-			>>> original_chars = psi.characteristics()
-			>>> power = psi
-			>>> a = randint(2, 6)
-			>>> for _ in range(a - 1): 
-			... 	power *= psi
-			>>> chars = set()
-			>>> for mult, char in original_chars:
-			... 	d = gcd(mult, a)
-			... 	q = abs(a // d)
-			... 	chars.add((mult//d, char*q))
-			>>> chars == power.characteristics()
-			True
-		
-		.. seealso:: Defintion 5.14.
-		"""
-		basis = self.quasinormal_basis
-		self.characteristics = set()
-		initial, terminal = self.semi_infinite_end_points()
-		for endpt in chain(initial, terminal):
-			ctype, _, _ = self.orbit_type(endpt, basis)
-			if ctype.is_type_B():
-				self.characteristics.add(ctype.characteristic)
-	
-	def print_characteristics(self):
-		for power, mult in sorted(self.characteristics):
-			print('({}, {})'.format(power, format(mult)))
 	
 	def _seminormal_form_start_point(self):
 		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \cup W`. See remark 4.10 and example 4.25. This basis that this method produces is the smallest possible which *might* be semi-normal.
@@ -721,10 +662,10 @@ class Automorphism(Homomorphism):
 			
 			>>> tail = from_string('a1 a2 a1 a2 a1 a2 a3')
 			>>> multiplier = from_string('a1 a2')
-			>>> MixedAut._remove_from_start(tail, (2, multiplier))
+			>>> Automorphism._remove_from_start(tail, (2, multiplier))
 			(-6, (-3,))
 			>>> multiplier = from_string('a1')
-			>>> MixedAut._remove_from_start(tail, (2, multiplier))
+			>>> Automorphism._remove_from_start(tail, (2, multiplier))
 			(-2, (-2, -1, -2, -1, -2, -3))
 		"""
 		power, multiplier = characteristic

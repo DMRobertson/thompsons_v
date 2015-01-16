@@ -1,4 +1,4 @@
-r"""
+"""
 .. testsetup:: 
 	
 	from thompson.word import Word, format
