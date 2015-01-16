@@ -45,12 +45,7 @@ class Automorphism(Homomorphism):
 		if not(i == j == -1):
 			raise ValueError("Range is not a free generating set. Check elements at indices {} and {}.".format(
 			  i, j))
-		
-		missing = range.test_generates_algebra()
-		if len(missing) > 0:
-			raise ValueError("Range does not generate V_{}. Missing elements are {}.".format(
-			  range.signature, [format(x) for x in missing]))
-		
+				
 		#Cache attributes
 		self._inv = {}
 		self.signature = domain.signature
@@ -59,6 +54,11 @@ class Automorphism(Homomorphism):
 		self.characteristics = None
 		
 		super().__init__(domain, range, reduce)
+		
+		missing = range.test_generates_algebra()
+		if len(missing) > 0:
+			raise ValueError("Range does not generate V_{}. Missing elements are {}.".format(
+			  range.signature, [format(x) for x in missing]))
 		
 		#Setup the inverse map
 		for root in Generators.standard_basis(domain.signature):
@@ -154,6 +154,10 @@ class Automorphism(Homomorphism):
 	inverse = __invert__
 	
 	#Quasinormal basis
+	#Some ideas for making this process faster:
+	#- Cache the component types (wrt QNB) for the QNB elements
+	#- Put some part of the core of type B orbits into confirmed? See /theory/Characteristic components and the QNB.tex
+	#- Cache the powers (-ell, m) which determine the core part of a component
 	def compute_quasinormal_basis(self):
 		r"""We say that :math:`\phi` is *in semi-normal form* with respect to the basis :math:`X` if no element of :math:`X` lies in an incomplete :math:`X`-component of a :math:`\phi` orbit. See the :mod:`~thompson.orbits` module for more details.
 		

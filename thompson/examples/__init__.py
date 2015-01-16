@@ -39,19 +39,14 @@ def read_examples():
 		add_module_attribute(name, aut)
 	
 	#2. Extract any free factors from mixed periodic/infinite automorphisms.
-	# free_factors = pkg_resources.resource_filename("thompson.examples", "free_factors.txt")
-	# with open(free_factors, encoding='utf-8') as f:
-		# for line in f:
-			# details = line.lower().split()
-			# name = details[0]
-			
-			# aut = globals()[name]
-			# basis = aut.quasinormal_basis
-			# p, i = aut._partition_basis(basis)
-			# if 'p' in details[1:]:
-				# add_module_attribute(name + '_p', aut.free_factor(p, infinite=False))
-			# if 'i' in details[1:]:
-				# add_module_attribute(name + '_i', aut.free_factor(i, infinite=True))
+	free_factors = pkg_resources.resource_filename("thompson.examples", "free_factors.txt")
+	with open(free_factors, encoding='utf-8') as f:
+		for line in f:
+			name = line.lower().strip()
+			aut = globals()[name]
+			p, i = aut.free_factors()
+			add_module_attribute(name + '_p', p)
+			add_module_attribute(name + '_i', i)
 	
 	#3. If any examples have more than one name, deal with that next.
 	aliases = pkg_resources.resource_filename("thompson.examples", "aliases.txt")

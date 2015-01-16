@@ -238,7 +238,7 @@ class Homomorphism:
 		.. doctest::
 			
 			>>> print(alphabet_size_two * alphabet_size_two)
-			PeriodicAut: V(3, 2) -> V(3, 2) specified by 8 generators (after expansion and reduction).
+			MixedAut: V(3, 2) -> V(3, 2) specified by 8 generators (after expansion and reduction).
 			x1 a1    -> x1 a1      
 			x1 a2    -> x1 a2 a3 a3
 			x1 a3 a1 -> x1 a3      
@@ -248,25 +248,21 @@ class Homomorphism:
 			x2 a2    -> x1 a2 a3 a2
 			x2 a3    -> x1 a2 a3 a1
 		"""
-		parent_cls = None
-		if isinstance(other, type(self)):
-			parent_cls = type(self)
-		elif isinstance(self, type(other)):
-			parent_cls = type(other)
-		if parent_cls is None:
+		if not isinstance(other, Homomorphism):
 			return NotImplemented
+		
 		if self.range.signature != other.domain.signature:
 			raise TypeError("Signatures {}->{} and {}->{} do not match.".format(
 			  self.domain.signature, self.range.signature, other.domain.signature, other.range.signature))
 		
-		range = Generators(other.range.signature)
 		range = other.image_of_set(self.range)
 		domain = copy(self.domain)
-		for supercls in (parent_cls,) + parent_cls.__bases__:
+		from .automorphism import Automorphism
+		for cls in (Automorphism, Homomorphism):
 			try:
-				return supercls(domain, range)
+				return cls(domain, range)
 			except Exception as e:
-				pass
+				print(e)
 		raise e
 	
 	@classmethod
@@ -498,7 +494,7 @@ class Homomorphism:
 			  range_relabeller.domain.signature, range.signature))
 		
 		self.domain_relabeller = domain_relabeller
-		self.domain_relabeller = range_relabeller
+		self.range_relabeller = range_relabeller
 	
 	def relabel(self):
 		r"""If this automorphism was derived from a parent automorphism, this converts back to the parent algebra after doing computations in the derived algebra.
