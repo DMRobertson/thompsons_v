@@ -8,7 +8,7 @@ We consider three different classes of automorphism; this module implements func
 .. automodule :: thompson.automorphism
 
 The Automorphisms class
-----------------------
+-----------------------
 
 .. autoclass:: Automorphism
     :members:

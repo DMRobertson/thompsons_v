@@ -207,32 +207,20 @@ class MixedAut(Automorphism):
 			  self.signature, other.signature))
 		
 		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
-		result = self._check_parition_sizes(other)
-		if result is None:
+		sizes_okay = self._check_parition_sizes(other)
+		if not sizes_okay:
 			return None
-		pure_periodic, pure_infinite, s_qnf_p, s_qnf_i, o_qnf_p, o_qnf_i = result
 		
-		#4. If necessary, test the periodic factors.
-		if pure_infinite:
-			rho_p = None
-		else:
-			#2, 3. Extract the periodic factor.
-			s_p = self.free_factor(s_qnf_p, infinite=False)
-			o_p = other.free_factor(o_qnf_p, infinite=False)
-			rho_p = s_p.test_conjugate_to(o_p)
-			if rho_p is None:
-				return None
+		s_p, s_i = self.free_factors()
+		o_p, o_i = other.free_factors()
 		
-		#Step 5. If necessary, test the infinite factors.
-		if pure_periodic:
-			rho_i = None
-		else:
-			#2, 3. Extract the infinite factor.
-			s_i = self.free_factor(s_qnf_i, infinite=True)
-			o_i = other.free_factor(o_qnf_i, infinite=True)
-			rho_i = s_i.test_conjugate_to(o_i)
-			if rho_i is None:
-				return None
+		rho_p = s_p.test_conjugate_to(o_p)
+		if rho_p is None:
+			return None
+		
+		rho_i = s_i.test_conjugate_to(o_i)
+		if rho_i is None:
+			return None
 		
 		#Step 6. If we've got this far, we have a periodic/infinite mixture.
 		#Combine the rewritten conjugators into one conjugator in G_n,r
@@ -243,33 +231,15 @@ class MixedAut(Automorphism):
 		
 		:returns: None if we discover conjugacy is impossible. Otherwise, returns a pair of booleans *(pure_periodic, pure_infinite)*. Note that even if such a pair is returned, we do **not** know for certain that conjugacy is possible.
 		"""
-		s_qnf = self.quasinormal_basis
-		o_qnf = other.quasinormal_basis
-		#Check that we have at at least one element in each basis.
-		#This eliminates the possibility that either s or o is both pure periodic and pure infinite.
-		assert (len(s_qnf) != 0 and len(o_qnf) != 0), "One of the QNF bases consists of 0 elements."
-		
-		s_qnf_p, s_qnf_i = self._partition_basis(s_qnf)
-		o_qnf_p, o_qnf_i = other._partition_basis(o_qnf)
-		
-		s_pure_periodic = len(s_qnf_i) == 0
-		s_pure_infinite = len(s_qnf_p) == 0
-		o_pure_periodic = len(o_qnf_i) == 0
-		o_pure_infinite = len(o_qnf_p) == 0
-		
-		#Check that s is periodic iff o is periodic and the same for infinite.
-		if not (s_pure_periodic == o_pure_periodic
-		  and   s_pure_infinite == o_pure_infinite):
-			return None
+		s_qnf_p, s_qnf_i = self._partition_basis(self.quasinormal_basis)
+		o_qnf_p, o_qnf_i = other._partition_basis(other.quasinormal_basis)
 		
 		#Check that the lengths match up modulo n-1.
 		modulus = self.signature.arity - 1
-		if not (len(s_qnf_p) % modulus == len(o_qnf_p) % modulus
-		  and   len(s_qnf_i) % modulus == len(o_qnf_i) % modulus):
-			return None
-		return s_pure_periodic, s_pure_infinite, s_qnf_p, s_qnf_i, o_qnf_p, o_qnf_i
-	
-	
+		size_check = (len(s_qnf_p) % modulus == len(o_qnf_p) % modulus
+		  and   len(s_qnf_i) % modulus == len(o_qnf_i) % modulus)
+		
+		return size_check
 	
 	def dump_QNB(self):
 		basis = self.quasinormal_basis
@@ -284,12 +254,6 @@ class MixedAut(Automorphism):
 		:returns: if it exists, a triple :math:`(a, b, \rho)` such that :math:`\rho^{-1}\psi^a\rho = \phi^b`. If no such triple exists, returns ``None``.
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
 		
-			>>> result = example_6_8_psi.test_power_conjugate_to(example_6_8_phi)
-			>>> result is not None
-			True
-			>>> a, b, rho = result
-			>>> (example_6_8_psi ** a) * rho == rho * (example_6_8_phi ** b)
-		
 		.. seealso:: This is an implementation of Algorithm 6.12 in the paper. It depends on Algorithms 5.6 (the :meth:`conjugacy test <test_conjugate_to>`) and 6.10 (the :meth:`infinite power conjugate test <thompson.factors.InfiniteAut.find_power_conjugators>.`)
 		"""
 		#0. Check that both automorphisms belong to the same G_{n,r}.
@@ -298,93 +262,28 @@ class MixedAut(Automorphism):
 			  self.signature, other.signature))
 		
 		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
-		result = self._check_parition_sizes(other)
-		if result is None:
+		sizes_okay = self._check_parition_sizes(other)
+		if not sizes_okay:
 			return None
-		pure_periodic, pure_infinite, s_qnf_p, s_qnf_i, o_qnf_p, o_qnf_i = result
 		
-		#2. Construct PC_p, the set of conjugators that act on the periodic factor
-		if not pure_infinite:
-			#Extract the periodic factors
-			s_p = self.free_factor(s_qnf_p, infinite=False)
-			o_p = other.free_factor(o_qnf_p, infinite=False)
-			
-			#Preprare to brute force search
-			soln_iterator = s_p.test_power_conjugate_to(o_p, multiple_solns = True)
-			if pure_periodic:
-				pass
-			periodic_conjugators = list()
-			if len(periodic_conjugators) == 0:
-				return None
-				a, b, rho_p = periodic_conjugators[0]
-				return a, b, self._combine_factors(rho_p, None)
+		#2. Periodic minimal solns.
+		periodic_conjugators = list(s_p.test_power_conjugate_to(o_p, multiple_solns=True))
+		if len(periodic_conjugators) == 0:
+			return None
 		
-		#Step 4. Construct PC_I, the set of conjugators that act on the infinite factor
-		if not pure_periodic:
-			#Extract the periodic factors
-			s_i = self.free_factor(s_qnf_i, infinite=True)
-			o_i = other.free_factor(o_qnf_i, infinite=True)
-			
-			#Preprare to brute force search
-			bounds = s_i.power_conjugacy_bounds(o_i)
-			infinite_conjugators = []
-			for data in s_i._test_power_conjugate_upto(o_i, *bounds, inverses=True):
-				if pure_infinite:
-					a, b, rho_i = data
-					return a, b, self._combine_factors(None, rho_i)
-				infinite_conjugators.append(data)
-			if len(infinite_conjugators) == 0:
-				return None
+		#3. Infinite minimal solns.
+		infinite_conjugators = list(s_i.test_power_conjugate_to(s_i, multiple_solns=True))
+		if len(infinite_conjugators) == 0:
+			return None
 		
 		#5. Try to recombine.
 		for alpha, beta, rho_i in infinite_conjugators:
 			for c, d, rho_p in periodic_conjugators:
 				solns = solve_linear_congruence(a, c, s_p.order) & solve_linear_congruence(b, d, o_p.order)
 				if not solns.is_empty():
-					soln = solns.base % lcm(s_p.order, o_p.order)
+					soln = solns.base
 					rho = self._combine_factors(rho_p, rho_i)
 					return alpha*soln, beta*soln, rho
 		
 		#6. If we've got this far, we're out of luck.
 		return None
-		
-	def _test_power_conjugate_upto(self, other, sbound, obound, inverses=False):
-		r"""In both the periodic and infinite cases, we establish bounds on the powers :math:`a, b` for conjugacy; the rest is brute force.  This method tests to see if :math:`\psi^a` is conjugate to :math:`\phi^b` within the supplied bounds. Should it find a conjugator :math:`\rho`, this method yields a triple :math:`(a, b, \rho)`.
-		
-		Let :math:`\hat a, \hat b` denote *sbound* and *obound* respectively. If *inverses* is False, then we search over the ranges :math:`1 \le a \le \hat a` and :math:`1 \le b \le \hat b`. If *inverses* is True, we search over the (four times larger) range `1 \le |a| \le \hat a` and :math:`1 \leq |b| \le \hat b`
-		"""
-		if sbound < 0:
-			raise ValueError('sbound parameter should be at least 0 (received {}).'.format(sbound))
-		if obound < 0:
-			raise ValueError('obound parameter should be at least 0 (received {}).'.format(obound))
-		
-		if sbound == 0 or obound == 0:
-			return
-		
-		#Assuming that computation is more expensive than storage space.
-		s_powers = dict()
-		s_powers[1] = self
-		if inverses:
-			s_powers[-1] = ~self
-		
-		o_powers = dict()
-		o_powers[1] = other
-		if inverses:
-			o_powers[-1] = ~other
-		
-		for i in range(2, sbound + 1):
-			s_powers[i] = s_powers[i-1] * self
-			if inverses:
-				s_powers[-i] = s_powers[1-i] * s_powers[-1]
-		
-		for i in range(2, obound + 1):
-			o_powers[i] = o_powers[i-1] * other
-			if inverses:
-				o_powers[-i] = o_powers[1-i] * o_powers[-1]
-		print(s_powers[1] is self)
-		for a, spow in s_powers.items():
-			for b, opow in o_powers.items():
-				print(type(spow), type(opow))
-				rho = spow.test_conjugate_to(opow)
-				if rho is not None:
-					yield a, b, rho

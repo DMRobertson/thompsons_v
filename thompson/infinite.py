@@ -77,7 +77,7 @@ class InfiniteAut(Automorphism):
 			
 			>>> #Lemma 6.1
 			>>> from random import randint
-			>>> psi = random_conjugate_infinite_factors()[0]
+			>>> psi = random_infinite_automorphism()
 			>>> original_chars = psi.characteristics
 			>>> power = psi
 			>>> a = randint(2, 6)
@@ -122,7 +122,7 @@ class InfiniteAut(Automorphism):
 			>>> rho_i * phi_i == psi_i * rho_i
 			True
 		
-			>>> psi_i, phi_i = random_conjugate_infinite_factors()
+			>>> psi_i, phi_i = random_conjugate_infinite_pair()
 			>>> rho_i = psi_i.test_conjugate_to(phi_i)
 			>>> rho_i * phi_i == psi_i * rho_i
 			True
@@ -313,6 +313,28 @@ class InfiniteAut(Automorphism):
 				continue
 			else:
 				yield rho
+	
+	def test_power_conjugate_to(self, other, multiple_solns=False):
+		"""Tests two infinite factors to see if they are power conjugate. If *multiple_solns* is true, yields minimal solns (a, b, rho). Otherwise yields a single soln if it exists; otherwise None.
+		
+			>>> result = example_6_8_psi.test_power_conjugate_to(example_6_8_phi)
+			>>> result is not None
+			True
+			>>> a, b, rho = result
+			>>> (example_6_8_psi ** a) * rho == rho * (example_6_8_phi ** b)
+		"""
+		if not isinstance(other, InfiniteAut):
+			return None
+		bounds = self.power_conjugacy_bounds(other)
+		soln_iterator = self._test_power_conjugate_upto(other, *bounds, inverses=True)
+		
+		if multiple_solns:
+			return soln_iterator
+		else:
+			try:
+				return next(soln_iterator)
+			except StopIteration:
+				return None
 	
 	def power_conjugacy_bounds(self, other):
 		"""Compute the bounds :math:`\hat a, \hat b`.

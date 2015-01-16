@@ -136,6 +136,9 @@ class Automorphism(Homomorphism):
 		return image
 	
 	#Group operations
+	def __pow__(self):
+		...
+	
 	def __invert__(self):
 		"""We overload python's unary negation operator ``~`` as shorthand for inversion. (In Python, ``~`` is normally used for bitwise negation.) We can also call a method explicitily: ``phi.inverse()`` is exactly the same as ``~phi``.
 		
@@ -697,6 +700,47 @@ class Automorphism(Homomorphism):
 				for i, img in enumerate(core):
 					images[m - k - i] = img
 				return
-
+	
+	def _test_power_conjugate_upto(self, other, sbound, obound, inverses=False):
+		r"""In both the periodic and infinite cases, we establish bounds on the powers :math:`a, b` for conjugacy; the rest is brute force.  This method tests to see if :math:`\psi^a` is conjugate to :math:`\phi^b` within the supplied bounds. Should it find a conjugator :math:`\rho`, this method yields a triple :math:`(a, b, \rho)`.
+		
+		Let :math:`\hat a, \hat b` denote *sbound* and *obound* respectively. If *inverses* is False, then we search over the ranges :math:`1 \le a \le \hat a` and :math:`1 \le b \le \hat b`. If *inverses* is True, we search over the (four times larger) range `1 \le |a| \le \hat a` and :math:`1 \leq |b| \le \hat b`
+		"""
+		if sbound < 0:
+			raise ValueError('sbound parameter should be at least 0 (received {}).'.format(sbound))
+		if obound < 0:
+			raise ValueError('obound parameter should be at least 0 (received {}).'.format(obound))
+		
+		if sbound == 0 or obound == 0:
+			return
+		
+		#Assuming that computation is more expensive than storage space.
+		s_powers = dict()
+		s_powers[1] = self
+		if inverses:
+			s_powers[-1] = ~self
+		
+		o_powers = dict()
+		o_powers[1] = other
+		if inverses:
+			o_powers[-1] = ~other
+		
+		for i in range(2, sbound + 1):
+			s_powers[i] = s_powers[i-1] * self
+			if inverses:
+				s_powers[-i] = s_powers[1-i] * s_powers[-1]
+		
+		for i in range(2, obound + 1):
+			o_powers[i] = o_powers[i-1] * other
+			if inverses:
+				o_powers[-i] = o_powers[1-i] * o_powers[-1]
+		
+		for a, spow in s_powers.items():
+			for b, opow in o_powers.items():
+				rho = spow.test_conjugate_to(opow)
+				if rho is not None:
+					yield a, b, rho
+	
+	
 def type_b_triple(power, head, tail):
 	return dict(start_tail = tuple(), power=power, end_tail=tail, target=head)

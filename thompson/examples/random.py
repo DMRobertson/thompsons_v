@@ -4,10 +4,12 @@ from copy import copy
 from ..word         import Signature, Word
 from ..generators   import Generators
 from ..automorphism import Automorphism
+from ..mixed        import MixedAut
+from ..infinite     import InfiniteAut
 
 __all__ = ['random_signature', 'random_simple_word', 'random_basis',
-	'random_automorphism', 'random_periodic_automorphism', 'random_conjugate_pair']
-	# 'random_conjugate_factors', 'random_conjugate_periodic_factors', 'random_conjugate_infinite_factors']
+	'random_automorphism',   'random_periodic_automorphism', 'random_infinite_automorphism',
+	'random_conjugate_pair', 'random_conjugate_periodic_pair', 'random_conjugate_infinite_pair']
 
 def needs_defaults(undec):
 	def decd(num_expansions=None, signature=None):
@@ -81,6 +83,15 @@ def random_periodic_automorphism(num_expansions, signature):
 	return Automorphism(domain, range)
 
 @needs_defaults
+def random_infinite_automorphism(num_expansions, signature):
+	phi = None
+	while True:
+		phi = random_automorphism(num_expansions, signature)
+		if isinstance(phi, InfiniteAut):
+			break
+	return phi
+
+@needs_defaults
 def random_conjugate_pair(num_expansions, signature):
 	r"""Calls :func:`random_automorphism` to create two automorphisms :math:`\psi` and :math:`\rho`. Returns the pair :math:`(\psi, \rho^{-1}\psi\rho)`, which are conjugate by definition."""
 	psi = random_automorphism(num_expansions, signature)
@@ -88,31 +99,16 @@ def random_conjugate_pair(num_expansions, signature):
 	phi = ~rho * psi * rho
 	return psi, phi
 
-# @needs_defaults
-# def random_conjugate_factors(num_expansions, signature):
-	# r"""Calls :func:`random_conjugate_pair` to create two automorphisms :math:`\psi` and :math:`\phi`. Returns the :meth:`~thompson.mixed.MixedAut.free_factors` :math:`\psi_P, \psi_I, \phi_P, \phi_I.`
-	
-	# .. note:: Some of the factors may be ``None`` if they are trivial.
-	# """
-	# psi, phi = random_conjugate_pair(num_expansions, signature)
-	# psi_p, psi_i = psi.free_factors()
-	# phi_p, phi_i = phi.free_factors()
-	# return psi_p, psi_i, phi_p, phi_i
+@needs_defaults
+def random_conjugate_periodic_pair(num_expansions, signature):
+	psi = random_periodic_automorphism(num_expansions, signature)
+	rho = random_periodic_automorphism(num_expansions, signature)
+	phi = ~rho * psi * rho
+	return psi, phi
 
-# @needs_defaults
-# def random_conjugate_periodic_factors(num_expansions, signature):
-	# r"""Calls :func:`random_conjugate_factors` but returns only the peroidic factors. This method returns :math:`\psi_P, \phi_P` and ensures they are non-trivial.`"""
-	# psi_p = phi_p = None
-	# while psi_p is None or phi_p is None:
-		# psi_p, _, phi_p, _ = random_conjugate_factors()
-	# assert isinstance(psi_p, PeriodicAut)
-	# return psi_p, phi_p
-
-# @needs_defaults
-# def random_conjugate_infinite_factors(num_expansions, signature):
-	# r"""Calls :func:`random_conjugate_factors` but returns only the infinite factors. This method returns :math:`\psi_I, \phi_I` and ensures they are non-trivial.`"""
-	# psi_i = phi_i = None
-	# while psi_i is None or phi_i is None:
-		# _, psi_i, _, phi_i = random_conjugate_factors()
-	# assert isinstance(psi_i, InfiniteAut)
-	# return psi_i, phi_i
+@needs_defaults
+def random_conjugate_infinite_pair(num_expansions, signature):
+	psi = random_infinite_automorphism(num_expansions, signature)
+	rho = random_automorphism(num_expansions, signature)
+	phi = ~rho * psi * rho
+	return psi, phi
