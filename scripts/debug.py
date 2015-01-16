@@ -5,8 +5,7 @@ setup_script(__file__)
 
 from thompson.examples import *
 
-print(alphabet_size_two)
-print(alphabet_size_two * alphabet_size_two)
+random_conjugate_infinite_pair()
 
 # example_6_8_psi
 # example_6_8_phi

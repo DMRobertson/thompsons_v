@@ -23,7 +23,8 @@ Randomly generated examples
 .. autofunction:: random_simple_word
 .. autofunction:: random_basis
 .. autofunction:: random_automorphism
+.. autofunction:: random_periodic_automorphism
+.. autofunction:: random_infinite_automorphism
 .. autofunction:: random_conjugate_pair
-.. autofunction:: random_conjugate_factors
-.. autofunction:: random_conjugate_periodic_factors
-.. autofunction:: random_conjugate_infinite_factors
+.. autofunction:: random_conjugate_periodic_pair
+.. autofunction:: random_conjugate_infinite_pair

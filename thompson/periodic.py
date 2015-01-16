@@ -103,7 +103,7 @@ class PeriodicAut(Automorphism):
 			>>> rho_p * phi_p == psi_p * rho_p
 			True
 			
-			>>> psi_p, phi_p = random_conjugate_periodic_factors()
+			>>> psi_p, phi_p = random_conjugate_periodic_pair()
 			>>> rho_p = psi_p.test_conjugate_to(phi_p)
 			>>> rho_p * phi_p == psi_p * rho_p
 			True
@@ -159,7 +159,7 @@ class PeriodicAut(Automorphism):
 		soln_iterator = self._test_power_conjugate_upto(other, *bounds, inverses=False)
 		
 		if multiple_solns:
-			yield from soln_iterator
+			return soln_iterator
 		else:
 			try:
 				return next(soln_iterator)
