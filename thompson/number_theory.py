@@ -1,4 +1,4 @@
-r"""Functions implementing various number-theoretic algorithms.
+r"""Functions implementing various number-theoretic algorithms. These are used elsewhere in the packages.
  
 .. testsetup::
 	
@@ -212,7 +212,6 @@ class SolutionSet(BaseSolutionSet):
 		values = (str(num) for num in values)
 		return "{{..., {0}, ...}}".format(", ".join(values))
 
-
 def extended_gcd(a,b):
 	"""From `this exposition of the extended gcd algorithm <http://anh.cs.luc.edu/331/notes/xgcd.pdf>`_. Computes :math:`d = \gcd(a, b)` and returns a triple :math:`(d, x, y)` where :math:`d = ax + by`."""
 	prevx, x = 1, 0; prevy, y = 0, 1
@@ -256,7 +255,7 @@ def lcm(a, b=None):
 def solve_linear_congruence(a, b, n):
 	"""Solves the congruence :math:`ax \equiv b \pmod n`.
 	
-	:rtype: a :class:`SolutionSet`.
+	:rtype: a :class:`~thompson.orbits.SolutionSet`.
 	
 	.. doctest::
 		:options: -ELLIPSIS
@@ -287,8 +286,11 @@ def solve_linear_congruence(a, b, n):
 
 def divisors(n, include_one=True):
 	"""An iterator that yields the positive divisors :math:`d \mid n`.
+	
 	:param bool include_one: set to False to exlude :math:`d = 1`.
 	
+	.. doctest::
+		
 		>>> list(divisors(12))
 		[1, 2, 3, 4, 6, 12]
 		>>> list(divisors(125, include_one=False))

@@ -1,3 +1,11 @@
+"""
+.. testsetup::
+	
+	from thompson.periodic import *
+	from thompson.examples import *
+"""
+
+
 from collections import defaultdict, deque
 
 from .number_theory import lcm
@@ -7,7 +15,7 @@ from .automorphism  import Automorphism
 __all__ = ["PeriodicAut"]
 
 class PeriodicAut(Automorphism):
-	r"""A purely periodic free factor which has been extracted from another automorphism.
+	r"""A purely periodic automorphism, which may have been extracted from a mixed automorphism.
 	
 		>>> print(example_5_9)
 		PeriodicAut: V(2, 1) -> V(2, 1) specified by 7 generators (after expansion and reduction).
@@ -21,6 +29,7 @@ class PeriodicAut(Automorphism):
 		>>> sorted(example_5_9.cycle_type)
 		[2, 3]
 		>>> #Two orbits of size 2, one orbit of size 3
+		>>> from pprint import pprint
 		>>> pprint(example_5_9.multiplicity)
 		{2: 2, 3: 1}
 		
@@ -30,12 +39,7 @@ class PeriodicAut(Automorphism):
 	:ivar order: the smallest positive number :math:`n` for which :math:`phi^n` is the identity. (This is the lcm of the cycle type.)
 	"""
 	def setup(self):
-		# assert self.quasinormal_basis == self.domain
-		# assert self.quasinormal_basis.minimal_expansion_for(self) == self.domain
-		
-		self._setup_multiplicities()
-	
-	def _setup_multiplicities(self):
+		assert self.quasinormal_basis.minimal_expansion_for(self) == self.quasinormal_basis
 		#see definition 5.8
 		self.cycle_type = set()
 		counts = defaultdict(int)
@@ -89,7 +93,7 @@ class PeriodicAut(Automorphism):
 			>>> psi_p = example_5_12_psi; phi_p = example_5_12_phi
 			>>> rho_p = psi_p.test_conjugate_to(phi_p)
 			>>> print(rho_p)
-			MixedAut: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
+			PeriodicAut: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
 			x1 a1 a1 a1 a1 -> x1 a1 a2   
 			x1 a1 a1 a1 a2 -> x1 a2 a2   
 			x1 a1 a1 a2    -> x1 a1 a1 a1
@@ -106,18 +110,14 @@ class PeriodicAut(Automorphism):
 		
 		.. seealso:: This implements algorithm 5.13 of the paper---see section 5.3.
 		"""
-		# todo another doctest
 		if not isinstance(other, PeriodicAut):
 			return None
-		
 		# 1. The quasi-normal bases are constructed in initialisation.
-		# Note that the QNF basis should be just the domain. TODO Checkme
-		
 		# 2. Check that the cycle types are the same.
 		if self.cycle_type != other.cycle_type:
 			return None
 		
-		#3. Check that the multiplicites are congruent.
+		#3. Check that the multiplicities are congruent.
 		modulus = self.signature.arity - 1
 		for d in self.cycle_type:
 			if self.multiplicity[d] % modulus != other.multiplicity[d] % modulus:
@@ -126,11 +126,8 @@ class PeriodicAut(Automorphism):
 		# 4. Expand bases until the orbits multiplicites are the same
 		s_orbits_of_size = self.enumerate_orbits(self.quasinormal_basis)
 		o_orbits_of_size = other.enumerate_orbits(other.quasinormal_basis)
-
+		
 		for d in self.cycle_type:
-			assert len(s_orbits_of_size[d]) == self.multiplicity[d]
-			assert len(o_orbits_of_size[d]) == other.multiplicity[d]
-			
 			expansions_needed = (self.multiplicity[d] - other.multiplicity[d]) // modulus
 			
 			if expansions_needed > 0:
@@ -148,22 +145,26 @@ class PeriodicAut(Automorphism):
 					domain.append(s_word)
 					range.append(o_word)
 		
-		rho = MixedAut(domain, range, self.domain_relabeller, other.range_relabeller)
+		rho = Automorphism(domain, range)
+		rho.add_relabellers(self.domain_relabeller, other.range_relabeller)
 		return rho
 	
 	def test_power_conjugate_to(self, other, multiple_solns=False):
-		"""Tests two periodic factors to see if they are power conjugate. If *multiple_solns* is true, yields minimal soln (a, b, rho). Otherwise yields a single soln. If there are no solns, returns None."""
+		"""Tests two periodic factors to see if they are power conjugate. If *multiple_solns* is true, yields minimal soln (a, b, rho). Otherwise yields a single soln if it exists; otherwise None."""
 		if not isinstance(other, PeriodicAut):
-			return super().test_power_conjugate_to(self, other, multiple_solns)
-			
+			return None
+		if self.is_identity() or other.is_identity():
+			return None
 		bounds = self.power_conjugacy_bounds(other)
 		soln_iterator = self._test_power_conjugate_upto(other, *bounds, inverses=False)
 		
 		if multiple_solns:
 			yield from soln_iterator
 		else:
-			return next(soln_iterator)
-		return None
+			try:
+				return next(soln_iterator)
+			except StopIteration:
+				return None
 	
 	def power_conjugacy_bounds(self, other):
 		"""We simply try all powers of both automorphisms. There are only finitely many, because everything is periodic.

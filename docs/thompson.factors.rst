@@ -6,25 +6,16 @@ To :meth:`test for conjugacy <thompson.mixed.MixedAut.test_conjugate_to>` we nee
 - how the components embed into the original automorphism, and
 - any extra information that we need to test the components for conjugacy. 
 
-.. automodule:: thompson.factors
-
-The Factor class
-----------------
-
-.. autoclass:: MixedAutFactor
-    :members:
-    :undoc-members:
-
 Periodic Factors
 ----------------
 
-.. autoclass:: PeriodicFactor
+.. automodule:: thompson.periodic
     :members:
     :undoc-members:
 
 Infinite Factors
 ----------------
 
-.. autoclass:: InfiniteAut
+.. automodule:: thompson.infinite
     :members:
     :undoc-members:

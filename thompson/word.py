@@ -1,8 +1,8 @@
 """
 .. testsetup:: 
 	
-	from thompson.word            import *
-	from thompson.examples.random import *
+	from thompson.word     import *
+	from thompson.examples import * #todo this should be thompson.examples.random
 """
 
 import operator

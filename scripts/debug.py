@@ -3,9 +3,9 @@ setup_script(__file__)
 
 """A place to write rough and ready debug scripts."""
 
-from thompson.examples.random import *
+from thompson.examples import *
 
-random_automorphism()
+# random_automorphism()
 
 # from thompson.examples import * 
 

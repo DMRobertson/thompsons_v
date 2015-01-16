@@ -7,7 +7,7 @@
 
 from collections import namedtuple
 
-from .number_theory import extended_gcd, solve_linear_diophantine, SolutionSet
+from .number_theory import SolutionSet
 from .word import format
 from .generators import Generators
 
