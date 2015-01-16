@@ -1,8 +1,9 @@
 """
 .. testsetup::
 	
-	from pprint      import pprint
 	from collections import deque
+	from fractions   import gcd
+	from pprint      import pprint
 	
 	from thompson.word     import format
 	from thompson.infinite import *
