@@ -124,5 +124,3 @@ def random_power_conjugate_pair(signature, num_expansions):
 	phi = ~rho * (psi ** random_power()) * rho
 	phi **= random_power()
 	return psi, phi
-
-

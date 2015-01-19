@@ -314,36 +314,28 @@ class InfiniteAut(Automorphism):
 			else:
 				yield rho
 	
-	def test_power_conjugate_to(self, other, multiple_solns=False):
-		"""Tests two infinite factors to see if they are power conjugate. If *multiple_solns* is true, yields minimal solns (a, b, rho). Otherwise yields a single soln if it exists; otherwise None.
-		
+	def find_power_conjugators(self, other):
+		"""Tests two infinite factors to see if they are power conjugate. Yields minimal solns (a, b, rho)."""
+		if not isinstance(other, InfiniteAut):
+			raise StopIteration
+		bounds = self.power_conjugacy_bounds(other)
+		yield from self._test_power_conjugate_upto(other, *bounds, inverses=True)
+	
+	def test_power_conjugate_to(self, other):
+		"""
 			>>> result = example_6_8_psi.test_power_conjugate_to(example_6_8_phi)
 			>>> result is not None
 			True
 			>>> a, b, rho = result
 			>>> (example_6_8_psi ** a) * rho == rho * (example_6_8_phi ** b)
 			True
-			
-			>>> psi, phi = random_power_conjugate_pair()
-			>>> result = psi.test_power_conjugate_to(phi)
-			>>> result is not None
-			True
-			>>> a, b, rho = result
-			>>> (psi ** a) * rho == rho * (phi ** b)
-			True
 		"""
-		if not isinstance(other, InfiniteAut):
+		print(self.__class__.__name__, other.__class__.__name__)
+		try:
+			return next(self.find_power_conjugators(other))
+		except StopIteration:
+			print('No infinite conjugators')
 			return None
-		bounds = self.power_conjugacy_bounds(other)
-		soln_iterator = self._test_power_conjugate_upto(other, *bounds, inverses=True)
-		
-		if multiple_solns:
-			return soln_iterator
-		else:
-			try:
-				return next(soln_iterator)
-			except StopIteration:
-				return None
 	
 	def power_conjugacy_bounds(self, other):
 		"""Compute the bounds :math:`\hat a, \hat b`.
@@ -356,6 +348,7 @@ class InfiniteAut(Automorphism):
 			return 0, 0
 		s_bound = self.compute_bounds(s_parts, o_parts)
 		o_bound = self.compute_bounds(o_parts, s_parts)
+		print('Infinite bounds:', s_bound, o_bound)
 		return s_bound, o_bound
 	
 	def minimal_partition(self):
