@@ -123,6 +123,9 @@ class Automorphism(Homomorphism):
 			x1 a3 a3 a2
 			>>> print(arity_four.repeated_image('x1 a3 a3 a2', -4))
 			x1 a4 a4 a2
+		
+		.. todo::
+			This could be made more efficient for large *power*s by using knowledge of the component containing *key*.
 		"""
 		inverse = power < 0
 		if power == 0:
@@ -136,8 +139,21 @@ class Automorphism(Homomorphism):
 		return image
 	
 	#Group operations
-	def __pow__(self):
-		...
+	def __pow__(self, power):
+		if not isinstance(power, int):
+			raise TypeError("Power must be an integer (instead of {}).".format(power))
+		
+		if power == 0:
+			return Automorphism.identity(self.signature)
+		
+		domain = copy(self.domain)
+		range = Generators(self.signature)
+		for word in domain:
+			range.append(self.repeated_image(word, power))
+		
+		if power < 0:
+			domain, range = range, domain
+		return Automorphism(domain, range)
 	
 	def __invert__(self):
 		"""We overload python's unary negation operator ``~`` as shorthand for inversion. (In Python, ``~`` is normally used for bitwise negation.) We can also call a method explicitily: ``phi.inverse()`` is exactly the same as ``~phi``.

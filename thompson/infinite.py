@@ -322,6 +322,15 @@ class InfiniteAut(Automorphism):
 			True
 			>>> a, b, rho = result
 			>>> (example_6_8_psi ** a) * rho == rho * (example_6_8_phi ** b)
+			True
+			
+			>>> psi, phi = random_power_conjugate_pair()
+			>>> result = psi.test_power_conjugate_to(phi)
+			>>> result is not None
+			True
+			>>> a, b, rho = result
+			>>> (psi ** a) * rho == rho * (phi ** b)
+			True
 		"""
 		if not isinstance(other, InfiniteAut):
 			return None

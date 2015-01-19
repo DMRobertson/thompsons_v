@@ -151,6 +151,8 @@ class PeriodicAut(Automorphism):
 	
 	def test_power_conjugate_to(self, other, multiple_solns=False):
 		"""Tests two periodic factors to see if they are power conjugate. If *multiple_solns* is true, yields minimal soln (a, b, rho). Otherwise yields a single soln if it exists; otherwise None."""
+		#This is almost exactly the same code as InfiniteAut.test_power_conjugate_to(). Maybe this should be one method on Automorphism
+		
 		if not isinstance(other, PeriodicAut):
 			return None
 		if self.is_identity() or other.is_identity():
