@@ -7,6 +7,8 @@ from thompson import *
 from thompson.examples import *
 from thompson.word import format as fmt
 
+"""Uses the `dot` program from the graphviz set of tools to render automorphisms. The `dot` program must be accessible from a folder on the PATH."""
+
 def format(word):
 	return fmt(word).replace(' ', '_')
 
@@ -37,6 +39,6 @@ def render_basis(aut, name):
 	os.system("dot -T png -o {}.png {}.dot".format(name, name))
 
 if __name__ == '__main__':
-	render_basis(Automorphism.from_file('QNB_size_206.aut'), 'QNB_size_206')
-	render_basis(Automorphism.from_file('QNB_size_344.aut'), 'QNB_size_344')
+	render_basis(periodic_QNB_206, 'periodic_QNB_206')
+	render_basis(periodic_QNB_344, 'periodic_QNB_344')
 	render_basis(cyclic_order_six, 'cyclic_order_six')

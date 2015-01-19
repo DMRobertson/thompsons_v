@@ -519,6 +519,11 @@ class Automorphism(Homomorphism):
 		else:
 			return None
 	
+	def dump_QNB(self):
+		for gen in self.quasinormal_basis:
+			ctype, _, _ = self.orbit_type(gen, self.quasinormal_basis)
+			print(gen, ctype)
+	
 	#Orbit sharing test
 	def share_orbit(self, u, v):
 		r"""Determines if :math:`u` and :math:`v` are in the same orbit of the current automorphism :math:`\psi`. Specifically, does there exist an integer :math:`m` such that :math:`u\psi^m = v`?
@@ -756,7 +761,6 @@ class Automorphism(Homomorphism):
 				rho = spow.test_conjugate_to(opow)
 				if rho is not None:
 					yield a, b, rho
-	
-	
+
 def type_b_triple(power, head, tail):
 	return dict(start_tail = tuple(), power=power, end_tail=tail, target=head)

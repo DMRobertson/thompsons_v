@@ -1,7 +1,7 @@
 from test import setup_script
 setup_script(__file__)
 
-"""A place to write rough and ready debug scripts."""
+"""A place to play around with the package."""
 
 from thompson import *
 from thompson.examples import debug_charactersistics_phi as phi

@@ -241,12 +241,6 @@ class MixedAut(Automorphism):
 		
 		return size_check
 	
-	def dump_QNB(self):
-		basis = self.quasinormal_basis
-		for gen in basis:
-			ctype, _, _ = self.orbit_type(gen, basis)
-			print(gen, ctype)
-	
 	#Power conjugacy
 	def test_power_conjugate_to(self, other):
 		r"""Determines if some power of the current automorphism :math:`\psi` is conjugate to some power of the *other* automorphism :math:`\phi`.

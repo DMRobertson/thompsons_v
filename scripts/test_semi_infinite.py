@@ -8,6 +8,8 @@ from pprint import pprint
 
 from random import randint
 
+"""I can't quite remember what this script was doing. I think it was looking for QNBs which contained words in a semi-infinite orbit which did **NOT** have a characteristic."""
+
 i = 0
 while True:
 	i += 1
@@ -15,7 +17,7 @@ while True:
 		print(i)
 	num_expansions = randint(1, 20)
 	signature = Signature(2,1)
-	psi = random_automorphism(num_expansions, signature)
+	psi = random_automorphism(signature, num_expansions)
 	basis = psi.quasinormal_basis
 	for gen in basis:
 		type, _, _ = psi.orbit_type(gen, basis)

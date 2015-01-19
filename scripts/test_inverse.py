@@ -10,7 +10,7 @@ while True:
 	i += 1
 	if i % 100 == 0:
 		print(i)
-	phi, _= random_conjugate_pair()
+	phi = random_automorphism()
 	e = ~phi * phi
 	f = phi * ~phi
 	if not (e == f and e.is_identity()):
