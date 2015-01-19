@@ -330,7 +330,6 @@ class InfiniteAut(Automorphism):
 			>>> (example_6_8_psi ** a) * rho == rho * (example_6_8_phi ** b)
 			True
 		"""
-		print(self.__class__.__name__, other.__class__.__name__)
 		try:
 			return next(self.find_power_conjugators(other))
 		except StopIteration:
