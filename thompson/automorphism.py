@@ -746,6 +746,7 @@ class Automorphism(Homomorphism):
 		if sbound > obound:
 			self, other = other, self
 			sbound, obound = obound, sbound
+			print('swapping')
 			swapped = True
 		else:
 			swapped = False
@@ -760,6 +761,7 @@ class Automorphism(Homomorphism):
 		
 		for b, opow in powers_of(other, obound, inverses):
 			for a, spow in s_powers.items():
+				print('trying', a if not swapped else b, b if not swapped else a)
 				rho = spow.test_conjugate_to(opow)
 				if rho is not None:
 					yield (a, b, rho) if not swapped else (b, a, ~rho)

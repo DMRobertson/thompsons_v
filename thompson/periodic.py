@@ -159,7 +159,6 @@ class PeriodicAut(Automorphism):
 		yield from self._test_power_conjugate_upto(other, *bounds, inverses=False)
 	
 	def test_power_conjugate_to(self, other):
-		print(self.__class__.__name__, other.__class__.__name__)
 		try:
 			return next(self.find_power_conjugators(other))
 		except StopIteration:

@@ -121,6 +121,10 @@ def random_power():
 def random_power_conjugate_pair(signature, num_expansions):
 	psi = random_automorphism(signature, num_expansions)
 	rho = random_automorphism(signature)
-	phi = ~rho * (psi ** random_power()) * rho
-	phi **= random_power()
+	a = random_power()
+	b = random_power()
+	orig_phi = ~rho * (psi ** a) * rho
+	phi **= b
+	assert (psi ** a) * rho == rho * (phi ** -b)
+	print('Shh, it\'s a secret:', a, -b)
 	return psi, phi

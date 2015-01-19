@@ -27,6 +27,7 @@ while True:
 	
 	psi, phi = None, None
 	try:
+		print('Generating a pair')
 		psi, phi = random_power_conjugate_pair()
 		result = psi.test_power_conjugate_to(phi)
 		assert result is not None
