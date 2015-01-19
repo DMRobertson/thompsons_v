@@ -25,7 +25,7 @@ while True:
 	
 	try:
 		psi, phi = random_conjugate_pair()
-		assert psi.characteristics() == phi.characteristics()
+		assert psi.characteristics == phi.characteristics
 	except BaseException as e:
 		with open('results.txt', 'wt', encoding='utf-8') as f:
 			dump_to_file(psi, 'psi', f)

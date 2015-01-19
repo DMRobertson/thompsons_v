@@ -9,6 +9,7 @@ num_examples = 10**4
 repeats = 10
 
 
+#TODO. This is broken since I made the QNB automatically computed in __init__.
 if __name__ == '__main__':
 	runtime = timeit.timeit(
 		'''random_automorphism().quasinormal_basis''',

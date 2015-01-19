@@ -13,7 +13,7 @@ aut = Automorphism.from_file(filename + '.aut')
 profile = 'cProfile'
 
 print(aut)
-
+#TODO. This is broken since I made the QNB automatically computed in __init__.
 if profile == 'cProfile':
 	import cProfile
 	print('profiling with cProfile')
