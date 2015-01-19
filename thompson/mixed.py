@@ -248,26 +248,43 @@ class MixedAut(Automorphism):
 		:returns: if it exists, a triple :math:`(a, b, \rho)` such that :math:`\rho^{-1}\psi^a\rho = \phi^b`. If no such triple exists, returns ``None``.
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
 		
+			>>> psi, phi = random_power_conjugate_pair()
+			>>> result = psi.test_power_conjugate_to(phi)
+			>>> result is not None
+			True
+			>>> a, b, rho = result
+			>>> (psi ** a) * rho == rho * (phi ** b)
+			True
+		
 		.. seealso:: This is an implementation of Algorithm 6.12 in the paper. It depends on Algorithms 5.6 (the :meth:`conjugacy test <test_conjugate_to>`) and 6.10 (the :meth:`infinite power conjugate test <thompson.factors.InfiniteAut.find_power_conjugators>.`)
 		"""
+		print(self.__class__.__name__, other.__class__.__name__)
 		#0. Check that both automorphisms belong to the same G_{n,r}.
 		if self.signature != other.signature:
+			print('signature mismatch')
 			raise ValueError('MixedAut\'s signatures {} and {} do not match.'.format(
 			  self.signature, other.signature))
 		
 		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
 		sizes_okay = self._check_parition_sizes(other)
 		if not sizes_okay:
+			print('sizes not okay')
 			return None
 		
+		s_p, s_i = self.free_factors()
+		o_p, o_i = other.free_factors()
+		
 		#2. Periodic minimal solns.
-		periodic_conjugators = list(s_p.test_power_conjugate_to(o_p, multiple_solns=True))
+		periodic_conjugators = list(s_p.find_power_conjugators(o_p))
+		print(len(periodic_conjugators), 'periodic_conjugators')
 		if len(periodic_conjugators) == 0:
 			return None
 		
 		#3. Infinite minimal solns.
-		infinite_conjugators = list(s_i.test_power_conjugate_to(s_i, multiple_solns=True))
+		infinite_conjugators = list(s_i.find_power_conjugators(s_i))
+		print(len(infinite_conjugators), 'infinite_conjugators')
 		if len(infinite_conjugators) == 0:
+			print('no infinite_conjugators')
 			return None
 		
 		#5. Try to recombine.
@@ -280,4 +297,5 @@ class MixedAut(Automorphism):
 					return alpha*soln, beta*soln, rho
 		
 		#6. If we've got this far, we're out of luck.
+		print('Tried all combinations')
 		return None

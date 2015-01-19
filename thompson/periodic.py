@@ -149,29 +149,28 @@ class PeriodicAut(Automorphism):
 		rho.add_relabellers(self.domain_relabeller, other.range_relabeller)
 		return rho
 	
-	def test_power_conjugate_to(self, other, multiple_solns=False):
-		"""Tests two periodic factors to see if they are power conjugate. If *multiple_solns* is true, yields minimal soln (a, b, rho). Otherwise yields a single soln if it exists; otherwise None."""
+	def find_power_conjugators(self, other):
+		"""Tests two periodic factors to see if they are power conjugate. Yields minimal soln (a, b, rho)."""
 		#This is almost exactly the same code as InfiniteAut.test_power_conjugate_to(). Maybe this should be one method on Automorphism
 		
-		if not isinstance(other, PeriodicAut):
-			return None
-		if self.is_identity() or other.is_identity():
-			return None
+		if not isinstance(other, PeriodicAut) or self.is_identity() or other.is_identity():
+			raise StopIteration
 		bounds = self.power_conjugacy_bounds(other)
-		soln_iterator = self._test_power_conjugate_upto(other, *bounds, inverses=False)
-		
-		if multiple_solns:
-			return soln_iterator
-		else:
-			try:
-				return next(soln_iterator)
-			except StopIteration:
-				return None
+		yield from self._test_power_conjugate_upto(other, *bounds, inverses=False)
+	
+	def test_power_conjugate_to(self, other):
+		print(self.__class__.__name__, other.__class__.__name__)
+		try:
+			return next(self.find_power_conjugators(other))
+		except StopIteration:
+			print('no periodic conjugators')
+			return None
 	
 	def power_conjugacy_bounds(self, other):
 		"""We simply try all powers of both automorphisms. There are only finitely many, because everything is periodic.
 		
 		.. seealso:: Section 6.1."""
+		print('Periodic bounds:', self.order, other.order)
 		return self.order, other.order
 
 def expand_orbits(deque, num_expansions):

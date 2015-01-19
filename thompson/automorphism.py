@@ -145,6 +145,10 @@ class Automorphism(Homomorphism):
 		
 		if power == 0:
 			return Automorphism.identity(self.signature)
+		if power == 1:
+			return self
+		if power == -1:
+			return ~self
 		
 		domain = copy(self.domain)
 		range = Generators(self.signature)
@@ -164,11 +168,14 @@ class Automorphism(Homomorphism):
 			>>> (phi * ~phi).is_identity()
 			True
 		"""
-		inv = copy(self)
-		inv.domain, inv.range = Generators.sort_mapping_pair(self.range, self.domain)
-		inv._map, inv._inv = self._inv, self._map
-		inv._qnf_basis = None
-		return inv
+		#TODO. This tricked worked when QNBs were computed when needed.
+		#This does not work anymore since QNBs are computed automatically.
+		# inv = copy(self)
+		# inv.domain, inv.range = Generators.sort_mapping_pair(self.range, self.domain)
+		# inv._map, inv._inv = self._inv, self._map
+		# inv._qnf_basis = None
+		return Automorphism(self.range, self.domain)
+		#TODO invert the relabellers if present
 		
 	inverse = __invert__
 	
@@ -731,36 +738,47 @@ class Automorphism(Homomorphism):
 			raise ValueError('sbound parameter should be at least 0 (received {}).'.format(sbound))
 		if obound < 0:
 			raise ValueError('obound parameter should be at least 0 (received {}).'.format(obound))
-		
+		print(self.__class__.__name__, other.__class__.__name__, sbound, obound)
 		if sbound == 0 or obound == 0:
-			return
+			raise StopIteration
 		
-		#Assuming that computation is more expensive than storage space.
-		s_powers = dict()
-		s_powers[1] = self
+		#WLOG let sbound <= obound
+		if sbound > obound:
+			self, other = other, self
+			sbound, obound = obound, sbound
+			swapped = True
+		else:
+			swapped = False
+		
+		s_powers = {1: self}
 		if inverses:
 			s_powers[-1] = ~self
-		
-		o_powers = dict()
-		o_powers[1] = other
-		if inverses:
-			o_powers[-1] = ~other
-		
-		for i in range(2, sbound + 1):
-			s_powers[i] = s_powers[i-1] * self
+		for a in range(2, sbound + 1):
+			s_powers[a] = s_powers[a-1] * self
 			if inverses:
-				s_powers[-i] = s_powers[1-i] * s_powers[-1]
+				s_powers[-a] = s_powers[1-a] * s_powers[-1]
 		
-		for i in range(2, obound + 1):
-			o_powers[i] = o_powers[i-1] * other
-			if inverses:
-				o_powers[-i] = o_powers[1-i] * o_powers[-1]
-		
-		for a, spow in s_powers.items():
-			for b, opow in o_powers.items():
+		for b, opow in powers_of(other, obound, inverses):
+			for a, spow in s_powers.items():
 				rho = spow.test_conjugate_to(opow)
 				if rho is not None:
-					yield a, b, rho
+					yield (a, b, rho) if not swapped else (b, a, ~rho)
 
 def type_b_triple(power, head, tail):
 	return dict(start_tail = tuple(), power=power, end_tail=tail, target=head)
+
+def powers_of(aut, max, inverses=False):
+	assert max >= 1
+	yield 1, aut
+	power = aut
+	for i in range(2, max + 1):
+		power *= aut
+		yield i, power
+	if not inverses:
+		return
+	inv = ~aut
+	yield -1, inv
+	power = inv
+	for i in range(2, max + 1):
+		power *= inv
+		yield -1, power
