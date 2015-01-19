@@ -753,7 +753,6 @@ def root(sequence):
 	
 	:returns: the pair :math:`(\sqrt\Gamma, r)`
 	
-	
 	.. doctest::
 		
 		>>> root('abababab')
