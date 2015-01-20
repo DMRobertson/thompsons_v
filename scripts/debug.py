@@ -3,13 +3,9 @@ setup_script(__file__)
 
 """A place to write rough and ready debug scripts."""
 
-from thompson.examples import *
+from thompson.automorphism import Automorphism
 
-random_conjugate_infinite_pair()
-
-# example_6_8_psi
-# example_6_8_phi
-# result = example_6_8_psi.test_power_conjugate_to(example_6_8_phi)
-# result is not None
-# a, b, rho = result
-# (example_6_8_psi ** a) * rho == rho * (example_6_8_phi ** b)
+psi = Automorphism.from_file('psi.aut')
+phi = Automorphism.from_file('phi.aut')
+print((psi**2).test_conjugate_to(phi) is not None)
+psi.test_power_conjugate_to(phi)

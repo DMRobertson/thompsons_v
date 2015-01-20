@@ -17,7 +17,8 @@ def needs_defaults(undec):
 		if signature is None:
 			signature = random_signature()
 		if num_expansions is None:
-			num_expansions = randint(1, 5)
+			num_expansions = randint(1, 3)
+			# num_expansions = randint(1, 5)
 		return undec(signature, num_expansions)
 	decd.__doc__ = undec.__doc__
 	return decd
@@ -27,7 +28,8 @@ def random_signature():
 	
 	.. note:: This function is used to select a random signature when no *signature* argument is provided to the following random functions.
 	"""
-	return Signature(randint(2, 4), randint(1, 5))
+	return Signature(2, 1)
+	# return Signature(randint(2, 4), randint(1, 5))
 
 def random_simple_word(signature=None):
 	r"""Randomly generates a :meth:`simple <thompson.word.Word.is_simple>` :class:`~thompson.word.Word` belonging to the algebra with the given *signature*. The word consists of an :math:`x_i` followed by 0--15 descendant operators :math:`\alpha_j`. The length and the index of each :math:`\alpha_j` is chosen (uniformly) at random.
@@ -111,20 +113,24 @@ def random_conjugate_infinite_pair(signature, num_expansions):
 	phi = ~rho * psi * rho
 	return psi, phi
 
-def random_power():
-	a = randint(1, 8)
+def random_powers():
+	a = randint(1, 3)
 	if randint(0, 1):
 		a *= -1
-	return a
+	b = randint(1, 3)
+	return a, b
 
 @needs_defaults
 def random_power_conjugate_pair(signature, num_expansions):
-	psi = random_automorphism(signature, num_expansions)
+	finished = False
+	while not finished:
+		psi = random_automorphism(signature, num_expansions)
+		a, b = random_powers()
+		psi_ab = psi ** (a * b)
+		finished = not psi_ab.is_identity()
+	print(a, b)
 	rho = random_automorphism(signature)
-	a = random_power()
-	b = random_power()
-	orig_phi = ~rho * (psi ** a) * rho
-	phi **= b
-	assert (psi ** a) * rho == rho * (phi ** -b)
-	print('Shh, it\'s a secret:', a, -b)
-	return psi, phi
+	phi = ~rho * (psi ** a) * rho
+	psi_b = psi **  b
+	assert psi_ab * rho == rho * (phi ** b)
+	return psi_b, phi

@@ -2,9 +2,22 @@
 PSI
 ====
 
-None
+InfiniteAut: V(2, 1) -> V(2, 1) specified by 5 generators (after expansion and reduction).
+x1 a1 a1       -> x1 a2 a2 a2 a1
+x1 a1 a2 a1    -> x1 a2 a2 a1   
+x1 a1 a2 a2 a1 -> x1 a2 a1      
+x1 a1 a2 a2 a2 -> x1 a1         
+x1 a2          -> x1 a2 a2 a2 a2
 
 PHI
 ====
 
-None
+InfiniteAut: V(2, 1) -> V(2, 1) specified by 8 generators (after expansion and reduction).
+x1 a1 a1             -> x1 a2 a2 a2 a2 a1 a1
+x1 a1 a2 a1          -> x1 a2 a2 a2 a1      
+x1 a1 a2 a2 a1       -> x1 a2 a2 a1         
+x1 a1 a2 a2 a2 a1 a1 -> x1 a1 a1            
+x1 a1 a2 a2 a2 a1 a2 -> x1 a2 a1            
+x1 a1 a2 a2 a2 a2    -> x1 a1 a2            
+x1 a2 a1             -> x1 a2 a2 a2 a2 a1 a2
+x1 a2 a2             -> x1 a2 a2 a2 a2 a2   
