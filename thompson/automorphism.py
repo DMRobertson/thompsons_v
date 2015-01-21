@@ -742,7 +742,7 @@ class Automorphism(Homomorphism):
 			raise ValueError('sbound parameter should be at least 0 (received {}).'.format(sbound))
 		if obound < 0:
 			raise ValueError('obound parameter should be at least 0 (received {}).'.format(obound))
-		print(self.__class__.__name__, other.__class__.__name__, sbound, obound)
+		# print(self.__class__.__name__, other.__class__.__name__, sbound, obound)
 		if sbound == 0 or obound == 0:
 			raise StopIteration
 		
@@ -750,7 +750,7 @@ class Automorphism(Homomorphism):
 		if sbound > obound:
 			self, other = other, self
 			sbound, obound = obound, sbound
-			print('swapping bounds to', sbound, obound)
+			# print('swapping bounds to', sbound, obound)
 			swapped = True
 		else:
 			swapped = False
@@ -768,8 +768,8 @@ class Automorphism(Homomorphism):
 		
 		for b, opow in powers_of(other, obound, inverses):
 			for a, spow in s_powers.items():
-				print('trying', a, b)
-				assert spow.domain_relabeller is not None and opow.domain_relabeller is not None
+				# print('trying', a, b)
+				# assert spow.domain_relabeller is not None and opow.domain_relabeller is not None
 				rho = spow.test_conjugate_to(opow)
 				if rho is not None:
 					yield (a, b, rho) if not swapped else (b, a, ~rho)
