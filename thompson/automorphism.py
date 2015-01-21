@@ -157,7 +157,10 @@ class Automorphism(Homomorphism):
 		
 		if power < 0:
 			domain, range = range, domain
-		return Automorphism(domain, range)
+		pow = Automorphism(domain, range)
+		pow.domain_relabeller = self.domain_relabeller
+		pow.range_relabeller = self.range_relabeller
+		return pow
 	
 	def __invert__(self):
 		"""We overload python's unary negation operator ``~`` as shorthand for inversion. (In Python, ``~`` is normally used for bitwise negation.) We can also call a method explicitily: ``phi.inverse()`` is exactly the same as ``~phi``.
@@ -174,9 +177,10 @@ class Automorphism(Homomorphism):
 		# inv.domain, inv.range = Generators.sort_mapping_pair(self.range, self.domain)
 		# inv._map, inv._inv = self._inv, self._map
 		# inv._qnf_basis = None
-		return Automorphism(self.range, self.domain)
-		#TODO invert the relabellers if present
-		
+		inv = Automorphism(self.range, self.domain)
+		inv.domain_relabeller = self.range_relabeller
+		inv.range_relabeller  = self.domain_relabeller
+		return inv
 	inverse = __invert__
 	
 	#Quasinormal basis
@@ -746,7 +750,7 @@ class Automorphism(Homomorphism):
 		if sbound > obound:
 			self, other = other, self
 			sbound, obound = obound, sbound
-			print('swapping')
+			print('swapping bounds to', sbound, obound)
 			swapped = True
 		else:
 			swapped = False
@@ -754,17 +758,25 @@ class Automorphism(Homomorphism):
 		s_powers = {1: self}
 		if inverses:
 			s_powers[-1] = ~self
+			inherit_relabellers(s_powers[-1], self)
 		for a in range(2, sbound + 1):
 			s_powers[a] = s_powers[a-1] * self
+			inherit_relabellers(s_powers[a], self)
 			if inverses:
 				s_powers[-a] = s_powers[1-a] * s_powers[-1]
+				inherit_relabellers(s_powers[-a], self)
 		
 		for b, opow in powers_of(other, obound, inverses):
 			for a, spow in s_powers.items():
 				print('trying', a if not swapped else b, b if not swapped else a)
+				assert spow.domain_relabeller is not None and opow.domain_relabeller is not None
 				rho = spow.test_conjugate_to(opow)
 				if rho is not None:
 					yield (a, b, rho) if not swapped else (b, a, ~rho)
+
+def inherit_relabellers(target, source):
+	target.domain_relabeller = source.domain_relabeller
+	target.range_relabeller = source.range_relabeller
 
 def type_b_triple(power, head, tail):
 	return dict(start_tail = tuple(), power=power, end_tail=tail, target=head)
@@ -775,12 +787,15 @@ def powers_of(aut, max, inverses=False):
 	power = aut
 	for i in range(2, max + 1):
 		power *= aut
+		inherit_relabellers(power, aut)
 		yield i, power
 	if not inverses:
 		return
 	inv = ~aut
+	inherit_relabellers(inv, aut)
 	yield -1, inv
 	power = inv
 	for i in range(2, max + 1):
 		power *= inv
+		inherit_relabellers(power, aut)
 		yield -1, power

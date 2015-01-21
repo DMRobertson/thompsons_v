@@ -287,7 +287,7 @@ class MixedAut(Automorphism):
 			return None
 		
 		#3. Infinite minimal solns.
-		infinite_conjugators = list(s_i.find_power_conjugators(s_i))
+		infinite_conjugators = list(s_i.find_power_conjugators(o_i))
 		print(len(infinite_conjugators), 'infinite_conjugators')
 		if len(infinite_conjugators) == 0:
 			return None
@@ -300,7 +300,7 @@ class MixedAut(Automorphism):
 					soln = solns.base
 					if soln == 0:
 						soln = solns.increment
-					print(alpha*soln, beta*soln)
+					print('it looks like we have a solution:', alpha*soln, beta*soln)
 					rho = self._combine_factors(rho_p, rho_i)
 					return alpha*soln, beta*soln, rho
 		
