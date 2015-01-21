@@ -141,9 +141,7 @@ class MixedAut(Automorphism):
 		return factor
 	
 	def _combine_factors(self, periodic, infinite):
-		#doctest and docstring
-		print(periodic)
-		print(infinite)
+		#TODO: doctest and docstring
 		if periodic is None:
 			p_domain = p_range = Generators(self.signature)
 		else:
@@ -260,35 +258,35 @@ class MixedAut(Automorphism):
 		
 		.. seealso:: This is an implementation of Algorithm 6.12 in the paper. It depends on Algorithms 5.6 (the :meth:`conjugacy test <test_conjugate_to>`) and 6.10 (the :meth:`infinite power conjugate test <thompson.factors.InfiniteAut.find_power_conjugators>.`)
 		"""
-		print(self.__class__.__name__, other.__class__.__name__)
+		# print(self.__class__.__name__, other.__class__.__name__)
 		#0. Check that both automorphisms belong to the same G_{n,r}.
 		if self.signature != other.signature:
-			print('signature mismatch')
+			# print('signature mismatch')
 			raise ValueError('MixedAut\'s signatures {} and {} do not match.'.format(
 			  self.signature, other.signature))
 		
 		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
 		sizes_okay = self._check_parition_sizes(other)
 		if not sizes_okay:
-			print('sizes not okay')
+			# print('sizes not okay')
 			return None
 		
 		s_p, s_i = self.free_factors()
 		o_p, o_i = other.free_factors()
-		print('Free factors')
-		print(s_p)
-		print(o_p)
-		print(s_i)
-		print(o_i)
+		# print('Free factors')
+		# print(s_p)
+		# print(o_p)
+		# print(s_i)
+		# print(o_i)
 		#2. Periodic minimal solns.
 		periodic_conjugators = list(s_p.find_power_conjugators(o_p, identity_permitted=True))
-		print(len(periodic_conjugators), 'periodic_conjugators')
+		# print(len(periodic_conjugators), 'periodic_conjugators')
 		if len(periodic_conjugators) == 0:
 			return None
 		
 		#3. Infinite minimal solns.
 		infinite_conjugators = list(s_i.find_power_conjugators(o_i))
-		print(len(infinite_conjugators), 'infinite_conjugators')
+		# print(len(infinite_conjugators), 'infinite_conjugators')
 		if len(infinite_conjugators) == 0:
 			return None
 		
@@ -300,10 +298,10 @@ class MixedAut(Automorphism):
 					soln = solns.base
 					if soln == 0:
 						soln = solns.increment
-					print('it looks like we have a solution:', alpha*soln, beta*soln)
+					# print('it looks like we have a solution:', alpha*soln, beta*soln)
 					rho = self._combine_factors(rho_p, rho_i)
 					return alpha*soln, beta*soln, rho
 		
 		#6. If we've got this far, we're out of luck.
-		print('Tried all combinations')
+		# print('Tried all combinations')
 		return None
