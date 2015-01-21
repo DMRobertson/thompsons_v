@@ -768,7 +768,7 @@ class Automorphism(Homomorphism):
 		
 		for b, opow in powers_of(other, obound, inverses):
 			for a, spow in s_powers.items():
-				print('trying', a if not swapped else b, b if not swapped else a)
+				print('trying', a, b)
 				assert spow.domain_relabeller is not None and opow.domain_relabeller is not None
 				rho = spow.test_conjugate_to(opow)
 				if rho is not None:
@@ -798,4 +798,4 @@ def powers_of(aut, max, inverses=False):
 	for i in range(2, max + 1):
 		power *= inv
 		inherit_relabellers(power, aut)
-		yield -1, power
+		yield -i, power
