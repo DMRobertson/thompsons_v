@@ -6,7 +6,6 @@ from pprint import pprint
 
 from thompson.examples import *
 
-
 """Runs the conjugacy test on randomly generated conjugate pairs to ensure that the conjugacy test isn't producing false negatives."""
 
 def dump_to_file(aut, name, log):
