@@ -149,13 +149,13 @@ class PeriodicAut(Automorphism):
 		rho.add_relabellers(self.domain_relabeller, other.range_relabeller)
 		return rho
 	
-	def find_power_conjugators(self, other):
+	def find_power_conjugators(self, other, identity_permitted=False):
 		"""Tests two periodic factors to see if they are power conjugate. Yields minimal soln (a, b, rho)."""
 		#This is almost exactly the same code as InfiniteAut.test_power_conjugate_to(). Maybe this should be one method on Automorphism
 		
 		if not isinstance(other, PeriodicAut):
 			raise StopIteration
-		if self.is_identity() or other.is_identity():
+		if not identity_permitted and (self.is_identity() or other.is_identity()):
 			print("One of the automorphisms is the identity")
 			raise StopIteration
 		bounds = self.power_conjugacy_bounds(other)
