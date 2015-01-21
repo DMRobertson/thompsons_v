@@ -14,11 +14,12 @@ __all__ = ["MixedAut"]
 from copy import copy
 from itertools import product, chain
 
-from .word import *
-from .generators import *
-from .homomorphism import Homomorphism
-from .automorphism import Automorphism
-from .orbits import *
+from .number_theory import solve_linear_congruence
+from .word          import *
+from .generators    import *
+from .homomorphism  import Homomorphism
+from .automorphism  import Automorphism
+from .orbits        import *
 
 def modulo_non_zero(x, n):
 	r"""Returns the unique integer :math:`s` such that :math:`1 \le s \le n` and :math:`s \equiv x \pmod{n}`.
@@ -141,6 +142,8 @@ class MixedAut(Automorphism):
 	
 	def _combine_factors(self, periodic, infinite):
 		#doctest and docstring
+		print(periodic)
+		print(infinite)
 		if periodic is None:
 			p_domain = p_range = Generators(self.signature)
 		else:
@@ -157,7 +160,6 @@ class MixedAut(Automorphism):
 		
 		domain = Generators(self.signature, domain)
 		range = Generators(self.signature, range)
-		
 		return MixedAut(domain, range)
 	
 	#Testing conjugacy
@@ -273,9 +275,13 @@ class MixedAut(Automorphism):
 		
 		s_p, s_i = self.free_factors()
 		o_p, o_i = other.free_factors()
-		
+		print('Free factors')
+		print(s_p)
+		print(o_p)
+		print(s_i)
+		print(o_i)
 		#2. Periodic minimal solns.
-		periodic_conjugators = list(s_p.find_power_conjugators(o_p))
+		periodic_conjugators = list(s_p.find_power_conjugators(o_p, identity_permitted=True))
 		print(len(periodic_conjugators), 'periodic_conjugators')
 		if len(periodic_conjugators) == 0:
 			return None
@@ -284,15 +290,17 @@ class MixedAut(Automorphism):
 		infinite_conjugators = list(s_i.find_power_conjugators(s_i))
 		print(len(infinite_conjugators), 'infinite_conjugators')
 		if len(infinite_conjugators) == 0:
-			print('no infinite_conjugators')
 			return None
 		
 		#5. Try to recombine.
 		for alpha, beta, rho_i in infinite_conjugators:
 			for c, d, rho_p in periodic_conjugators:
-				solns = solve_linear_congruence(a, c, s_p.order) & solve_linear_congruence(b, d, o_p.order)
+				solns = solve_linear_congruence(alpha, c, s_p.order) & solve_linear_congruence(beta, d, o_p.order)
 				if not solns.is_empty():
 					soln = solns.base
+					if soln == 0:
+						soln = solns.increment
+					print(alpha*soln, beta*soln)
 					rho = self._combine_factors(rho_p, rho_i)
 					return alpha*soln, beta*soln, rho
 		
