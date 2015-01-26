@@ -1,29 +1,40 @@
 """
 .. testsetup::
 	
-	from thompson.word         import from_string
-	from thompson.orbits       import print_component_types
-	from thompson.automorphism import *
-	from thompson.examples     import *
+	from thompson.number_theory import gcd
+	from thompson.word          import from_string
+	from thompson.orbits        import print_component_types
+	from thompson.automorphism  import *
+	from thompson.examples      import *
 """
 
 from copy      import copy
 from itertools import chain, product
 
-from .word         import Word, free_monoid_on_alphas
-from .generators   import Generators
-from .homomorphism import Homomorphism
-from .orbits       import ComponentType, SolutionSet
+from .number_theory import lcm
+from .word          import Word, free_monoid_on_alphas, format
+from .generators    import Generators
+from .homomorphism  import Homomorphism
+from .orbits        import ComponentType, SolutionSet
 
 ___all__ = ["Automorphism"]
 
 class Automorphism(Homomorphism):
 	r"""
+	Generic attributes:
 	:ivar signature: The :class:`~thompson.word.Signature` shared by the generating sets domain and range.
 	:ivar quasinormal_basis: See :meth:`compute_quasinormal_basis`.
 	:ivar pond_banks: A list of tuples :math:`(\ell, k, r)` such that :math:`(\ell, r)` are banks of a pond with :math:`\ell\phi^k = r`.
-	"""
 	
+	Periodic attributes:
+	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)` where :math:`\phi` is the current automorphism and :math:`X_\phi` is the :meth:`quasi-normal basis <thompson.mixed.MixedAut.quasinormal_basis>` for :math:`\phi`.
+	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`
+	:ivar order: the smallest positive number :math:`n` for which :math:`phi^n` is the identity. (This is the lcm of the cycle type.) If no such :math:`n` exists, the order is :math:`\infty`.
+	
+	Infinite attributes:
+	:ivar characteristics: the set of characteristics :math:`(m, \Gamma)` of this automorphism.
+	
+	"""
 	#Initialisation
 	def __init__(self, domain, range, reduce=True):
 		r"""Creates an automorphism mapping the given *domain* basis to the *range* basis in the given order.
@@ -45,20 +56,17 @@ class Automorphism(Homomorphism):
 		if not(i == j == -1):
 			raise ValueError("Range is not a free generating set. Check elements at indices {} and {}.".format(
 			  i, j))
-				
-		#Cache attributes
-		self._inv = {}
-		self.signature = domain.signature
-		self.quasinormal_basis = None
-		self.pond_banks = None
-		self.characteristics = None
 		
+		self._inv = {}
 		super().__init__(domain, range, reduce)
 		
 		missing = range.test_generates_algebra()
 		if len(missing) > 0:
 			raise ValueError("Range does not generate V_{}. Missing elements are {}.".format(
 			  range.signature, [format(x) for x in missing]))
+		
+		#Everthing seems to be okay here.
+		self.signature = domain.signature
 		
 		#Setup the inverse map
 		for root in Generators.standard_basis(domain.signature):
@@ -141,10 +149,6 @@ class Automorphism(Homomorphism):
 	#Group operations
 	def __pow__(self, power):
 		"""
-		>>> a, b = random_powers()
-		>>> phi = random_automorphism(); psi = random_automorphism()
-		>>> (psi ** b) ** a  ==  (psi ** a) ** b  ==  psi ** (a * b)  ==  psi ** (b * a)  ==  (psi ** b) ** a
-		True
 		>>> ~psi ** 2 == ~psi * ~psi == psi ** -2
 		True
 		"""
@@ -180,14 +184,16 @@ class Automorphism(Homomorphism):
 			True
 			>>> (phi * ~phi).is_identity()
 			True
+			>>> (~phi).quasinormal_basis == phi.quasinormal_basis
+			True
 		"""
-		#TODO. This tricked worked when QNBs were computed when needed.
-		#This does not work anymore since QNBs are computed automatically.
-		# inv = copy(self)
-		# inv.domain, inv.range = Generators.sort_mapping_pair(self.range, self.domain)
-		# inv._map, inv._inv = self._inv, self._map
-		# inv._qnf_basis = None
-		inv = Automorphism(self.range, self.domain)
+		inv = copy(self)
+		inv.domain, inv.range = Generators.sort_mapping_pair(self.range, self.domain)
+		inv._map, inv._inv = self._inv, self._map
+		
+		inv.pond_banks = {(r, -k, ell) for ell, k, r in self.pond_banks}
+		inv.characteristics = {(-m, Gamma) for m, Gamma in self.characteristics}
+		
 		inv.domain_relabeller = self.range_relabeller
 		inv.range_relabeller  = self.domain_relabeller
 		return inv
@@ -222,10 +228,14 @@ class Automorphism(Homomorphism):
 		
 		.. seealso:: Quasi-normal forms are introduced in section 4.2 of the paper. In particular, this method implements Lemma 4.24.1. Higman first described the idea of quasi-normal forms in section 9 of [Hig]_.
 		"""
+		self.quasinormal_basis = None
+		self.pond_banks = None
+		
+		self.multiplicity = {}
+		
 		#1. Expand the starting basis until each no element's belongs to a finite X-component.
 		basis = self._seminormal_form_start_point()
 		basis.cache = set(basis)
-		type_A_count = 0
 		confirmed = set()
 		i = 0
 		checks_needed = len(basis)
@@ -240,38 +250,53 @@ class Automorphism(Homomorphism):
 			if ctype.is_incomplete():
 				basis._expand_with_cache(i)
 				checks_needed = len(basis)
-			else:
-				if ctype.is_type_A():
-					type_A_count += len(images)
-					confirmed.update(images.values())
-					#expand basis until each of the images is below basis
-					for img in images.values():
-						#TODO. I think this operation takes O(len(basis)).
-						index, tail = basis.test_above(img, return_index=True)
-						for j in range(len(tail)):
-							basis._expand_with_cache(index)
-							index += -tail[j] - 1
-							checks_needed += self.signature.arity - 1
-						assert img in basis
+				continue
+			
+			elif ctype.is_type_A():
+				confirmed.update(images.values())
+				#expand basis until each of the images is below basis
+				for img in images.values():
+					#TODO. I think this operation takes O(len(basis)).
+					index, tail = basis.test_above(img, return_index=True)
+					for j in range(len(tail)):
+						basis._expand_with_cache(index)
+						index += -tail[j] - 1
+						checks_needed += self.signature.arity - 1
+					assert img in basis
 				
-				elif ctype.is_type_B():
-					confirmed.add(basis[i])
-				i = (i + 1) % len(basis)
+				#record this new periodic orbit
+				period = ctype.characteristic[0]
+				try:
+					self.multiplicity[period] += 1
+				except KeyError:
+					self.multiplicity[period] = 1
+			
+			elif ctype.is_type_B():
+				confirmed.add(basis[i])
+			i = (i + 1) % len(basis)
+			checks_needed -= 1
 		
+		#Tidy up data
 		self.quasinormal_basis = basis
+		self.cycle_type = self.multiplicity.keys()
+		self.order = float('inf') if len(self.cycle_type) == 0 else lcm(self.cycle_type)
 		
-		#2. Look for and remember the details of any pond orbits.
+		self.characteristics = set()
+		for endpt in chain(*self.semi_infinite_end_points()):
+			ctype, _, _ = self.orbit_type(endpt, basis)
+			if ctype.is_type_B():
+				self.characteristics.add(ctype.characteristic)
+		
+		#2. Look for ponds.
 		self.pond_banks = self._find_ponds()
 		
-		#3. This is a bit naughty. Cast this class as a pure/mixed/infinite aut as appropriate.
-		if type_A_count == 0:
+		#3. This is naughty. Cast this class as a pure/mixed/infinite aut as appropriate.
+		if len(self.multiplicity) == 0:
 			from .infinite import InfiniteAut
 			self.__class__ = InfiniteAut
-			self.setup()
-		elif type_A_count == len(basis):
+		elif len(self.characteristics) == 0:
 			from .periodic import PeriodicAut
 			self.__class__ = PeriodicAut
-			self.setup()
 		else:
 			from .mixed import MixedAut
 			self.__class__ = MixedAut
@@ -544,6 +569,53 @@ class Automorphism(Homomorphism):
 		for gen in self.quasinormal_basis:
 			ctype, _, _ = self.orbit_type(gen, self.quasinormal_basis)
 			print(gen, ctype)
+	
+	def print_characteristics(self):
+		""".. doctest::
+			
+			>>> example_4_1.print_characteristics()
+			(-1, a1)
+			(1, a2)
+			>>> example_4_25.print_characteristics()
+			(-1, a1 a1)
+			(1, a1 a1)
+			>>> example_6_2.print_characteristics()
+			(-2, a1)
+			(1, a2)
+			>>> (example_6_2 * example_6_2).print_characteristics()
+			(-1, a1)
+			(1, a2 a2)
+			>>> example_6_8_phi.print_characteristics()
+			(-1, a1 a1 a1)
+			(1, a2 a2 a2)
+			>>> #Lemma 5.16
+			>>> psi, phi = random_conjugate_pair()
+			>>> psi.characteristics == phi.characteristics
+			True
+		
+		.. doctest::
+			:hide:
+			
+			>>> #Lemma 6.1
+			>>> from random import randint
+			>>> psi = random_infinite_automorphism()
+			>>> original_chars = psi.characteristics
+			>>> power = psi
+			>>> a = randint(2, 6)
+			>>> for _ in range(a - 1): 
+			... 	power *= psi
+			>>> chars = set()
+			>>> for mult, char in original_chars:
+			... 	d = gcd(mult, a)
+			... 	q = abs(a // d)
+			... 	chars.add((mult//d, char*q))
+			>>> chars == power.characteristics
+			True
+		
+		.. seealso:: Defintion 5.14.
+		"""
+		for power, mult in sorted(self.characteristics):
+			print('({}, {})'.format(power, format(mult)))
 	
 	#Orbit sharing test
 	def share_orbit(self, u, v):
