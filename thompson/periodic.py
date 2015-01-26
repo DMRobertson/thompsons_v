@@ -156,7 +156,7 @@ class PeriodicAut(Automorphism):
 		if not isinstance(other, PeriodicAut):
 			raise StopIteration
 		if not identity_permitted and (self.is_identity() or other.is_identity()):
-			print("One of the automorphisms is the identity")
+			# print("One of the automorphisms is the identity")
 			raise StopIteration
 		bounds = self.power_conjugacy_bounds(other)
 		yield from self._test_power_conjugate_upto(other, *bounds, inverses=False)
@@ -165,14 +165,14 @@ class PeriodicAut(Automorphism):
 		try:
 			return next(self.find_power_conjugators(other))
 		except StopIteration:
-			print('no periodic conjugators')
+			# print('no periodic conjugators')
 			return None
 	
 	def power_conjugacy_bounds(self, other):
 		"""We simply try all powers of both automorphisms. There are only finitely many, because everything is periodic.
 		
 		.. seealso:: Section 6.1."""
-		print('Periodic bounds:', self.order, other.order)
+		# print('Periodic bounds:', self.order, other.order)
 		return self.order, other.order
 
 def expand_orbits(deque, num_expansions):

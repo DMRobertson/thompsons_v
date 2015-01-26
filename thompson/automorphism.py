@@ -18,7 +18,7 @@ from .orbits       import ComponentType, SolutionSet
 ___all__ = ["Automorphism"]
 
 class Automorphism(Homomorphism):
-	"""
+	r"""
 	:ivar signature: The :class:`~thompson.word.Signature` shared by the generating sets domain and range.
 	:ivar quasinormal_basis: See :meth:`compute_quasinormal_basis`.
 	:ivar pond_banks: A list of tuples :math:`(\ell, k, r)` such that :math:`(\ell, r)` are banks of a pond with :math:`\ell\phi^k = r`.
@@ -140,6 +140,14 @@ class Automorphism(Homomorphism):
 	
 	#Group operations
 	def __pow__(self, power):
+		"""
+		>>> a, b = random_powers()
+		>>> phi = random_automorphism(); psi = random_automorphism()
+		>>> (psi ** b) ** a  ==  (psi ** a) ** b  ==  psi ** (a * b)  ==  psi ** (b * a)  ==  (psi ** b) ** a
+		True
+		>>> ~psi ** 2 == ~psi * ~psi == psi ** -2
+		True
+		"""
 		if not isinstance(power, int):
 			raise TypeError("Power must be an integer (instead of {}).".format(power))
 		
@@ -153,13 +161,15 @@ class Automorphism(Homomorphism):
 		domain = copy(self.domain)
 		range = Generators(self.signature)
 		for word in domain:
-			range.append(self.repeated_image(word, power))
-		
-		if power < 0:
-			domain, range = range, domain
-		pow = Automorphism(domain, range)
-		pow.domain_relabeller = self.domain_relabeller
-		pow.range_relabeller = self.range_relabeller
+			range.append(self.repeated_image(word, abs(power)))
+		if power > 0:
+			pow = Automorphism(domain, range)
+			pow.domain_relabeller = self.domain_relabeller
+			pow.range_relabeller = self.range_relabeller
+		else:
+			pow = Automorphism(range, domain)
+			pow.domain_relabeller = self.range_relabeller
+			pow.range_relabeller  = self.domain_relabeller
 		return pow
 	
 	def __invert__(self):

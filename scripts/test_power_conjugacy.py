@@ -35,6 +35,7 @@ while True:
 		assert (psi ** a) * rho == rho * (phi ** b)
 	except BaseException as e:
 		with open('results.txt', 'wt', encoding='utf-8') as f:
+			f.write('Attempt number {}\n'.format(i))
 			dump_to_file(psi, 'psi', f)
 			dump_to_file(phi, 'phi', f)
 		raise e
