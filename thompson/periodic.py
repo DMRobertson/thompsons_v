@@ -8,7 +8,6 @@
 
 from collections import defaultdict, deque
 
-from .number_theory import lcm
 from .generators    import Generators
 from .automorphism  import Automorphism
 
@@ -33,31 +32,7 @@ class PeriodicAut(Automorphism):
 		>>> pprint(example_5_9.multiplicity)
 		{2: 2, 3: 1}
 		
-	
-	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)` where :math:`\phi` is the current automorphism and :math:`X_\phi` is the :meth:`quasi-normal basis <thompson.mixed.MixedAut.quasinormal_basis>` for :math:`\phi`.
-	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`
-	:ivar order: the smallest positive number :math:`n` for which :math:`phi^n` is the identity. (This is the lcm of the cycle type.)
-	"""
-	def setup(self):
-		assert self.quasinormal_basis.minimal_expansion_for(self) == self.quasinormal_basis
-		#see definition 5.8
-		self.cycle_type = set()
-		counts = defaultdict(int)
-		basis = self.quasinormal_basis
-		
-		for gen in basis:
-			type, _, _ = self.orbit_type(gen, basis)
-			orbit_size = type.characteristic[0]
-			self.cycle_type.add(orbit_size)
-			counts[orbit_size] += 1
-		
-		self.order = lcm(self.cycle_type)
-		
-		for orbit_size, occurances in counts.items():
-			assert occurances % orbit_size == 0
-			counts[orbit_size] = occurances // orbit_size
-		self.multiplicity = dict(counts)
-	
+	"""	
 	def enumerate_orbits(self, basis):
 		r"""Enumerates the periodic orbits of the current automorphism's quasinormal_basis. Returns a dictionary *orbits_by_size*. Each value ``orbits_by_size[d]`` is a list of the orbits of size *d*. Orbits themselves are represented as lists of :class:`Words <thompson.word.Word>`.
 		
@@ -156,7 +131,7 @@ class PeriodicAut(Automorphism):
 		if not isinstance(other, PeriodicAut):
 			raise StopIteration
 		if not identity_permitted and (self.is_identity() or other.is_identity()):
-			# print("One of the automorphisms is the identity")
+			print("One of the automorphisms is the identity")
 			raise StopIteration
 		bounds = self.power_conjugacy_bounds(other)
 		yield from self._test_power_conjugate_upto(other, *bounds, inverses=False)
@@ -165,14 +140,12 @@ class PeriodicAut(Automorphism):
 		try:
 			return next(self.find_power_conjugators(other))
 		except StopIteration:
-			# print('no periodic conjugators')
 			return None
 	
 	def power_conjugacy_bounds(self, other):
 		"""We simply try all powers of both automorphisms. There are only finitely many, because everything is periodic.
 		
 		.. seealso:: Section 6.1."""
-		# print('Periodic bounds:', self.order, other.order)
 		return self.order, other.order
 
 def expand_orbits(deque, num_expansions):

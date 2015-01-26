@@ -1,0 +1,47 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper, heightrounded,
+	bindingoffset=6mm, left=10mm, right=40mm, marginparsep=5mm, marginparwidth=32.5mm,
+	headheight=15pt, top=25mm, bottom=20mm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{amsthm}
+\usepackage{xcolor}
+\usepackage{setspace}
+
+\usepackage{tikz}
+\newcommand{\contradiction}{\tikz[baseline, x=0.22em, y=0.22em, line width=0.032em]\draw (0,2.83)--(2.83,0) (0.71,3.54)--(3.54,0.71) (0,0.71)--(2.83,3.54) (0.71,0)--(3.54,2.83);}
+
+\let\phi\varphi
+\let\from\gets
+\def\ofA{\langle A \rangle}
+\renewcommand{\a}[1]{\alpha_#1}
+
+\newcommand\alert\textbf
+\newcommand\todo[1]{{\color{red}TODO: #1}}
+
+\usepackage{marginnote}
+\usepackage{ragged2e}
+\renewcommand*{\marginfont}{\normalfont\footnotesize}
+\renewcommand*{\raggedleftmarginnote}{\RaggedRight}
+\renewcommand*{\raggedrightmarginnote}{\RaggedRight}
+
+\begin{document}
+
+\paragraph{Claim} Let $\phi \in G_{n,r}$ be in seminormal form with respect to $X$. Then $\phi^{-1}$ is also in seminormal form with respect to $X$.
+\begin{proof}[Sketch proof]
+\begin{itemize}
+	\item The $X$-component of a word $w$ under $\phi$ is $$\mathrm{Comp}^X_\phi(w) = \{ w \phi^n \mid n \in \mathbb{Z} \} \cap X\ofA.$$
+	\item $\mathrm{Comp}^X_\phi(w) = \mathrm{Comp}^X_{\phi^{-1}}(w)$
+	\item $\mathrm{Comp}^X_\phi(w)$ is incomplete wrt $\phi$ iff it is incomplete wrt $\phi^{-1}$.
+\end{itemize}
+\end{proof}
+
+\paragraph{Claim} Let $\phi \in G_{n,r}$ be in \emph{quasi}normal form with respect to $X$. Then $\phi^{-1}$ is also in quasinormal form with respect to $X$.
+\begin{proof}
+\begin{itemize}
+	\item $\phi^{-1}$ is in seminormal form wrt $X$ by the above.
+	\item BWOC, if $\phi^{-1}$ is \emph{not} in quasinormal form wrt $X$, there is a contraction $Y$ of $X$ wrt which $\phi^{-1}$ \emph{is} in quasinormal form.
+	\item Then $\phi$ would be in semi-normal form wrt $Y$, by the above.
+	\item This contradicts the minimality of $X$. \contradiction
+\end{itemize}
+\end{proof}
+\end{document}

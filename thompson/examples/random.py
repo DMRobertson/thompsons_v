@@ -127,7 +127,8 @@ def random_power_conjugate_pair(signature, num_expansions):
 		psi = random_automorphism(signature, num_expansions)
 		a, b = random_powers()
 		psi_ab = psi ** (a * b)
-		unfinished = psi_ab.is_identity()
+		unfinished = psi.order < float('inf') and (a * b) % psi.order == 0
+	print(a, b)
 	rho = random_automorphism(signature)
 	phi = (~rho) * (psi ** a) * rho
 	psi_b = psi **  b
