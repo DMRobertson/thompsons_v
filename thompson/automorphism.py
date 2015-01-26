@@ -149,6 +149,7 @@ class Automorphism(Homomorphism):
 	#Group operations
 	def __pow__(self, power):
 		"""
+		>>> psi = random_automorphism()
 		>>> ~psi ** 2 == ~psi * ~psi == psi ** -2
 		True
 		"""
