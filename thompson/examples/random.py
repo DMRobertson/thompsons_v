@@ -10,7 +10,7 @@ from ..infinite     import InfiniteAut
 __all__ = ['random_signature', 'random_simple_word', 'random_basis',
 	'random_automorphism',   'random_periodic_automorphism', 'random_infinite_automorphism',
 	'random_conjugate_pair', 'random_conjugate_periodic_pair', 'random_conjugate_infinite_pair',
-	'random_power_conjugate_pair' ]
+	'random_powers', 'random_power_conjugate_pair' ]
 
 def needs_defaults(undec):
 	def decd(signature=None, num_expansions=None):
@@ -122,15 +122,13 @@ def random_powers():
 
 @needs_defaults
 def random_power_conjugate_pair(signature, num_expansions):
-	finished = False
-	while not finished:
+	unfinished = True
+	while unfinished:
 		psi = random_automorphism(signature, num_expansions)
 		a, b = random_powers()
 		psi_ab = psi ** (a * b)
-		finished = not psi_ab.is_identity()
-	print(a, b)
+		unfinished = psi_ab.is_identity()
 	rho = random_automorphism(signature)
-	phi = ~rho * (psi ** a) * rho
+	phi = (~rho) * (psi ** a) * rho
 	psi_b = psi **  b
-	assert psi_ab * rho == rho * (phi ** b)
 	return psi_b, phi

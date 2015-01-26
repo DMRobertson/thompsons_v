@@ -29,7 +29,7 @@ def get_factor_class(infinite):
 	return InfiniteAut if infinite else PeriodicAut
 
 class InfiniteAut(Automorphism):
-	"""A purely infinite free factor which has been extracted from another automorphism.
+	"""A purely infinite free automorphism which may have been extracted from a mixed automorphism.
 	
 		>>> print(example_5_3_i)
 		InfiniteAut: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
@@ -333,12 +333,16 @@ class InfiniteAut(Automorphism):
 		try:
 			return next(self.find_power_conjugators(other))
 		except StopIteration:
-			print('No infinite conjugators')
+			# print('No infinite conjugators')
 			return None
 	
 	def power_conjugacy_bounds(self, other):
 		"""Compute the bounds :math:`\hat a, \hat b`.
 		.. seealso Prop 6.6. and Cor 6.7
+		
+			>>> example_6_8_psi.power_conjugacy_bounds(example_6_8_phi)
+			(9, 1)
+		
 		"""
 		s_parts = self.minimal_partition()
 		o_parts = other.minimal_partition()
@@ -347,7 +351,7 @@ class InfiniteAut(Automorphism):
 			return 0, 0
 		s_bound = self.compute_bounds(s_parts, o_parts)
 		o_bound = self.compute_bounds(o_parts, s_parts)
-		print('Infinite bounds:', s_bound, o_bound)
+		# print('Infinite bounds:', s_bound, o_bound)
 		return s_bound, o_bound
 	
 	def minimal_partition(self):

@@ -4,20 +4,16 @@ setup_script(__file__)
 """A place to play around with the package."""
 
 from thompson import *
-from thompson.examples import debug_charactersistics_phi as phi
-from thompson.examples import debug_charactersistics_psi as psi
 
-assert phi.test_conjugate_to(psi) is not None
+psi = Automorphism.from_file('psi.aut')
+phi = Automorphism.from_file('phi.aut')
 
-print(phi)
-phi.dump_QNB()
-phi.characteristics(print=True)
-print(phi.semi_infinite_end_points())
-print()
+print('PSI:', psi)
+print('PSI to the -2:', psi ** -2)
+print('inv PSI squared:', (~psi) ** 2)
 
-print(psi)
-psi.dump_QNB()
-psi.characteristics(print=True)
-print(psi.semi_infinite_end_points())
+print('Correct answer:', ~psi * ~psi)
 
-assert phi.characteristics() == psi.characteristics()
+print(psi ** -2 == (~psi) ** 2)
+print(~psi * ~psi == (~psi) ** 2)
+print(~psi == psi ** -1)
