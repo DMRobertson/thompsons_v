@@ -41,8 +41,13 @@ class InfiniteAut(Automorphism):
 		x1 a2 a1       ~>    y1 a2 a1    => y1 a2 a1 a1    ~> x1 a2 a1 a1   
 		x1 a2 a2 a1    ~>    y1 a2 a2 a1 => y1 a2 a1 a2    ~> x1 a2 a1 a2   
 		x1 a2 a2 a2    ~>    y1 a2 a2 a2 => y1 a2 a2       ~> x1 a2 a2      
-		>>> random_infinite_automorphism.order
+		>>> phi = random_infinite_automorphism()
+		>>> phi.order
 		inf
+		>>> len(phi.cycle_type)
+		0
+		>>> len(phi.characteristics) != 0
+		True
 	"""
 	
 	def test_conjugate_to(self, other):

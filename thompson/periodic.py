@@ -32,7 +32,14 @@ class PeriodicAut(Automorphism):
 		>>> pprint(example_5_9.multiplicity)
 		{2: 2, 3: 1}
 		
-	"""	
+		>>> phi = random_periodic_automorphism()
+		>>> 1 <= phi.order < float('inf')
+		True
+		>>> len(phi.cycle_type) != 0
+		True
+		>>> len(phi.characteristics)
+		0
+	"""
 	def enumerate_orbits(self, basis):
 		r"""Enumerates the periodic orbits of the current automorphism's quasinormal_basis. Returns a dictionary *orbits_by_size*. Each value ``orbits_by_size[d]`` is a list of the orbits of size *d*. Orbits themselves are represented as lists of :class:`Words <thompson.word.Word>`.
 		
