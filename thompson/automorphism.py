@@ -827,11 +827,14 @@ class Automorphism(Homomorphism):
 					images[m - k - i] = img
 				return
 	
-	def _test_power_conjugate_upto(self, other, sbound, obound, inverses=False):
+	def _test_power_conjugate_upto(self, other, sbound, obound, inverses=False, cheat=False):
 		r"""In both the periodic and infinite cases, we establish bounds on the powers :math:`a, b` for conjugacy; the rest is brute force.  This method tests to see if :math:`\psi^a` is conjugate to :math:`\phi^b` within the supplied bounds. Should it find a conjugator :math:`\rho`, this method yields a triple :math:`(a, b, \rho)`.
 		
 		Let :math:`\hat a, \hat b` denote *sbound* and *obound* respectively. If *inverses* is False, then we search over the ranges :math:`1 \le a \le \hat a` and :math:`1 \le b \le \hat b`. If *inverses* is True, we search over the (four times larger) range `1 \le |a| \le \hat a` and :math:`1 \leq |b| \le \hat b`
 		"""
+		if cheat:
+			from thompson.examples.random import random_power_bounds
+			sbound, obound = random_power_bounds
 		if sbound < 0:
 			raise ValueError('sbound parameter should be at least 0 (received {}).'.format(sbound))
 		if obound < 0:
