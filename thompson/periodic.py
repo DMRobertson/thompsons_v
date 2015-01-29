@@ -131,7 +131,7 @@ class PeriodicAut(Automorphism):
 		rho.add_relabellers(self.domain_relabeller, other.range_relabeller)
 		return rho
 	
-	def find_power_conjugators(self, other, identity_permitted=False):
+	def find_power_conjugators(self, other, identity_permitted=False, cheat=False):
 		"""Tests two periodic factors to see if they are power conjugate. Yields minimal soln (a, b, rho)."""
 		#This is almost exactly the same code as InfiniteAut.test_power_conjugate_to(). Maybe this should be one method on Automorphism
 		
@@ -140,20 +140,27 @@ class PeriodicAut(Automorphism):
 		if not identity_permitted and (self.is_identity() or other.is_identity()):
 			print("One of the automorphisms is the identity")
 			raise StopIteration
-		bounds = self.power_conjugacy_bounds(other)
+		if cheat:
+			from .examples.random import random_power_bounds
+			bounds = random_power_bounds
+		else:
+			bounds = self.power_conjugacy_bounds(other, identity_permitted)
 		yield from self._test_power_conjugate_upto(other, *bounds, inverses=False)
 	
-	def test_power_conjugate_to(self, other):
+	def test_power_conjugate_to(self, other, cheat=False):
 		try:
-			return next(self.find_power_conjugators(other))
+			return next(self.find_power_conjugators(other, cheat=cheat))
 		except StopIteration:
 			return None
 	
-	def power_conjugacy_bounds(self, other):
+	def power_conjugacy_bounds(self, other, identity_permitted):
 		"""We simply try all powers of both automorphisms. There are only finitely many, because everything is periodic.
 		
 		.. seealso:: Section 6.1."""
-		return self.order, other.order
+		if identity_permitted:
+			return self.order, other.order
+		else:
+			return self.order - 1, other.order - 1
 
 def expand_orbits(deque, num_expansions):
 	r"""Takes a *deque* whose elements are a list of words. The following process is repeated *num_expansions* times.

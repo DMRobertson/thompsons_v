@@ -5,12 +5,13 @@ from ..word         import Signature, Word
 from ..generators   import Generators
 from ..automorphism import Automorphism
 from ..mixed        import MixedAut
+from ..periodic     import PeriodicAut
 from ..infinite     import InfiniteAut
 
 __all__ = ['random_signature', 'random_simple_word', 'random_basis',
-	'random_automorphism',   'random_periodic_automorphism', 'random_infinite_automorphism',
+	'random_automorphism',   'random_periodic_automorphism',   'random_infinite_automorphism',
 	'random_conjugate_pair', 'random_conjugate_periodic_pair', 'random_conjugate_infinite_pair',
-	'random_powers', 'random_power_conjugate_pair' ]
+	'random_powers', 'random_power_bounds', 'random_power_conjugate_pair' ]
 
 def needs_defaults(undec):
 	def decd(signature=None, num_expansions=None):
@@ -86,9 +87,14 @@ def random_periodic_automorphism(signature, num_expansions):
 
 @needs_defaults
 def random_infinite_automorphism(signature, num_expansions):
+	if num_expansions == 1:
+		#cannot generate an infinite aut with only one expansion
+		num_expansions = 2
 	phi = None
-	while not isinstance(phi, InfiniteAut):
+	while phi is None or isinstance(phi, PeriodicAut):
 		phi = random_automorphism(signature, num_expansions)
+	if isinstance(phi, MixedAut):
+		phi = phi.free_factors()[1]
 	return phi
 
 @needs_defaults
@@ -115,10 +121,13 @@ def random_conjugate_infinite_pair(signature, num_expansions):
 
 def random_powers():
 	a = randint(1, 3)
-	if randint(0, 1):
-		a *= -1
 	b = randint(1, 3)
+	if randint(0, 1): a *= -1
+	if randint(0, 1): b *= -1
 	return a, b
+
+#For cheating in doctests. The maximum moduli of a and b that can be produced by the method above
+random_power_bounds = (3, 3) 
 
 @needs_defaults
 def random_power_conjugate_pair(signature, num_expansions):
@@ -128,7 +137,7 @@ def random_power_conjugate_pair(signature, num_expansions):
 		a, b = random_powers()
 		psi_ab = psi ** (a * b)
 		unfinished = psi.order < float('inf') and (a * b) % psi.order == 0
-	print(a, b)
+	# print(a, b)
 	rho = random_automorphism(signature)
 	phi = (~rho) * (psi ** a) * rho
 	psi_b = psi **  b
