@@ -303,7 +303,7 @@ class Automorphism(Homomorphism):
 			self.__class__ = MixedAut
 	
 	def _find_ponds(self):
-		terminal, initial = self.semi_infinite_end_points()
+		terminal, initial = self.semi_infinite_end_points(exclude_characteristics=True)
 		terminal_data = set()
 		for term in terminal:
 			tail = self._descend_to_complete_infinite(term)
@@ -515,8 +515,10 @@ class Automorphism(Homomorphism):
 						return True, ell, m, images
 			images.append(image)
 	
-	def semi_infinite_end_points(self):
+	def semi_infinite_end_points(self, exclude_characteristics=False):
 		r"""Returns the list of terminal :class:`Words <thompson.word.Word>` in left semi-infinite components and the list of initial words in right semi-infinite components. This is all computed with respect the current automorphism's :meth:`quasinormal_basis`. These are the sets :math:`X\langle A\rangle \setminus Y\langle A\rangle` and :math:`X\langle A\rangle \setminus Z\langle A\rangle`.
+		
+		:param exclude_characteristics: if True, only the endpoints of non-characteristic semi-infinite orbits will be returned.
 		
 			>>> print(*example_4_5.semi_infinite_end_points())
 			[x1 a1 a1] [x1 a1 a2]
@@ -528,6 +530,10 @@ class Automorphism(Homomorphism):
 			[x1 a2 a2, x1 a2 a2 a1] [x1 a1, x1 a1 a1]
 			>>> print(*example_6_2.semi_infinite_end_points())
 			[x1 a1 a1] [x1 a2]
+			>>> print(*nathan_pond_example.semi_infinite_end_points())
+			[x1 a1 a1, x1 a1 a1 a1, x1 a1 a1 a2] [x1 a1 a2, x1 a1 a2 a1, x1 a1 a2 a2]
+			>>> print(*nathan_pond_example.semi_infinite_end_points(exclude_characteristics=True))
+			[x1 a1 a1 a2] [x1 a1 a2 a2]
 		
 		:rtype: A pair of :class:`Generators <thompson.generators.Generators>`.
 		
@@ -538,7 +544,12 @@ class Automorphism(Homomorphism):
 		img_expansion = self.image_of_set(min_expansion)  #Z
 		terminal = basis.descendants_above(min_expansion) #X<A> \ Y<A>
 		initial  = basis.descendants_above(img_expansion) #X<A> \ Z<A>
+		
+		if exclude_characteristics:
+			terminal = Generators(self.signature, (t for t in terminal if not self.orbit_type(t, basis)[0].is_type_B()))
+			initial =  Generators(self.signature, (i for i in initial  if not self.orbit_type(i, basis)[0].is_type_B()))
 		return terminal, initial
+	
 	
 	def _descend_to_complete_infinite(self, endpt):
 		"""A really crude use of the lemma described in AJD's email.
