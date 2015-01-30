@@ -1,12 +1,13 @@
-r"""Functions implementing various number-theoretic algorithms. These are used elsewhere in the packages.
+r"""At the bottom level of the package hierarchy are various helper functions which implement standard number-theoretic algorithms.
  
 .. testsetup::
 	
 	from thompson.number_theory import *
 """
 
+import fractions
+
 from collections import namedtuple
-from fractions   import gcd
 from functools   import reduce
 from operator    import mul
 from numbers     import Number
@@ -212,8 +213,21 @@ class SolutionSet(BaseSolutionSet):
 		values = (str(num) for num in values)
 		return "{{..., {0}, ...}}".format(", ".join(values))
 
+gcd = fractions.gcd
+gcd.__doc__ += """
+
+		>>> gcd(12, 8)
+		4
+		>>> gcd(0, 50)
+		50
+		>>> gcd(7, 101)
+		1
+"""
+
 def extended_gcd(a,b):
-	"""From `this exposition of the extended gcd algorithm <http://anh.cs.luc.edu/331/notes/xgcd.pdf>`_. Computes :math:`d = \gcd(a, b)` and returns a triple :math:`(d, x, y)` where :math:`d = ax + by`."""
+	"""From `this exposition of the extended gcd algorithm <http://anh.cs.luc.edu/331/notes/xgcd.pdf>`_. Computes :math:`d = \gcd(a, b)` and returns a triple :math:`(d, x, y)` where :math:`d = ax + by`.
+
+	"""
 	prevx, x = 1, 0; prevy, y = 0, 1
 	while b:
 		q = a//b
@@ -222,10 +236,33 @@ def extended_gcd(a,b):
 		a, b = b, a % b
 	return a, prevx, prevy
 
+#TODO I think we can use reduce() to make this tidier
+def lcm(a, b=None):
+	"""Computes the least common multiple of :math:`a` and :math:`b`. If a single iterable argument is provided, the least common multiple of its elements is computed.
+	
+		>>> lcm(2, 13)
+		26
+		>>> lcm(range(1, 10)) #1, 2, ..., 9
+		2520
+	"""
+	if b is None:
+		if len(a) == 0:
+			raise ValueError('If computing the LCM of an iterable, the iterable must be nonempty.')
+		out = 1
+		for number in a:
+			out = lcm(out, number)
+		return out
+	#otherwise
+	return a*b // gcd(a, b)
+
 def solve_linear_diophantine(a, b, c):
 	r"""Solves the equation :math:`ax + by = c` for integers :math:`x, y \in\mathbb{Z}`.
 	
-	:rtype: ``None`` if no solution exists; otherwise a triple (base, inc, lcm) of integers.
+	:rtype: ``None`` if no solution exists; otherwise a triple *(base, inc, lcm)* where
+		
+		- *base* is a single solution :math:`(x_0, y_0)`;
+		- *inc* is a pair :math:`(\delta x, \delta y)` such that if :math:`(x, y)` is a solution, so is :math:`(x, y) \pm (\delta x, \delta y)`; and
+		- *lcm* is the value of :math:`\operatorname{lcm}(a, b)`.
 	"""
 	d, x, y = extended_gcd(a, b)
 	if c % d != 0:
@@ -240,22 +277,10 @@ def solve_linear_diophantine(a, b, c):
 	lcm = a * b // d
 	return base, inc, lcm
 
-#TODO I think we can use reduce() to make this tidier
-def lcm(a, b=None):
-	if b is None:
-		if len(a) == 0:
-			raise ValueError('If computing the LCM of an iterable, the iterable must be nonempty.')
-		out = 1
-		for number in a:
-			out *= lcm(out, number)
-		return out
-	#otherwise
-	return a*b // gcd(a, b)
-
 def solve_linear_congruence(a, b, n):
 	"""Solves the congruence :math:`ax \equiv b \pmod n`.
 	
-	:rtype: a :class:`~thompson.orbits.SolutionSet`.
+	:rtype: a :class:`~thompson.orbits.SolutionSet` representing all such solutions :math:`x`.
 	
 	.. doctest::
 		:options: -ELLIPSIS
@@ -311,4 +336,3 @@ def prod(iterable):
 		24
 	"""
 	return reduce(mul, iterable, 1)
-

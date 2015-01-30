@@ -31,6 +31,11 @@ class PeriodicAut(Automorphism):
 		>>> from pprint import pprint
 		>>> pprint(example_5_9.multiplicity)
 		{2: 2, 3: 1}
+		>>> example_5_9.order
+		6
+		
+		>>> cyclic_order_six.order
+		6
 		
 		>>> phi = random_periodic_automorphism()
 		>>> 1 <= phi.order < float('inf')

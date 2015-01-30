@@ -88,13 +88,19 @@ intersphinx_mapping = {
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+
+sys.path.append(os.path.abspath('extensions'))
+
 extensions = [
+#Installed with Sphinx
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
     'sphinx.ext.todo',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
+#Not installed with Sphinx
+    'paperref'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -110,8 +116,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Thompson\'s V'
-copyright = '2014, David Robertson'
+project = 'The thompson package'
+#copyright = '2014, David Robertson'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
