@@ -29,6 +29,7 @@ def collect_references(aux_file_path):
 
 #todo:
 	#save the refcache to a pickle object, and load from it if the .aux is not modified
+	#expose a config variable for the aux file location
 
 def paperref_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
 	try:

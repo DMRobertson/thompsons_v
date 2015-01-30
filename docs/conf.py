@@ -35,7 +35,7 @@ else:
 
 def missing_reference(app, env, node, contnode):
 	try:
-		print("Missing reference target:", node.refid)
+		app.warn("Missing reference target id: %s " % node.refid)
 	except AttributeError:
 		print("Missing reference target:", node)
 
@@ -43,8 +43,6 @@ def setup(app):
 	app.connect("autodoc-skip-member", skip)
 	# app.connect("missing-reference", missing_reference)
 
-#Methods and attributes which are documented are displayed in the same order as their docstrings are defined.
-autodoc_member_order = 'bysource'
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -52,6 +50,9 @@ autodoc_member_order = 'bysource'
 sys.path.insert(0, os.path.abspath('..'))
 print('Working in', sys.path[0])
 print(sys.version_info)
+
+# Additional stuff for the LaTeX preamble.
+latex_preamble = '\usepackage{amsmath,amssymb}\n'
 
 """THEMES"""
 if not on_rtd:  # only import and set the theme if we're building docs locally
@@ -64,20 +65,16 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 		html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # otherwise, readthedocs.org uses their theme by default, so no need to specify it
 
-"""Configuring extensions"""
+"""Options for extensions"""
+#Methods and attributes which are documented are displayed in the same order as their docstrings are defined.
+autodoc_member_order = 'bysource'
+sys.path.append(os.path.abspath('extensions'))
 todo_include_todos = True
-
 intersphinx_mapping = {
 	'svgwrite':	('http://svgwrite.readthedocs.org/en/latest', None),
 	'py3':		('https://docs.python.org/3/', None),
 	'networkx':	('http://networkx.github.io/documentation/latest', None), 
 }
-
-"""Pro- and Epilogue"""
-# with open('prologue.txt', 'r') as f:
-	# rst_prolog = f.read()
-# with open('epilogue.txt', 'r') as f:
-	# rst_epilog = f.read()
 
 """End my additions"""
 # -- General configuration ------------------------------------------------
@@ -88,8 +85,6 @@ intersphinx_mapping = {
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-
-sys.path.append(os.path.abspath('extensions'))
 
 extensions = [
 #Installed with Sphinx
