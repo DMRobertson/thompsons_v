@@ -56,7 +56,7 @@ class Signature(BaseSignature):
 			>>> Signature(3, 3).is_isomorphic_to(Signature(3, 1))
 			True
 		
-		.. seealso:: Corollary 3.14 of the paper.
+		.. seealso:: Corollary :paperref:`cor:H2` of the paper.
 		
 		"""
 		if not isinstance(other, Signature):
@@ -154,7 +154,7 @@ def validate(letters, signature):
 	:raises IndexError: if this word is empty (i.e. consists of 0 letters).
 	:raises ValueError: if this word fails the valency test.
 	
-	.. seealso:: Proposition 2.12 of the paper for the *valency test*.
+	.. seealso:: Proposition :paperref:`propC3.1` of the paper for the *valency test*.
 	"""
 	arity, alphabet_size = signature
 	symbol = letters[0]
@@ -179,7 +179,7 @@ def validate(letters, signature):
 def _valency_of(symbol, signature):
 	"""Returns the valency of a symbol in the algebra with the given *signature*.
 	
-	.. seealso: Definition 2.11.
+	.. seealso: Definition :paperref:`def:valency` of the paper.
 	"""
 	arity, alphabet_size = signature
 	if symbol > 0: #letter x_i
@@ -224,7 +224,7 @@ def standardise(letters, signature, tail=()):
 	
 	:rtype: :class:`tuple <py3:tuple>` of integers.
 	
-	.. seealso:: Remark 3.3 of the paper.
+	.. seealso:: Remark :paperref:`rem:Higman_std_form` of the paper.
 	"""
 	if not isinstance(letters, tuple):
 		raise TypeError('Letters should be a tuple or Word instance. Instead, received {:r}'.format(
@@ -551,7 +551,7 @@ class Word(tuple):
 	def test_above(self, word):
 		r"""Tests to see if the current word :math:`c` is an initial segment of the given *word* :math:`w`. In symbols, we're testing if :math:`w = c \Gamma`, where :math:`\Gamma \in \langle A \rangle` is some string of alphas only.
 		
-		The test returns :math:`\Gamma` (as a tuple of integers) if the test passes; note that :math:`\Gamma` could be empty (if :math:`c = w`). If the test fails, returns ``None``.
+		The test returns :math:`\Gamma` (as a tuple of integers) if the test passes; note that :math:`\Gamma` could be the empty word :math:`1` (if :math:`c = w`). If the test fails, returns ``None``.
 		
 			>>> c = Word('x1 a1', (2, 2))
 			>>> c.test_above(Word('x1 a1 a1 a2', (2, 2)))
@@ -760,9 +760,8 @@ def root(sequence):
 		>>> root([1, 2, 3, 1, 2, 3])
 		([1, 2, 3], 2)
 	
-	.. seealso Discussion following Cor. 6.7
+	.. seealso:: The discussion following Corollary :paperref:`AJDCOROLLARYPC` in the paper.
 	"""
-	#TODO examples
 	power = 1
 	n = len(sequence)
 	for d in divisors(n, include_one=False): #d*q = n, d>1

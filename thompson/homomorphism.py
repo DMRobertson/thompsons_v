@@ -171,7 +171,7 @@ class Homomorphism:
 		
 		Any lines after this are ignored, and can be treated as comments. Comments are read in and added to the __doc__ attribute of the homomorphism that gets created.
 		
-		.. seealso: The examples directory in the package source.
+		.. seealso: The thompson/examples directory in the source code.
 		"""
 		with open(filename, encoding='utf-8') as f:
 			num_generators = int(f.readline())

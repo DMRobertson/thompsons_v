@@ -95,7 +95,7 @@ class PeriodicAut(Automorphism):
 			>>> rho_p * phi_p == psi_p * rho_p
 			True
 		
-		.. seealso:: This implements algorithm 5.13 of the paper---see section 5.3.
+		.. seealso:: This implements algorithm :paperref:`alg:periodic` of the paper---see section :paperref:`subsectionP`.
 		"""
 		if not isinstance(other, PeriodicAut):
 			return None
@@ -161,7 +161,7 @@ class PeriodicAut(Automorphism):
 	def power_conjugacy_bounds(self, other, identity_permitted):
 		"""We simply try all powers of both automorphisms. There are only finitely many, because everything is periodic.
 		
-		.. seealso:: Section 6.1."""
+		.. seealso:: Section :paperref:`torPower` of the paper."""
 		if identity_permitted:
 			return self.order, other.order
 		else:

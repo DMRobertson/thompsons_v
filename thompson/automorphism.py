@@ -225,10 +225,10 @@ class Automorphism(Homomorphism):
 		
 		.. note:: This method additionally looks for ponds and caches the data describing any ponds it finds.
 		
-		.. todo:: Make the QNB read-only somehow, so that it cannot be expanded once computed.
 		
-		.. seealso:: Quasi-normal forms are introduced in section 4.2 of the paper. In particular, this method implements Lemma 4.24.1. Higman first described the idea of quasi-normal forms in section 9 of [Hig]_.
+		.. seealso:: Quasi-normal forms are introduced in Section :paperref:`sec:qnf` of the paper. In particular, this method implements Lemma :paperref:`lem:qnf`. Higman first described the idea of quasi-normal forms in Section 9 of [Hig]_.
 		"""
+		#todo:: Make the QNB read-only somehow, so that it cannot be expanded once computed.
 		self.quasinormal_basis = None
 		self.pond_banks = None
 		
@@ -398,7 +398,9 @@ class Automorphism(Homomorphism):
 			x1 a2 a2: Left semi-infinite component with characteristic (-1, a1 a1)
 			with respect to the basis [x1 a1, x1 a2 a1, x1 a2 a2]
 		
-		.. seealso:: Lemmas 4.14, 4.24
+		.. seealso:: Lemmas :paperref:`ABC`, :paperref:`lem:qnf` of the paper.
+		
+		.. todo:: This should be renamed to component_type.
 		"""
 		images = {}
 		type_b_data = None
@@ -485,7 +487,7 @@ class Automorphism(Homomorphism):
 		
 		:returns: the tuple *(infinite, start, end, images)*.
 		
-		.. seealso:: Lemma 4.24
+		.. seealso:: Lemma :paperref:`lem:qnf` of the paper.
 		"""
 		image = y
 		images = [y]
@@ -537,7 +539,7 @@ class Automorphism(Homomorphism):
 		
 		:rtype: A pair of :class:`Generators <thompson.generators.Generators>`.
 		
-		.. seealso:: The discussion before lemma 4.6.
+		.. seealso:: The discussion before Lemma :paperref:`9.1H`.
 		"""
 		basis = self.quasinormal_basis                  #X
 		min_expansion = basis.minimal_expansion_for(self) #Y
@@ -624,7 +626,7 @@ class Automorphism(Homomorphism):
 			>>> chars == power.characteristics
 			True
 		
-		.. seealso:: Defintion 5.14.
+		.. seealso:: Defintion :paperref:`setMultipliers`.
 		"""
 		for power, mult in sorted(self.characteristics):
 			print('({}, {})'.format(power, format(mult)))
@@ -702,7 +704,7 @@ class Automorphism(Homomorphism):
 		
 		:returns: The (possibly empty) :class:`~thompson.orbits.SolutionSet` of all integers :math:`m` for which :math:`u\psi^m = v`. Note that if :math:`u = v` this method returns :math:`\mathbb{Z}`. 
 		
-		.. seealso:: The implementation is due to lemma 4.24.2 of the paper.
+		.. seealso:: The implementation is due to lemma :paperref:`9.7H` of the paper.
 		"""
 		#TODO a script which randomly checks examples to verify.
 		#TODO pond examples

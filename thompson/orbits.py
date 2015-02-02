@@ -19,7 +19,7 @@ class ComponentType(BaseComponentType):
 	
 	:ivar characteristic: Either the characteristic :math:`(m, \Gamma)` of this component, or ``None`` if this component has no characteristic. Periodic components have characteristic :math:`(m, \varepsilon)`, where :math:`\varepsilon` is the empty word.
 	
-	.. seealso:: Section 4.1 of the paper.
+	.. seealso:: Section :paperref:`SNF` of the paper.
 	"""
 	_complete_infinite = 1
 	_complete_finite = 2
@@ -111,7 +111,7 @@ def print_component_types(aut, basis=None, words=None):
 		x1 a4: Left semi-infinite component with characteristic (-1, a4)
 		with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a1 a3, x1 a1 a4, x1 a2, x1 a3, x1 a4]
 	
-		.. seealso:: The :meth:`~thompson.mixed.MixedAut.orbit_type` method.
+		.. seealso:: The :meth:`~thompson.automorphism.Automorphism.orbit_type` method.
 	"""
 	if basis is None:
 		basis = aut._seminormal_form_start_point()
