@@ -279,17 +279,16 @@ class MixedAut(Automorphism):
 		# print(o_p)
 		# print(s_i)
 		# print(o_i)
-		#2. Periodic minimal solns.
-		periodic_conjugators = list(s_p.find_power_conjugators(o_p, identity_permitted=True, cheat=cheat))
-		# print(len(periodic_conjugators), 'periodic_conjugators')
-		if len(periodic_conjugators) == 0:
-			return None
-		
 		#3. Infinite minimal solns.
 		infinite_conjugators = list(s_i.find_power_conjugators(o_i, cheat=cheat))
 		# print(len(infinite_conjugators), 'infinite_conjugators')
 		if len(infinite_conjugators) == 0:
 			return None
+		
+		#2. Periodic minimal solns.
+		periodic_conjugators = list(s_p.find_power_conjugators(o_p, identity_permitted=True, cheat=cheat))
+		# print(len(periodic_conjugators), 'periodic_conjugators')
+		assert len(periodic_conjugators) > 0
 		
 		#5. Try to recombine.
 		for alpha, beta, rho_i in infinite_conjugators:

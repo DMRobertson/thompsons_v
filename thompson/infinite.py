@@ -144,7 +144,7 @@ class InfiniteAut(Automorphism):
 		G = nx.DiGraph()
 		orbit_generators = set(min_exp + endpts)
 		
-		#1. Add an edge for every direct conjugacy relationship.
+		#1. Add an edge for every direct congruence relationship.
 		for gen in orbit_generators:
 			type, images, _ = self.orbit_type(gen, basis)
 			for power, img in images.items():
