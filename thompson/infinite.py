@@ -72,7 +72,7 @@ class InfiniteAut(Automorphism):
 			>>> rho_i * phi_i == psi_i * rho_i
 			True
 		
-		.. seealso:: This implements algorithm 5.27 of the paper---see section 5.4.
+		.. seealso:: This implements Algorithm :paperref:`alg:reginf` of the paper---see Section :paperref:`subsectionRI`.
 		"""
 		#todo another doctest.
 		if not isinstance(other, InfiniteAut):
@@ -128,7 +128,7 @@ class InfiniteAut(Automorphism):
 		
 		This information allows us to (attempt to) compute the images of :math:`X` under a conjugator given only the images of *roots*.
 		
-		.. seealso:: Definition 5.17 through to Lemma 5.20; also section 2.2 of the paper.
+		.. seealso:: Definition :paperref:`EqCl` through to Lemma :paperref:`lem:effsplit`.
 		"""
 		G = self._congruence_graph()
 		self._simplify_graph(G, type_c)
@@ -217,7 +217,7 @@ class InfiniteAut(Automorphism):
 	def potential_image_endpoints(other, self_type_b):
 		"""Let ``x`` be a type B word with respect to the current automorphism. This returns a mapping which takes ``x`` and produces the set of words ``w`` which are endpoints of *other*-orbits which have the same characteristic as ``x``.
 		
-		.. seealso:: The sets :math:`\mathcal R_i` of defintion 5.23.
+		.. seealso:: The sets :math:`\mathcal R_i` of defintion :paperref:`def:potential_image_endpoints`.
 		"""
 		#todo doctest
 		images_by_char = defaultdict(set)
@@ -287,7 +287,7 @@ class InfiniteAut(Automorphism):
 	
 	def power_conjugacy_bounds(self, other):
 		"""Compute the bounds :math:`\hat a, \hat b`.
-		.. seealso Prop 6.6. and Cor 6.7
+		.. seealso Proposition :paperref:`divisors` and Corollary :paperref:`AJDCOROLLARYPC`.
 		
 			>>> example_6_8_psi.power_conjugacy_bounds(example_6_8_phi)
 			(9, 1)
@@ -327,7 +327,7 @@ class InfiniteAut(Automorphism):
 		
 		:returns: a dictionary of sets. The keys of this dictionary are the roots :math:`\sqrt\Gamma`; the values are the cells :math:`P_i`. An element of a cell looks like :math:`m, \Gamma, r` where :math:`m, \Gamma` is a characteristic and :math:`r` is the root power corresponding to :math:`\sqrt\Gamma`.
 		
-		.. seealso:: the discussion following Cor. 6.7
+		.. seealso:: the discussion following Corollary :paperref:`AJDCOROLLARYPC`.
 		"""
 		chars = self.characteristics
 		parts = defaultdict(set)

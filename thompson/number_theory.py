@@ -224,9 +224,13 @@ gcd.__doc__ += """
 		1
 """
 
-def extended_gcd(a,b):
+def extended_gcd(a, b):
 	"""From `this exposition of the extended gcd algorithm <http://anh.cs.luc.edu/331/notes/xgcd.pdf>`_. Computes :math:`d = \gcd(a, b)` and returns a triple :math:`(d, x, y)` where :math:`d = ax + by`.
-
+	
+		>>> extended_gcd(14, 33)
+		(1, -7, 3)
+		>>> extended_gcd(12, 32)
+		(4, 3, -1)
 	"""
 	prevx, x = 1, 0; prevy, y = 0, 1
 	while b:

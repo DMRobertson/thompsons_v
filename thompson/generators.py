@@ -77,7 +77,7 @@ class Generators(list):
 			x1 a2 a1
 			x1 a2 a1 a1
 		
-		.. seealso::  Lemma 3.16.3 of the paper.
+		.. seealso::  Lemma :paperref:`HigmanLemma2.5` of the paper.
 		"""
 		for i in range(len(self)):
 			for j in range(i+1, len(self)):
@@ -303,7 +303,7 @@ class Generators(list):
 		:raises ValueError: if the automorphisms or basis do not all belong to the same group :math:`G_{n,r}`.
 		:raises ValueError: if the given basis does not generate :math:`V_{n,r}`.
 		
-		.. seealso:: Lemma 4.2 of the paper proves that this expansion exists, is of minimal size, and is unique with this that property.
+		.. seealso:: Lemma :paperref:`4.1H` of the paper proves that this expansion exists, is of minimal size, and is unique with this that property.
 		"""
 		#0. Pre-flight checks.
 		if len(automorphisms) == 0:
