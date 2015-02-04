@@ -23,5 +23,4 @@ The Homomorphism Class
 Next steps
 ----------
 
-It is not possible to repeatedly apply a homomorphism :math:`\psi` to a word unless :math:`\psi` is actually an automorphism.
-Then we can consider the orbit :math:`\{w\psi^n \mid n \in \mathbb{Z}\}` of any word :math:`w`. The next module gives us tools to classify and work with these orbits.
+It is not possible to repeatedly apply a homomorphism :math:`\psi` to a word unless :math:`\psi` is actually an automorphism. The next class extends :class:`Homomorphism` to represent an :class:`~thompson.automorphism.Automorphism`.

@@ -528,6 +528,8 @@ class Automorphism(Homomorphism):
 		
 		:param exclude_characteristics: if True, only the endpoints of non-characteristic semi-infinite orbits will be returned.
 		
+		.. doctest::
+			
 			>>> print(*example_4_5.semi_infinite_end_points())
 			[x1 a1 a1] [x1 a1 a2]
 			>>> print(*example_4_11.semi_infinite_end_points())
@@ -586,6 +588,16 @@ class Automorphism(Homomorphism):
 			return None
 	
 	def dump_QNB(self):
+		"""A convenience method for printing the quasinormal basis :math:`X`. The :math:`X`-components of the elements :math:`x \in X` are displayed.
+		
+			>>> example_5_3.dump_QNB()
+			x1 a1 a1 a1 Left semi-infinite component with characteristic (-1, a1)
+			x1 a1 a1 a2 Right semi-infinite component with characteristic (1, a2)
+			x1 a1 a2 a1 Periodic component of order 2
+			x1 a1 a2 a2 Periodic component of order 2
+			x1 a2 a1 Right semi-infinite component with characteristic (1, a1)
+			x1 a2 a2 Left semi-infinite component with characteristic (-1, a2)
+		"""
 		for gen in self.quasinormal_basis:
 			ctype, _, _ = self.orbit_type(gen, self.quasinormal_basis)
 			print(gen, ctype)

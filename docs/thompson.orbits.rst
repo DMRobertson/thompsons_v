@@ -27,20 +27,20 @@ These components come in five different types:
 
 There are six different ways we can form orbits using these components:
 	
-	1. Complete infinite (or *doubly infinite*) orbits.
+	- Complete infinite (or *doubly infinite*) orbits.
 		The entire orbit is a complete infinite component (type 1).
-	2. Complete finite (or *periodic*) orbits.
+	- Complete finite (or *periodic*) orbits.
 		The entire orbit is a component finite component (type 2).
-	3. Incomplete finite (or *bad*) orbits.
+	-  Incomplete finite (or *bad*) orbits.
 		The orbit does not contain any complete or semi-infinite components. Thus the only components which may appear are of type 5. Note that these orbits need not have any components at all!
-	4. Incomplete infinite orbits.
+	-  Incomplete infinite orbits.
 		The orbit contains at least one semi-infinite component (types 3, 4). The orbit may also contain incomplete finite components (type 5). We give names to the different cases:
 		
-		a. Right semi-infinite orbits.
+		-  Right semi-infinite orbits.
 			One component of type 3, none of type 4.
-		b. Left semi-infinite orbits.
+		-  Left semi-infinite orbits.
 			One component of type 4, none of type 3.
-		c. *Pond* orbits.
+		-  *Pond* orbits.
 			One component of type 3 and one of type 4. These components must be separated by a finite list of words in :math:`V_{n,r}\setminus X\langle A\rangle`; we think of this list as being a *pond*.
 
 If that wasn't confusing enough, we have a another way to classify those orbits which are not incomplete finite.
@@ -84,7 +84,7 @@ Helper functions
 Next steps
 ----------
 
-With tools to describe orbits in hand, we can dive straight into the MixedAuts module. In particular, we need to :meth:`know how orbits work <thompson.automorphism.Automorphism.orbit_type>` to
+With tools to describe orbits in hand, we can dive straight into the :class:`~thompson.automorphism.Automorphism` class. In particular, we need to :meth:`know how orbits work <thompson.automorphism.Automorphism.orbit_type>` to
 
 - determine :meth:`quasinormal bases <thompson.automorphism.Automorphism.compute_quasinormal_basis>`
 - perform the :meth:`orbit sharing test <thompson.automorphism.Automorphism.share_orbit>`

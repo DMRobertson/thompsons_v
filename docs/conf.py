@@ -43,7 +43,7 @@ def missing_reference(app, env, node, contnode):
 	elif target.startswith('py3:') or target.endswith('Error') or reftype == "obj":
 		return
 	else:
-		app.warn("Missing reference target: {}".format(node))
+		app.warn("Missing reference target: {}".format(target))
 
 def setup(app):
 	app.connect("autodoc-skip-member", skip)

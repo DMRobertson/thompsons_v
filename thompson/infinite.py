@@ -259,7 +259,7 @@ class InfiniteAut(Automorphism):
 			else:
 				yield rho
 	
-	def find_power_conjugators(self, other, cheat=False):
+	def _find_power_conjugators(self, other, cheat=False):
 		"""Tests two infinite factors to see if they are power conjugate. Yields minimal solns (a, b, rho)."""
 		if not isinstance(other, InfiniteAut):
 			raise StopIteration
@@ -271,27 +271,31 @@ class InfiniteAut(Automorphism):
 		yield from self._test_power_conjugate_upto(other, *bounds, inverses=True)
 	
 	def test_power_conjugate_to(self, other, cheat=False):
-		"""
+		r"""Tests two periodic factors to see if they are power conjugate. Yields minimal solutions :math:`(a, b, \rho)`. such that :math:`\rho^{-1}\psi^a\rho = \phi^b`.
+		
 			>>> result = example_6_8_psi.test_power_conjugate_to(example_6_8_phi)
 			>>> result is not None
 			True
 			>>> a, b, rho = result
 			>>> (example_6_8_psi ** a) * rho == rho * (example_6_8_phi ** b)
 			True
+		
+		.. seealso:: Algorithm :paperref:`alg:pcRI` of the paper.
+		
 		"""
 		try:
-			return next(self.find_power_conjugators(other, cheat=cheat))
+			return next(self._find_power_conjugators(other, cheat=cheat))
 		except StopIteration:
 			# print('No infinite conjugators')
 			return None
 	
 	def power_conjugacy_bounds(self, other):
-		"""Compute the bounds :math:`\hat a, \hat b`.
-		.. seealso Proposition :paperref:`divisors` and Corollary :paperref:`AJDCOROLLARYPC`.
+		"""Compute the bounds :math:`\hat a, \hat b` on powers which could solve the power conjugacy problem.
 		
 			>>> example_6_8_psi.power_conjugacy_bounds(example_6_8_phi)
 			(9, 1)
 		
+		.. seealso:: Proposition :paperref:`divisors` and Corollary :paperref:`AJDCOROLLARYPC`.
 		"""
 		s_parts = self.minimal_partition()
 		o_parts = other.minimal_partition()
