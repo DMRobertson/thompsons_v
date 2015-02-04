@@ -36,7 +36,6 @@ class PeriodicAut(Automorphism):
 		
 		>>> cyclic_order_six.order
 		6
-		
 		>>> phi = random_periodic_automorphism()
 		>>> 1 <= phi.order < float('inf')
 		True
@@ -135,10 +134,8 @@ class PeriodicAut(Automorphism):
 		rho.add_relabellers(self.domain_relabeller, other.range_relabeller)
 		return rho
 	
-	def find_power_conjugators(self, other, identity_permitted=False, cheat=False):
-		"""Tests two periodic factors to see if they are power conjugate. Yields minimal soln (a, b, rho)."""
+	def _find_power_conjugators(self, other, identity_permitted=False, cheat=False):
 		#This is almost exactly the same code as InfiniteAut.test_power_conjugate_to(). Maybe this should be one method on Automorphism
-		
 		if not isinstance(other, PeriodicAut):
 			raise StopIteration
 		if not identity_permitted and (self.is_identity() or other.is_identity()):
@@ -152,13 +149,21 @@ class PeriodicAut(Automorphism):
 		yield from self._test_power_conjugate_upto(other, *bounds, inverses=False)
 	
 	def test_power_conjugate_to(self, other, cheat=False):
+		r"""Tests two periodic factors to see if they are power conjugate. Yields minimal solutions :math:`(a, b, \rho)`. such that :math:`\rho^{-1}\psi^a\rho = \phi^b`.
+		
+		.. seealso:: Section :paperref:`torPower` of the paper.
+		"""
 		try:
-			return next(self.find_power_conjugators(other, cheat=cheat))
+			return next(self._find_power_conjugators(other, cheat=cheat))
 		except StopIteration:
 			return None
 	
 	def power_conjugacy_bounds(self, other, identity_permitted):
 		"""We simply try all powers of both automorphisms. There are only finitely many, because everything is periodic.
+		
+		:returns: ``self.power, other.power`` if the identity is permitted as a solution; otherwise ``self.power - 1, other.power - 1``.
+		
+		.. todo:: Maybe this should be 0 to order if the identity is permitted and 1 to order otherwise?
 		
 		.. seealso:: Section :paperref:`torPower` of the paper."""
 		if identity_permitted:

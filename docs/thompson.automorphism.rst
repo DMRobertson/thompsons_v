@@ -23,4 +23,4 @@ The Automorphisms class
 Next steps
 ----------
 
-To complete the details of the :meth:`conjugacy test <thompson.mixed.MixedAut.test_conjugate_to>`, we have to be able to test if two pure periodic automorphisms are conjugate and if two pure infinite automorphisms are conjugate. Any given automorphism can be broken down into a pure periodic and pure infinite part. These parts are called :meth:`free factors <thompson.mixed.MixedAut.free_factor>`.
+Because an Automorphism can be :meth:`repeatedly applied <Automorphism.__pow__>`, we may consider the orbit :math:`\{w\psi^n \mid n \in \mathbb{Z}\}` of any word :math:`w`. The next module gives us tools to classify and work with these orbits. (In truth, the :class:`Automorphism` class uses these tools, so this documentation is really in the wrong order.)

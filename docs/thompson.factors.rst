@@ -19,3 +19,8 @@ Infinite Factors
 .. automodule:: thompson.infinite
     :members:
     :undoc-members:
+
+Next steps
+----------
+
+With these classes, the conjugacy and power conjugacy tests are implemented. The other important part of this package is the :mod:`~thompson.examples` module.
