@@ -61,7 +61,6 @@ class PeriodicAut(Automorphism):
 			Orbits of length 3
 			... -> x1 a1 a1 a1 -> x1 a1 a1 a2 -> x1 a1 a2 -> ...
 		"""
-		#TODO another doctest
 		orbits_by_size = defaultdict(deque)
 		already_seen = set()
 		for gen in basis:

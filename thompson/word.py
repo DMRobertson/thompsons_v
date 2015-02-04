@@ -2,7 +2,7 @@
 .. testsetup:: 
 	
 	from thompson.word     import *
-	from thompson.examples import * #todo this should be thompson.examples.random
+	from thompson.examples import *
 """
 
 import operator
@@ -102,6 +102,8 @@ def from_string(str):
 		True
 	
 	:rtype: :class:`tuple <py3:tuple>` of integers
+	
+	.. todo:: More convenient ways of inputting words, e.g. ``x a1^3`` instead of ``x a1 a1 a1``.
 	"""
 	output = str.lower().split()
 	for i, string in enumerate(output):

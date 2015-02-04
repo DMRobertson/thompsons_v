@@ -2,6 +2,7 @@ r"""At the bottom level of the package hierarchy are various helper functions wh
  
 .. testsetup::
 	
+	from random                 import randint
 	from thompson.number_theory import *
 """
 
@@ -240,23 +241,33 @@ def extended_gcd(a, b):
 		a, b = b, a % b
 	return a, prevx, prevy
 
-#TODO I think we can use reduce() to make this tidier
-def lcm(a, b=None):
-	"""Computes the least common multiple of :math:`a` and :math:`b`. If a single iterable argument is provided, the least common multiple of its elements is computed.
+def lcm(*args):
+	"""Computes the least common multiple of the given *args*. If a single argument is provided, the least common multiple of its elements is computed.
 	
+		>>> n = randint(1, 1000000)
+		>>> lcm(n) == n
+		True
 		>>> lcm(2, 13)
 		26
-		>>> lcm(range(1, 10)) #1, 2, ..., 9
+		>>> lcm(*range(1, 10)) #1, 2, ..., 9
+		2520
+		>>> lcm(range(1, 10))  #Don't have to unpack the arguments
 		2520
 	"""
-	if b is None:
-		if len(a) == 0:
-			raise ValueError('If computing the LCM of an iterable, the iterable must be nonempty.')
-		out = 1
-		for number in a:
-			out = lcm(out, number)
-		return out
-	#otherwise
+	#See also http://stackoverflow.com/a/147539
+	if len(args) == 0:
+		raise ValueError('No arguments provided.')
+	elif len(args) == 1:
+		try:
+			iterator = iter(args[0])
+		except TypeError:
+			return args[0]
+		else:
+			args = list(iterator)
+	
+	return reduce(_lcm2, args)
+
+def _lcm2(a, b):
 	return a*b // gcd(a, b)
 
 def solve_linear_diophantine(a, b, c):

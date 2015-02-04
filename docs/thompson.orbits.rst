@@ -84,8 +84,8 @@ Helper functions
 Next steps
 ----------
 
-With tools to describe orbits in hand, we can dive straight into the MixedAuts module. In particular, we need to :meth:`know how orbits work <thompson.mixed.MixedAut.orbit_type>` to
+With tools to describe orbits in hand, we can dive straight into the MixedAuts module. In particular, we need to :meth:`know how orbits work <thompson.automorphism.Automorphism.orbit_type>` to
 
-- determine :meth:`quasinormal bases <thompson.mixed.MixedAut.quasinormal_basis>`
-- perform the :meth:`orbit sharing test <thompson.mixed.MixedAut.share_orbit>`
+- determine :meth:`quasinormal bases <thompson.automorphism.Automorphism.compute_quasinormal_basis>`
+- perform the :meth:`orbit sharing test <thompson.automorphism.Automorphism.share_orbit>`
 - perform the :meth:`conjugacy test <thompson.mixed.MixedAut.test_conjugate_to>`
