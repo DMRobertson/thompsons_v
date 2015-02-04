@@ -91,7 +91,7 @@ class ComponentType(BaseComponentType):
 		return self.type is self._incomplete
 
 def print_component_types(aut, basis=None, words=None):
-	r"""Prints the classification of the components under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the smallest possible expansion which could potentially be a semi-normal basis; see :meth:`~thompson.mixed.MixedAut._seminormal_form_start_point`. If *words* is omited, it is taken to be the same as *basis*.
+	r"""Prints the classification of the components under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the smallest possible expansion which could potentially be a semi-normal basis; see :meth:`~thompson.automorphism.Automorphism.seminormal_form_start_point`. If *words* is omited, it is taken to be the same as *basis*.
 	
 		>>> print_component_types(arity_three_order_inf)
 		x1 a1: Left semi-infinite component with characteristic (-1, a1)
@@ -114,7 +114,7 @@ def print_component_types(aut, basis=None, words=None):
 		.. seealso:: The :meth:`~thompson.automorphism.Automorphism.orbit_type` method.
 	"""
 	if basis is None:
-		basis = aut._seminormal_form_start_point()
+		basis = aut.seminormal_form_start_point()
 	if words is None:
 		words = basis
 	elif not isinstance(words, Generators):

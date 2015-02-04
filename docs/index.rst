@@ -46,15 +46,15 @@ Contents
    Words and standard forms <thompson.word>
    Generating sets and bases <thompson.generators>
    Homomorphisms <thompson.homomorphism>
-   Orbits <thompson.orbits>
    Automorphism <thompson.automorphism>
+   Orbits <thompson.orbits>
    MixedAuts <thompson.mixed>
    Free factors <thompson.factors>
    Examples <thompson.examples>
    References <references>
+   Todo list <todo>
 
 Indices
 -------
 
 * :ref:`genindex`
-

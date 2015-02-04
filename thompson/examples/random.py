@@ -1,5 +1,5 @@
 from random import randint, shuffle 
-from copy import copy
+from copy   import copy
 
 from ..word         import Signature, Word
 from ..generators   import Generators

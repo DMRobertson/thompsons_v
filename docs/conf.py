@@ -34,21 +34,27 @@ else:
 		return skip
 
 def missing_reference(app, env, node, contnode):
-	try:
-		app.warn("Missing reference target id: %s " % node.refid)
-	except AttributeError:
-		print("Missing reference target:", node)
+	reftype = node.get('reftype')
+	target = node.get('reftarget')
+	if reftype == "viewcode":
+		return
+	if target is None:
+		app.warn("Missing reference: {}".format(node))
+	elif target.startswith('py3:') or target.endswith('Error') or reftype == "obj":
+		return
+	else:
+		app.warn("Missing reference target: {}".format(node))
 
 def setup(app):
 	app.connect("autodoc-skip-member", skip)
-	# app.connect("missing-reference", missing_reference)
+	app.connect("missing-reference", missing_reference)
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
-print('Working in', sys.path[0])
+print('Working in {}'.format(sys.path[0]))
 print(sys.version_info)
 
 # Additional stuff for the LaTeX preamble.
@@ -71,7 +77,7 @@ autodoc_member_order = 'bysource'
 sys.path.append(os.path.abspath('extensions'))
 todo_include_todos = True
 intersphinx_mapping = {
-	'svgwrite':	('http://svgwrite.readthedocs.org/en/latest', None),
+	# 'svgwrite':	('http://svgwrite.readthedocs.org/en/latest', None),
 	'py3':		('https://docs.python.org/3/', None),
 	'networkx':	('http://networkx.github.io/documentation/latest', None), 
 }

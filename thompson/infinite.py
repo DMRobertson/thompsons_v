@@ -51,7 +51,7 @@ class InfiniteAut(Automorphism):
 	"""
 	
 	def test_conjugate_to(self, other):
-		"""We can determine if two purely infinite automorphisms are conjugate by breaking down the :meth:`quasi-normal basis <thompson.mixed.MixedAut.quasinormal_basis>` into :meth:`equivalence classes <equivalence_data>`.
+		"""We can determine if two purely infinite automorphisms are conjugate by breaking down the quasi-normal basis into :meth:`equivalence classes <equivalence_data>`.
 		
 			>>> psi_i = example_5_26_psi; phi_i = example_5_26_phi
 			>>> rho_i = psi_i.test_conjugate_to(phi_i)
@@ -304,7 +304,7 @@ class InfiniteAut(Automorphism):
 		return s_bound, o_bound
 	
 	def minimal_partition(self):
-		r"""Let :math:`\psi` be the current automorphism. This method partitions the :meth:`~thompson.mixed.MixedAut.characteristics` :math:`M_\psi` into cells :math:`P_1 \sqcup \dots \sqcup P_L`, where
+		r"""Let :math:`\psi` be the current automorphism. This method partitions the characteristics :math:`M_\psi` into cells :math:`P_1 \sqcup \dots \sqcup P_L`, where
 		- The multipliers :math:`\Gamma` all have the same :func:`~thompson.word.root`, for all :math:`(m, \Gamma)` in each :math:`P_i`.
 		- :math:`L` is minimal with this property.
 		

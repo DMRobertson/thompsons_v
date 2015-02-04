@@ -81,7 +81,7 @@ class MixedAut(Automorphism):
 			&G_{n, r}	&\to		&G_{n, |X|}		&\to		&G_{n, s} \\
 			&\phi		&\mapsto	&\phi|_{\langle X\rangle}		&\mapsto	&\phi\,'
 		
-		:returns: The transformed automorphism :math:`\phi\, \in G_{n, s}`. Its type is :class:`PeriodicAut` if *infinite* is False; otherwise its type is :class:`InfiniteAut`.
+		:returns: The transformed automorphism :math:`\phi\, \in G_{n, s}`. Its type is :class:`~thompson.periodic.PeriodicAut` if *infinite* is False; otherwise its type is :class:`~thompson.infinite.InfiniteAut`.
 		:raises ValueError: if an empty list of *generators* is provided.
 		
 		.. doctest::
@@ -198,7 +198,7 @@ class MixedAut(Automorphism):
 			True
 			
 		
-		.. seealso:: This is an implementation of Algorithm :paperref:`conjAlgorithm` in the paper. It depends on Algorithms :paperref:`alg:periodic` and :paperref:`alg:reginf`; these are the :meth:`periodic <thompson.factors.PeriodicAut.test_conjugate_to>` and :meth:`infinite <thompson.factors.InfiniteAut.test_conjugate_to>` tests for conjugacy.
+		.. seealso:: This is an implementation of Algorithm :paperref:`conjAlgorithm` in the paper. It depends on Algorithms :paperref:`alg:periodic` and :paperref:`alg:reginf`; these are the :meth:`periodic <thompson.periodic.PeriodicAut.test_conjugate_to>` and :meth:`infinite <thompson.infinite.InfiniteAut.test_conjugate_to>` tests for conjugacy.
 		"""
 		#TODO Doctest: try assembling a conjugator from factors
 		#0. Check that both automorphisms belong to the same G_{n,r}.
@@ -257,7 +257,7 @@ class MixedAut(Automorphism):
 			>>> (psi ** a) * rho == rho * (phi ** b)
 			True
 		
-		.. seealso:: This is an implementation of Algorithm :paperref:`powerconjAlgorithm` in the paper. It depends on Algorithms :paperref:`conjAlgorithm` (the :meth:`conjugacy test <test_conjugate_to>`) and :paperref:`alg:pcRI` (the :meth:`infinite power conjugate test <thompson.factors.InfiniteAut.find_power_conjugators>.`)
+		.. seealso:: This is an implementation of Algorithm :paperref:`powerconjAlgorithm` in the paper. It depends on Algorithms :paperref:`conjAlgorithm` (the :meth:`conjugacy test <test_conjugate_to>`) and :paperref:`alg:pcRI` (the :meth:`infinite power conjugate test <thompson.infinite.InfiniteAut.find_power_conjugators>`.)
 		"""
 		# print(self.__class__.__name__, other.__class__.__name__)
 		#0. Check that both automorphisms belong to the same G_{n,r}.

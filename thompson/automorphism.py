@@ -20,20 +20,23 @@ from .orbits        import ComponentType, SolutionSet
 ___all__ = ["Automorphism"]
 
 class Automorphism(Homomorphism):
-	r"""
+	r"""Represents an automorphism as a bijection between :meth:`bases <thompson.generators.Generators.is_basis>`.
+	
 	Generic attributes:
+	
 	:ivar signature: The :class:`~thompson.word.Signature` shared by the generating sets domain and range.
 	:ivar quasinormal_basis: See :meth:`compute_quasinormal_basis`.
 	:ivar pond_banks: A list of tuples :math:`(\ell, k, r)` such that :math:`(\ell, r)` are banks of a pond with :math:`\ell\phi^k = r`.
 	
 	Periodic attributes:
-	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)` where :math:`\phi` is the current automorphism and :math:`X_\phi` is the :meth:`quasi-normal basis <thompson.mixed.MixedAut.quasinormal_basis>` for :math:`\phi`.
+	
+	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)` where :math:`\phi` is the current automorphism and :math:`X_\phi` is the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` for :math:`\phi`.
 	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`
-	:ivar order: the smallest positive number :math:`n` for which :math:`phi^n` is the identity. (This is the lcm of the cycle type.) If no such :math:`n` exists, the order is :math:`\infty`.
+	:ivar order: the smallest positive number :math:`n` for which :math:`\phi^n` is the identity. (This is the lcm of the cycle type.) If no such :math:`n` exists, the order is :math:`\infty`.
 	
 	Infinite attributes:
-	:ivar characteristics: the set of characteristics :math:`(m, \Gamma)` of this automorphism.
 	
+	:ivar characteristics: the set of characteristics :math:`(m, \Gamma)` of this automorphism.
 	"""
 	#Initialisation
 	def __init__(self, domain, range, reduce=True):
@@ -41,10 +44,12 @@ class Automorphism(Homomorphism):
 		
 		.. math:: \text{domain}_{\,i} \mapsto \text{range}_{\,i}
 		
-		:raises TypeError: if the bases have different arities or alphabet sizes.
-		:raises ValueError: if either basis :meth:`isn't actually a basis <thompson.generators.Generators.is_basis>`.
+		The :meth:`quasi-normal basis <compute_quasinormal_basis>` :math:`X` and the various attributes are all calculated at creation time.
 		
-		.. seealso:: :meth:`thompson.homomorphism.Homomorphism.__init__`
+		:raises TypeError: if the bases have different arities or alphabet sizes.
+		:raises TypeError: if either basis :meth:`isn't actually a basis <thompson.generators.Generators.is_basis>`.
+		
+		.. seealso:: :meth:`The superclass method <thompson.homomorphism.Homomorphism.__init__>`.
 		"""
 		#Check to see that the domain and range algebras are the same
 		if domain.signature != range.signature:
@@ -133,7 +138,7 @@ class Automorphism(Homomorphism):
 			x1 a4 a4 a2
 		
 		.. todo::
-			This could be made more efficient for large *power*s by using knowledge of the component containing *key*.
+			This could be made more efficient for large values of *power* by using knowledge of the component containing *key*.
 		"""
 		inverse = power < 0
 		if power == 0:
@@ -223,8 +228,7 @@ class Automorphism(Homomorphism):
 		
 		:rtype: a :class:`~thompson.generators.Generators` instance.
 		
-		.. note:: This method additionally looks for ponds and caches the data describing any ponds it finds.
-		
+		.. note:: This method is called automatically at creation time and is **not** needed to be called by the user. Additionally, this  method is responsible for finding ponds and the :class:`other attributes available <Automorphism>`.
 		
 		.. seealso:: Quasi-normal forms are introduced in Section :paperref:`sec:qnf` of the paper. In particular, this method implements Lemma :paperref:`lem:qnf`. Higman first described the idea of quasi-normal forms in Section 9 of [Hig]_.
 		"""
@@ -235,7 +239,7 @@ class Automorphism(Homomorphism):
 		self.multiplicity = {}
 		
 		#1. Expand the starting basis until each no element's belongs to a finite X-component.
-		basis = self._seminormal_form_start_point()
+		basis = self.seminormal_form_start_point()
 		basis.cache = set(basis)
 		confirmed = set()
 		i = 0
@@ -320,19 +324,21 @@ class Automorphism(Homomorphism):
 					break
 		return ponds
 	
-	def _seminormal_form_start_point(self):
-		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \cup W`. See remark 4.10 and example 4.25. This basis that this method produces is the smallest possible which *might* be semi-normal.
+	def seminormal_form_start_point(self):
+		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \cup Z`. This basis that this method produces is the smallest possible which *might* be semi-normal.
 		
-			>>> example_4_5._seminormal_form_start_point()
+			>>> example_4_5.seminormal_form_start_point()
 			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
-			>>> example_4_11._seminormal_form_start_point()
+			>>> example_4_11.seminormal_form_start_point()
 			Generators((2, 1), ['x1 a1', 'x1 a2'])
-			>>> example_4_12._seminormal_form_start_point()
+			>>> example_4_12.seminormal_form_start_point()
 			Generators((2, 1), ['x1 a1', 'x1 a2'])
-			>>> example_4_25._seminormal_form_start_point()
+			>>> example_4_25.seminormal_form_start_point()
 			Generators((2, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
-			>>> cyclic_order_six._seminormal_form_start_point()
+			>>> cyclic_order_six.seminormal_form_start_point()
 			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
+		
+		.. seealso::  Remark :paperref:`rem:snf_start_point` of the paper.
 		"""
 		basis = Generators.standard_basis(self.signature)
 		i = 0
@@ -345,7 +351,7 @@ class Automorphism(Homomorphism):
 		return basis
 	
 	def orbit_type(self, y, basis):
-		"""Returns the orbit type of *y* with respect to the given *basis*. Also returns a dictionary of computed images, the list (7) from the paper.
+		"""Returns the orbit type of *y* with respect to the given *basis*. Also returns a dictionary of computed images, the list (:paperref:`eq:uorb`) from the paper.
 		
 			>>> #Example 4.5.
 			>>> print_component_types(example_4_5, example_4_5.domain)
@@ -371,7 +377,7 @@ class Automorphism(Homomorphism):
 			:hide:
 			
 			>>> #Example 4.12
-			>>> basis = example_4_12._seminormal_form_start_point()
+			>>> basis = example_4_12.seminormal_form_start_point()
 			>>> print_component_types(example_4_12, basis)
 			x1 a1: Incomplete component
 			x1 a2: Incomplete component
@@ -518,7 +524,7 @@ class Automorphism(Homomorphism):
 			images.append(image)
 	
 	def semi_infinite_end_points(self, exclude_characteristics=False):
-		r"""Returns the list of terminal :class:`Words <thompson.word.Word>` in left semi-infinite components and the list of initial words in right semi-infinite components. This is all computed with respect the current automorphism's :meth:`quasinormal_basis`. These are the sets :math:`X\langle A\rangle \setminus Y\langle A\rangle` and :math:`X\langle A\rangle \setminus Z\langle A\rangle`.
+		r"""Returns the list of terminal :class:`Words <thompson.word.Word>` in left semi-infinite components and the list of initial words in right semi-infinite components. This is all computed with respect the current automorphism's :meth:`quasinormal basis <compute_quasinormal_basis>`. These are the sets :math:`X\langle A\rangle \setminus Y\langle A\rangle` and :math:`X\langle A\rangle \setminus Z\langle A\rangle`.
 		
 		:param exclude_characteristics: if True, only the endpoints of non-characteristic semi-infinite orbits will be returned.
 		

@@ -162,6 +162,7 @@ class Homomorphism:
 			x1 a1 a2	->	x1 a1 a2 a2
 			x1 a2 a1	->	x1 a2 a2
 			x1 a2 a2	->	x1 a2 a1
+			This is an example intended to illustrate the format for reading and writing automorphisms to disk.
 		
 		There are three components
 		
@@ -499,7 +500,7 @@ class Homomorphism:
 	def relabel(self):
 		r"""If this automorphism was derived from a parent automorphism, this converts back to the parent algebra after doing computations in the derived algebra.
 		
-		In the following example :meth:`~thompson.mixed.MixedAut.test_conjugate_to` takes a pure periodic automorphism and extracts factors. A conjugator :math:`\rho` is produced by :meth:`the overridden version of this method <thompson.factors.PeriodicAut.test_conjugate_to>`. Finally :math:`\rho` is relabelled back to the parent algebra.
+		In the following example :meth:`~thompson.mixed.MixedAut.test_conjugate_to` takes a pure periodic automorphism and extracts factors. A conjugator :math:`\rho` is produced by :meth:`the overridden version of this method <thompson.periodic.PeriodicAut.test_conjugate_to>`. Finally :math:`\rho` is relabelled back to the parent algebra.
 		
 		:raises AttributeError: if the factor has not been assigned any relabellers.
 		
