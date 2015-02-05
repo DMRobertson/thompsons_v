@@ -2,7 +2,7 @@ from pathlib import Path
 import re
 
 def bibliography_entries(tex_source):
-	with Path(tex_source).open('rt') as f:
+	with Path(tex_source).open('rt', encoding='utf-8') as f:
 		finished = False
 		while not finished:
 			line = next(f)
@@ -22,31 +22,46 @@ extractor = re.compile(r"""
 	(.+)
 """, re.VERBOSE)
 
-translator = {
-	'``': '"',
-	"''": '"',
-	"~": ' ',
-	r"\'{e}": "é",
-	r"\'{o}": "ó",
-}
+translator = [
+	('``'    , '"'),
+	("''"    , '"'),
+	("~"     , ' '),
+	(r"\'{e}", "é"),
+	(r"\'{o}", "ó"),
+	("---"   , "—"), #em dash
+	("--"    , "–"), #en dash
+	(r"\\"    , "")
+]
 
-italics = re.compile(r"""
-	\{\\it(.+?)\}
-""", re.VERBOSE)
+tex_group = r"\{{\\{}\s*(.+?)\s*\}}"
+tex_macro = r"\\{}\{{(.+?)\}}"
+italics = [
+	re.compile(tex_group.format('it')),
+	re.compile(tex_group.format('em')),
+	re.compile(tex_macro.format('emph'))
+]
+bolds = [
+	re.compile(tex_group.format('bf')),
+	re.compile(tex_macro.format('textbf'))
+]
+maths = re.compile(r'\$(.+?)\$')
 
 def tidy_up(text):
 	text = text.strip()
-	for key, value in translator.items():
+	for key, value in translator:
 		text = text.replace(key, value)
-	m = italics.match(text)
-	print(text, m.groups() if m is not None else None)
-	text = italics.sub('*\1*', text)
+	
+	for italic in italics:
+		text = italic.sub(r' *\1* ', text)
+	for bold in bolds:
+		text = bold.sub(r' **\1** ', text)
+	text = maths.sub(r' :math:`\1` ', text)
 	return text
 
 if __name__ == '__main__':
 	refs = {}
 	
-	for line in bibliography_entries(r'H:\barker\conj_paper\pconj.tex'):
+	for line in bibliography_entries(r'..\..\barker\conj_paper\pconj.tex'):
 		if line == '' or line.startswith('%'):
 			continue
 		try:
@@ -60,4 +75,5 @@ if __name__ == '__main__':
 	
 	with open('paper_bibliography.txt', 'wt', encoding='utf-8') as f:
 		for key, text in sorted(refs.items()):
-			print('.. [{}] {}'.format(key, text), file=f)
+			print(r'.. [{}] \{}'.format(key, text), file=f)
+

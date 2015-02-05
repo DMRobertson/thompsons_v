@@ -1,21 +1,21 @@
-.. [AS74] M. Anshel and P. Stebe, "The solvability of the conjugacy problem for certain HNN groups", **, {\bf 80} (2) (1974) 266--270.
-.. [B] K. Brown, "Finiteness properties of groups". \emph{J. Pure Appl. Algebra} \textbf{44} (1987), no. 1-3, 45â€“75.
-.. [BGG11] C. Bleak, , H. Bowman, A. Gordon, G. Graham, J.Hughes, F. Matucci , J.Sapir, F. Matucci, "Centralizers in R.Thompson's group $V_{n}$", \emph{Groups, Geometry and Dynamics} \textbf{7}, No. 4 (2013), 821-865.
-.. [BM07] J. M. Belk and F. Matucci, "Conjugacy and dynamics in Thompson's groups", \emph{Geom. Dedicata} \textbf{169} (1) (2014) 239-261.
-.. [BO93] R. V. Book and F. Otto, "String-rewriting Systems", Springer, (1993).
-.. [Brin04] M.G. Brin, "Higher dimensional Thompson groups", {\em Geom. Dedicata}, {\bf 108} (2004) 163-192.
-.. [CFP96] J.W. Cannon, W.J. Floyd and W.R. Parry, "Introductory notes on Richard Thompson's groups", {\em Enseign. Math.}, (2) {\bf 42}(3-4) (1996) 215-256.
-.. [Cohn81] P. M. Cohn, "Universal Algebra". Mathematics and its Applications, 6, D. Reidel Pub. Company, (1981).
-.. [Cohn91] P. M. Cohn, "Algebra, Volume 3". J. Wiley, (1991).
-.. [Com77] L. P. J. Comerford, "A note on power-conjugacy", {\em Houston J. Math.} 3 (1977), no. 3, 337---341.
-.. [DMP] W. Dicks, C. Martinez-Pérez, "Isomorphisms of Brin-Higman-Thompson groups", \emph{Israel Journal of Mathematics}, \textbf{199} (2014), 189--218.
-.. [Hig74] G. Higman, "Finitely presented infinite simple groups",  {\em Notes on Pure Mathematics}, Vol. 8 (1974).
-.. [JT61] B. Jónsson and A. Tarski, "On two properties of free algebras", {\em Math. Scand.}, {\bf 9 } (1961) 95-101.
-.. [Lip66] S. Lipschutz, "Generalisation of Dehn's result on the conjugacy problem", {\em Proc. Amer. Math. Soc.}, {\bf 17} (1966) 759--762.
-.. [Lot83] M. Lothaire, "Combinatorics on Words", Addison-Wesley, Advanced Book Program, World Science Division, (1983).
-.. [MPN] C. Martinez-Perez, B. Nukinkis, "Bredon cohomological finiteness conditions for generalisations of Thompson's groups", {\em Groups Geom. Dyn.} {\bf 7} (4) (2013) 931--959.
-.. [MT] McKenzie, Ralph; Thompson, Richard J."An elementary construction of unsolvable word problems in group theory", Word problems: decision problems and the Burnside problem in group theory, Studies in Logic and the Foundations of Math., 71, pp. 457--478. North-Holland, Amsterdam, (1973).
-.. [Pardo] E. Pardo, "The isomorphism problem for Higman-Thompson groups", \emph{Journal of Algebra}, \textbf{344} (2011), 172-â€“183.
-.. [Pride08] S. J. Pride, "On the residual finiteness and other properties of (relative) one-relator groups", {\em Proc. Amer. Math. Soc.} {\bf136} (2) (2008) 377--386.
-.. [SD10] O.P. Salazar-Diaz, "Thompson's group V from a dynamical viewpoint", {\em Internat. J. Algebra Comput.}, 1, 39-70, 20, (2010).
-.. [Tho] R.J. Thompson, unpublished notes.\\ http://www.math.binghamton.edu/matt/thompson/index.html
+.. [AS74] \M. Anshel and P. Stebe, "The solvability of the conjugacy problem for certain HNN groups",  *Bull. Amer. Math. Soc.* ,  **80**  (2) (1974) 266–270.
+.. [B] \K. Brown, "Finiteness properties of groups".  *J. Pure Appl. Algebra*   **44**  (1987), no. 1-3, 45–75.
+.. [BGG11] \C. Bleak, , H. Bowman, A. Gordon, G. Graham, J.Hughes, F. Matucci , J.Sapir, F. Matucci, "Centralizers in R.Thompson's group  :math:`V_{n}` ",  *Groups, Geometry and Dynamics*   **7** , No. 4 (2013), 821-865.
+.. [BM07] \J. M. Belk and F. Matucci, "Conjugacy and dynamics in Thompson's groups",  *Geom. Dedicata*   **169**  (1) (2014) 239-261.
+.. [BO93] \R. V. Book and F. Otto, "String-rewriting Systems", Springer, (1993).
+.. [Brin04] \M.G. Brin, "Higher dimensional Thompson groups",  *Geom. Dedicata* ,  **108**  (2004) 163-192.
+.. [CFP96] \J.W. Cannon, W.J. Floyd and W.R. Parry, "Introductory notes on Richard Thompson's groups",  *Enseign. Math.* , (2)  **42** (3-4) (1996) 215-256.
+.. [Cohn81] \P. M. Cohn, "Universal Algebra". Mathematics and its Applications, 6, D. Reidel Pub. Company, (1981).
+.. [Cohn91] \P. M. Cohn, "Algebra, Volume 3". J. Wiley, (1991).
+.. [Com77] \L. P. J. Comerford, "A note on power-conjugacy",  *Houston J. Math.*  3 (1977), no. 3, 337—341.
+.. [DMP] \W. Dicks, C. Martinez-Pérez, "Isomorphisms of Brin-Higman-Thompson groups",  *Israel Journal of Mathematics* ,  **199**  (2014), 189–218.
+.. [Hig74] \G. Higman, "Finitely presented infinite simple groups",   *Notes on Pure Mathematics* , Vol. 8 (1974).
+.. [JT61] \B. Jónsson and A. Tarski, "On two properties of free algebras",  *Math. Scand.* ,  **9**  (1961) 95-101.
+.. [Lip66] \S. Lipschutz, "Generalisation of Dehn's result on the conjugacy problem",  *Proc. Amer. Math. Soc.* ,  **17**  (1966) 759–762.
+.. [Lot83] \M. Lothaire, "Combinatorics on Words", Addison-Wesley, Advanced Book Program, World Science Division, (1983).
+.. [MPN] \C. Martinez-Perez, B. Nukinkis, "Bredon cohomological finiteness conditions for generalisations of Thompson's groups",  *Groups Geom. Dyn.*   **7**  (4) (2013) 931–959.
+.. [MT] \McKenzie, Ralph; Thompson, Richard J."An elementary construction of unsolvable word problems in group theory", Word problems: decision problems and the Burnside problem in group theory, Studies in Logic and the Foundations of Math., 71, pp. 457–478. North-Holland, Amsterdam, (1973).
+.. [Pardo] \E. Pardo, "The isomorphism problem for Higman-Thompson groups",  *Journal of Algebra* ,  **344**  (2011), 172-–183.
+.. [Pride08] \S. J. Pride, "On the residual finiteness and other properties of (relative) one-relator groups",  *Proc. Amer. Math. Soc.*   **136**  (2) (2008) 377–386.
+.. [SD10] \O.P. Salazar-Diaz, "Thompson's group V from a dynamical viewpoint",  *Internat. J. Algebra Comput.* , 1, 39-70, 20, (2010).
+.. [Tho] \R.J. Thompson, unpublished notes. http://www.math.binghamton.edu/matt/thompson/index.html

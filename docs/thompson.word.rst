@@ -12,7 +12,7 @@ We treat the :math:`x_i` are constants, the :math:`\alpha_i` are unary operators
 Notation
 --------
 
-If we collect together all such words, we obtain an *algebra* (in the sense of `universal algebra <http://en.wikipedia.org/wiki/Universal_algebra>`_) of words. We consider three different algebras; using the notation of [Cohn]_:
+If we collect together all such words, we obtain an *algebra* (in the sense of `universal algebra <http://en.wikipedia.org/wiki/Universal_algebra>`_) of words. We consider three different algebras; using the notation of [Cohn81]_:
 
 .. _type1:
 

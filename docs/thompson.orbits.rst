@@ -1,7 +1,7 @@
 Orbits
 ======
 
-Let :math:`y` be a word, and let :math:`X` be an expansion of the standard basis :math:`\boldsymbol{x}=\{x_1, \dotsc, x_n\}`; finally let :math:`\phi` be an :class:`~thompson.mixed.MixedAut`. We call the set :math:`\mathrm{orb}_\phi(y) = \{ y \phi^i\}_{i\in \mathbb Z}` the :math:`\phi`-orbit of :math:`y`. Let us refer to the intersection :math:`\mathrm{orb}_\phi (y) \cap X\langle A \rangle` as the :math:`X` *-component* of (the :math:`\phi`-orbit of) :math:`y`. Higman demonstrated how we could classify these components in [Hig]_ (section 9). 
+Let :math:`y` be a word, and let :math:`X` be an expansion of the standard basis :math:`\boldsymbol{x}=\{x_1, \dotsc, x_n\}`; finally let :math:`\phi` be an :class:`~thompson.mixed.MixedAut`. We call the set :math:`\mathrm{orb}_\phi(y) = \{ y \phi^i\}_{i\in \mathbb Z}` the :math:`\phi`-orbit of :math:`y`. Let us refer to the intersection :math:`\mathrm{orb}_\phi (y) \cap X\langle A \rangle` as the :math:`X` *-component* of (the :math:`\phi`-orbit of) :math:`y`. Higman demonstrated how we could classify these components in [Hig74]_ (section 9). 
 
 This module is responsible for two orbit-related data structures. Firstly, :class:`~thompson.orbits.ComponentType` is set up to describe all possible types of orbits according to Higman's scheme. Secondly, the :class:`~thompson.orbits.SolutionSet` describes solutions to the equation :math:`u \phi^i = v`.
 
