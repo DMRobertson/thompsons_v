@@ -72,7 +72,8 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 		rtd_theme = True
 		html_theme = "sphinx_rtd_theme"
 		html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-else:                              
+else:   
+    rtd_theme = True
     # Override default css to get a larger width for ReadTheDoc build            
     html_context = {                                                             
         'css_files': [                                                           
@@ -81,7 +82,7 @@ else:
             '_static/css/tweaks.css',                                       
         ],                                                                       
     }
-	# otherwise, readthedocs.org uses their theme by default, so no need to specify it
+# otherwise, readthedocs.org uses their theme by default, so no need to specify it
 
 """Options for extensions"""
 #Methods and attributes which are documented are displayed in the same order as their docstrings are defined.
