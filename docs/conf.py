@@ -65,8 +65,9 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 	try:
 		import sphinx_rtd_theme
 	except ImportError:
-		pass
+		rtd_theme = False
 	else:
+		rtd_theme = True
 		html_theme = "sphinx_rtd_theme"
 		html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # otherwise, readthedocs.org uses their theme by default, so no need to specify it
@@ -202,6 +203,8 @@ pygments_style = 'sphinx'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+if rtd_theme:
+	html_style = "css/tweaks.css"
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

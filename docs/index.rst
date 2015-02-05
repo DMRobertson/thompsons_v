@@ -5,7 +5,7 @@ The ``thompson`` package
 
 .. epigraph::
 	
-	[AS]_ Given two elements :math:`x` and :math:`y` of a group, are there integers :math:`a` and :math:`b` and a third element :math:`z` for which :math:`x^a = zy^bz^{-1} \neq 1`? If so, provide them.
+	[AS74]_ Given two elements :math:`x` and :math:`y` of a group, are there integers :math:`a` and :math:`b` and a third element :math:`z` for which :math:`x^a = zy^bz^{-1} \neq 1`? If so, provide them.
 
 This package aims to implement the algorithms described in the paper. To do so it provides tools for working in
 

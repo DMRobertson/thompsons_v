@@ -230,7 +230,7 @@ class Automorphism(Homomorphism):
 		
 		.. note:: This method is called automatically at creation time and is **not** needed to be called by the user. Additionally, this  method is responsible for finding ponds and the :class:`other attributes available <Automorphism>`.
 		
-		.. seealso:: Quasi-normal forms are introduced in Section :paperref:`sec:qnf` of the paper. In particular, this method implements Lemma :paperref:`lem:qnf`. Higman first described the idea of quasi-normal forms in Section 9 of [Hig]_.
+		.. seealso:: Quasi-normal forms are introduced in Section :paperref:`sec:qnf` of the paper. In particular, this method implements Lemma :paperref:`lem:qnf`. Higman first described the idea of quasi-normal forms in Section 9 of [Hig74]_.
 		"""
 		#todo:: Make the QNB read-only somehow, so that it cannot be expanded once computed.
 		self.quasinormal_basis = None

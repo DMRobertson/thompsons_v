@@ -1,0 +1,3 @@
+@import "theme.css";
+
+.rst-content .docutils.citation td.label, .rst-content table.docutils.footnote td.label { width: 5em}
