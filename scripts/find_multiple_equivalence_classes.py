@@ -11,7 +11,7 @@ from networkx.algorithms.components import number_weakly_connected_components as
 from thompson import Automorphism
 # from thompson.examples import *
 
-aut = Automorphism.from_file('multiple_classes.aut')
+aut = Automorphism.from_file('multiple_classes_2.aut')
 print(aut)
 aut.dump_QNB()
 type_b, type_c = aut._split_basis()
