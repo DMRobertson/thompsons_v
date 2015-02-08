@@ -18,8 +18,7 @@ def needs_defaults(undec):
 		if signature is None:
 			signature = random_signature()
 		if num_expansions is None:
-			num_expansions = randint(1, 3)
-			# num_expansions = randint(1, 5)
+			num_expansions = randint(1, 5)
 		return undec(signature, num_expansions)
 	decd.__doc__ = undec.__doc__
 	return decd
@@ -29,8 +28,7 @@ def random_signature():
 	
 	.. note:: This function is used to select a random signature when no *signature* argument is provided to the following random functions.
 	"""
-	return Signature(2, 1)
-	# return Signature(randint(2, 4), randint(1, 5))
+	return Signature(randint(2, 4), randint(1, 5))
 
 def random_simple_word(signature=None):
 	r"""Randomly generates a :meth:`simple <thompson.word.Word.is_simple>` :class:`~thompson.word.Word` belonging to the algebra with the given *signature*. The word consists of an :math:`x_i` followed by 0--15 descendant operators :math:`\alpha_j`. The length and the index of each :math:`\alpha_j` is chosen (uniformly) at random.
@@ -123,14 +121,14 @@ def random_conjugate_infinite_pair(signature, num_expansions):
 	return psi, phi
 
 def random_powers():
-	a = randint(1, 3)
-	b = randint(1, 3)
+	a = randint(1, 10)
+	b = randint(1, 10)
 	if randint(0, 1): a *= -1
 	if randint(0, 1): b *= -1
 	return a, b
 
 #For cheating in doctests. The maximum moduli of a and b that can be produced by the method above
-random_power_bounds = (3, 3) 
+random_power_bounds = (10, 10) 
 
 @needs_defaults
 def random_power_conjugate_pair(signature, num_expansions):
@@ -141,7 +139,6 @@ def random_power_conjugate_pair(signature, num_expansions):
 		a, b = random_powers()
 		psi_ab = psi ** (a * b)
 		unfinished = psi.order < float('inf') and (a * b) % psi.order == 0
-	# print(a, b)
 	rho = random_automorphism(signature)
 	phi = (~rho) * (psi ** a) * rho
 	psi_b = psi **  b
