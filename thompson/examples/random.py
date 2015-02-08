@@ -121,14 +121,14 @@ def random_conjugate_infinite_pair(signature, num_expansions):
 	return psi, phi
 
 def random_powers():
-	a = randint(1, 10)
-	b = randint(1, 10)
+	a = randint(1, 5)
+	b = randint(1, 5)
 	if randint(0, 1): a *= -1
 	if randint(0, 1): b *= -1
 	return a, b
 
 #For cheating in doctests. The maximum moduli of a and b that can be produced by the method above
-random_power_bounds = (10, 10) 
+random_power_bounds = (5, 5) 
 
 @needs_defaults
 def random_power_conjugate_pair(signature, num_expansions):
