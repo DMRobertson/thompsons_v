@@ -6,4 +6,4 @@ x a2 a1 a1 a1	->	x a2 a1
 x a2 a1 a1 a2	->	x a2 a2 a1 a1
 x a2 a1	a2		->	x a1
 x a2 a2			->	x a2 a2 a1 a2
-One of Nathan's examples. This is *almost*, but not quite conjugate to nathan_pond_example. Nathan had this to say: "*I untwisted one of the infinite orbits after a conjugation and so they definitely should not be conjugate.*"
+One of Nathan's examples. This is *almost*, but not quite conjugate to nathan_pond_example. Nathan had this to say: *"I untwisted one of the infinite orbits after a conjugation and so they definitely should not be conjugate."*

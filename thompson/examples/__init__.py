@@ -23,6 +23,7 @@ __all__ = random.__all__
 
 def add_module_attribute(name, value):
 	globals()[name] = value
+	# print('loading', name)
 	__all__.append(name)
 
 remove_whitespace = str.maketrans('', '', string.whitespace)
@@ -47,6 +48,8 @@ def read_examples():
 			p, i = aut.free_factors()
 			add_module_attribute(name + '_p', p)
 			add_module_attribute(name + '_i', i)
+			p.__doc__ = "A purely periodic free factor, extracted from {}.".format(name)
+			i.__doc__ = "A purely infinite free factor, extracted from {}.".format(name)
 	
 	#3. If any examples have more than one name, deal with that next.
 	aliases = pkg_resources.resource_filename("thompson.examples", "aliases.txt")

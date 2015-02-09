@@ -5,3 +5,4 @@ x a2 a1 a1 a1	->	x a2
 x a2 a1 a1 a2	->	x a1 a1
 x a2 a1 a2		->	x a1 a2 a1
 x a2 a2			->	x a1 a2 a2 a1
+A purely infinite automorphism which illustrates the bounds :math:`\hat a, \hat b` for power conjugacy.

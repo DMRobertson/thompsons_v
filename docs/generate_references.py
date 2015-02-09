@@ -28,6 +28,7 @@ translator = [
 	("~"     , ' '),
 	(r"\'{e}", "é"),
 	(r"\'{o}", "ó"),
+	(r"\"{o}", "ö"),
 	("---"   , "—"), #em dash
 	("--"    , "–"), #en dash
 	(r"\\"    , "")
@@ -44,7 +45,9 @@ bolds = [
 	re.compile(tex_group.format('bf')),
 	re.compile(tex_macro.format('textbf'))
 ]
+code = re.compile(tex_group.format('tt'))
 maths = re.compile(r'\$(.+?)\$')
+url = re.compile(tex_macro.format('url'))
 
 def tidy_up(text):
 	text = text.strip()
@@ -55,7 +58,9 @@ def tidy_up(text):
 		text = italic.sub(r' *\1* ', text)
 	for bold in bolds:
 		text = bold.sub(r' **\1** ', text)
-	text = maths.sub(r' :math:`\1` ', text)
+	text = code.sub(r'``\1``', text)
+	text = url.sub(r'\1', text)
+	text = maths.sub(r' :math:`\1`', text)
 	return text
 
 if __name__ == '__main__':

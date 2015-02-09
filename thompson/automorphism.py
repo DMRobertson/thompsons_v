@@ -94,13 +94,13 @@ class Automorphism(Homomorphism):
 		
 		Examples of finding inverse images:
 		
-			>>> print(example_4_25.image('x1 a2 a2', inverse=True))
+			>>> print(example_5_15.image('x1 a2 a2', inverse=True))
 			x1 a2 a2 a1 a1
-			>>> print(example_4_25.image('x1 a1 a1 a2 a2 a1', inverse=True))
+			>>> print(example_5_15.image('x1 a1 a1 a2 a2 a1', inverse=True))
 			x1 a2 a1 a2 a1
-			>>> print(example_4_25.image('x a2', inverse=True))
+			>>> print(example_5_15.image('x a2', inverse=True))
 			x1 a2 a2 a2 x1 a2 a2 a1 a1 L
-			>>> print(example_4_25.image('x a2 a2 x a1 a2 L', inverse=True))
+			>>> print(example_5_15.image('x a2 a2 x a1 a2 L', inverse=True))
 			x1 a2 a2 a1
 		"""
 		if inverse:
@@ -130,9 +130,9 @@ class Automorphism(Homomorphism):
 		
 		.. doctest::
 			
-			>>> print(example_4_25.repeated_image('x1 a1', 10))
+			>>> print(example_5_15.repeated_image('x1 a1', 10))
 			x1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
-			>>> print(example_4_25.repeated_image('x1 a1 a1 a1 a1 a1 a1 a1', -3))
+			>>> print(example_5_15.repeated_image('x1 a1 a1 a1 a1 a1 a1 a1', -3))
 			x1 a1
 			>>> print(arity_four.repeated_image('x1 a4 a4 a2', 4))
 			x1 a3 a3 a2
@@ -335,7 +335,7 @@ class Automorphism(Homomorphism):
 			Generators((2, 1), ['x1 a1', 'x1 a2'])
 			>>> example_4_12.seminormal_form_start_point()
 			Generators((2, 1), ['x1 a1', 'x1 a2'])
-			>>> example_4_25.seminormal_form_start_point()
+			>>> example_5_15.seminormal_form_start_point()
 			Generators((2, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
 			>>> cyclic_order_six.seminormal_form_start_point()
 			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
@@ -400,7 +400,7 @@ class Automorphism(Homomorphism):
 			x1 a2 a2: Periodic component of order 4
 			with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 			>>> #Example 4.25
-			>>> print_component_types(example_4_25)
+			>>> print_component_types(example_5_15)
 			x1 a1: Right semi-infinite component with characteristic (1, a1 a1)
 			x1 a2 a1: Bi-infinite component
 			x1 a2 a2: Left semi-infinite component with characteristic (-1, a1 a1)
@@ -538,7 +538,7 @@ class Automorphism(Homomorphism):
 			[x1 a1] [x1 a2]
 			>>> print(*example_4_12.semi_infinite_end_points())
 			[] []
-			>>> print(*example_4_25.semi_infinite_end_points())
+			>>> print(*example_5_15.semi_infinite_end_points())
 			[x1 a2 a2, x1 a2 a2 a1] [x1 a1, x1 a1 a1]
 			>>> print(*example_6_2.semi_infinite_end_points())
 			[x1 a1 a1] [x1 a2]
@@ -610,7 +610,7 @@ class Automorphism(Homomorphism):
 			>>> example_4_1.print_characteristics()
 			(-1, a1)
 			(1, a2)
-			>>> example_4_25.print_characteristics()
+			>>> example_5_15.print_characteristics()
 			(-1, a1 a1)
 			(1, a1 a1)
 			>>> example_6_2.print_characteristics()
@@ -675,9 +675,9 @@ class Automorphism(Homomorphism):
 			>>> u  = Word('x a2 a2 a1 a1 a2', (2, 1))
 			>>> v1 = Word('x a1 a2', (2, 1))
 			>>> v2 = Word('x a1 a1 a2', (2, 1))
-			>>> print(example_4_25.share_orbit(u, v1))
+			>>> print(example_5_15.share_orbit(u, v1))
 			{}
-			>>> print(example_4_25.share_orbit(u, v2))
+			>>> print(example_5_15.share_orbit(u, v2))
 			{3}
 			>>> u  = Word('x a2 a2 x a1 a2 L x a2 a1 L x a1 a1 a1 a2 L', (2, 1))
 			>>> vs = [
@@ -686,7 +686,7 @@ class Automorphism(Homomorphism):
 			... 	Word('x a2 a2 x a1 a2 L', (2, 1)),
 			... 	Word('x a1 a1 x a1 a2 x a2 a2 L L', (2, 1))]
 			... 
-			>>> for v in vs: print(example_4_25.share_orbit(u, v))
+			>>> for v in vs: print(example_5_15.share_orbit(u, v))
 			{-4}
 			{}
 			{-1}
@@ -788,12 +788,12 @@ class Automorphism(Homomorphism):
 		* :math:`\widetilde{y}\widetilde{\Gamma}` is in the same orbit as :math:`y\Gamma`.
 		* :math:`\widetilde{\Gamma}` does not start with the characteristic multiplier of :math:`\widetilde{y}`.
 		
-			>>> basis = example_4_25.quasinormal_basis
+			>>> basis = example_5_15.quasinormal_basis
 			>>> basis
 			Generators((2, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
 			>>> head = Word('x a2 a2', (2, 1))
-			>>> _, _, type_b_data = example_4_25.orbit_type(head, basis)
-			>>> example_4_25._type_b_descendant(head, from_string('a1 a1 a2'), type_b_data)
+			>>> _, _, type_b_data = example_5_15.orbit_type(head, basis)
+			>>> example_5_15._type_b_descendant(head, from_string('a1 a1 a2'), type_b_data)
 			(1, Word('x1 a2 a2', (2, 1)), (-2,))
 		"""
 		orig_head = head

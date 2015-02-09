@@ -1,0 +1,86 @@
+alphabet_size_two
+	A toy example to test that the program works in :math:`V_{3,2}`.
+arity_four
+	Another example for sanity checking. This is an automorphism of :math:`V_{4,1}`.
+arity_three_order_inf
+	A purely :mod:`~thompson.infinite` automorphism of :math:`V_{3,1}`
+cyclic_order_six
+	An introductory example drawn on the board by NB. It is purely periodic of order six.
+example_4_1
+	This example is used in the paper to illustrate the meaning of a semi-normal form (Example :paperref:`ex:snf1`) and of a tree pair diagram (Example :paperref:`snf0`).
+example_4_11
+	This example is used in the paper to illustrate the meaning of a semi-normal form (Example :paperref:`ex:snf1`) and of a tree pair diagram (Example :paperref:`snf0`).
+example_4_12
+	This example is used in the paper to illustrate the meaning of a semi-normal form. This example needs to be expanded from its minimal representation to find a semi-normal (in fact quasi-normal) form.
+example_4_17
+	Nathan's example of an automorphism containing a pond. This was simpler than the first example found.
+example_4_33
+	Nathan's example of an automorphism containing a pond. This was simpler than the first example found.
+example_4_35
+	Nathan's example of an automorphism containing a pond. This was simpler than the first example found.
+example_4_5
+	This example is used to illustrate the different types of :mod:`components/orbits <thompson.orbits>` in the paper.
+example_4_7
+	This example is used to illustrate the different types of :mod:`components/orbits <thompson.orbits>` in the paper.
+example_5_12_phi
+	The example used in the paper to demonstrate the :meth:`periodic conjugacy test <thompson.periodic.PeriodicAut.test_conjugate_to>`.
+example_5_12_psi
+	The example used in the paper to demonstrate the :meth:`periodic conjugacy test <thompson.periodic.PeriodicAut.test_conjugate_to>`.
+example_5_15
+	This example is used in the paper to illustrate the process of finding the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>`.
+example_5_18
+	This example is used in the paper to illustrate the process of finding the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>`.
+example_5_2
+	This example is used to illustrate the different types of :mod:`components/orbits <thompson.orbits>` in the paper.
+example_5_26_phi
+	This example is used in the paper to illustrate the process of finding the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>`.
+example_5_26_psi
+	The example used in the paper to demonstrate the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>`.
+example_5_3
+	This example is used to demonstrate how we can break down an automorphism into its :meth:`~thompson.mixed.MixedAut.free_factors`.
+example_5_3_i
+	A purely infinite free factor, extracted from example_5_3.
+example_5_3_p
+	A purely periodic free factor, extracted from example_5_3.
+example_5_9
+	This example is used in the paper to illustrate the definition of :class:`cycle types <thompson.periodic.PeriodicAut>`.
+example_6_2
+	Example :paperref:`pcExample1` of the paper, used to illustrate lemma :paperref:`AJDLEMMACMa`.
+example_6_8_phi
+	A purely infinite automorphism which illustrates the bounds :math:`\hat a, \hat b` for power conjugacy.
+example_6_8_psi
+	This example is used in the paper to illustrate the meaning of a semi-normal form (Example :paperref:`ex:snf1`) and of a tree pair diagram (Example :paperref:`snf0`).
+example_6_9_phi
+	Example :paperref:`pcExample1` of the paper, used to illustrate lemma :paperref:`AJDLEMMACMa`.
+example_6_9_psi
+	This example is used in the paper to illustrate the meaning of a semi-normal form (Example :paperref:`ex:snf1`) and of a tree pair diagram (Example :paperref:`snf0`).
+first_pond_example_phi
+	The first example of a pond orbit, found by a random search. Its banks are :math:`x\alpha_1^4\alpha_2` and :math:`x\alpha_1\alpha_2^2`.
+first_pond_example_psi
+	The element which was conjugate to the first example of a pond orbit, found by a random search.
+inf_conj_phi
+	An example used to debug the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>`.
+inf_conj_psi
+	An example used to debug the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>`.
+mixed_pconj_phi
+	An example of mixed power conjugacy found by random search. Should have :math:`\psi^{-4} \sim \phi^2`.
+mixed_pconj_psi
+	An example of mixed power conjugacy found by random search. Should have :math:`\psi^{-4} \sim \phi^2`.
+nathan1_example
+	One of Nathan's examples. This is *almost*, but not quite conjugate to nathan_pond_example. Nathan had this to say: *"I untwisted one of the infinite orbits after a conjugation and so they definitely should not be conjugate."*
+nathan2_example
+	One of Nathan's examples. Nathan had this to say: "*nathan2_example is conjugate to nathan3_example, via a rho that can be found using your program or nathan4_example. Note that characteristics are not the same for two of the semi-infinite orbits.*"
+nathan3_example
+	One of Nathan's examples. Nathan had this to say: "*nathan2_example is conjugate to nathan3_example, via a rho that can be found using your program or nathan4_example. Note that characteristics are not the same for two of the semi-infinite orbits.*"
+nathan4_example
+	One of Nathan's examples. Nathan had this to say: "*nathan2_example is conjugate to nathan3_example, via a rho that can be found using your program or nathan4_example. Note that characteristics are not the same for two of the semi-infinite orbits.*"
+nathan_pond_example
+	Nathan's example of an automorphism containing a pond. This was simpler than the first example found.
+periodic_QNB_206
+	This purely periodic automorphism (again found by random search) has a quasinormal basis of size 206.
+periodic_QNB_344
+	This purely periodic automorphism (again found by random search) has a quasinormal basis of size 344.
+pond_width_4
+	An example found by random search of a pond orbit of width 4. Prior to this we had only seen ponds of width 1 or 2. 
+power_smaller_QNB
+	The square of this automorphism appears to have a QNB above the QNB of the original automorphism.

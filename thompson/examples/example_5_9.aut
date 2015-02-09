@@ -7,4 +7,4 @@ x a2 a1 a1	->	x a2 a1 a2
 x a2 a1 a2	->	x a2 a1 a1
 x a2 a2 a1	->	x a2 a2 a2
 x a2 a2 a2	->	x a2 a2 a1
-This example is used in the paper to illustrate the definition of :class:`cycle types <thompson.factors.PeriodicFactor>`.
+This example is used in the paper to illustrate the definition of :class:`cycle types <thompson.periodic.PeriodicAut>`.
