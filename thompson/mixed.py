@@ -14,7 +14,7 @@ __all__ = ["MixedAut"]
 from copy import copy
 from itertools import product, chain
 
-from .number_theory import solve_linear_congruence
+from .number_theory import solve_linear_congruence, lcm
 from .word          import *
 from .generators    import *
 from .homomorphism  import Homomorphism
@@ -248,56 +248,36 @@ class MixedAut(Automorphism):
 		return size_check
 	
 	#Power conjugacy
-	def test_power_conjugate_to(self, other, cheat=False):
-		r"""Determines if some power of the current automorphism :math:`\psi` is conjugate to some power of the *other* automorphism :math:`\phi`.
+	def find_power_conjugators(self, other, cheat=False):
+		r"""Determines if some power of the current automorphism :math:`\psi` is conjugate to some power of the *other* automorphism :math:`\phi`. This method exhaustively searches for all minimal solutions :math:`(a, b, \rho)` such that :math:`\rho^{-1}\psi^a\rho = \phi^b`. This method returns a generator which yields such minimal solutions.
 		
-		:returns: if it exists, a triple :math:`(a, b, \rho)` such that :math:`\rho^{-1}\psi^a\rho = \phi^b`. If no such triple exists, returns ``None``.
+		.. warning:: If the :meth:`~thompson.infinite.InfiniteAut.power_conjugacy_bounds` are reasonable large (say > 30), this method could potentially take a long time!
 		
-		:param cheat: for internal testing.
+		:param cheat: (internal) for speeding up testing.
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
-		
-		.. doctest::
-			
-			>>> #Currently this runs very slowly when large bounds are produced. These tests are meant to be short sanity checks, so we cheat by giving Python some very good bounds on the powers.
-			>>> psi, phi = random_power_conjugate_pair()
-			>>> result = psi.test_power_conjugate_to(phi, cheat=True)
-			>>> result is not None
-			True
-			>>> a, b, rho = result
-			>>> (psi ** a) * rho == rho * (phi ** b)
-			True
 		
 		.. seealso:: This is an implementation of Algorithm :paperref:`powerconjAlgorithm` in the paper. It depends on Algorithms :paperref:`conjAlgorithm` (the :meth:`conjugacy test <test_conjugate_to>`) and :paperref:`alg:pcRI` (the :meth:`infinite power conjugate test <thompson.infinite.InfiniteAut.test_power_conjugate_to>`.)
 		"""
-		# print(self.__class__.__name__, other.__class__.__name__)
 		#0. Check that both automorphisms belong to the same G_{n,r}.
 		if self.signature != other.signature:
-			# print('signature mismatch')
 			raise ValueError('MixedAut\'s signatures {} and {} do not match.'.format(
 			  self.signature, other.signature))
 		
 		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
 		sizes_okay = self._check_parition_sizes(other)
 		if not sizes_okay:
-			# print('sizes not okay')
 			return None
 		
 		s_p, s_i = self.free_factors()
 		o_p, o_i = other.free_factors()
-		# print('Free factors')
-		# print(s_p)
-		# print(o_p)
-		# print(s_i)
-		# print(o_i)
+		
 		#3. Infinite minimal solns.
-		infinite_conjugators = list(s_i._find_power_conjugators(o_i, cheat=cheat))
-		# print(len(infinite_conjugators), 'infinite_conjugators')
+		infinite_conjugators = list(s_i.find_power_conjugators(o_i, cheat=cheat))
 		if len(infinite_conjugators) == 0:
 			return None
 		
 		#2. Periodic minimal solns.
-		periodic_conjugators = list(s_p._find_power_conjugators(o_p, identity_permitted=True, cheat=cheat))
-		# print(len(periodic_conjugators), 'periodic_conjugators')
+		periodic_conjugators = list(s_p.find_power_conjugators(o_p, identity_permitted=True, cheat=cheat))
 		assert len(periodic_conjugators) > 0
 		
 		#5. Try to recombine.
@@ -308,10 +288,42 @@ class MixedAut(Automorphism):
 					soln = solns.base
 					if soln == 0:
 						soln = solns.increment
-					# print('it looks like we have a solution:', alpha*soln, beta*soln)
 					rho = self._combine_factors(rho_p, rho_i)
-					return alpha*soln, beta*soln, rho
+					yield alpha*soln, beta*soln, rho
+	
+	def test_power_conjugate_to(self, other, cheat=False):
+		r"""Determines if some power of the current automorphism :math:`\psi` is conjugate to some power of the *other* automorphism :math:`\phi`. This method searches for a **single** minimal solution :math:`(a, b, \rho)` such that :math:`\rho^{-1}\psi^a\rho = \phi^b`. If no such solution exists, returns None.
 		
-		#6. If we've got this far, we're out of luck.
-		# print('Tried all combinations')
-		return None
+		.. warning:: If the :meth:`~thompson.infinite.InfiniteAut.power_conjugacy_bounds` are reasonable large (say > 30), this method could potentially take a long time!
+		
+		:param cheat: (internal) for speeding up testing.
+		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
+		
+		>>> a, b, rho = mixed_pconj_psi.test_power_conjugate_to(mixed_pconj_phi)
+		>>> a, b
+		(6, 3)
+		>>> mixed_pconj_psi**a * rho == rho * mixed_pconj_phi ** b
+		True
+		
+		.. seealso:: This is an implementation of Algorithm :paperref:`powerconjAlgorithm` in the paper. It depends on Algorithms :paperref:`conjAlgorithm` (the :meth:`conjugacy test <test_conjugate_to>`) and :paperref:`alg:pcRI` (the :meth:`infinite power conjugate test <thompson.infinite.InfiniteAut.test_power_conjugate_to>`.)
+		"""
+		#0. Check that both automorphisms belong to the same G_{n,r}.
+		if self.signature != other.signature:
+			raise ValueError('MixedAut\'s signatures {} and {} do not match.'.format(
+			  self.signature, other.signature))
+		
+		#1. Before going any further, check that the number of periodic and infinite elements are compatible.
+		sizes_okay = self._check_parition_sizes(other)
+		if not sizes_okay:
+			return None
+		
+		s_p, s_i = self.free_factors()
+		o_p, o_i = other.free_factors()
+		
+		result = s_i.test_power_conjugate_to(o_i)
+		if result is None:
+			return None
+		a, b, rho_i = result
+		ell = lcm(s_p.order, o_p.order)
+		rho_p = (s_p ** ell).test_conjugate_to(o_p ** ell)
+		return a*ell, b*ell, self._combine_factors(rho_p, rho_i)

@@ -134,7 +134,7 @@ class PeriodicAut(Automorphism):
 		rho.add_relabellers(self.domain_relabeller, other.range_relabeller)
 		return rho
 	
-	def _find_power_conjugators(self, other, identity_permitted=False, cheat=False):
+	def find_power_conjugators(self, other, identity_permitted=False, cheat=False):
 		#This is almost exactly the same code as InfiniteAut.test_power_conjugate_to(). Maybe this should be one method on Automorphism
 		if not isinstance(other, PeriodicAut):
 			raise StopIteration
@@ -154,7 +154,7 @@ class PeriodicAut(Automorphism):
 		.. seealso:: Section :paperref:`torPower` of the paper.
 		"""
 		try:
-			return next(self._find_power_conjugators(other, cheat=cheat))
+			return next(self.find_power_conjugators(other, cheat=cheat))
 		except StopIteration:
 			return None
 	

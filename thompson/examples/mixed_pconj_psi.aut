@@ -1,0 +1,10 @@
+7
+(2, 1)         -> (2, 1)
+x1 a1                -> x1 a2 a2
+x1 a2 a1 a1 a1       -> x1 a1
+x1 a2 a1 a1 a2 a1    -> x1 a2 a1 a2 a2 a1
+x1 a2 a1 a1 a2 a2 a1 -> x1 a2 a1 a2 a1
+x1 a2 a1 a1 a2 a2 a2 -> x1 a2 a1 a1 a2
+x1 a2 a1 a2          -> x1 a2 a1 a2 a2 a2
+x1 a2 a2             -> x1 a2 a1 a1 a1
+An example of mixed power conjugacy found by random search. Should have :math:`\psi^{-4} \sim \phi^2`.

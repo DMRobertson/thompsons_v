@@ -1,20 +1,23 @@
 from test import setup_script
 setup_script(__file__)
 
-from thompson import Automorphism
-# from thompson.mixed import MixedAut
-# from thompson.examples import random_power_conjugate_pair
+from thompson.automorphism import Automorphism, PowerCollection
+from thompson.mixed import MixedAut
+from thompson.examples import *
 
 """A script which seeks mixed power conjugate automorphisms"""
 
-psi = Automorphism.from_file('mixed_pconj_psi.aut')
-phi = Automorphism.from_file('mixed_pconj_phi.aut')
+psi = mixed_pconj_psi
+phi = mixed_pconj_phi
 
 print(psi)
 print(phi)
-#orders are 3, 3
-#power bounds for infinite are 625, 16
-rho = psi.test_power_conjugate_to(phi)
+assert psi.test_conjugate_to(phi) is None
+assert (psi**-4).test_conjugate_to(phi**2) is not None
+assert (psi**6).test_conjugate_to(phi**3) is not None
+a, b, rho = psi.test_power_conjugate_to(phi)
+print(a, b)
+print(rho)
 
 def search():
 	while True:
@@ -22,7 +25,7 @@ def search():
 		print(psi.__class__.__name__, phi.__class__.__name__)
 		if not (isinstance(psi, MixedAut) and isinstance(phi, MixedAut)):
 			continue
-		print(psi, phi)
+		print(psi, phi, sep='\n')
 		answer = input('continue?')
 		if answer != 'y':
 			break

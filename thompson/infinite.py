@@ -29,7 +29,7 @@ def get_factor_class(infinite):
 	return InfiniteAut if infinite else PeriodicAut
 
 class InfiniteAut(Automorphism):
-	"""A purely infinite free automorphism which may have been extracted from a mixed automorphism.
+	"""A purely infinite automorphism which may have been extracted from a mixed automorphism.
 	
 		>>> print(example_5_3_i)
 		InfiniteAut: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
@@ -259,8 +259,20 @@ class InfiniteAut(Automorphism):
 			else:
 				yield rho
 	
-	def _find_power_conjugators(self, other, cheat=False):
-		"""Tests two infinite factors to see if they are power conjugate. Yields minimal solns (a, b, rho)."""
+	def find_power_conjugators(self, other, cheat=False):
+		"""Tests two infinite factors to see if they are power conjugate. Yields minimal solutions :math:`(a, b, \rho)`.
+		
+			>>> solns = example_6_8_psi.find_power_conjugators(example_6_8_phi)
+			>>> for a, b, rho in solns:
+			... 	print(a, b)
+			... 	assert example_6_8_psi ** a * rho == rho * example_6_8_phi ** b
+			3 1
+			-3 -1
+		
+		.. warning:: If the :meth:`~thompson.infinite.InfiniteAut.power_conjugacy_bounds` are reasonable large (say > 30), this method could potentially take a long time!
+		
+		.. seealso:: Algorithm :paperref:`alg:pcRI` of the paper.
+		"""
 		if not isinstance(other, InfiniteAut):
 			raise StopIteration
 		if cheat:
@@ -271,7 +283,7 @@ class InfiniteAut(Automorphism):
 		yield from self._test_power_conjugate_upto(other, *bounds, inverses=True)
 	
 	def test_power_conjugate_to(self, other, cheat=False):
-		r"""Tests two periodic factors to see if they are power conjugate. Yields minimal solutions :math:`(a, b, \rho)`. such that :math:`\rho^{-1}\psi^a\rho = \phi^b`.
+		r"""Tests two infinite factors to see if they are power conjugate. If a solution exists, returns :math:`(a, b, \rho)` such that :math:`\rho^{-1}\psi^a\rho = \phi^b`. Otherwise returns None.
 		
 			>>> result = example_6_8_psi.test_power_conjugate_to(example_6_8_phi)
 			>>> result is not None
@@ -280,11 +292,12 @@ class InfiniteAut(Automorphism):
 			>>> (example_6_8_psi ** a) * rho == rho * (example_6_8_phi ** b)
 			True
 		
-		.. seealso:: Algorithm :paperref:`alg:pcRI` of the paper.
+		.. warning:: If the :meth:`~thompson.infinite.InfiniteAut.power_conjugacy_bounds` are reasonable large (say > 30), this method could potentially take a long time!
 		
+		.. seealso:: Algorithm :paperref:`alg:pcRI` of the paper.
 		"""
 		try:
-			return next(self._find_power_conjugators(other, cheat=cheat))
+			return next(self.find_power_conjugators(other, cheat=cheat))
 		except StopIteration:
 			# print('No infinite conjugators')
 			return None
@@ -304,7 +317,6 @@ class InfiniteAut(Automorphism):
 			return 0, 0
 		s_bound = self.compute_bounds(s_parts, o_parts)
 		o_bound = self.compute_bounds(o_parts, s_parts)
-		# print('Infinite bounds:', s_bound, o_bound)
 		return s_bound, o_bound
 	
 	def minimal_partition(self):
