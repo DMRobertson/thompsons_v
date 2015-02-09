@@ -37,8 +37,7 @@ The implementation is written in `Python <python.org>`_ and runs under Python 3.
 
 .. todo::
 	
-	Make this available under an open-source license?
-	Installation instructions/ Tutorial
+	Make this available under an open-source license.
 
 Contents
 --------

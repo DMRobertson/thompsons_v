@@ -1,6 +1,10 @@
-[Nathan Barker](https://www.dpmms.cam.ac.uk/~nb443/) and [Andrew Duncan](http://www.mas.ncl.ac.uk/~najd2/) are currently preparing a paper entitled *The power conjugacy problem in Thompson's group V*, which describes an algorithm to solve the power conjugacy problem in the Higman-Thompson groups $G_{n,r}$.
+[Nathan Barker](https://www.dpmms.cam.ac.uk/~nb443/), [Andrew Duncan](http://www.mas.ncl.ac.uk/~najd2/) and [David Robertson](https://www.students.ncl.ac.uk/d.m.robertson/) are currently preparing a paper entitled *The power conjugacy problem in Higman-Thompson groups* which describes an algorithm to solve a certain equation in the groups named $G_{n,r}$.
 
-This is a package for Python 3.3+ which aims to implement that algorithm. To do so it provides tools for working with the algebra $V_{n,r}$.
+This package aims to implement the algorithms described in the paper. To do so it provides tools for working in
+
+- the algebra $V_{n,r}$, a certain set of words, and
+- the automorphism group $G_{n,r} = \Aut V_{n,r}$.
+
 
 Installation
 ------------
@@ -14,6 +18,6 @@ or download [the ZIPped version](https://github.com/DMRobertson/thompsons_v/arch
 Documentation
 -------------
 
-Documentation is automatically built by [Read the Docs](http://thompsons-v.readthedocs.org/en/latest/).
+Documentation is automatically built by [Read the Docs](http://thompsons-v.readthedocs.org/).
 
 The HTML documentation is generated using [Sphinx](https://pypi.python.org/pypi/Sphinx). To build, ensure that Sphinx is installed (``pip install sphinx``), then navigate to [the docs folder](/docs) and run ``make html``. More interestingly, I'm using Sphinx's [doctest extension](http://sphinx-doc.org/ext/doctest.html) to run some simple automated tests. To use it, ensure Sphinx is installed and run ``make doctest`` from the docs directory.
