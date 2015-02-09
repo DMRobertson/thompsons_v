@@ -5,4 +5,4 @@ x1 a1 a1 a2	->	x1 a1 a2 a1
 x1 a1 a2	->	x1 a1 a2 a2
 x1 a2 a1	->	x1 a2 a2
 x1 a2 a2	->	x1 a2 a1
-This example is used to illustrate the different types of components/orbits in the paper.
+This example is used to illustrate the different types of :mod:`components/orbits <thompson.orbits>` in the paper.

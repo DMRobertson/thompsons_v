@@ -245,9 +245,9 @@ class Generators(list):
 	def descendants_above(self, floor):
 		r"""Suppose we have a basis *floor* below the current basis *ceiling*. There are a finite number of elements below *ceiling* which are not below *floor*. This method enumerates them. In symbols, we are enumerating the set :math:`X\langle A\rangle \setminus F\langle A\rangle`, where :math:`X` is the current basis and :math:`F` is the *floor*.
 		
-			>>> X = example_4_25.quasinormal_basis
-			>>> Y = X.minimal_expansion_for(example_4_25)
-			>>> Z = example_4_25.image_of_set(Y)
+			>>> X = example_5_15.quasinormal_basis
+			>>> Y = X.minimal_expansion_for(example_5_15)
+			>>> Z = example_5_15.image_of_set(Y)
 			>>> terminal = X.descendants_above(Y)
 			>>> initial  = X.descendants_above(Z)
 			>>> print(initial, terminal, sep='\n')

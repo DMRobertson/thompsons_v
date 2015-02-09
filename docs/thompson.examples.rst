@@ -3,18 +3,16 @@ Examples
 
 This module provides a number of explicit examples for use in doctests. Additionally, functions to generate random automorphisms are provided.
 
+.. automodule:: thompson.examples
+
 Explict named examples
 ----------------------
 
-A list of named examples is loaded from the ``.aut`` files in `the examples folder <https://github.com/DMRobertson/thompsons_v/tree/master/thompson/examples>`_. This includes all the examples given in AJD and NB's paper.
+A list of named examples is loaded from the ``.aut`` files in `the examples folder <https://github.com/DMRobertson/thompsons_v/tree/master/thompson/examples>`_. This includes all the examples given in the paper.
 
-.. todo:: Make Sphinx show these examples here? A better system for importing/loading examples?
+.. todo:: The numbered examples need updating to a current version of the paper.
 
-.. automodule:: thompson.examples
-    :members:
-    :undoc-members:
-    :show-inheritance:
-    :exclude-members: random_signature, random_simple_word, random_basis, random_automorphism, random_periodic_automorphism, random_infinite_automorphism, random_conjugate_pair,  random_conjugate_periodic_pair, random_conjugate_infinite_pair, random_powers, random_power_conjugate_pair
+.. include:: examples_table.txt
 
 Randomly generated examples
 ---------------------------

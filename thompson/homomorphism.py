@@ -286,7 +286,7 @@ class Homomorphism:
 			>>> aut = Homomorphism.identity(random_signature())
 			>>> aut.is_identity()
 			True
-			>>> example_4_25.is_identity()
+			>>> example_5_15.is_identity()
 			False
 		"""
 		basis = Generators.standard_basis(self.signature)
@@ -315,20 +315,20 @@ class Homomorphism:
 		.. doctest::
 		
 			>>> #An element of the domain---just a lookup
-			>>> print(example_4_25.image('x1 a1'))
+			>>> print(example_5_15.image('x1 a1'))
 			x1 a1 a1 a1
 			>>> #A word below a the domain words
-			>>> print(example_4_25.image('x1 a1 a2 a2'))
+			>>> print(example_5_15.image('x1 a1 a2 a2'))
 			x1 a1 a1 a1 a2 a2
 			>>> #Above domain words---have to expand.
-			>>> print(example_4_25.image('x1'))
+			>>> print(example_5_15.image('x1'))
 			x1 a1 a1 a1 x1 a1 a1 a2 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L L
 			>>> #Let's try some words not in standard form
-			>>> print(example_4_25.image('x1 a1 a1 x1 a1 a2 L'))
+			>>> print(example_5_15.image('x1 a1 a1 x1 a1 a2 L'))
 			x1 a1 a1 a1
-			>>> print(example_4_25.image('x1 a1 a1 x1 a1 a2 L a2 a1'))
+			>>> print(example_5_15.image('x1 a1 a1 x1 a1 a2 L a2 a1'))
 			x1 a1 a1 a1 a2 a1
-			>>> print(example_4_25.image('x1 a1 a1 x1 a2 a2 L'))
+			>>> print(example_5_15.image('x1 a1 a1 x1 a2 a2 L'))
 			x1 a1 a1 a1 a1 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L
 		
 		:rtype: a :class:`~thompson.word.Word` instance (which are always in standard form).

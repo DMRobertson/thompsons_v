@@ -8,4 +8,4 @@ x a1 a2 a2		->	x a1 a2 a1
 x a2 a1			->	x a2 a1 a1
 x a2 a2 a1		->	x a2 a1 a2
 x a2 a2 a2		->	x a2 a2
-This example is used to demonstrate how we can break down an automorphism into its :meth:`~thompson.automorphism.Automorphism.free_factors`.
+This example is used to demonstrate how we can break down an automorphism into its :meth:`~thompson.mixed.MixedAut.free_factors`.
