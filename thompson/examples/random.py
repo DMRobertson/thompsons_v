@@ -1,3 +1,8 @@
+"""
+.. testsetup::
+	from thompson.examples import *
+"""
+
 from random import randint, shuffle 
 from copy   import copy
 
@@ -90,10 +95,8 @@ def random_infinite_automorphism(signature, num_expansions):
 		#cannot generate an infinite aut with only one expansion
 		num_expansions = 2
 	phi = None
-	while phi is None or isinstance(phi, PeriodicAut):
+	while not isinstance(phi, InfiniteAut):
 		phi = random_automorphism(signature, num_expansions)
-	if isinstance(phi, MixedAut):
-		phi = phi.free_factors()[1]
 	return phi
 
 @needs_defaults

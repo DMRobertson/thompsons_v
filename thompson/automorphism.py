@@ -32,7 +32,9 @@ class Automorphism(Homomorphism):
 	
 	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)` where :math:`\phi` is the current automorphism and :math:`X_\phi` is the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` for :math:`\phi`.
 	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`
-	:ivar order: the smallest positive number :math:`n` for which :math:`\phi^n` is the identity. (This is the lcm of the cycle type.) If no such :math:`n` exists, the order is :math:`\infty`.
+	:ivar order: The :func:`~thompson.number_theory.lcm` of the automorphism's cycle type. This is the group-theoretic order of the :mod:`periodic factor <thompson.periodic>` of :math:`\phi`. If the cycle type is empty, the order is :math:`\infty`. Note that :mod:`mixed automorhpisms <thompson.mixed>` will have a **finite** order, despite being infinite-order group elements.
+	
+	the smallest positive number :math:`n` for which :math:`\phi^n` is the identity. (This is the lcm of the cycle type.) If no such :math:`n` exists, the order is :math:`\infty`.
 	
 	Infinite attributes:
 	
@@ -850,7 +852,7 @@ class Automorphism(Homomorphism):
 	def _test_power_conjugate_upto(self, other, sbound, obound, inverses=False, cheat=False):
 		r"""In both the periodic and infinite cases, we establish bounds on the powers :math:`a, b` for conjugacy; the rest is brute force.  This method tests to see if :math:`\psi^a` is conjugate to :math:`\phi^b` within the supplied bounds. Should it find a conjugator :math:`\rho`, this method yields a triple :math:`(a, b, \rho)`.
 		
-		Let :math:`\hat a, \hat b` denote *sbound* and *obound* respectively. If *inverses* is False, then we search over the ranges :math:`1 \le a \le \hat a` and :math:`1 \le b \le \hat b`. If *inverses* is True, we search over the (four times larger) range `1 \le |a| \le \hat a` and :math:`1 \leq |b| \le \hat b`
+		Let :math:`\hat a, \hat b` denote *sbound* and *obound* respectively. If *inverses* is False, then we search over the ranges :math:`1 \le a \le \hat a` and :math:`1 \le b \le \hat b`. If *inverses* is True, we search over the (four times larger) range `1 \le |a| \le \hat a` and :math:`1 \leq |b| \le \hat b`.
 		"""
 		if cheat:
 			from thompson.examples.random import random_power_bounds
@@ -872,24 +874,67 @@ class Automorphism(Homomorphism):
 		else:
 			swapped = False
 		
-		s_powers = {1: self}
-		if inverses:
-			s_powers[-1] = ~self
-			inherit_relabellers(s_powers[-1], self)
-		for a in range(2, sbound + 1):
-			s_powers[a] = s_powers[a-1] * self
-			inherit_relabellers(s_powers[a], self)
-			if inverses:
-				s_powers[-a] = s_powers[1-a] * s_powers[-1]
-				inherit_relabellers(s_powers[-a], self)
+		s_powers = PowerCollection(self)
+		o_powers = PowerCollection(other)
 		
-		for b, opow in powers_of(other, obound, inverses):
-			for a, spow in s_powers.items():
-				# print('trying', a, b)
-				# assert spow.domain_relabeller is not None and opow.domain_relabeller is not None
-				rho = spow.test_conjugate_to(opow)
-				if rho is not None:
-					yield (a, b, rho) if not swapped else (b, a, ~rho)
+		iterator = search_pattern(sbound, obound)
+		if inverses:
+			iterator = mirrored(iterator)
+		for a, b in iterator:
+			# print('trying', a, b)
+			rho = s_powers[a].test_conjugate_to(o_powers[b])
+			if rho is not None:
+				yield (a, b, rho) if not swapped else (b, a, ~rho)
+				if inverses:
+					yield (-a, -b, rho) if not swapped else (-b, -a, ~rho)
+
+def search_pattern(sbound, obound):
+	"""An optimistic search pattern which tries to delay expensive computations until as late as possible.
+	
+		>>> list(search_pattern(3, 5))
+		[(1, 1), (2, 1), (2, 2), (1, 2), (3, 1), (3, 2), (3, 3), (2, 3), (1, 3), (1, 4), (2, 4), (3, 4), (1, 5), (2, 5), (3, 5)]
+	"""
+	assert sbound <= obound
+	for i in range(1, sbound + 1):
+		yield from corner(i)
+	for b in range(sbound + 1, obound + 1):
+		for a in range(1, sbound + 1):
+			yield a, b
+
+def corner(radius):
+	"""Yields the integer coordinates of the top right corner of a square of side length *radius* centered at the origin.
+	
+		>>> list(corner(3))
+		# [(3, 1), (3, 2), (3, 3), (2, 3), (1, 3)]
+	"""
+	for i in range(1, radius):
+		yield radius, i
+	yield radius, radius
+	for i in reversed(range(1, radius)):
+		yield i, radius
+
+def mirrored(iterator):
+	for a, b in iterator:
+		yield a, b
+		yield -a, b
+
+class PowerCollection(dict):
+	def __init__(self, aut):
+		super().__init__(self)
+		self[1] = aut
+		self[0] = Automorphism.identity(aut.signature)
+		self[-1] = ~aut
+	
+	def __getitem__(self, power):
+		try:
+			return super().__getitem__(power)
+		except KeyError:
+			base = self[1 if power > 0 else -1]
+			ref = power - 1 if power > 0 else power + 1
+			new = self[ref] * base
+			inherit_relabellers(new, base)
+			self[power] = new
+			return new
 
 def inherit_relabellers(target, source):
 	target.domain_relabeller = source.domain_relabeller
@@ -897,22 +942,3 @@ def inherit_relabellers(target, source):
 
 def type_b_triple(power, head, tail):
 	return dict(start_tail = tuple(), power=power, end_tail=tail, target=head)
-
-def powers_of(aut, max, inverses=False):
-	assert max >= 1
-	yield 1, aut
-	power = aut
-	for i in range(2, max + 1):
-		power *= aut
-		inherit_relabellers(power, aut)
-		yield i, power
-	if not inverses:
-		return
-	inv = ~aut
-	inherit_relabellers(inv, aut)
-	yield -1, inv
-	power = inv
-	for i in range(2, max + 1):
-		power *= inv
-		inherit_relabellers(power, aut)
-		yield -i, power
