@@ -84,3 +84,5 @@ pond_width_4
 	An example found by random search of a pond orbit of width 4. Prior to this we had only seen ponds of width 1 or 2. 
 power_smaller_QNB
 	The square of this automorphism appears to have a QNB above the QNB of the original automorphism.
+semi_inf_c
+	An example of an automorphism whose `quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` :math:`X` contains an element :math:`x\alpha_2\alpha_1` which belongs to a semi-infinite :math:`X`-component which is not characteristic.
