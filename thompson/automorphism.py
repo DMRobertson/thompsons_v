@@ -2,7 +2,7 @@
 .. testsetup::
 	
 	from thompson.number_theory import gcd
-	from thompson.word          import from_string
+	from thompson.word          import Signature, from_string
 	from thompson.orbits        import print_component_types
 	from thompson.automorphism  import *
 	from thompson.examples      import *
@@ -887,6 +887,41 @@ class Automorphism(Homomorphism):
 				yield (a, b, rho) if not swapped else (b, a, ~rho)
 				if inverses:
 					yield (-a, -b, rho) if not swapped else (-b, -a, ~rho)
+	
+	def preserves_order(self):
+		"""Returns True if this automorphism is an element of :math:`F_{n,r}`, Higman's analogue of Thompson's group :math:`F`. Otherwise returns False.
+		
+			>>> random_automorphism_in_F().preserves_order()
+			True
+			>>> random_automorphism_in_T().preserves_order()
+			False
+			>>> nathan_pond_example.preserves_order()
+			False
+		"""
+		indices = range(len(self.range) - 1)
+		return all(self.range[i] < self.range[i+1] for i in indices)
+	
+	def cycles_order(self):
+		"""Returns True if this automorphism is an element of :math:`T_{n,r}`, Higman's analogue of Thompson's group :math:`T`. Otherwise returns False.
+		
+		>>> random_automorphism_in_F().cycles_order()
+		True
+		>>> aut = random_automorphism_in_T()
+		>>> print(aut)
+		>>> aut.cycles_order()
+		True
+		>>> nathan_pond_example.cycles_order()
+		False
+		"""
+		indices = range(len(self.range) - 1)
+		looped = False
+		for i in indices:
+			if not self.range[i] < self.range[i+1]:
+				if not looped and all(abs(x) == 1 for x in self.range[i+1]):
+					looped = True
+				else:
+					return False
+		return True
 
 def search_pattern(sbound, obound):
 	"""An optimistic search pattern which tries to delay expensive computations until as late as possible.

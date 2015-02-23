@@ -15,8 +15,9 @@ from ..infinite     import InfiniteAut
 
 __all__ = ['random_signature', 'random_simple_word', 'random_basis',
 	'random_automorphism',   'random_periodic_automorphism',   'random_infinite_automorphism',
+	'random_automorphism_in_F', 'random_automorphism_in_T',
 	'random_conjugate_pair', 'random_conjugate_periodic_pair', 'random_conjugate_infinite_pair',
-	'random_powers', 'random_power_bounds', 'random_power_conjugate_pair' ]
+	'random_powers', 'random_power_bounds', 'random_power_conjugate_pair']
 
 def needs_defaults(undec):
 	def decd(signature=None, num_expansions=None):
@@ -146,3 +147,17 @@ def random_power_conjugate_pair(signature, num_expansions):
 	phi = (~rho) * (psi ** a) * rho
 	psi_b = psi **  b
 	return psi_b, phi
+
+@needs_defaults
+def random_automorphism_in_F(signature, num_expansions):
+	"""Generates a random element of :math:`F_{n,r}`."""
+	domain = random_basis(signature, num_expansions)
+	range = random_basis(signature, num_expansions)
+	return Automorphism(domain, range)
+
+@needs_defaults
+def random_automorphism_in_T(signature, num_expansions):
+	"""Generates a random element of :math:`T_{n,r} \setminus F_{n,r}`."""
+	domain = random_basis(signature, num_expansions)
+	range = random_basis(signature, num_expansions).cycled(randint(1, len(domain)))
+	return Automorphism(domain, range)
