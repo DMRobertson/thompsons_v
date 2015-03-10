@@ -1,0 +1,10 @@
+7
+(2,1)			->	(2,1)
+x a1 a1 		->	x a2 a1
+x a1 a2 a1 		->	x a1 a2
+x a1 a2 a2 		->	x a2 a2 a2
+x a2 a1 		->	x a1 a1 a2 a1
+x a2 a2	a1 a1	->	x a1 a1 a2 a2
+x a2 a2 a1 a2	->	x a2 a2 a1
+x a2 a2	a2		->	x a1 a1 a1
+An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*"

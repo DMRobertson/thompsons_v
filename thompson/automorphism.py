@@ -26,7 +26,16 @@ class Automorphism(Homomorphism):
 	
 	:ivar signature: The :class:`~thompson.word.Signature` shared by the generating sets domain and range.
 	:ivar quasinormal_basis: See :meth:`compute_quasinormal_basis`.
-	:ivar pond_banks: A list of tuples :math:`(\ell, k, r)` such that :math:`(\ell, r)` are banks of a pond with :math:`\ell\phi^k = r`.
+	:ivar pond_banks: A list of tuples :math:`(\ell, k, r)` such that :math:`(\ell, r)` are banks of a pond with :math:`\ell\phi^k = r`. For instance:
+	
+	.. doctest::
+		
+		>>> print(len(olga_f.pond_banks), sep=', ') #No ponds
+		0
+		>>> print(len(olga_g.pond_banks)) #One pond
+		1
+		>>> print(*olga_g.pond_banks[0], sep=',  ') 
+		x1 a2 a1 a2 a1 a1,  2,  x1 a1 a2 a2
 	
 	Periodic attributes:
 	
@@ -352,8 +361,6 @@ class Automorphism(Homomorphism):
 				basis.expand(i)
 		return basis
 	
-	def orbit_type(self, y, basis):
-		"""Returns the orbit type of *y* with respect to the given *basis*. Also returns a dictionary of computed images, the list (:paperref:`eq:uorb`) from the paper.
 	def orbit_type(self, y, basis=None):
 		"""Returns the orbit type of *y* with respect to the given *basis*. If *basis* is omitted, the :meth:`quasi-normal basis <compute_quasinormal_basis>` is used by default. Also returns a dictionary of computed images, the list (:paperref:`eq:uorb`) from the paper.
 		
@@ -910,11 +917,9 @@ class Automorphism(Homomorphism):
 		
 		>>> random_automorphism_in_F().cycles_order()
 		True
-		>>> aut = random_automorphism_in_T()
-		>>> print(aut)
-		>>> aut.cycles_order()
+		>>> random_automorphism_in_T().cycles_order()
 		True
-		>>> nathan_pond_example.cycles_order()
+		>>> nathan_pond_example.cycles_order() # in V
 		False
 		"""
 		indices = range(len(self.range) - 1)

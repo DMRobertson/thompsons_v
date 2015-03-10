@@ -68,14 +68,16 @@ mixed_pconj_psi
 	An example of mixed power conjugacy found by random search. Should have :math:`\psi^{-4} \sim \phi^2`.
 nathan1_example
 	One of Nathan's examples. This is *almost*, but not quite conjugate to nathan_pond_example. Nathan had this to say: *"I untwisted one of the infinite orbits after a conjugation and so they definitely should not be conjugate."*
-nathan2_example
-	One of Nathan's examples. Nathan had this to say: "*nathan2_example is conjugate to nathan3_example, via a rho that can be found using your program or nathan4_example. Note that characteristics are not the same for two of the semi-infinite orbits.*"
-nathan3_example
-	One of Nathan's examples. Nathan had this to say: "*nathan2_example is conjugate to nathan3_example, via a rho that can be found using your program or nathan4_example. Note that characteristics are not the same for two of the semi-infinite orbits.*"
-nathan4_example
-	One of Nathan's examples. Nathan had this to say: "*nathan2_example is conjugate to nathan3_example, via a rho that can be found using your program or nathan4_example. Note that characteristics are not the same for two of the semi-infinite orbits.*"
 nathan_pond_example
 	Nathan's example of an automorphism containing a pond. This was simpler than the first example found.
+olga_f
+	An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*"
+olga_g
+	An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*"
+olga_gdash
+	An automorphism described in example 5 of [SD10]_. The paper claims that ``olga_f`` and ``olga_gdash`` are not conjugate.
+olga_h
+	An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*"
 periodic_QNB_206
 	This purely periodic automorphism (again found by random search) has a quasinormal basis of size 206.
 periodic_QNB_344
@@ -85,4 +87,4 @@ pond_width_4
 power_smaller_QNB
 	The square of this automorphism appears to have a QNB above the QNB of the original automorphism.
 semi_inf_c
-	An example of an automorphism whose `quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` :math:`X` contains an element :math:`x\alpha_2\alpha_1` which belongs to a semi-infinite :math:`X`-component which is not characteristic.
+	An example of an automorphism whose :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` :math:`X` contains an element :math:`x\alpha_2\alpha_1` which belongs to a semi-infinite :math:`X`-component which is not characteristic.

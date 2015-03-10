@@ -188,22 +188,6 @@ class MixedAut(Automorphism):
 			>>> psi * rho == rho * phi
 			True
 		
-		.. doctest::
-			:hide:
-			
-			>>> rho = nathan_pond_example.test_conjugate_to(nathan1_example)
-			>>> rho is None
-			True
-			>>> rho = nathan2_example.test_conjugate_to(nathan3_example)
-			>>> rho is not None
-			True
-			>>> nathan2_example * rho == rho * nathan3_example
-			True
-			>>> rho = nathan4_example
-			>>> nathan2_example * rho == rho * nathan3_example
-			True
-			
-		
 		.. seealso:: This is an implementation of Algorithm :paperref:`conjAlgorithm` in the paper. It depends on Algorithms :paperref:`alg:periodic` and :paperref:`alg:reginf`; these are the :meth:`periodic <thompson.periodic.PeriodicAut.test_conjugate_to>` and :meth:`infinite <thompson.infinite.InfiniteAut.test_conjugate_to>` tests for conjugacy.
 		"""
 		#TODO Doctest: try assembling a conjugator from factors

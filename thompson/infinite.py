@@ -72,6 +72,22 @@ class InfiniteAut(Automorphism):
 			>>> rho_i * phi_i == psi_i * rho_i
 			True
 		
+		.. doctest::
+			:hide:
+			
+			>>> rho = nathan_pond_example.test_conjugate_to(nathan1_example)
+			>>> rho is None
+			True
+			>>> rho = olga_f.test_conjugate_to(olga_g)
+			>>> rho is not None
+			True
+			>>> olga_f * rho == rho * olga_g
+			True
+			>>> rho = olga_h
+			>>> olga_f * rho == rho * olga_g
+			True
+			
+		
 		.. seealso:: This implements Algorithm :paperref:`alg:reginf` of the paper---see Section :paperref:`subsectionRI`.
 		"""
 		#todo another doctest.
