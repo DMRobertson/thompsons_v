@@ -5,4 +5,4 @@ x1 a2 a1 -> x1 a1 a2
 x1 a2 a2 a1 -> x1 a2 a2
 x1 a2 a2 a2 a1 -> x1 a2 a1 a2
 x1 a2 a2 a2 a2 -> x1 a2 a1 a1
-An example of an automorphism whose `quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` :math:`X` contains an element :math:`x\alpha_2\alpha_1` which belongs to a semi-infinite :math:`X`-component which is not characteristic.
+An example of an automorphism whose :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` :math:`X` contains an element :math:`x\alpha_2\alpha_1` which belongs to a semi-infinite :math:`X`-component which is not characteristic.

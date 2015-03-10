@@ -10,8 +10,6 @@ Explict named examples
 
 A list of named examples is loaded from the ``.aut`` files in `the examples folder <https://github.com/DMRobertson/thompsons_v/tree/master/thompson/examples>`_. This includes all the examples given in the paper.
 
-.. todo:: The numbered examples need updating to a current version of the paper.
-
 .. include:: examples_table.txt
 
 Randomly generated examples
