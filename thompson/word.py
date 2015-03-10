@@ -19,12 +19,12 @@ class Signature(BaseSignature):
 	__slots__ = ()
 	
 	def __new__(cls, arity, alphabet_size):
-		"""Signatures store an *arity* :math:`n` and an *alphabet_size* :math:`r`."""
-		if not arity > 0:
-			raise ValueError('Arity should be a positive integer (received {}).'.format(
+		"""Signatures store an *arity* :math:`n \geq 2` and an *alphabet_size* :math:`r \geq 1`."""
+		if not arity >= 2:
+			raise ValueError('Arity should be at least 2 (received {}).'.format(
 			  arity))
 		
-		if not alphabet_size > 0:
+		if not alphabet_size >= 1:
 			raise ValueError('Arity should be a positive integer (received {}).'.format(
 			  alphabet_size))
 		self = super(Signature, cls).__new__(cls, arity, alphabet_size)

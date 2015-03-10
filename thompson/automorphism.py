@@ -354,6 +354,8 @@ class Automorphism(Homomorphism):
 	
 	def orbit_type(self, y, basis):
 		"""Returns the orbit type of *y* with respect to the given *basis*. Also returns a dictionary of computed images, the list (:paperref:`eq:uorb`) from the paper.
+	def orbit_type(self, y, basis=None):
+		"""Returns the orbit type of *y* with respect to the given *basis*. If *basis* is omitted, the :meth:`quasi-normal basis <compute_quasinormal_basis>` is used by default. Also returns a dictionary of computed images, the list (:paperref:`eq:uorb`) from the paper.
 		
 			>>> #Example 4.5.
 			>>> print_component_types(example_4_5, example_4_5.domain)
@@ -413,6 +415,8 @@ class Automorphism(Homomorphism):
 		images = {}
 		type_b_data = None
 		
+		if basis is None and self.quasinormal_basis is not None:
+			basis = self.quasinormal_basis
 		rinf, rpow1, rpow2, rimages = self.test_semi_infinite(y, basis, backward=False)
 		for i, image in enumerate(rimages):
 			images[i] = image

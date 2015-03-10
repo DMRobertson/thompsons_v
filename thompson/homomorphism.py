@@ -16,6 +16,7 @@ In other words, a homomorphism is a function which 'commutes' with the algebra o
 from io import StringIO
 from itertools import chain
 import re
+import sys
 
 from .word import *
 from .generators import Generators
@@ -179,10 +180,15 @@ class Homomorphism:
 			params = extract_signatures.match(f.readline().strip()).groups()
 			d = Generators([int(params[0]), int(params[1])])
 			r = Generators([int(params[2]), int(params[3])])
-			for _ in range(num_generators):
+			for i in range(num_generators):
 				d_word, r_word = (word.strip() for word in f.readline().split('->'))
-				d.append(d_word)
-				r.append(r_word)
+				try:
+					d.append(d_word)
+					r.append(r_word)
+				except Exception as e:
+					extra = "Problem reading rule {} from line {} of {}. The original error was:\n\t".format(
+					  i+1, i+3, f.name)
+					raise type(e)(extra + str(e)).with_traceback(sys.exc_info()[2])
 			hom = cls(d, r)
 			hom.__doc__ = f.read()
 			if len(hom.__doc__.strip()) == 0:
