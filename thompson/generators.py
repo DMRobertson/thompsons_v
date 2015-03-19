@@ -111,6 +111,28 @@ class Generators(list):
 		"""
 		return self.test_free() == (-1, -1)
 	
+	def preorder_traversal(self):
+		"""Yields words as if traversing the vertices of a tree in pre-order."""
+		if self.signature.alphabet_size > 1:
+			raise NotImplementedError()
+		
+		yield Word('x', self.signature), (None if len(self) > 1 else 1)
+		path = Word('x a1', (2, 1))
+		while len(path) > 1:
+			leaf = path in self
+			leafnum = self.index(path) + 1 if leaf else None
+			yield path, leafnum
+			if leaf:
+				finished = False
+				while not finished:
+					last = abs(path[-1])
+					path = Word(path[:-1], self.signature)
+					finished = last != self.signature.arity or len(path) == 1
+				if last != self.signature.arity:
+					path = path.alpha(last + 1)
+			else:
+				path = path.alpha(1)
+	
 	def simple_words_above(self):
 		r"""An iterator that yields the simple words which can be obtained by contracting this basis :math:`n \geq 0` times. (So the 'above' condition is not strict.)
 		
