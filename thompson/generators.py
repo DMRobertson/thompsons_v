@@ -66,6 +66,17 @@ class Generators(list):
 			return NotImplemented
 		return self.signature == other.signature and super().__eq__(other)
 	
+	def copy(self):
+		"""We override ``list.copy()``` so that we don't have to recreate :class:`Generator` instances by hand. 
+		
+			>>> X = olga_f.quasinormal_basis.copy()
+			>>> X is olga_f.quasinormal_basis
+			False
+			>>> type(X).__name__
+			'Generators'
+		"""
+		return type(self)(self.signature, self)
+	
 	#Tests on generating sets
 	def test_free(self):
 		r"""Tests to see if the current generating set :math:`X` is a free generating set. If the test fails, returns the first pair of indices :math:`(i, j)` found for which :math:`X_i` :meth:`is above <thompson.word.Word.is_above>` :math:`X_j`. If the test passes, returns :math:`(-1, -1)`.
@@ -329,18 +340,22 @@ class Generators(list):
 	
 	#Modifiers
 	def expand(self, index):
-		r"""Replaces the word :math:`w` at index *index* in the current generating set with its children, :math:`w\alpha1, \dotsc, w\alpha_n`, where :math:`n` is the arity of the generating set.
+		r"""Replaces the word :math:`w` at index *index* in the current generating set with its children, :math:`w\alpha1, \dotsc, w\alpha_n`, where :math:`n` is the arity of the generating set. As with ordinary Python lists, negative values of *index* are supported.
 		
 			>>> g = Generators.standard_basis((3, 1)); g
 			Generators((3, 1), ['x1'])
 			>>> g.expand(0)
 			Generators((3, 1), ['x1 a1', 'x1 a2', 'x1 a3'])
-			>>> g.expand(1)
+			>>> g.expand(-2)
 			Generators((3, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2', 'x1 a2 a3', 'x1 a3'])
 			
 			:raises IndexError: if there is no generator at index *index*.
 			:returns: the current generating set, after modification. 
 		"""
+		if -len(self) < index < 0:
+			index %= len(self)
+		elif index < 0:
+			raise IndexError('Index {} out of range 0..{} or -{}..-1'.format(index, len(self), -len(self)))
 		self[index: index+1] = [self[index].alpha(i) for i in range(1, self.signature.arity+1)]
 		return self #allows chaining
 	
