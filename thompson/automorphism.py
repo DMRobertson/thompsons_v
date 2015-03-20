@@ -493,7 +493,7 @@ class Automorphism(Homomorphism):
 				- end: ``m-1``
 				- images: :math:`y, y\psi, \dotsc, y\psi^{m-1}`.
 			
-			2. For some :math:`0 \le l < m`, :math:`y\psi^l` and :math:`y\psi^m` start with the same basis element.
+			2. For some :math:`0 \le l < m`, :math:`y\psi^l` is above (or equal to) :math:`y\psi^m`.
 			
 				- infinite: ``True``
 				- start: ``l``
@@ -531,7 +531,7 @@ class Automorphism(Homomorphism):
 			prefix, tail = result
 			if prefix in heads:
 				for ell, previous in enumerate(images):
-					if prefix == previous[:len(prefix)]:
+					if len(image) >= len(previous) and prefix == previous[:len(prefix)]:
 						images.append(image)
 						return True, ell, m, images
 			images.append(image)
