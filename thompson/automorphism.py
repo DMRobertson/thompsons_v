@@ -378,6 +378,9 @@ class Automorphism(Homomorphism):
 			x1 a2: Incomplete component
 			with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 			
+		.. doctest::
+			:hide:
+			
 			>>> #Example 4.11
 			>>> print_component_types(example_4_11)
 			x1 a1: Left semi-infinite component with characteristic (-1, a1)
@@ -414,6 +417,37 @@ class Automorphism(Homomorphism):
 			x1 a2 a1: Bi-infinite component
 			x1 a2 a2: Left semi-infinite component with characteristic (-1, a1 a1)
 			with respect to the basis [x1 a1, x1 a2 a1, x1 a2 a2]
+		
+		Components can be calculated with respect to any *basis*, not just the :meth:`quasi-normal basis <compute_quasinormal_basis>`.
+		
+			>>> print(olga_f.quasinormal_basis)
+			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2]
+			>>> basis = olga_f.quasinormal_basis.copy().expand(-1); print(basis)
+			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2 a1, x1 a2 a2 a2 a2]
+			>>> from pprint import pprint
+			>>> w = Word('x a2 a2 a2', (2, 1))
+			>>> print(olga_f.orbit_type(w)[0])
+			Bi-infinite component
+			>>> print(olga_f.orbit_type(w, basis)[0])
+			Incomplete component
+		
+		.. doctest::
+			:hide:
+			
+			>>> w = Word('x a1 a2 a1', (2, 1))
+			>>> ctype, images, _ = olga_f.orbit_type(w)
+			>>> print(ctype); pprint(images)
+			Left semi-infinite component with characteristic (-1, a1)
+			{-1: Word('x1 a1 a2 a1 a1', (2, 1)),
+			 0: Word('x1 a1 a2 a1', (2, 1)),
+			 1: Word('x1 a1 a2', (2, 1))}
+			>>> ctype, images, _ = olga_f.orbit_type(w, basis)
+			>>> #Component of w not changed
+			>>> print(ctype); pprint(images)
+			Left semi-infinite component with characteristic (-1, a1)
+			{-1: Word('x1 a1 a2 a1 a1', (2, 1)),
+			 0: Word('x1 a1 a2 a1', (2, 1)),
+			 1: Word('x1 a1 a2', (2, 1))}
 		
 		.. seealso:: Lemmas :paperref:`ABC`, :paperref:`lem:qnf` of the paper.
 		
@@ -904,8 +938,10 @@ class Automorphism(Homomorphism):
 		
 			>>> random_automorphism_in_F().preserves_order()
 			True
-			>>> random_automorphism_in_T().preserves_order()
-			False
+			>>> phi = random_automorphism_in_T()
+			>>> #phi preserves order iff it is in F.
+			>>> (sorted(phi.range) == phi.range) == phi.preserves_order()
+			True
 			>>> nathan_pond_example.preserves_order()
 			False
 		"""
