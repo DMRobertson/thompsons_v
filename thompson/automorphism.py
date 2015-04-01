@@ -16,7 +16,7 @@ from .word          import Word, free_monoid_on_alphas, format
 from .generators    import Generators
 from .homomorphism  import Homomorphism
 from .orbits        import ComponentType, SolutionSet
-
+from .utilities     import generate_tikz_code
 ___all__ = ["Automorphism"]
 
 class Automorphism(Homomorphism):
@@ -772,7 +772,6 @@ class Automorphism(Homomorphism):
 		.. seealso:: The implementation is due to lemma :paperref:`9.7H` of the paper.
 		"""
 		#TODO a script which randomly checks examples to verify.
-		#TODO pond examples
 		orig_u, orig_v = u, v
 		basis = self.quasinormal_basis
 		if not (basis.is_above(u) and basis.is_above(v)):
@@ -967,6 +966,10 @@ class Automorphism(Homomorphism):
 				else:
 					return False
 		return True
+	
+	def write_tikz_code(self, filename, domain=None, name=''):
+		generate_tikz_code(self, filename, domain, name)
+	write_tikz_code.__doc__ = generate_tikz_code.__doc__
 
 def search_pattern(sbound, obound):
 	"""An optimistic search pattern which tries to delay expensive computations until as late as possible.

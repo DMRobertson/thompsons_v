@@ -1,4 +1,4 @@
-[Nathan Barker](https://www.dpmms.cam.ac.uk/~nb443/), [Andrew Duncan](http://www.mas.ncl.ac.uk/~najd2/) and [David Robertson](https://www.students.ncl.ac.uk/d.m.robertson/) are currently preparing a paper entitled *The power conjugacy problem in Higman-Thompson groups* which describes an algorithm to solve a certain equation in the groups named $G_{n,r}$.
+[Nathan Barker](https://www.dpmms.cam.ac.uk/~nb443/), [Andrew Duncan](http://www.mas.ncl.ac.uk/~najd2/) and [David Robertson](https://DMRobertson.github.io) are currently preparing a paper entitled *The power conjugacy problem in Higman-Thompson groups* which describes an algorithm to solve a certain equation in the groups named $G_{n,r}$.
 
 This package aims to implement the algorithms described in the paper. To do so it provides tools for working in
 
@@ -13,7 +13,7 @@ Either clone the repository with
 
 	git clone https://github.com/DMRobertson/thompsons_v.git
 
-or download [the ZIPped version](https://github.com/DMRobertson/thompsons_v/archive/master.zip) and extract it.
+or download [the ZIPped version](https://github.com/DMRobertson/thompsons_v/archive/master.zip) and extract it. For more detailed instructions, see [the documentation](http://thompsons-v.readthedocs.org/en/master/introduction.html#installation).
 
 Documentation
 -------------

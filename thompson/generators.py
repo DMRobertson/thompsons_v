@@ -67,7 +67,7 @@ class Generators(list):
 		return self.signature == other.signature and super().__eq__(other)
 	
 	def copy(self):
-		"""We override ``list.copy()``` so that we don't have to recreate :class:`Generator` instances by hand. 
+		"""We override ``list.copy()``` so that we don't have to recreate :class:`Generators` instances by hand. 
 		
 			>>> X = olga_f.quasinormal_basis.copy()
 			>>> X is olga_f.quasinormal_basis

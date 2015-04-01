@@ -1,7 +1,7 @@
 The ``thompson`` package
 ========================
 
-`Nathan Barker <https://www.dpmms.cam.ac.uk/~nb443/research.html>`_, `Andrew Duncan <http://www.mas.ncl.ac.uk/~najd2/>`_ and `David Robertson <https://www.students.ncl.ac.uk/d.m.robertson/>`_ are currently preparing a paper entitled *The power conjugacy problem in Higman-Thompson groups* which addresses the following problem in the groups named :math:`G_{n,r}`.
+`Nathan Barker <https://www.dpmms.cam.ac.uk/~nb443/research.html>`_, `Andrew Duncan <http://www.mas.ncl.ac.uk/~najd2/>`_ and `David Robertson <https://DMRobertson.github.io>`_ have submitted a paper entitled *The power conjugacy problem in Higman-Thompson groups* which addresses the following problem in the groups named :math:`G_{n,r}`.
 
 .. epigraph::
 	
@@ -14,7 +14,7 @@ This package aims to implement the algorithms described in the paper. To do so i
 
 This documentation serves three purposes. Firstly, it is meant to serve as a gentle introduction, explaining how to install and use the package. Secondly, it is meant to be a reference to all the various classes and functions provided by ``thompson``. Finally, a number of examples are included throughout the documentation, which can be used as a means to test the implementation.
 
-		`David M. Robertson <https://www.students.ncl.ac.uk/d.m.robertson/>`_, February 2015
+		`David M. Robertson <https://DMRobertson.github.io>`_, April 2015
 
 Overview
 --------
