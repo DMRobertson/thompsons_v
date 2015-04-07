@@ -6,10 +6,10 @@ setup_script(__file__)
 from thompson import *
 from thompson.examples import *
 
-f = olga_f
-g = olga_g
-gg = olga_gdash
-h = olga_h
+f  = load_example('olga_f')
+g  = load_example('olga_g')
+gg = load_example('olga_gdash')
+h  = load_example('olga_h')
 
 rho = f.test_conjugate_to(g)
 print("f is conjugate to g:", rho is not None)

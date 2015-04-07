@@ -7,10 +7,10 @@ In other words, a homomorphism is a function which 'commutes' with the algebra o
 
 .. testsetup::
     
-    from thompson.generators import Generators
+    from thompson.generators   import Generators
     from thompson.homomorphism import *
     from thompson.automorphism import Automorphism
-    from thompson.examples import *
+    from thompson.examples     import *
 """
 
 from io import StringIO
@@ -114,7 +114,7 @@ class Homomorphism:
 		"""Contracts the domain generators whenever the corresponding contraction in range is possible. This corresponds to reducing a tree pair diagram.
 			
 			>>> #This is given by 6 generators, but after reduction consists of 5:
-			>>> print(cyclic_order_six)
+			>>> print(load_example('cyclic_order_six'))
 			PeriodicAut: V(2, 1) -> V(2, 1) specified by 5 generators (after expansion and reduction).
 			x1 a1 a1    -> x1 a1 a1      
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
@@ -244,7 +244,8 @@ class Homomorphism:
 		
 		.. doctest::
 			
-			>>> print(alphabet_size_two * alphabet_size_two)
+			>>> phi = load_example('alphabet_size_two')
+			>>> print(phi * phi)
 			MixedAut: V(3, 2) -> V(3, 2) specified by 8 generators (after expansion and reduction).
 			x1 a1    -> x1 a1      
 			x1 a2    -> x1 a2 a3 a3
@@ -292,7 +293,7 @@ class Homomorphism:
 			>>> aut = Homomorphism.identity(random_signature())
 			>>> aut.is_identity()
 			True
-			>>> example_5_15.is_identity()
+			>>> load_example('example_5_15').is_identity()
 			False
 		"""
 		basis = Generators.standard_basis(self.signature)
@@ -321,20 +322,21 @@ class Homomorphism:
 		.. doctest::
 		
 			>>> #An element of the domain---just a lookup
-			>>> print(example_5_15.image('x1 a1'))
+			>>> phi = load_example('example_5_15')
+			>>> print(phi.image('x1 a1'))
 			x1 a1 a1 a1
 			>>> #A word below a the domain words
-			>>> print(example_5_15.image('x1 a1 a2 a2'))
+			>>> print(phi.image('x1 a1 a2 a2'))
 			x1 a1 a1 a1 a2 a2
 			>>> #Above domain words---have to expand.
-			>>> print(example_5_15.image('x1'))
+			>>> print(phi.image('x1'))
 			x1 a1 a1 a1 x1 a1 a1 a2 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L L
 			>>> #Let's try some words not in standard form
-			>>> print(example_5_15.image('x1 a1 a1 x1 a1 a2 L'))
+			>>> print(phi.image('x1 a1 a1 x1 a1 a2 L'))
 			x1 a1 a1 a1
-			>>> print(example_5_15.image('x1 a1 a1 x1 a1 a2 L a2 a1'))
+			>>> print(phi.image('x1 a1 a1 x1 a1 a2 L a2 a1'))
 			x1 a1 a1 a1 a2 a1
-			>>> print(example_5_15.image('x1 a1 a1 x1 a2 a2 L'))
+			>>> print(phi.image('x1 a1 a1 x1 a2 a2 L'))
 			x1 a1 a1 a1 a1 x1 a2 a2 x1 a1 a2 L x1 a2 a1 L L
 		
 		:rtype: a :class:`~thompson.word.Word` instance (which are always in standard form).
@@ -434,7 +436,7 @@ class Homomorphism:
 			>>> basis = Generators.standard_basis((2,1))
 			>>> basis.expand_to_size(8); print(basis)
 			[x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2 a1, x1 a1 a2 a2, x1 a2 a1 a1, x1 a2 a1 a2, x1 a2 a2 a1, x1 a2 a2 a2]
-			>>> print(example_5_3.image_of_set(basis))
+			>>> print(load_example('example_5_3').image_of_set(basis))
 			[x1 a1 a1 a1 x1 a1 a1 a2 a1 L, x1 a1 a1 a2 a2, x1 a1 a2 a2, x1 a1 a2 a1, x1 a2 a1 a1 a1, x1 a2 a1 a1 a2, x1 a2 a1 a2, x1 a2 a2]
 		"""
 		sig_in = sig_in or self.domain.signature
@@ -458,7 +460,7 @@ class Homomorphism:
 	def __str__(self):
 		"""Printing an automorphism gives its arity, alphabet_size, and lists the images of its domain elements.
 		
-			>>> print(cyclic_order_six)
+			>>> print(load_example('cyclic_order_six'))
 			PeriodicAut: V(2, 1) -> V(2, 1) specified by 5 generators (after expansion and reduction).
 			x1 a1 a1    -> x1 a1 a1      
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
@@ -512,7 +514,7 @@ class Homomorphism:
 		
 		.. doctest::
 			
-			>>> psi = example_5_12_psi; phi = example_5_12_phi
+			>>> psi, phi = load_example_pair('example_5_12')
 			>>> rho = psi.test_conjugate_to(phi)
 			>>> print(rho)
 			PeriodicAut: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).

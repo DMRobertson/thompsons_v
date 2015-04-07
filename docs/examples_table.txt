@@ -3,7 +3,7 @@ alphabet_size_two
 arity_four
 	Another example for sanity checking. This is an automorphism of :math:`V_{4,1}`.
 arity_three_order_inf
-	A purely :mod:`~thompson.infinite` automorphism of :math:`V_{3,1}`
+	A purely :mod:`~thompson.infinite` automorphism of :math:`V_{3,1}`.
 cyclic_order_six
 	An introductory example drawn on the board by NB. It is purely periodic of order six.
 example_4_1
@@ -38,10 +38,6 @@ example_5_26_psi
 	The example used in the paper to demonstrate the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>`.
 example_5_3
 	This example is used to demonstrate how we can break down an automorphism into its :meth:`~thompson.mixed.MixedAut.free_factors`.
-example_5_3_i
-	A purely infinite free factor, extracted from example_5_3.
-example_5_3_p
-	A purely periodic free factor, extracted from example_5_3.
 example_5_9
 	This example is used in the paper to illustrate the definition of :class:`cycle types <thompson.periodic.PeriodicAut>`.
 example_6_2
@@ -66,6 +62,10 @@ mixed_pconj_phi
 	An example of mixed power conjugacy found by random search. Should have :math:`\psi^{-4} \sim \phi^2`.
 mixed_pconj_psi
 	An example of mixed power conjugacy found by random search. Should have :math:`\psi^{-4} \sim \phi^2`.
+multiple_classes
+	A purely infinite automorphism for which there are two equivalence classes defined on X. This was the first example found (via random search) of such an automorphism. Photographic notes are contained in /thompson/examples.
+multiple_classes_smaller
+	A purely infinite automorphism for which there are two equivalence classes defined on X. It was more straightforward to see that this automorphism had two equivalence classes.
 nathan1_example
 	One of Nathan's examples. This is *almost*, but not quite conjugate to nathan_pond_example. Nathan had this to say: *"I untwisted one of the infinite orbits after a conjugation and so they definitely should not be conjugate."*
 nathan_pond_example

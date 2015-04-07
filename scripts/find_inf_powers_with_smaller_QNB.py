@@ -3,8 +3,8 @@ setup_script(__file__)
 
 """A quick hack searching for counterexamples to AJD's conjecture at the start of sec 6.2."""
 
-from thompson.examples import power_smaller_QNB as aut
-
+from thompson.examples import * 
+aut = load_example('power_smaller_QNB')
 print('Here is an automorphism and its QNB:')
 print(aut)
 aut.dump_QNB()

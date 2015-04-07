@@ -7,8 +7,7 @@ from thompson.examples import *
 
 """A script which seeks mixed power conjugate automorphisms"""
 
-psi = mixed_pconj_psi
-phi = mixed_pconj_phi
+psi, phi = load_example_pair('mixed_pconj')
 
 print(psi)
 print(phi)

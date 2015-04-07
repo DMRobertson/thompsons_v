@@ -1,12 +1,12 @@
 from test import setup_script
 setup_script(__file__)
 
-from thompson.word import Signature
-from thompson.orbits import *
-from thompson.examples import *
 from pprint import pprint
-
 from random import randint
+
+from thompson        import *
+from thompson.word   import Signature
+from thompson.orbits import *
 
 """I can't quite remember what this script was doing. I think it was looking for QNBs which contained words in a semi-infinite orbit which did **NOT** have a characteristic."""
 

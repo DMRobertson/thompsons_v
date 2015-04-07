@@ -1,14 +1,14 @@
 """
 .. testsetup:: 
 	
-	from thompson.word import Word, format
+	from thompson.word       import Word, format
 	from thompson.generators import *
-	from thompson.examples import *
+	from thompson.examples   import *
 """
-from copy import copy
+from copy        import copy
 from collections import defaultdict
 
-from . import word
+from .     import word
 from .word import Word, Signature
 
 __all__ = ["Generators", "rewrite_set", "rewrite_word"]
@@ -69,6 +69,7 @@ class Generators(list):
 	def copy(self):
 		"""We override ``list.copy()``` so that we don't have to recreate :class:`Generators` instances by hand. 
 		
+			>>> olga_f = load_example('olga_f')
 			>>> X = olga_f.quasinormal_basis.copy()
 			>>> X is olga_f.quasinormal_basis
 			False
@@ -278,9 +279,10 @@ class Generators(list):
 	def descendants_above(self, floor):
 		r"""Suppose we have a basis *floor* below the current basis *ceiling*. There are a finite number of elements below *ceiling* which are not below *floor*. This method enumerates them. In symbols, we are enumerating the set :math:`X\langle A\rangle \setminus F\langle A\rangle`, where :math:`X` is the current basis and :math:`F` is the *floor*.
 		
-			>>> X = example_5_15.quasinormal_basis
-			>>> Y = X.minimal_expansion_for(example_5_15)
-			>>> Z = example_5_15.image_of_set(Y)
+			>>> phi = load_example('example_5_15')
+			>>> X = phi.quasinormal_basis
+			>>> Y = X.minimal_expansion_for(phi)
+			>>> Z = phi.image_of_set(Y)
 			>>> terminal = X.descendants_above(Y)
 			>>> initial  = X.descendants_above(Z)
 			>>> print(initial, terminal, sep='\n')
@@ -326,10 +328,12 @@ class Generators(list):
 		
 			>>> std_basis = Generators.standard_basis((2, 1))
 			>>> reduced_domain = Generators((2, 1), ["x a1 a1", "x a1 a2 a1", "x a1 a2 a2", "x a2 a1", "x a2 a2"])
-			>>> std_basis.minimal_expansion_for(cyclic_order_six) == reduced_domain
+			>>> std_basis.minimal_expansion_for(load_example('cyclic_order_six')) == reduced_domain
 			True
-			>>> basis = example_5_3.quasinormal_basis
-			>>> print(basis.minimal_expansion_for(example_5_3))
+			
+			>>> phi = load_example('example_5_3')
+			>>> basis = phi.quasinormal_basis
+			>>> print(basis.minimal_expansion_for(phi))
 			[x1 a1 a1 a1 a1, x1 a1 a1 a1 a2, x1 a1 a1 a2, x1 a1 a2 a1, x1 a1 a2 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2]
 		
 		:raises ValueError: if no automorphisms are passed to this method.
@@ -435,10 +439,15 @@ class Generators(list):
 	def cycled(self, positions=1):
 		"""Produces a copy of the current generating set, cyclicly shifted by a number of *positions* to the right.
 		
-			>>> print(example_5_15.domain)
+			>>> phi = load_example('example_5_15')
+			>>> print(phi.domain)
 			[x1 a1, x1 a2 a1, x1 a2 a2 a1 a1, x1 a2 a2 a1 a2, x1 a2 a2 a2]
-			>>> print(example_5_15.domain.cycled(2))
+			>>> print(phi.domain.cycled(2))
 			[x1 a2 a2 a1 a1, x1 a2 a2 a1 a2, x1 a2 a2 a2, x1 a1, x1 a2 a1]
+			
+			>>> X = random_basis()
+			>>> X == X.cycled(0) == X.cycled(len(X))
+			True
 		"""
 		out = type(self)(self.signature)
 		for i in range(positions, len(self)):

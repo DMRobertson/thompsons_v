@@ -8,10 +8,9 @@ from random import randint
 from networkx.algorithms.components import number_weakly_connected_components as num_components, \
                                            weakly_connected_components        as components
 
-from thompson import Automorphism
-# from thompson.examples import *
+from thompson.examples import *
 
-aut = Automorphism.from_file('multiple_classes_2.aut')
+aut = load_example('multiple_classes_smaller')
 print(aut)
 aut.dump_QNB()
 type_b, type_c = aut._split_basis()

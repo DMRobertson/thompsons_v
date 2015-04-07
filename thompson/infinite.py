@@ -5,14 +5,14 @@
 	from fractions   import gcd
 	from pprint      import pprint
 	
+	from thompson          import *
 	from thompson.word     import format
 	from thompson.infinite import *
-	from thompson.examples import *
 """
 from collections import defaultdict
-from functools import partial
-from io import StringIO
-from itertools import chain, permutations
+from functools   import partial
+from io          import StringIO
+from itertools   import chain, permutations
 
 import networkx as nx
 
@@ -31,7 +31,7 @@ def get_factor_class(infinite):
 class InfiniteAut(Automorphism):
 	"""A purely infinite automorphism which may have been extracted from a mixed automorphism.
 	
-		>>> print(example_5_3_i)
+		>>> print(load_example('example_5_3').free_factors()[1])
 		InfiniteAut: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
 		This automorphism was derived from a parent automorphism.
 		'x' and 'y' represent root words of the parent and current derived algebra, respectively.
@@ -53,40 +53,30 @@ class InfiniteAut(Automorphism):
 	def test_conjugate_to(self, other):
 		"""We can determine if two purely infinite automorphisms are conjugate by breaking down the quasi-normal basis into :meth:`equivalence classes <equivalence_data>`.
 		
-			>>> psi_i = example_5_26_psi; phi_i = example_5_26_phi
-			>>> rho_i = psi_i.test_conjugate_to(phi_i)
-			>>> rho_i is not None
-			True
-			>>> rho_i * phi_i == psi_i * rho_i
-			True
-			
-			>>> psi_i = inf_conj_psi; phi_i = inf_conj_phi
-			>>> rho_i = psi_i.test_conjugate_to(phi_i)
-			>>> rho_i is not None
-			True
-			>>> rho_i * phi_i == psi_i * rho_i
-			True
-		
-			>>> psi_i, phi_i = random_conjugate_infinite_pair()
-			>>> rho_i = psi_i.test_conjugate_to(phi_i)
-			>>> rho_i * phi_i == psi_i * rho_i
-			True
+			>>> for psi_i, phi_i in (
+			...   load_example_pair('example_5_26'),
+			...   load_example_pair('inf_conj'),
+			...   random_conjugate_infinite_pair()):
+			... 	rho_i = psi_i.test_conjugate_to(phi_i)
+			... 	print('Conjugate:', rho_i is not None, ' Conjugator works:', rho_i * phi_i == psi_i * rho_i)
+			Conjugate: True  Conjugator works: True
+			Conjugate: True  Conjugator works: True
+			Conjugate: True  Conjugator works: True
 		
 		.. doctest::
 			:hide:
 			
-			>>> rho = nathan_pond_example.test_conjugate_to(nathan1_example)
+			>>> rho = load_example('nathan_pond_example').test_conjugate_to(load_example('nathan1_example'))
 			>>> rho is None
 			True
-			>>> rho = olga_f.test_conjugate_to(olga_g)
+			>>> f, g, h = (load_example('olga_' + c) for c in 'fgh')
+			>>> rho = f.test_conjugate_to(g)
 			>>> rho is not None
 			True
-			>>> olga_f * rho == rho * olga_g
+			>>> f * rho == rho * g
 			True
-			>>> rho = olga_h
-			>>> olga_f * rho == rho * olga_g
+			>>> f * h == h * g
 			True
-			
 		
 		.. seealso:: This implements Algorithm :paperref:`alg:reginf` of the paper---see Section :paperref:`subsectionRI`.
 		"""
@@ -278,6 +268,7 @@ class InfiniteAut(Automorphism):
 	def find_power_conjugators(self, other, cheat=False):
 		"""Tests two infinite factors to see if they are power conjugate. Yields minimal solutions :math:`(a, b, \rho)`.
 		
+			>>> example_6_8_psi, example_6_8_phi = load_example_pair('example_6_8')
 			>>> solns = example_6_8_psi.find_power_conjugators(example_6_8_phi)
 			>>> for a, b, rho in solns:
 			... 	print(a, b)
@@ -352,6 +343,7 @@ class InfiniteAut(Automorphism):
 			>>> print_partition(example_6_8_phi.minimal_partition())
 			a1: (-1, a1 a1 a1)
 			a2: (1, a2 a2 a2)
+			>>> example_6_9_psi, example_6_9_phi = load_example_pair('example_6_9')
 			>>> print_partition(example_6_9_phi.minimal_partition())
 			a1: (-2, a1)
 			a2: (1, a2)
@@ -467,6 +459,7 @@ def image_for_type_b(word, chosen_endpoint, images, roots, graph, aut):
 		return None
 	assert not solns.is_sequence(), (u, v, solns)
 	return aut.repeated_image(chosen_endpoint, solns.base + edge_data['power'])
+
 
 def image_for_type_c(word, type_b_data, images, aut):
 	"""The end of Lemma 5.24 shows how we can calculate the image of a type C word given the images of all type B words."""

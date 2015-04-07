@@ -7,55 +7,60 @@ import os.path
 import pkg_resources
 import string
 
-from ..generators   import Generators
-from ..homomorphism import Homomorphism
 from ..automorphism import Automorphism
-from ..mixed        import MixedAut
-from ..periodic     import PeriodicAut
-from ..infinite     import InfiniteAut
 
 from . import random
 from .random import *
 
-__all__ = random.__all__
+__all__ = random.__all__ + ['load_example', 'load_example_pair']
 
 #TODO. Allow powers in the definition of words e.g. a1^4?
 
-def add_module_attribute(name, value):
-	globals()[name] = value
-	# print('loading', name)
-	__all__.append(name)
+cache = {}
+aliases = None
 
-remove_whitespace = str.maketrans('', '', string.whitespace)
+def load_example(name):
+	"""Loads the example with the given *name* from disk. A corresponding :class:`~thompson.automorphism.Automorphism` instance is created and returned. The results are cached, so call this method as often as you like."""
+	try:
+		return cache[name]
+	except KeyError:
+		pass
+	
+	if aliases is None:
+		retreive_aliases()
+	
+	try:
+		alt = aliases[name]
+	except KeyError:
+		path = pkg_resources.resource_filename("thompson.examples", name + '.aut')
+		aut = Automorphism.from_file(path)
+		cache[name] = aut
+	else:
+		cache[name] = aut = load_example(alt)
+	return aut
 
-def read_examples():
-	#1. Read in examples.
+def retreive_aliases():
+	global aliases
+	aliases = dict()
+	remove_whitespace = str.maketrans('', '', string.whitespace)
+	path = pkg_resources.resource_filename("thompson.examples", "aliases.txt")
+	with open(path, encoding='utf-8') as f:
+		for line in f:
+			alias, name = line.translate(remove_whitespace).split('=')
+			aliases[alias] = name
+
+def load_example_pair(name):
+	"""Loads a pair of examples, *name*_psi and *name*_phi."""
+	return load_example(name + '_psi'), load_example(name + '_phi')
+
+def load_all_examples():
 	files = pkg_resources.resource_listdir("thompson", "examples")
 	for filename in files:
 		name, ext = os.path.splitext(filename)
 		if ext != '.aut':
 			continue
-		path = pkg_resources.resource_filename("thompson.examples", filename)
-		aut = Automorphism.from_file(path)
-		add_module_attribute(name, aut)
-	
-	#2. Extract any free factors from mixed periodic/infinite automorphisms.
-	free_factors = pkg_resources.resource_filename("thompson.examples", "free_factors.txt")
-	with open(free_factors, encoding='utf-8') as f:
-		for line in f:
-			name = line.lower().strip()
-			aut = globals()[name]
-			p, i = aut.free_factors()
-			add_module_attribute(name + '_p', p)
-			add_module_attribute(name + '_i', i)
-			p.__doc__ = "A purely periodic free factor, extracted from {}.".format(name)
-			i.__doc__ = "A purely infinite free factor, extracted from {}.".format(name)
-	
-	#3. If any examples have more than one name, deal with that next.
-	aliases = pkg_resources.resource_filename("thompson.examples", "aliases.txt")
-	with open(aliases, encoding='utf-8') as f:
-		for line in f:
-			alias, name = line.translate(remove_whitespace).split('=')
-			add_module_attribute(alias, globals()[name])
-
-read_examples()
+		load_example(filename[:-4])
+	retreive_aliases()
+	for alias in aliases:
+		load_example(alias)	
+	return cache

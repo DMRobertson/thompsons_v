@@ -7,4 +7,4 @@ x1 a2		->	x1 a3 a2
 x1 a3 a1	->	x1 a3 a3 a3
 x1 a3 a2	->	x1 a3 a3 a2
 x1 a3 a3	->	x1 a3 a3 a1
-A purely :mod:`~thompson.infinite` automorphism of :math:`V_{3,1}`
+A purely :mod:`~thompson.infinite` automorphism of :math:`V_{3,1}`.

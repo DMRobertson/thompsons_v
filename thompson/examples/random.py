@@ -1,6 +1,7 @@
 """
 .. testsetup::
-	from thompson.examples import *
+	from thompson                 import *
+	from thompson.examples.random import *
 """
 
 from random import randint, shuffle 

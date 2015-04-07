@@ -6,3 +6,4 @@ Importing ``*`` from this module will add the :class:`~thompson.word.Word`, :cla
 from .word         import Word, Signature
 from .generators   import Generators
 from .automorphism import Automorphism
+from .examples     import load_example

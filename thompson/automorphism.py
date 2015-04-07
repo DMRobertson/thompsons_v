@@ -17,6 +17,7 @@ from .generators    import Generators
 from .homomorphism  import Homomorphism
 from .orbits        import ComponentType, SolutionSet
 from .utilities     import generate_tikz_code
+
 ___all__ = ["Automorphism"]
 
 class Automorphism(Homomorphism):
@@ -30,6 +31,8 @@ class Automorphism(Homomorphism):
 	
 	.. doctest::
 		
+		>>> olga_f = load_example('olga_f')
+		>>> olga_g = load_example('olga_g')
 		>>> print(len(olga_f.pond_banks), sep=', ') #No ponds
 		0
 		>>> print(len(olga_g.pond_banks)) #One pond
@@ -103,13 +106,14 @@ class Automorphism(Homomorphism):
 		
 		Examples of finding inverse images:
 		
-			>>> print(example_5_15.image('x1 a2 a2', inverse=True))
+			>>> phi = load_example('example_5_15')
+			>>> print(phi.image('x1 a2 a2', inverse=True))
 			x1 a2 a2 a1 a1
-			>>> print(example_5_15.image('x1 a1 a1 a2 a2 a1', inverse=True))
+			>>> print(phi.image('x1 a1 a1 a2 a2 a1', inverse=True))
 			x1 a2 a1 a2 a1
-			>>> print(example_5_15.image('x a2', inverse=True))
+			>>> print(phi.image('x a2', inverse=True))
 			x1 a2 a2 a2 x1 a2 a2 a1 a1 L
-			>>> print(example_5_15.image('x a2 a2 x a1 a2 L', inverse=True))
+			>>> print(phi.image('x a2 a2 x a1 a2 L', inverse=True))
 			x1 a2 a2 a1
 		"""
 		if inverse:
@@ -124,7 +128,7 @@ class Automorphism(Homomorphism):
 		
 			>>> basis = Generators.standard_basis((2,1))
 			>>> basis.expand_to_size(8);
-			>>> print(example_5_3.image_of_set(basis, inverse=True))
+			>>> print(load_example('example_5_3').image_of_set(basis, inverse=True))
 			[x1 a1 a1 a1 a1, x1 a1 a1 a1 a2 x1 a1 a1 a2 L, x1 a1 a2 a2, x1 a1 a2 a1, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2 a1, x1 a2 a2 a2 a2]
 		"""
 		if inverse:
@@ -139,13 +143,15 @@ class Automorphism(Homomorphism):
 		
 		.. doctest::
 			
-			>>> print(example_5_15.repeated_image('x1 a1', 10))
+			>>> phi = load_example('example_5_15')
+			>>> print(phi.repeated_image('x1 a1', 10))
 			x1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
-			>>> print(example_5_15.repeated_image('x1 a1 a1 a1 a1 a1 a1 a1', -3))
+			>>> print(phi.repeated_image('x1 a1 a1 a1 a1 a1 a1 a1', -3))
 			x1 a1
-			>>> print(arity_four.repeated_image('x1 a4 a4 a2', 4))
+			>>> phi = load_example('arity_four')
+			>>> print(phi.repeated_image('x1 a4 a4 a2', 4))
 			x1 a3 a3 a2
-			>>> print(arity_four.repeated_image('x1 a3 a3 a2', -4))
+			>>> print(phi.repeated_image('x1 a3 a3 a2', -4))
 			x1 a4 a4 a2
 		
 		.. todo::
@@ -225,17 +231,14 @@ class Automorphism(Homomorphism):
 		r"""We say that :math:`\phi` is *in semi-normal form* with respect to the basis :math:`X` if no element of :math:`X` lies in an incomplete :math:`X`-component of a :math:`\phi` orbit. See the :mod:`~thompson.orbits` module for more details.
 		
 		There is a minimal such basis, :math:`X_\phi` say, and we say that :math:`\phi` is *in quasi-normal form* with respect to :math:`X_\phi`. This method determines and returns the basis :math:`X_\phi` where :math:`\phi` denotes the current automorphism. The result is cached so that further calls to this method perform no additional computation. 
-		
-			>>> example_4_5.quasinormal_basis
-			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
-			>>> alphabet_size_two.quasinormal_basis
-			Generators((3, 2), ['x1 a1', 'x1 a2', 'x1 a3', 'x2'])
-			>>> example_5_12_phi.quasinormal_basis
-			Generators((2, 1), ['x1 a1', 'x1 a2'])
-			>>> example_6_2.quasinormal_basis
-			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2'])
-			>>> example_6_8_phi.quasinormal_basis
-			Generators((2, 1), ['x1 a1', 'x1 a2'])
+			
+			>>> for name in ['example_4_5', 'alphabet_size_two', 'example_5_12_phi', 'example_6_2', 'example_6_8_phi']:
+			... 	print(load_example(name).quasinormal_basis)
+			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
+			[x1 a1, x1 a2, x1 a3, x2]
+			[x1 a1, x1 a2]
+			[x1 a1 a1, x1 a1 a2, x1 a2]
+			[x1 a1, x1 a2]
 		
 		:rtype: a :class:`~thompson.generators.Generators` instance.
 		
@@ -338,16 +341,13 @@ class Automorphism(Homomorphism):
 	def seminormal_form_start_point(self):
 		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \cup Z`. This basis that this method produces is the smallest possible which *might* be semi-normal.
 		
-			>>> example_4_5.seminormal_form_start_point()
-			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
-			>>> example_4_11.seminormal_form_start_point()
-			Generators((2, 1), ['x1 a1', 'x1 a2'])
-			>>> example_4_12.seminormal_form_start_point()
-			Generators((2, 1), ['x1 a1', 'x1 a2'])
-			>>> example_5_15.seminormal_form_start_point()
-			Generators((2, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
-			>>> cyclic_order_six.seminormal_form_start_point()
-			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2 a1', 'x1 a1 a2 a2', 'x1 a2'])
+			>>> for name in ['example_4_5', 'example_4_11', 'example_4_12', 'example_5_15', 'cyclic_order_six']:
+			... 	print(load_example(name).seminormal_form_start_point())
+			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
+			[x1 a1, x1 a2]
+			[x1 a1, x1 a2]
+			[x1 a1, x1 a2 a1, x1 a2 a2]
+			[x1 a1 a1, x1 a1 a2 a1, x1 a1 a2 a2, x1 a2]
 		
 		.. seealso::  Remark :paperref:`rem:snf_start_point` of the paper.
 		"""
@@ -364,15 +364,15 @@ class Automorphism(Homomorphism):
 	def orbit_type(self, y, basis=None):
 		"""Returns the orbit type of *y* with respect to the given *basis*. If *basis* is omitted, the :meth:`quasi-normal basis <compute_quasinormal_basis>` is used by default. Also returns a dictionary of computed images, the list (:paperref:`eq:uorb`) from the paper.
 		
-			>>> #Example 4.5.
-			>>> print_component_types(example_4_5, example_4_5.domain)
+			>>> phi = load_example('example_4_5')
+			>>> print_component_types(phi, phi.domain)
 			x1 a1 a1 a1: Left semi-infinite component with characteristic (-1, a1)
 			x1 a1 a1 a2: Bi-infinite component
 			x1 a1 a2: Right semi-infinite component with characteristic (1, a2)
 			x1 a2 a1: Periodic component of order 2
 			x1 a2 a2: Periodic component of order 2
 			with respect to the basis [x1 a1 a1 a1, x1 a1 a1 a2, x1 a1 a2, x1 a2 a1, x1 a2 a2]
-			>>> print_component_types(example_4_5, basis=example_4_5.domain, words=['x', 'x a1', 'x a2'])
+			>>> print_component_types(phi, basis=phi.domain, words=['x', 'x a1', 'x a2'])
 			x1: Incomplete component
 			x1 a1: Incomplete component
 			x1 a2: Incomplete component
@@ -381,8 +381,7 @@ class Automorphism(Homomorphism):
 		.. doctest::
 			:hide:
 			
-			>>> #Example 4.11
-			>>> print_component_types(example_4_11)
+			>>> print_component_types(load_example('example_4_11'))
 			x1 a1: Left semi-infinite component with characteristic (-1, a1)
 			x1 a2: Right semi-infinite component with characteristic (1, a2)
 			with respect to the basis [x1 a1, x1 a2]
@@ -390,29 +389,29 @@ class Automorphism(Homomorphism):
 		.. doctest::
 			:hide:
 			
-			>>> #Example 4.12
-			>>> basis = example_4_12.seminormal_form_start_point()
-			>>> print_component_types(example_4_12, basis)
+			>>> phi = load_example('example_4_12')
+			>>> basis = phi.seminormal_form_start_point()
+			>>> print_component_types(phi, basis)
 			x1 a1: Incomplete component
 			x1 a2: Incomplete component
 			with respect to the basis [x1 a1, x1 a2]
-			>>> basis.expand(0)
-			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2'])
-			>>> print_component_types(example_4_12, basis)
+			>>> print(basis.expand(0))
+			[x1 a1 a1, x1 a1 a2, x1 a2]
+			>>> print_component_types(phi, basis)
 			x1 a1 a1: Bi-infinite component
 			x1 a1 a2: Bi-infinite component
 			x1 a2: Incomplete component
 			with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2]
-			>>> basis.expand(2)
-			Generators((2, 1), ['x1 a1 a1', 'x1 a1 a2', 'x1 a2 a1', 'x1 a2 a2'])
-			>>> print_component_types(example_4_12, basis)
+			>>> print(basis.expand(2))
+			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
+			>>> print_component_types(phi, basis)
 			x1 a1 a1: Periodic component of order 4
 			x1 a1 a2: Periodic component of order 4
 			x1 a2 a1: Periodic component of order 4
 			x1 a2 a2: Periodic component of order 4
 			with respect to the basis [x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
 			>>> #Example 4.25
-			>>> print_component_types(example_5_15)
+			>>> print_component_types(load_example('example_5_15'))
 			x1 a1: Right semi-infinite component with characteristic (1, a1 a1)
 			x1 a2 a1: Bi-infinite component
 			x1 a2 a2: Left semi-infinite component with characteristic (-1, a1 a1)
@@ -577,26 +576,25 @@ class Automorphism(Homomorphism):
 		
 		.. doctest::
 			
-			>>> print(*example_4_5.semi_infinite_end_points())
+			>>> for id in ['4_5', '4_11', '4_12', '5_15', '6_2']:
+			... 	aut = load_example('example_' + id)
+			... 	print(*aut.semi_infinite_end_points())
 			[x1 a1 a1] [x1 a1 a2]
-			>>> print(*example_4_11.semi_infinite_end_points())
 			[x1 a1] [x1 a2]
-			>>> print(*example_4_12.semi_infinite_end_points())
 			[] []
-			>>> print(*example_5_15.semi_infinite_end_points())
 			[x1 a2 a2, x1 a2 a2 a1] [x1 a1, x1 a1 a1]
-			>>> print(*example_6_2.semi_infinite_end_points())
 			[x1 a1 a1] [x1 a2]
-			>>> print(*nathan_pond_example.semi_infinite_end_points())
+			>>> phi = load_example('nathan_pond_example')
+			>>> print(*phi.semi_infinite_end_points())
 			[x1 a1 a1, x1 a1 a1 a1, x1 a1 a1 a2] [x1 a1 a2, x1 a1 a2 a1, x1 a1 a2 a2]
-			>>> print(*nathan_pond_example.semi_infinite_end_points(exclude_characteristics=True))
+			>>> print(*phi.semi_infinite_end_points(exclude_characteristics=True))
 			[x1 a1 a1 a2] [x1 a1 a2 a2]
 		
 		:rtype: A pair of :class:`Generators <thompson.generators.Generators>`.
 		
 		.. seealso:: The discussion before Lemma :paperref:`9.1H`.
 		"""
-		basis = self.quasinormal_basis                  #X
+		basis = self.quasinormal_basis                    #X
 		min_expansion = basis.minimal_expansion_for(self) #Y
 		img_expansion = self.image_of_set(min_expansion)  #Z
 		terminal = basis.descendants_above(min_expansion) #X<A> \ Y<A>
@@ -637,7 +635,7 @@ class Automorphism(Homomorphism):
 	def dump_QNB(self):
 		"""A convenience method for printing the quasinormal basis :math:`X`. The :math:`X`-components of the elements :math:`x \in X` are displayed.
 		
-			>>> example_5_3.dump_QNB()
+			>>> load_example('example_5_3').dump_QNB()
 			x1 a1 a1 a1 Left semi-infinite component with characteristic (-1, a1)
 			x1 a1 a1 a2 Right semi-infinite component with characteristic (1, a2)
 			x1 a1 a2 a1 Periodic component of order 2
@@ -650,23 +648,30 @@ class Automorphism(Homomorphism):
 			print(gen, ctype)
 	
 	def print_characteristics(self):
-		""".. doctest::
+		"""For convenience, a method that prints out all of the characteristics of type B components wrt the quasinormal_basis.
+		
+		.. doctest::
+			:options: +NORMALIZE_WHITESPACE
 			
-			>>> example_4_1.print_characteristics()
+			>>> for id in ['4_1', '5_15', '6_2', '6_8_phi']:
+			... 	name = 'example_' + id
+			... 	print(name)
+			... 	load_example(name).print_characteristics()
+			example_4_1
 			(-1, a1)
 			(1, a2)
-			>>> example_5_15.print_characteristics()
+			example_5_15
 			(-1, a1 a1)
 			(1, a1 a1)
-			>>> example_6_2.print_characteristics()
+			example_6_2
 			(-2, a1)
 			(1, a2)
-			>>> (example_6_2 * example_6_2).print_characteristics()
-			(-1, a1)
-			(1, a2 a2)
-			>>> example_6_8_phi.print_characteristics()
+			example_6_8_phi
 			(-1, a1 a1 a1)
 			(1, a2 a2 a2)
+			>>> (load_example('example_6_2')**2).print_characteristics()
+			(-1, a1)
+			(1, a2 a2)
 			>>> #Lemma 5.16
 			>>> psi, phi = random_conjugate_pair()
 			>>> psi.characteristics == phi.characteristics
@@ -703,26 +708,28 @@ class Automorphism(Homomorphism):
 		.. doctest::
 			:options: -ELLIPSIS
 			
+			>>> phi = load_example('alphabet_size_two')
 			>>> u  = Word('x1 a2 a3 a1 a2', (3, 2))
 			>>> v1 = Word('x1 a1 a2 a2 a3 a1', (3, 2))
 			>>> v2 = Word('x2 a3 a2', (3, 2))
-			>>> print(alphabet_size_two.share_orbit(u, v1))
+			>>> print(phi.share_orbit(u, v1))
 			{}
-			>>> print(alphabet_size_two.share_orbit(u, v2))
+			>>> print(phi.share_orbit(u, v2))
 			{-2}
-			>>> print(alphabet_size_two.share_orbit(u, u))
+			>>> print(phi.share_orbit(u, u))
 			{0}
 		
 		.. doctest::
 			:hide:
 			:options: -ELLIPSIS
 			
+			>>> phi = load_example('example_5_15')
 			>>> u  = Word('x a2 a2 a1 a1 a2', (2, 1))
 			>>> v1 = Word('x a1 a2', (2, 1))
 			>>> v2 = Word('x a1 a1 a2', (2, 1))
-			>>> print(example_5_15.share_orbit(u, v1))
+			>>> print(phi.share_orbit(u, v1))
 			{}
-			>>> print(example_5_15.share_orbit(u, v2))
+			>>> print(phi.share_orbit(u, v2))
 			{3}
 			>>> u  = Word('x a2 a2 x a1 a2 L x a2 a1 L x a1 a1 a1 a2 L', (2, 1))
 			>>> vs = [
@@ -731,40 +738,42 @@ class Automorphism(Homomorphism):
 			... 	Word('x a2 a2 x a1 a2 L', (2, 1)),
 			... 	Word('x a1 a1 x a1 a2 x a2 a2 L L', (2, 1))]
 			... 
-			>>> for v in vs: print(example_5_15.share_orbit(u, v))
+			>>> for v in vs: print(phi.share_orbit(u, v))
 			{-4}
 			{}
 			{-1}
 			{}
+			>>> phi = load_example('arity_four')
 			>>> u1 = Word('x a2 a3 a1', (4, 1))
 			>>> v1 = Word('x a3 a3 a3 a3 a3 a3 a3 a3 a3 a2 a3 a1', (4, 1))
 			>>> v2 = Word('x a1 a2 a3 a4', (4, 1))
 			>>> u2 = Word('x a3 a4 a1', (4, 1))
 			>>> v3 = Word('x a4 a1 a1', (4, 1))
 			>>> v4 = Word('x a4 a3 a2 a1', (4, 1))
-			>>> print(arity_four.share_orbit(u1, v1))
+			>>> print(phi.share_orbit(u1, v1))
 			{9}
-			>>> print(arity_four.share_orbit(u1, v2))
+			>>> print(phi.share_orbit(u1, v2))
 			{}
-			>>> print(arity_four.share_orbit(u2, v3))
+			>>> print(phi.share_orbit(u2, v3))
 			{-1}
-			>>> print(arity_four.share_orbit(u2, v4))
+			>>> print(phi.share_orbit(u2, v4))
 			{}
 			>>> u = Word("x a1 a2 a1 a2 a1", (2, 1))
 			>>> v = Word("x a2 a2 a2 a1", (2, 1))
-			>>> print(cyclic_order_six.share_orbit(u, v))
+			>>> phi = load_example('cyclic_order_six')
+			>>> print(phi.share_orbit(u, v))
 			{..., -1, 2, 5, 8, 11, 14, ...}
 			>>> u = Word("x a1 a1 x a1 a2 a1 x a1 a2 a2 a1 L L", (2, 1))
 			>>> v1 = Word("x a1 a1 x a2 a2 x a2 a1 L L", (2, 1))
 			>>> v2 = Word("x a1 a1 x a1 a2 a1 x a1 a1 L L", (2, 1))
-			>>> print(cyclic_order_six.share_orbit(u, v1))
+			>>> print(phi.share_orbit(u, v1))
 			{..., -1, 5, 11, 17, 23, 29, ...}
-			>>> print(cyclic_order_six.share_orbit(u, v2))
+			>>> print(phi.share_orbit(u, v2))
 			{}
 			>>> #Two sides of a pond
 			>>> u = Word('x a1 a1 a1 a1 a1 a1 a1 a2', (2, 1))
 			>>> v = Word('x a2 a2 a1 a1 a2', (2, 1))
-			>>> print(first_pond_example_phi.share_orbit(u, v))
+			>>> print(load_example('first_pond_example_phi').share_orbit(u, v))
 			{4}
 		
 		:returns: The (possibly empty) :class:`~thompson.orbits.SolutionSet` of all integers :math:`m` for which :math:`u\psi^m = v`. Note that if :math:`u = v` this method returns :math:`\mathbb{Z}`. 
@@ -832,12 +841,13 @@ class Automorphism(Homomorphism):
 		* :math:`\widetilde{y}\widetilde{\Gamma}` is in the same orbit as :math:`y\Gamma`.
 		* :math:`\widetilde{\Gamma}` does not start with the characteristic multiplier of :math:`\widetilde{y}`.
 		
-			>>> basis = example_5_15.quasinormal_basis
-			>>> basis
-			Generators((2, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2'])
+			>>> phi = load_example('example_5_15')
+			>>> basis = phi.quasinormal_basis
+			>>> print(basis)
+			[x1 a1, x1 a2 a1, x1 a2 a2]
 			>>> head = Word('x a2 a2', (2, 1))
-			>>> _, _, type_b_data = example_5_15.orbit_type(head, basis)
-			>>> example_5_15._type_b_descendant(head, from_string('a1 a1 a2'), type_b_data)
+			>>> _, _, type_b_data = phi.orbit_type(head, basis)
+			>>> phi._type_b_descendant(head, from_string('a1 a1 a2'), type_b_data)
 			(1, Word('x1 a2 a2', (2, 1)), (-2,))
 		"""
 		orig_head = head
@@ -941,7 +951,7 @@ class Automorphism(Homomorphism):
 			>>> #phi preserves order iff it is in F.
 			>>> (sorted(phi.range) == phi.range) == phi.preserves_order()
 			True
-			>>> nathan_pond_example.preserves_order()
+			>>> load_example('nathan_pond_example').preserves_order()
 			False
 		"""
 		indices = range(len(self.range) - 1)
@@ -954,7 +964,7 @@ class Automorphism(Homomorphism):
 		True
 		>>> random_automorphism_in_T().cycles_order()
 		True
-		>>> nathan_pond_example.cycles_order() # in V
+		>>> load_example('nathan_pond_example').cycles_order() # in V
 		False
 		"""
 		indices = range(len(self.range) - 1)

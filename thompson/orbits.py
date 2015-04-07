@@ -1,8 +1,8 @@
 """
 .. testsetup::
 	
+	from thompson        import *
 	from thompson.orbits import *
-	from thompson.examples import *
 """
 
 from collections import namedtuple
@@ -93,7 +93,7 @@ class ComponentType(BaseComponentType):
 def print_component_types(aut, basis=None, words=None):
 	r"""Prints the classification of the components under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the smallest possible expansion which could potentially be a semi-normal basis; see :meth:`~thompson.automorphism.Automorphism.seminormal_form_start_point`. If *words* is omited, it is taken to be the same as *basis*.
 	
-		>>> print_component_types(arity_three_order_inf)
+		>>> print_component_types(load_example('arity_three_order_inf'))
 		x1 a1: Left semi-infinite component with characteristic (-1, a1)
 		x1 a2: Bi-infinite component
 		x1 a3 a1: Bi-infinite component
@@ -101,7 +101,7 @@ def print_component_types(aut, basis=None, words=None):
 		x1 a3 a3: Right semi-infinite component with characteristic (1, a1)
 		with respect to the basis [x1 a1, x1 a2, x1 a3 a1, x1 a3 a2, x1 a3 a3]
 		
-		>>> print_component_types(arity_four)
+		>>> print_component_types(load_example('arity_four'))
 		x1 a1 a1: Periodic component of order 4
 		x1 a1 a2: Periodic component of order 4
 		x1 a1 a3: Periodic component of order 4

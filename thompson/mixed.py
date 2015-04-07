@@ -1,12 +1,12 @@
 """
 .. testsetup::
 	
-	from thompson.word import Word, Signature, from_string, free_monoid_on_alphas
-	from thompson import word
-	from thompson.generators import Generators
-	from thompson.mixed import *
-	from thompson.examples import *
+	from thompson               import word
 	from thompson.number_theory import gcd
+	from thompson.word          import Word, Signature, from_string, free_monoid_on_alphas
+	from thompson.generators    import Generators
+	from thompson.mixed         import *
+	from thompson.examples      import *
 """
 
 __all__ = ["MixedAut"]
@@ -53,6 +53,8 @@ class MixedAut(Automorphism):
 		
 		.. doctest::
 			
+			>>> example_4_5 = load_example('example_4_5')
+			>>> example_5_3 = load_example('example_5_3')
 			>>> basis = example_4_5.quasinormal_basis
 			>>> print(*example_4_5._partition_basis(basis), sep='\n')
 			[x1 a2 a1, x1 a2 a2]
@@ -105,14 +107,15 @@ class MixedAut(Automorphism):
 		
 		.. doctest::
 			
-			>>> qnb = alphabet_size_two.quasinormal_basis
-			>>> p, i = alphabet_size_two._partition_basis(qnb)
-			>>> print(alphabet_size_two.free_factor(p))
+			>>> phi = load_example('alphabet_size_two')
+			>>> qnb = phi.quasinormal_basis
+			>>> p, i = phi._partition_basis(qnb)
+			>>> print(phi.free_factor(p))
 			PeriodicAut: V(3, 1) -> V(3, 1) specified by 1 generators (after expansion and reduction).
 			This automorphism was derived from a parent automorphism.
 			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
 			x1 a1 ~>    y1 => y1    ~> x1 a1
-			>>> print(alphabet_size_two.free_factor(i))
+			>>> print(phi.free_factor(i))
 			InfiniteAut: V(3, 1) -> V(3, 1) specified by 5 generators (after expansion and reduction).
 			This automorphism was derived from a parent automorphism.
 			'x' and 'y' represent root words of the parent and current derived algebra, respectively.
@@ -181,7 +184,7 @@ class MixedAut(Automorphism):
 			True
 			>>> psi * rho == rho * phi
 			True
-			>>> psi, phi = first_pond_example_psi, first_pond_example_phi
+			>>> psi, phi = load_example_pair('first_pond_example')
 			>>> rho = psi.test_conjugate_to(phi)
 			>>> rho is not None
 			True
@@ -283,10 +286,11 @@ class MixedAut(Automorphism):
 		:param cheat: (internal) for speeding up testing.
 		:raises ValueError: if the automorphisms have different arities or alphabet sizes.
 		
-		>>> a, b, rho = mixed_pconj_psi.test_power_conjugate_to(mixed_pconj_phi)
+		>>> psi, phi = load_example_pair('mixed_pconj')
+		>>> a, b, rho = psi.test_power_conjugate_to(phi)
 		>>> a, b
 		(6, 3)
-		>>> mixed_pconj_psi**a * rho == rho * mixed_pconj_phi ** b
+		>>> psi**a * rho == rho * phi ** b
 		True
 		
 		.. seealso:: This is an implementation of Algorithm :paperref:`powerconjAlgorithm` in the paper. It depends on Algorithms :paperref:`conjAlgorithm` (the :meth:`conjugacy test <test_conjugate_to>`) and :paperref:`alg:pcRI` (the :meth:`infinite power conjugate test <thompson.infinite.InfiniteAut.test_power_conjugate_to>`.)

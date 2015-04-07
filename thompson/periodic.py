@@ -16,6 +16,7 @@ __all__ = ["PeriodicAut"]
 class PeriodicAut(Automorphism):
 	r"""A purely periodic automorphism, which may have been extracted from a mixed automorphism.
 	
+		>>> example_5_9 = load_example('example_5_9')
 		>>> print(example_5_9)
 		PeriodicAut: V(2, 1) -> V(2, 1) specified by 7 generators (after expansion and reduction).
 		x1 a1 a1 a1 -> x1 a1 a1 a2
@@ -34,7 +35,7 @@ class PeriodicAut(Automorphism):
 		>>> example_5_9.order
 		6
 		
-		>>> cyclic_order_six.order
+		>>> load_example('cyclic_order_six').order
 		6
 		>>> phi = random_periodic_automorphism()
 		>>> 1 <= phi.order < float('inf')
@@ -75,7 +76,7 @@ class PeriodicAut(Automorphism):
 	def test_conjugate_to(self, other):
 		"""We can determine if two purely periodic automorphisms are conjugate by examining their orbits.
 		
-			>>> psi_p = example_5_12_psi; phi_p = example_5_12_phi
+			>>> psi_p, phi_p = load_example('example_5_12_psi'), load_example('example_5_12_phi')
 			>>> rho_p = psi_p.test_conjugate_to(phi_p)
 			>>> print(rho_p)
 			PeriodicAut: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
