@@ -78,6 +78,20 @@ class Generators(list):
 		"""
 		return type(self)(self.signature, self)
 	
+	def filter(self, func):
+		"""Creates a copy of the current generating set whose elements *x* are those for which *func(x)* is ``True``. The original generating set is unmodified, and the order of elements is inherited by the filtered copy.
+		
+			>>> X = load_example('olga_f').quasinormal_basis
+			>>> print(X)
+			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2]
+			>>> def test(x):
+			... 	return len(x) % 2 == 0
+			... 
+			>>> print(X.filter(test))
+			[x1 a2 a2 a1, x1 a2 a2 a2]
+		"""
+		return type(self)(self.signature, (x for x in self if func(x)))
+	
 	#Tests on generating sets
 	def test_free(self):
 		r"""Tests to see if the current generating set :math:`X` is a free generating set. If the test fails, returns the first pair of indices :math:`(i, j)` found for which :math:`X_i` :meth:`is above <thompson.word.Word.is_above>` :math:`X_j`. If the test passes, returns :math:`(-1, -1)`.
@@ -115,7 +129,8 @@ class Generators(list):
 	def preorder_traversal(self):
 		"""Yields words as if traversing the vertices of a tree in pre-order."""
 		if self.signature.alphabet_size > 1:
-			raise NotImplementedError()
+			raise NotImplementedError('Not implemented for alphabet sizes greater than 1 ({})'.format(
+			  self.signature.alphabet_size))
 		
 		yield Word('x', self.signature), (None if len(self) > 1 else 1)
 		path = Word('x a1', (2, 1))

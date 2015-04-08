@@ -16,7 +16,7 @@ from .word          import Word, free_monoid_on_alphas, format
 from .generators    import Generators
 from .homomorphism  import Homomorphism
 from .orbits        import ComponentType, SolutionSet
-from .utilities     import generate_tikz_code
+from .utilities     import basis_from_expansion, generate_tikz_code
 
 ___all__ = ["Automorphism"]
 
@@ -44,9 +44,10 @@ class Automorphism(Homomorphism):
 	
 	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)` where :math:`\phi` is the current automorphism and :math:`X_\phi` is the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` for :math:`\phi`.
 	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`
-	:ivar order: The :func:`~thompson.number_theory.lcm` of the automorphism's cycle type. This is the group-theoretic order of the :mod:`periodic factor <thompson.periodic>` of :math:`\phi`. If the cycle type is empty, the order is :math:`\infty`. Note that :mod:`mixed automorhpisms <thompson.mixed>` will have a **finite** order, despite being infinite-order group elements.
+	:ivar order: The :func:`~thompson.number_theory.lcm` of the automorphism's cycle type. This is the group-theoretic order of the :mod:`periodic factor <thompson.periodic>` of :math:`\phi`. If the cycle type is empty, the order is :math:`\infty`.
 	
-	the smallest positive number :math:`n` for which :math:`\phi^n` is the identity. (This is the lcm of the cycle type.) If no such :math:`n` exists, the order is :math:`\infty`.
+	.. note::
+		:mod:`mixed automorhpisms <thompson.mixed>` will have a **finite** order, despite being infinite-order group elements.
 	
 	Infinite attributes:
 	
@@ -977,9 +978,56 @@ class Automorphism(Homomorphism):
 					return False
 		return True
 	
-	def write_tikz_code(self, filename, domain=None, name=''):
-		generate_tikz_code(self, filename, domain, name)
+	def write_tikz_code(self, filename, domain=None, name='', self_contained=False):
+		generate_tikz_code(self, filename, domain, name, self_contained)
 	write_tikz_code.__doc__ = generate_tikz_code.__doc__
+	
+	def render(self, filename, domain=None, name=''):
+		"""Uses :meth:`write_tikz_code` to generate a PDF drawing of the given automorphism. A call to :func:`py3:webbrowser.open` displays the PDF.
+		
+		.. caution:: This is an experimental feature based on [SD10]_.
+		"""
+		self.write_tikz_code(filename + '.tex', domain=None, name=name, self_contained=True)
+		import os, webbrowser
+		os.system('pdflatex {}'.format(filename + '.tex'))
+		webbrowser.open(filename + '.pdf')
+	
+	def test_revealing(self, domain=None):
+		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*. If *domain* is not given, it is taken to be the minimal *domain* required to specify the automorphism.
+		
+		:returns: None if the pair is revealing for :math:`\phi`. Otherwise, returns (as a :class:`~thompson.word.Word`) the root of a component of either :math:`D \setminus \phi(D)` or :math:`\phi(D) \setminus D` which does not contain an attractor/repeller.
+		
+		>>> print(*load_example('olga_f').test_revealing())
+		True None
+		>>> print(*load_example('semi_inf_c').test_revealing())
+		False x1 a2 a1
+		
+		.. caution:: This is an experimental feature based on [SD10]_.
+		"""
+		if domain is None:
+			domain = self.domain
+		range = self.image_of_set(domain)
+		X = basis_from_expansion(domain, self)
+		difference_roots = X.filter(lambda x: x not in domain) + X.filter(lambda x: x not in range)
+		for root in difference_roots:
+			ctype = self.orbit_type(root, X)[0]
+			if not ctype.is_type_B():
+				return False, root
+		return True, None
+	
+	def is_revealing(self, domain=None):
+		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*. If *domain* is not given, it is taken to be the minimal *domain* required to specify the automorphism.
+		
+		:returns: True if the pair is revealing, otherwise False.
+		
+		>>> load_example('olga_f').is_revealing()
+		True
+		>>> load_example('semi_inf_c').is_revealing()
+		False
+		
+		.. caution:: This is an experimental feature based on [SD10]_.
+		"""
+		return self.test_revealing(domain)[0]
 
 def search_pattern(sbound, obound):
 	"""An optimistic search pattern which tries to delay expensive computations until as late as possible.
