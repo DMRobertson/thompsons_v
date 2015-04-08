@@ -1,11 +1,14 @@
 from test import setup_script
 setup_script(__file__)
 
-"""A place to play around with the package."""
+"""Checks all the examples in thompson. Those which are not revealing wrt the minimal tree pair (or alternatively the tree pair corresp to the quasinormal_basis) are listed and rendered."""
 
 from thompson import *
 from thompson.examples import load_all_examples
 import tempfile, os, os.path, traceback, shutil
+
+# BASES = 'MINIMAL'
+BASES = 'QUASINORMAL'
 
 if __name__ == '__main__':
 	examples = load_all_examples()
@@ -14,7 +17,11 @@ if __name__ == '__main__':
 
 		for name in sorted(examples):
 			ex = examples[name]
-			revealing, data = ex.test_revealing()
+			if BASES == 'MINIMAL':
+				domain = None
+			elif BASES == 'QUASINORMAL':
+				domain = ex.quasinormal_basis.minimal_expansion_for(ex)
+			revealing, data = ex.test_revealing(domain)
 			if not revealing:
 				print(name, ex.signature, data)
 				if input('Render? (y/n) ').strip().lower() == 'y':
@@ -23,4 +30,5 @@ if __name__ == '__main__':
 					except Exception:
 						traceback.print_exc()
 						print('continuing to next example')
-	print('\nTemporary files were stored in', dir, 'and some may still be present.')
+		input('Press enter to remove temporary files.\nDrawings currently open will not be removed.')
+	print('\nTemporary files removed from', dir)

@@ -11,7 +11,7 @@ from .number_theory import SolutionSet
 from .word import format
 from .generators import Generators
 
-__all__ = ["ComponentType", "print_component_types", "SolutionSet"]
+__all__ = ["ComponentType", "Characteristic", "print_component_types", "SolutionSet"]
 
 BaseComponentType = namedtuple("BaseComponentType", "type characteristic")
 class ComponentType(BaseComponentType):
@@ -123,3 +123,5 @@ def print_component_types(aut, basis=None, words=None):
 		print("{}: {}".format(
 		  w, aut.orbit_type(w, basis)[0]))
 	print('with respect to the basis', basis)
+
+Characteristic = namedtuple("Characteristic", 'power multiplier')

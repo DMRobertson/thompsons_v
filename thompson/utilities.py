@@ -14,9 +14,9 @@ tail_sc = r'''\end{tikzpicture}
 head = r'''\tikzset{
 	level distance=8mm,
 	level 1/.style={sibling distance=30mm},
-	level 2/.style={sibling distance=15mm},
-	level 3/.style={sibling distance=10mm},
-	level 4/.style={sibling distance=5mm},
+	level 2/.style={sibling distance=20mm},
+	level 3/.style={sibling distance=12mm},
+	level 4/.style={sibling distance=6mm},
 	level 5/.style={sibling distance=3.5mm},
 	characteristic/.style={red, draw, solid}
 }
@@ -26,18 +26,7 @@ tail = ''''''
 
 def basis_from_expansion(expansion, aut):
 	"""Given a basis :math:`X` and an automorphism :math:`f`, we can always construct the minimal expansion :math:`Y` of :math:`X`. This function provides an inverse of sorts: given :math:`Y`, let :math:`Z = f(Y)` and define :math:`X` to be the basis corresponding to the intersection :math:`Y \cap Z` of trees."""
-	img = aut.image_of_set(expansion)
-	X = expansion.copy()
-	X += img
-	finished = False
-	while not finished:
-		i, j = X.test_free()
-		if i == j == -1:
-			finished = True
-		else:
-			del X[j] #this is never above X[i], see the docstring for test_free
-	X.sort()
-	return X
+	return aut._intersection_of_trees(expansion, aut.image_of_set(expansion))
 
 def generate_tikz_code(aut, filename, domain=None, name='', self_contained=False):
 	r""".. caution:: This is an experimental feature based partially on [SD10]_.
@@ -61,10 +50,9 @@ def generate_tikz_code(aut, filename, domain=None, name='', self_contained=False
 		
 		y = max(len(w) for w in domain) - 1
 		z = max(len(w) for w in domain) - 1
-		depth = -min(y, z)/2
-		
+		depth = -min(y, z)/5
 		coordend = r'\textwidth, ' + str(depth*8) + 'mm)'
-		print(r'\draw[->, thick] (0.25' + coordend, '-- node[auto]{', name, '} (0.35' + coordend, ';\n', file=f)
+		print(r'\draw[->] (0.25' + coordend, '-- node[auto]{', name, '} (0.35' + coordend, ';\n', file=f)
 		
 		basis_to_tree(aut, range, domain, X, f, name='range', extra=r'xshift=0.6\textwidth')
 		f.write(tail)
@@ -94,7 +82,7 @@ def basis_to_tree(aut, basis, other, intersection, f, name, extra=''):
 		if leafnum is not None:
 			f.write('node ')
 			ctype, images, _ = aut.orbit_type(path, intersection)
-			if dashed[-1] and aut.orbit_type(path, intersection)[0].is_type_B():
+			if is_repeller_attractor(path, aut, dashed[-1], other, intersection, extra == ''):
 				f.write('[characteristic] ')
 			f.write('{' + str(leafnum) + '}')
 			if dashed.pop():
@@ -112,3 +100,16 @@ def basis_to_tree(aut, basis, other, intersection, f, name, extra=''):
 		print('}', file=f)
 	print(';', file=f)
 	print(r'\end{scope}', file=f)
+
+def is_repeller_attractor(path, aut, in_difference, other, intersection, in_domain):
+	if not in_difference:
+		return False
+	ctype = aut.orbit_type(path, intersection)[0]
+	if not ctype.is_type_B():
+		return False
+	print("characteristic:", ctype.characteristic.power, "in_domain:", in_domain)
+	if not (ctype.characteristic.power < 0) == in_domain:
+		return False
+	ancestor = aut.repeated_image(path, -ctype.characteristic.power)
+	assert ancestor.is_above(path)
+	return ancestor in other
