@@ -8,8 +8,10 @@
 	from thompson.examples      import *
 """
 
-from copy      import copy
-from itertools import chain, product
+from copy         import copy
+from itertools    import chain, product
+from subprocess   import check_call, DEVNULL
+import webbrowser
 
 from .number_theory import lcm
 from .word          import Word, free_monoid_on_alphas, format
@@ -988,13 +990,12 @@ class Automorphism(Homomorphism):
 	write_tikz_code.__doc__ = generate_tikz_code.__doc__
 	
 	def render(self, filename, domain=None, name=''):
-		"""Uses :meth:`write_tikz_code` to generate a PDF drawing of the given automorphism. A call to :func:`py3:webbrowser.open` displays the PDF.
+		"""Uses :meth:`write_tikz_code` and a call to ``pdflatex`` to generate a PDF drawing of the given automorphism. A call to :func:`py3:webbrowser.open` displays the PDF.
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
 		self.write_tikz_code(filename + '.tex', domain=None, name=name, self_contained=True)
-		import os, webbrowser
-		os.system('pdflatex {}'.format(filename + '.tex'))
+		check_call(['pdflatex', filename + '.tex'], stdout=DEVNULL)
 		webbrowser.open(filename + '.pdf')
 	
 	def test_revealing(self, domain=None):

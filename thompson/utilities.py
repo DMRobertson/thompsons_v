@@ -107,7 +107,7 @@ def is_repeller_attractor(path, aut, in_difference, other, intersection, in_doma
 	ctype = aut.orbit_type(path, intersection)[0]
 	if not ctype.is_type_B():
 		return False
-	print("characteristic:", ctype.characteristic.power, "in_domain:", in_domain)
+	# print("characteristic:", ctype.characteristic.power, "in_domain:", in_domain)
 	if not (ctype.characteristic.power < 0) == in_domain:
 		return False
 	ancestor = aut.repeated_image(path, -ctype.characteristic.power)
