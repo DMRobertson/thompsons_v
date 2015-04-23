@@ -23,12 +23,23 @@ def test_revealing(aut):
 		return 'The QNB DOES correspond to a revealing pair.'
 	return ''
 
+def test_conjecture(aut):
+	SI_type_C_result = test_semi_inf_c(aut)
+	has_SI_type_C = SI_type_C_result != ''
+	
+	revealing_result = test_revealing(aut)
+	is_revealing = revealing_result != ''
+	if has_SI_type_C != is_revealing:
+		return ''
+	else:
+		return 'has_SI_type_C: {}, is_revealing: {}'.format(has_SI_type_C, is_revealing)
+
 def generate_automorphism():
 	return random_automorphism(signature = (2, 1))
 
 def search():
 	find_examples_passing(
-	  test_functions         = (test_semi_inf_c, test_revealing),
+	  test_functions         = [test_conjecture],
 	  automorphism_generator = generate_automorphism,
 	  test_name              = 'semi_inf_c',
 	  description            = """This test records examples of automorphisms whose quasinormal bases have elements of type C belonging to semi-infinite characteristics. (These are neccesary for ponds to exist but [I think] not neccesarily sufficient.)""",
