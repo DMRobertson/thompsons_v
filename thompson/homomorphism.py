@@ -217,11 +217,11 @@ class Homomorphism:
 		if filename is None:
 			clsname = type(self).__name__ 
 			filename = clsname + '.' + clsname.lower()[:3]
+		rows = format_table(self.domain, self.range)
 		with open(filename, 'wt', encoding='utf-8') as f:
 			print(len(self.domain), file=f)
-			print("{} -> {}".format(self.domain.signature, self.range.signature), file=f)
-			for d, r in zip(self.domain, self.range):
-				print("{} -> {}".format(d, r), file=f)
+			for row in rows:
+				print(row, file=f)
 			if comment is not None:
 				print(comment, file=f)
 	

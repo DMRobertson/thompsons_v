@@ -57,6 +57,7 @@ def find_examples_passing(test_func,
 	os.makedirs(test_name, exist_ok=True)
 	log_filepath = os.path.join(test_name, test_name + '.log')
 	output_path  = os.path.join(test_name, test_name + '_{}.aut')
+	time_series_path = os.path.join(test_name, test_name + '.csv')
 	
 	prepare_logging(log_filepath)
 	
@@ -66,29 +67,40 @@ def find_examples_passing(test_func,
 	
 	num_attempts = 0
 	num_found = 0
-	while True:
-		num_attempts += 1
-		if num_attempts % 1000 == 0:
-			logging.debug('Attempt number {}'.format(num_attempts))
-		
-		aut = automorphism_generator()
-		try:
-			result = test_func(aut)
-		except Exception as e:
-			logging.error("An exception occured when calling the test function on attempt {}.\n\t{}").format(
-			  num_attempts, e)
-			logging.debug(traceback.format_exc())
-		
-		assert isinstance(result, str), "test_func should return the empty string for a fail \
-		  and a non-empty string for a pass."
-		if result:
-			num_found += 1
-			logging.info('Found example number {} on attempt {}. Success proportion: {:.2%}'.format(
-			  num_found, num_attempts, num_found / num_attempts))
-		if not (result and save_examples):
-			continue
-		
-		path = output_path.format(num_found)
-		logging.debug('Saving the details of example number {} to {}.'.format(
-		  num_found, path))
-		aut.save_to_file(path, result)
+	with open(time_series_path, 'wt') as series:
+		while True:
+			num_attempts += 1
+			if num_attempts % 1000 == 0:
+				logging.debug('Attempt number {}'.format(num_attempts))
+			
+			aut = automorphism_generator()
+			try:
+				result = test_func(aut)
+			except Exception as e:
+				logging.error("An exception occured when calling the test function on attempt {}.\n\t{}").format(
+				  num_attempts, e)
+				logging.debug(traceback.format_exc())
+			
+			assert isinstance(result, str), "test_func should return the empty string for a fail \
+			  and a non-empty string for a pass."
+			if result:
+				num_found += 1
+				logging.info('Found example number {} on attempt {}. Success proportion: {:.2%}'.format(
+				  num_found, num_attempts, num_found / num_attempts))
+				print(num_attempts, ',', num_found / num_attempts, file = series)
+			if not (result and save_examples):
+				continue
+			
+			path = output_path.format(num_found)
+			logging.debug('Saving the details of example number {} to {}.'.format(
+			  num_found, path))
+			aut.save_to_file(path, result)
+
+"""Here is a snippet of R code to plot the change in the success ratio.
+
+data = read.csv('FILENAME_GOES_HERE.csv', header=FALSE)
+attempts = data[,1]
+success = data[,2]
+plot(attempts, success, type='l')
+abline(h=mean(success), col='red', lty=2)
+"""
