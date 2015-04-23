@@ -212,7 +212,6 @@ class Homomorphism:
 			os.remove('test_saving_homomorphism.aut')
 			
 		"""
-		#todo docstring
 		#todo test that this is an inverse to from_file
 		if filename is None:
 			clsname = type(self).__name__ 
@@ -220,6 +219,7 @@ class Homomorphism:
 		rows = format_table(self.domain, self.range)
 		with open(filename, 'wt', encoding='utf-8') as f:
 			print(len(self.domain), file=f)
+			print("{} -> {}".format(self.domain.signature, self.range.signature), file=f)
 			for row in rows:
 				print(row, file=f)
 			if comment is not None:

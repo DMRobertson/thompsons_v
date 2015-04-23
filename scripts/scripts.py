@@ -45,14 +45,15 @@ def prepare_logging(log_filepath):
 	console.setFormatter(formatter)
 	logging.getLogger().addHandler(console)
 
-def find_examples_passing(test_func,
+def find_examples_passing(test_functions,
                           automorphism_generator,
                           test_name,
                           save_examples=True,
-                          description=''):
-	"""Generates random examples using the specified *automorphism_generator* and applies the user-supplied *test_func* to see if they match a certain condition. If *test_func* determines the example matches the condition, it should return a **non-empty** string giving the details. Otherwise if the condition is not met, *test_func* should return an empty string.
+                          description='',
+                          max_examples=float('inf')):
+	"""Generates random examples using the specified *automorphism_generator* and applies the user-supplied *test_functions* to see if they match certain conditions. If a *test_function* decides that the example matches the condition, it should return a **non-empty** string giving the details. Otherwise the condition is not met, and the *test_function* should return an empty string.
 	
-	When an example is found, its details are saved to disk if *save_examples* is True.
+	When an example is found, its details are saved to disk if *save_examples* is True. At most *max_examples* are found in this way.
 	"""
 	os.makedirs(test_name, exist_ok=True)
 	log_filepath = os.path.join(test_name, test_name + '.log')
@@ -66,36 +67,60 @@ def find_examples_passing(test_func,
 		logging.info(description)
 	
 	num_attempts = 0
-	num_found = 0
+	num_passes   = [0]  * len(test_functions)
+	results      = [''] * len(test_functions)
+	num_found    = 0
+	
 	with open(time_series_path, 'wt') as series:
-		while True:
+		headers = ["Attempt"]
+		for i in range(len(test_functions)):
+			headers.append( 'Test{}Passes'.format(i+1) )
+		print(', '.join(headers), file=series)
+		
+		while num_found < max_examples:
 			num_attempts += 1
-			if num_attempts % 1000 == 0:
-				logging.debug('Attempt number {}'.format(num_attempts))
-			
+			if num_attempts % 4000 == 0:
+				logging.info('Attempt number {}'.format(num_attempts))
+				logging.debug('Test results so far: {}'.format(num_passes))
 			aut = automorphism_generator()
+			
+			#call all the test functions
 			try:
-				result = test_func(aut)
+				passed_all = True
+				for index, test in enumerate(test_functions):
+					results[index] = test(aut)
+					assert isinstance(results[index], str), "test_functions should return the empty string for a fail \
+					  and a non-empty string for a pass."
+					if results[index]:
+						num_passes[index] += 1
+					else:
+						passed_all = False
+						break
 			except Exception as e:
-				logging.error("An exception occured when calling the test function on attempt {}.\n\t{}").format(
-				  num_attempts, e)
+				logging.error("An exception occured when calling test function {} on attempt {}.\n\t{}").format(
+				  index, num_attempts, e)
+				logging.debug(aut)
 				logging.debug(traceback.format_exc())
 			
-			assert isinstance(result, str), "test_func should return the empty string for a fail \
-			  and a non-empty string for a pass."
-			if result:
+			if passed_all:
 				num_found += 1
 				logging.info('Found example number {} on attempt {}. Success proportion: {:.2%}'.format(
 				  num_found, num_attempts, num_found / num_attempts))
-				print(num_attempts, ',', num_found / num_attempts, file = series)
-			if not (result and save_examples):
+			if passed_all or index > 0:
+				entry = str(num_attempts) + ', '
+				entry += ', '.join(  str(passes) for passes in num_passes  )
+				print(entry, file = series)
+				
+			if not (passed_all and save_examples):
 				continue
 			
 			path = output_path.format(num_found)
 			logging.debug('Saving the details of example number {} to {}.'.format(
 			  num_found, path))
+			
+			result = '\n\n'.join(r for r in results)
 			aut.save_to_file(path, result)
-
+	logging.info('Maxmium number of examples found; ending search.')
 """Here is a snippet of R code to plot the change in the success ratio.
 
 data = read.csv('FILENAME_GOES_HERE.csv', header=FALSE)
