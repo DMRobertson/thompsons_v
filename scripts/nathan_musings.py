@@ -1,4 +1,4 @@
-from test import setup_script
+from scripts import setup_script
 setup_script(__file__)
 
 """A while ago I was considering a question in http://arxiv.org/abs/0911.0979 by Bleak and Salazar-Diaz (Question 1). Would the general Python script you have created to work with V be able to look at the orbits of the two elements \psi_1 and \psi_3 in the note attached (written very badly), and their products?"""

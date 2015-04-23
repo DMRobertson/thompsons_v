@@ -195,8 +195,8 @@ class Homomorphism:
 				del hom.__doc__
 		return hom
 	
-	def save_to_file(self, filename=None):
-		"""Takes a homomorphism and saves it to the file with the given *filename*. The homomorphism is stored in a format which is compatible with :meth:`from_file`.
+	def save_to_file(self, filename=None, comment=None):
+		"""Takes a homomorphism and saves it to the file with the given *filename*. The homomorphism is stored in a format which is compatible with :meth:`from_file`. Optionally, a *comment* may be appended to the end of the homomorphism file.
 		
 		.. doctest::
 			
@@ -222,6 +222,8 @@ class Homomorphism:
 			print("{} -> {}".format(self.domain.signature, self.range.signature), file=f)
 			for d, r in zip(self.domain, self.range):
 				print("{} -> {}".format(d, r), file=f)
+			if comment is not None:
+				print(comment, file=f)
 	
 	#Simple operations on homomorphisms
 	def __eq__(self, other):

@@ -1,4 +1,4 @@
-from test import setup_script
+from scripts import setup_script
 setup_script(__file__)
 
 """Repeatedly compute the QNBs of random automorphisms, and record the automorphism which causes an error."""

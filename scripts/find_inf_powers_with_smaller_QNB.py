@@ -1,4 +1,4 @@
-from test import setup_script
+from scripts import setup_script
 setup_script(__file__)
 
 """A quick hack searching for counterexamples to AJD's conjecture at the start of sec 6.2."""
