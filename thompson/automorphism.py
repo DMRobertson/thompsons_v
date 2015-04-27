@@ -998,15 +998,25 @@ class Automorphism(Homomorphism):
 		check_call(['pdflatex', filename + '.tex'], stdout=DEVNULL)
 		webbrowser.open(filename + '.pdf')
 	
+	def _end_of_iac(self, root, leaves, backward=False):
+		"""Given a root :math:`r` of :math:`A \setminus B` of :math:`B \setminus A`, this finds the IAC containing :math:`r` and returns the endpoint :math:`u_1` or :math:`f(u_n)` which is not :math:`r`."""
+		assert root in leaves
+		u = root
+		while u in leaves:
+			u = self.image(u, inverse=backward)
+		return u
+	
 	def test_revealing(self, domain=None):
 		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*. If *domain* is not given, it is taken to be the minimal *domain* required to specify the automorphism.
 		
 		:returns: None if the pair is revealing for :math:`\phi`. Otherwise, returns (as a :class:`~thompson.word.Word`) the root of a component of either :math:`D \setminus \phi(D)` or :math:`\phi(D) \setminus D` which does not contain an attractor/repeller.
 		
-		>>> print(*load_example('olga_f').test_revealing())
-		True None
-		>>> print(*load_example('semi_inf_c').test_revealing())
-		False x1 a2 a1
+		>>> load_example('olga_f').test_revealing() is None
+		True
+		>>> print(load_example('semi_inf_c').test_revealing())
+		x1 a2 a1
+		>>> print(load_example('non_revealing').test_revealing())
+		x1 a1 a1
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
@@ -1014,12 +1024,16 @@ class Automorphism(Homomorphism):
 			domain = self.domain
 		range = self.image_of_set(domain)
 		X = basis_from_expansion(domain, self)
-		difference_roots = X.filter(lambda x: x not in domain) + X.filter(lambda x: x not in range)
-		for root in difference_roots:
-			ctype = self.orbit_type(root, X)[0]
-			if not ctype.is_type_B():
-				return False, root
-		return True, None
+		
+		roots_d_minus_r = X.filter(lambda x: x not in domain)
+		roots_r_minus_d = X.filter(lambda x: x not in range )
+		
+		for roots, leaves in ( (roots_d_minus_r, range), (roots_r_minus_d, domain) ):
+			for root in roots:
+				w = self._end_of_iac(root, leaves, backward=leaves == range)
+				if not root.is_above(w):
+					return root
+		return None
 	
 	def is_revealing(self, domain=None):
 		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*. If *domain* is not given, it is taken to be the minimal *domain* required to specify the automorphism.
@@ -1030,10 +1044,12 @@ class Automorphism(Homomorphism):
 		True
 		>>> load_example('semi_inf_c').is_revealing()
 		False
+		>>> load_example('non_revealing').is_revealing()
+		False
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
-		return self.test_revealing(domain)[0]
+		return self.test_revealing(domain) is None
 
 def search_pattern(sbound, obound):
 	"""An optimistic search pattern which tries to delay expensive computations until as late as possible.

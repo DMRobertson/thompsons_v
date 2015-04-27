@@ -13,7 +13,11 @@ From the paper
 Other references
 ----------------
 
-.. [AS74] \M. Anshel and P. Stebe, "The solvability of the conjugacy problem for certain HNN groups",  *Bull. Amer. Math. Soc.* ,  **80**  (2) (1974) 266–270.
+.. [AS74] \M. Anshel and P. Stebe, "The solvability of the conjugacy problem for certain HNN groups",  *Bull. Amer. Math. Soc*, 80, no. 2, pp. 266–270 (1974).
+
+.. [Bleak] \C. Bleak, *et al), "`Centralisers in the R. Thompson group :math:`V_n` <>`_", *Groups, Geometry, and Dynamics* 7, no. 4, pp. 821--865 (2013).
+
+
 .. [Kogan] \R. Kogan, "`nVTrees Applet <http://www.math.tamu.edu/~romwell/nvTrees/>`_" (2008). Accessed 17th September, 2014. 
 
 .. Comment: redundant now that we don't draw trees.

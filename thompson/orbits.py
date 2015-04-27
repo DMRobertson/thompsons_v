@@ -125,3 +125,6 @@ def print_component_types(aut, basis=None, words=None):
 	print('with respect to the basis', basis)
 
 Characteristic = namedtuple("Characteristic", 'power multiplier')
+def _str(self):
+	return "{}({}, {})".format( self.__class__.__name__, self.power, format(self.multiplier) )
+Characteristic.__str__ = _str

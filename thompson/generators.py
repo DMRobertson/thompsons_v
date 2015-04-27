@@ -387,13 +387,13 @@ class Generators(list):
 			Generators((3, 1), ['x1'])
 			>>> g.expand(0)
 			Generators((3, 1), ['x1 a1', 'x1 a2', 'x1 a3'])
-			>>> g.expand(-2)
+			>>> g.expand(-2) #expand at the second entry from the right, i.e. at 'x1 a2'
 			Generators((3, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2', 'x1 a2 a3', 'x1 a3'])
 			
 			:raises IndexError: if there is no generator at index *index*.
 			:returns: the current generating set, after modification. 
 		"""
-		if -len(self) < index < 0:
+		if -len(self) <= index < 0:
 			index %= len(self)
 		elif index < 0:
 			raise IndexError('Index {} out of range 0..{} or -{}..-1'.format(index, len(self), -len(self)))
