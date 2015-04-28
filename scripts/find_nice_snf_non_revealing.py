@@ -1,7 +1,9 @@
-from scripts import setup_script, find_examples_passing
+from scripts import setup_script, find_examples_passing, choose_from_enum
 setup_script(__file__)
 
 import os
+from enum import Enum
+
 from thompson          import Automorphism
 from thompson.examples import random_automorphism
 
@@ -33,22 +35,22 @@ def is_not_revealing(aut):
 def generate_automorphism():
 	return random_automorphism(signature = (2, 1))
 
-def search():
+def find_nice_snf_not_revealing():
 	find_examples_passing(
 	  test_functions         = [no_semi_inf_c, is_not_revealing],
 	  automorphism_generator = generate_automorphism,
 	  test_name              = 'nice_snf_non_revealing',
-	  description            = """We know that revealing pairs correspond to SNFs with no SI non-characteristic (sinc) elements. Is every snf of this form revealing?""",
+	  description            = """We think that the SNF associated to a revealing pair contains no SI non-characteristic (sinc) elements. Does every SNF of this form yield a revealing pair? We test this by looking for counter-examples.""",
 	  max_examples           = 100,
 	  save_examples          = True)
 
-def search2():
+def find_nasty_snf_and_revealing():
 	find_examples_passing(
-	  test_functions         = [is_revealing, contains_semi_inf_c],
+	  test_functions         = [contains_semi_inf_c, is_revealing],
 	  automorphism_generator = generate_automorphism,
-	  test_name              = 'rev_implies_nice_snf',
-	  description            = """Let's check that revealing pairs correspond to SNFs with no SI non-characteristic (sinc) elements. If so, this script should find no examples.""",
-	  max_examples           = 1,
+	  test_name              = 'nasty_snf_is_revealing',
+	  description            = """We think that the SNF associated to a revealing pair contains no SI non-characteristic (sinc) elements. If the SNF is not of this form, can it ever be revealing? We search for examples.""",
+	  max_examples           = 100,
 	  save_examples          = True)
 
 def examine(index):
@@ -61,6 +63,10 @@ def examine(index):
 	print('Is QNB revealing?', f.is_revealing(Y))
 	print('Evidence for non-revealing:', f.test_revealing(Y))
 
+choices = {
+	'find nice snf not revealing' : find_nice_snf_not_revealing,
+	'find nasty snf and revealing': find_nasty_snf_and_revealing,
+}
 
 if __name__ == "__main__":
-	search2()
+	choose_from_enum(choices)()

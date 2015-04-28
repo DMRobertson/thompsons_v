@@ -1,4 +1,5 @@
 import sys, traceback, logging, os, sys
+from enum import Enum
 from pathlib import Path
 
 """A bunch of utility functions which make it convenient for creating scripts using thompson."""
@@ -15,12 +16,17 @@ def choose_from_enum(enum, desc = None):
 	"""An input loop which has a console user select an element of an enumeration."""
 	if desc is None:
 		desc = {}
+	if isinstance(enum, Enum):
+		enum = enum.__members__
 	num_choices = len(enum)
+	if num_choices == 0:
+		raise ValueError("Zero choices provided.")
+	
 	print('Choices are:')
-	for i, x in enumerate(enum):
-		print('\t[{}] {}. {}'.format(i + 1, x.name, desc.get(x, '')))
-
-		ans = None
+	keys = sorted(enum.keys())
+	for i, x in enumerate(keys):
+		print('\t[{}] {}. {}'.format(i + 1, x, desc.get(x, '')))
+	ans = None
 	while ans is None:
 		try:
 			ans = int(input('Please make a choice by entering an integer in [1--{}]: '.format(
@@ -31,7 +37,8 @@ def choose_from_enum(enum, desc = None):
 		else:
 			if not (1 <= ans <= num_choices):
 				ans = None
-	return enum(ans)
+	
+	return enum[keys[ans-1]]
 
 def prepare_logging(log_filepath):
 	"""This is how I prefer to setup the logging module."""
