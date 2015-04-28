@@ -32,13 +32,13 @@ if __name__ == '__main__':
 				domain = None
 			elif basis_option == BasisOptions.quasinormal:
 				domain = ex.quasinormal_basis.minimal_expansion_for(ex)
-			revealing, data = ex.test_revealing(domain)
-			if not revealing:
+			result = ex.test_revealing(domain)
+			if result is not None:
 				print('The automorphism {} of V_{} is not revealing (consider {}).'.format(
-				  name, ex.signature, data))
+				  name, ex.signature, result))
 				if input('Render? (y/n) ').strip().lower() == 'y':
 					try:
-						ex.render(name, name=name.replace('_', r'\_'))
+						ex.render(name, name=name)
 					except Exception:
 						traceback.print_exc()
 						print('Continuing to next example.')

@@ -51,14 +51,19 @@ def find_examples_passing(test_functions,
                           save_examples=True,
                           description='',
                           max_examples=float('inf')):
-	"""Generates random examples using the specified *automorphism_generator* and applies the user-supplied *test_functions* to see if they match certain conditions. If a *test_function* decides that the example matches the condition, it should return a **non-empty** string giving the details. Otherwise the condition is not met, and the *test_function* should return an empty string.
+	"""Generates random examples using the specified *automorphism_generator* and applies the user-supplied *test_functions* to see if they match certain conditions. If a *test_function* decides that the example meets the condition, it should return a truthy object (i.e. ``bool(object)`` should return ``True``.) Else if the condition is not met, *test_function* should return a falsy object.
 	
-	When an example is found, its details are saved to disk if *save_examples* is True. At most *max_examples* are found in this way.
+	When an example is found, its details are saved to disk if *save_examples* is True.
+	At most *max_examples* are found in this way.
 	"""
 	os.makedirs(test_name, exist_ok=True)
-	log_filepath = os.path.join(test_name, test_name + '.log')
-	output_path  = os.path.join(test_name, test_name + '_{}.aut')
+	
+	log_filepath     = os.path.join(test_name, test_name + '.log')
+	output_path      = os.path.join(test_name, test_name + '_{}.aut')
 	time_series_path = os.path.join(test_name, test_name + '.csv')
+	gitignore        = os.path.join(test_name, '.gitignore')
+	with open(gitignore, 'wt') as f:
+		f.write('*\n')
 	
 	prepare_logging(log_filepath)
 	
@@ -89,8 +94,6 @@ def find_examples_passing(test_functions,
 				passed_all = True
 				for index, test in enumerate(test_functions):
 					results[index] = test(aut)
-					assert isinstance(results[index], str), "test_functions should return the empty string for a fail \
-					  and a non-empty string for a pass."
 					if results[index]:
 						num_passes[index] += 1
 					else:
@@ -118,9 +121,10 @@ def find_examples_passing(test_functions,
 			logging.debug('Saving the details of example number {} to {}.'.format(
 			  num_found, path))
 			
-			result = '\n\n'.join(r for r in results)
+			result = '\n\n'.join("Test {}: {}".format(i+1, r) for i, r in enumerate(results))
 			aut.save_to_file(path, result)
 	logging.info('Maxmium number of examples found; ending search.')
+
 """Here is a snippet of R code to plot the change in the success ratio.
 
 data = read.csv('FILENAME_GOES_HERE.csv', header=FALSE)

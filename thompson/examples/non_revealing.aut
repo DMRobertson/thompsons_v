@@ -5,6 +5,6 @@ x1 a1 a2    -> x1 a1 a1 a1
 x1 a2 a1    -> x1 a2      
 x1 a2 a2 a1 -> x1 a1 a2 a2
 x1 a2 a2 a2 -> x1 a1 a1 a2
-An example of an automorphism whose minimal representation does NOT correspond to a revealing pair.
-x1 a1 a1 has characteristic Characteristic(power=2, multiplier=(-1, -1)), but the 1th image x1 a1 a2 a1 is not in X.
-The QNB is [x1 a1 a1, x1 a1 a2, x1 a2]
+A purely infinite automorphism for which
+	- The minimal representation does NOT correspond to a revealing pair; and
+	- The quasinormal basis does NOT correspond to a revealing pair.

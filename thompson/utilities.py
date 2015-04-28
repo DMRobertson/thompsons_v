@@ -13,7 +13,7 @@ tail_sc = r'''\end{tikzpicture}
 	# level/.style={sibling distance=(1mm + 60mm*0.5^#1)},
 head = r'''\tikzset{
 	level distance=8mm,
-	level 1/.style={sibling distance=30mm},
+	level 1/.style={sibling distance=35mm},
 	level 2/.style={sibling distance=20mm},
 	level 3/.style={sibling distance=12mm},
 	level 4/.style={sibling distance=6mm},
