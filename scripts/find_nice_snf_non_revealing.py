@@ -42,6 +42,15 @@ def search():
 	  max_examples           = 100,
 	  save_examples          = True)
 
+def search2():
+	find_examples_passing(
+	  test_functions         = [is_revealing, contains_semi_inf_c],
+	  automorphism_generator = generate_automorphism,
+	  test_name              = 'rev_implies_nice_snf',
+	  description            = """Let's check that revealing pairs correspond to SNFs with no SI non-characteristic (sinc) elements. If so, this script should find no examples.""",
+	  max_examples           = 1,
+	  save_examples          = True)
+
 def examine(index):
 	f = Automorphism.from_file('revealing/revealing_{}.aut'.format(index))
 	print(f)
@@ -54,4 +63,4 @@ def examine(index):
 
 
 if __name__ == "__main__":
-	search()
+	search2()
