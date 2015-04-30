@@ -107,8 +107,12 @@ def find_examples_passing(test_functions,
 						passed_all = False
 						break
 			except Exception as e:
+				error_str = str(e)
+				if not error_str.strip():
+					error_str = "No details of the error were provided; see {}".format(
+					  log_filepath)
 				logging.error("An exception occured when calling test function {} on attempt {}.\n\t{}".format(
-				  index, num_attempts, e))
+				  index + 1, num_attempts, error_str))
 				logging.debug(aut)
 				logging.debug(traceback.format_exc())
 			

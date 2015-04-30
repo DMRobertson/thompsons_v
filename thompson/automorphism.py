@@ -7,18 +7,20 @@
 	from thompson.automorphism  import *
 	from thompson.examples      import *
 """
+import os
+import sys
 
 from copy         import copy
 from itertools    import chain, product
-from subprocess   import check_call, DEVNULL
-import webbrowser
+from subprocess   import call, check_call
+from tempfile     import mktemp, mkdtemp
 
 from .number_theory import lcm
 from .word          import Word, free_monoid_on_alphas, format
 from .generators    import Generators
 from .homomorphism  import Homomorphism
 from .orbits        import ComponentType, Characteristic, SolutionSet
-from .utilities     import basis_from_expansion, generate_tikz_code
+from .utilities     import handle_domain, intersection_from_domain, generate_tikz_code
 
 ___all__ = ["Automorphism"]
 
@@ -989,14 +991,24 @@ class Automorphism(Homomorphism):
 		generate_tikz_code(self, filename, domain, name, self_contained)
 	write_tikz_code.__doc__ = generate_tikz_code.__doc__
 	
-	def render(self, filename, domain=None, name=''):
+	def render(self, jobname=None, domain=None, name=''):
 		"""Uses :meth:`write_tikz_code` and a call to ``pdflatex`` to generate a PDF drawing of the given automorphism. A call to :func:`py3:webbrowser.open` displays the PDF.
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
-		self.write_tikz_code(filename + '.tex', domain=None, name=name, self_contained=True)
-		check_call(['pdflatex', filename + '.tex'], stdout=DEVNULL)
-		webbrowser.open(filename + '.pdf')
+		outdir = mkdtemp()
+		if jobname is None:
+			jobname = name if name != '' else 'tikz_code'
+		tex_file = os.path.join(outdir, jobname + '.tex')
+		pdf_file = os.path.join(outdir, jobname + '.pdf')
+		name = name.replace('_', r'\_')
+		self.write_tikz_code(tex_file, domain=domain, name=name, self_contained=True)
+		check_call(['pdflatex', tex_file,
+			'-output-directory=' + outdir,
+			'-aux-directory='    + outdir,
+			'-quiet',
+		])
+		display_file(pdf_file)
 	
 	def _end_of_iac(self, root, leaves, backward=False):
 		"""Given a root :math:`r` of :math:`A \setminus B` of :math:`B \setminus A`, this finds the IAC containing :math:`r` and returns the endpoint :math:`u_1` or :math:`f(u_n)` which is not :math:`r`."""
@@ -1006,8 +1018,8 @@ class Automorphism(Homomorphism):
 			u = self.image(u, inverse=backward)
 		return u
 	
-	def test_revealing(self, domain=None):
-		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*. If *domain* is not given, it is taken to be the minimal *domain* required to specify the automorphism.
+	def test_revealing(self, domain='wrt QNB'):
+		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*. If *domain* is not given, it is taken to be the minimal *domain* required to specify the automorphism.  If ``domain='wrt QNB'``, *domain* is taken to be the minimal expansion of the quasinormal basis.
 		
 		:returns: None if the pair is revealing for :math:`\phi`. Otherwise, returns (as a :class:`~thompson.word.Word`) the root of a component of either :math:`D \setminus \phi(D)` or :math:`\phi(D) \setminus D` which does not contain an attractor/repeller.
 		
@@ -1020,10 +1032,8 @@ class Automorphism(Homomorphism):
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
-		if domain is None:
-			domain = self.domain
-		range = self.image_of_set(domain)
-		X = basis_from_expansion(domain, self)
+		domain = handle_domain(domain, self)
+		range, X = intersection_from_domain(domain, self)
 		
 		roots_d_minus_r = X.filter(lambda x: x not in domain)
 		roots_r_minus_d = X.filter(lambda x: x not in range )
@@ -1036,7 +1046,7 @@ class Automorphism(Homomorphism):
 		return None
 	
 	def is_revealing(self, domain=None):
-		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*. If *domain* is not given, it is taken to be the minimal *domain* required to specify the automorphism.
+		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*. If *domain* is not given, it is taken to be the minimal *domain* required to specify the automorphism. If ``domain='wrt QNB'``, *domain* is taken to be the minimal expansion of the quasinormal basis.
 		
 		:returns: True if the pair is revealing, otherwise False.
 		
@@ -1050,6 +1060,15 @@ class Automorphism(Homomorphism):
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
 		return self.test_revealing(domain) is None
+
+def display_file(filepath):
+	"""From http://stackoverflow.com/a/435669. Opens the given file with the OS's default application."""
+	if sys.platform.startswith('darwin'):
+		subprocess.call(('open', filepath))
+	elif os.name == 'nt':
+		os.startfile(filepath)
+	elif os.name == 'posix':
+		subprocess.call(('xdg-open', filepath))
 
 def search_pattern(sbound, obound):
 	"""An optimistic search pattern which tries to delay expensive computations until as late as possible.

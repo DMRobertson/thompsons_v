@@ -31,7 +31,7 @@ if __name__ == '__main__':
 			if basis_option == BasisOptions.minimal:
 				domain = None
 			elif basis_option == BasisOptions.quasinormal:
-				domain = ex.quasinormal_basis.minimal_expansion_for(ex)
+				domain = 'wrt QNB'
 			result = ex.test_revealing(domain)
 			if result is not None:
 				print('The automorphism {} of V_{} is not revealing (consider {}).'.format(

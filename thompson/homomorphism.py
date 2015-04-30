@@ -176,23 +176,33 @@ class Homomorphism:
 		.. seealso: The thompson/examples directory in the source code.
 		"""
 		with open(filename, encoding='utf-8') as f:
-			num_generators = int(f.readline())
-			params = extract_signatures.match(f.readline().strip()).groups()
-			d = Generators([int(params[0]), int(params[1])])
-			r = Generators([int(params[2]), int(params[3])])
-			for i in range(num_generators):
-				d_word, r_word = (word.strip() for word in f.readline().split('->'))
-				try:
-					d.append(d_word)
-					r.append(r_word)
-				except Exception as e:
-					extra = "Problem reading rule {} from line {} of {}. The original error was:\n\t".format(
-					  i+1, i+3, f.name)
-					raise type(e)(extra + str(e)).with_traceback(sys.exc_info()[2])
-			hom = cls(d, r)
-			hom.__doc__ = f.read()
-			if len(hom.__doc__.strip()) == 0:
-				del hom.__doc__
+			return cls._from_stream(f)
+	
+	@classmethod
+	def from_string(cls, string):
+		"""An alternative :meth:`from_file` for working with examples that you might want to copy and paste somewhere. *string* should be a Python string which describes an automorphism in the same format as in :meth:`from_file`."""
+		f = StringIO(string)
+		return cls._from_stream(f) 
+	
+	@classmethod
+	def _from_stream(cls, f):
+		num_generators = int(f.readline())
+		params = extract_signatures.match(f.readline().strip()).groups()
+		d = Generators([int(params[0]), int(params[1])])
+		r = Generators([int(params[2]), int(params[3])])
+		for i in range(num_generators):
+			d_word, r_word = (word.strip() for word in f.readline().split('->'))
+			try:
+				d.append(d_word)
+				r.append(r_word)
+			except Exception as e:
+				extra = "Problem reading rule {} from line {} of {}. The original error was:\n\t".format(
+				  i+1, i+3, f.name)
+				raise type(e)(extra + str(e)).with_traceback(sys.exc_info()[2])
+		hom = cls(d, r)
+		hom.__doc__ = f.read()
+		if len(hom.__doc__.strip()) == 0:
+			del hom.__doc__
 		return hom
 	
 	def save_to_file(self, filename=None, comment=None):
