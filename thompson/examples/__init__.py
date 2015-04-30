@@ -50,10 +50,22 @@ def retreive_aliases():
 			aliases[alias] = name
 
 def load_example_pair(name):
-	"""Loads a pair of examples, *name*_psi and *name*_phi."""
+	"""Loads a pair of examples, ``*name*_psi`` and ``*name*_phi``.
+	
+	:rtype: a 2-tuple of automorphisms.
+	"""
 	return load_example(name + '_psi'), load_example(name + '_phi')
 
 def load_all_examples():
+	"""Loads (and processes) **all** examples provided by the package. Returns a dictionary whose keys are the example names and whose values are the loaded automorphisms.
+	
+	.. note::
+		To discourage use of this function, it is not available when importing ``*`` from ``thompson.examples``.
+		Instead it must be explicitly imported with ``from thompson.examples import load_all_examples``.
+	
+	.. warning::
+		Some of the examples are slow to process, so calling this could take a long time.
+	"""
 	files = pkg_resources.resource_listdir("thompson", "examples")
 	for filename in files:
 		name, ext = os.path.splitext(filename)

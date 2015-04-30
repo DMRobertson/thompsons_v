@@ -1030,7 +1030,7 @@ class Automorphism(Homomorphism):
 		
 		for roots, leaves in ( (roots_d_minus_r, range), (roots_r_minus_d, domain) ):
 			for root in roots:
-				w = self._end_of_iac(root, leaves, backward=leaves == range)
+				w = self._end_of_iac(root, leaves, backward=( leaves == range ))
 				if not root.is_above(w):
 					return root
 		return None

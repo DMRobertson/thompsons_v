@@ -8,7 +8,16 @@ This module provides a number of explicit examples for use in doctests. Addition
 Explict named examples
 ----------------------
 
-A list of named examples is loaded from the ``.aut`` files in `the examples folder <https://github.com/DMRobertson/thompsons_v/tree/master/thompson/examples>`_. This includes all the examples given in the paper.
+A list of named examples is loaded from the ``.aut`` files in `the examples folder <https://github.com/DMRobertson/thompsons_v/tree/master/thompson/examples>`_.
+This includes all the examples given in the paper, as well as others used to test the package.
+Use the following functions to load one of these examples.
+
+.. autofunction:: load_example
+.. autofunction:: load_example_pair
+.. autofunction:: load_all_examples
+
+List of named examples
+^^^^^^^^^^^^^^^^^^^^^^
 
 .. include:: examples_table.txt
 
