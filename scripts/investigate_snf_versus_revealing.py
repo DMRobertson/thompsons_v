@@ -106,11 +106,21 @@ def find_fully_informed_non_revealing():
 	  max_examples           = 100,
 	  save_examples          = True)
 
+def find_revealing_not_fully_informed():
+	find_examples_passing(
+	  test_functions         = [is_revealing, nasty_snf_or_not_fully_informed],
+	  automorphism_generator = generate_automorphism,
+	  test_name              = 'revealing_not_fully_informed',
+	  description            = """We think that an SNF is associated to a revealing pair iff it is `fully informed'. This function searches for counter examples: revealing pairs which are not fully informed as SNFs.""",
+	  max_examples           = 100,
+	  save_examples          = True)
+
 choices = {
 	'find nice snf not revealing'      : find_nice_snf_not_revealing,
 	'find nasty snf and revealing'     : find_nasty_snf_and_revealing,
 	'find snf fully informed'          : find_snf_fully_informed,
-	'find fully informed non revealing': find_fully_informed_non_revealing
+	'find fully informed non revealing': find_fully_informed_non_revealing,
+	'find revealing not fully informed': find_revealing_not_fully_informed
 }
 
 if __name__ == "__main__":

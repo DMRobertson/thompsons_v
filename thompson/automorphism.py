@@ -1019,7 +1019,9 @@ class Automorphism(Homomorphism):
 		return u
 	
 	def test_revealing(self, domain='wrt QNB'):
-		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*. If *domain* is not given, it is taken to be the minimal *domain* required to specify the automorphism.  If ``domain='wrt QNB'``, *domain* is taken to be the minimal expansion of the quasinormal basis.
+		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*.
+		
+		The *domain* may be implicitly specified by the string ``'minimal'`` or ``'wrt QNB'``. In the first case, *domain* is taken to be the minimal *domain* required to specify the automorphism. In the second case, *domain* is taken to be the minimal expansion of the quasinormal basis.
 		
 		:returns: None if the pair is revealing for :math:`\phi`. Otherwise, returns (as a :class:`~thompson.word.Word`) the root of a component of either :math:`D \setminus \phi(D)` or :math:`\phi(D) \setminus D` which does not contain an attractor/repeller.
 		
@@ -1029,6 +1031,11 @@ class Automorphism(Homomorphism):
 		x1 a2 a1
 		>>> print(load_example('non_revealing').test_revealing())
 		x1 a1 a1
+		>>> f = load_example('cyclic_order_six')
+		>>> print(f.test_revealing('minimal'))
+		x1 a2
+		>>> f.test_revealing('wrt QNB') is None
+		True
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
@@ -1045,8 +1052,8 @@ class Automorphism(Homomorphism):
 					return root
 		return None
 	
-	def is_revealing(self, domain=None):
-		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*. If *domain* is not given, it is taken to be the minimal *domain* required to specify the automorphism. If ``domain='wrt QNB'``, *domain* is taken to be the minimal expansion of the quasinormal basis.
+	def is_revealing(self, domain='wrt QNB'):
+		r"""Calls :meth:`test_revealing`, but only returns ``True`` or ``False``.
 		
 		:returns: True if the pair is revealing, otherwise False.
 		
@@ -1056,6 +1063,11 @@ class Automorphism(Homomorphism):
 		False
 		>>> load_example('non_revealing').is_revealing()
 		False
+		>>> f = load_example('cyclic_order_six')
+		>>> f.is_revealing('minimal')
+		False
+		>>> f.is_revealing('wrt QNB')
+		True
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""

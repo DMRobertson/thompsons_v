@@ -26,11 +26,13 @@ tail = ''''''
 
 def handle_domain(domain, aut):
 	if isinstance(domain, str):
-		if domain.lower() != 'wrt qnb':
-			raise ValueError("If domain is given as a string, it should be 'wrt QNB', not {}".format(domain))
-		domain = aut.quasinormal_basis.minimal_expansion_for(aut)
-	elif domain is None:
-		domain = aut.domain
+		d = domain.lower().strip()
+		if d == 'wrt qnb':
+			domain = aut.quasinormal_basis.minimal_expansion_for(aut)
+		elif d == 'minimal':
+			domain = aut.domain
+		else:
+			raise ValueError("Don't know what {!r} means when specifying a domain".format(domain))
 	return domain
 
 def intersection_from_domain(domain, aut):
