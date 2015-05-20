@@ -82,7 +82,6 @@ def format(word):
 		'x2 a1 x2 a2 L'
 		>>> format([])
 		'<the empty word>'
-		>>> 
 	"""
 	if len(word) == 0:
 		return "<the empty word>"

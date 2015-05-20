@@ -96,7 +96,7 @@ We can now use the python `REPL <http://en.wikipedia.org/wiki/Read%E2%80%93eval%
 Locating examples
 -----------------
 
-A :mod:`number of examples <thompson.examples>` from [BDR]_ are included in this package. To access them, use the :func:`~thompson.examples.load_import` function:
+A :mod:`number of examples <thompson.examples>` are included in this package, some of which are used in [BDR]_ . To access them, use the :func:`~thompson.examples.load_example` function:
 
 .. doctest::
 	:options: +NORMALIZE_WHITESPACE
@@ -113,7 +113,7 @@ A :mod:`number of examples <thompson.examples>` from [BDR]_ are included in this
 	x1 a2 a1       -> x1 a1 a2 a2 a2
 	x1 a2 a2       -> x1 a1 a2 a2 a1
 
-.. note:: Previously, one would access this example by using ``from thompson.examples import nathan_pond_example``. I changed this, because it meant that every example was loaded at import time.
+.. note:: Previously, one would access this example by using ``from thompson.examples import nathan_pond_example``. I changed this, because it meant that every example was loaded (and the quasinormal bases etc. computed) whenever ``thompson.examples`` was imported.
 
 To see the list of available examples, consult the :mod:`documentation for the examples module <thompson.examples>`.
 

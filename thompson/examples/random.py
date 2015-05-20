@@ -25,7 +25,7 @@ def needs_defaults(undec):
 		if signature is None:
 			signature = random_signature()
 		if num_expansions is None:
-			num_expansions = randint(1, 5)
+			num_expansions = randint(1, 8)
 		return undec(signature, num_expansions)
 	decd.__doc__ = undec.__doc__
 	return decd

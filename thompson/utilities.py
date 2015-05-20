@@ -13,7 +13,7 @@ tail_sc = r'''\end{tikzpicture}
 	# level/.style={sibling distance=(1mm + 60mm*0.5^#1)},
 head = r'''\tikzset{
 	level distance=8mm,
-	level 1/.style={sibling distance=30mm},
+	level 1/.style={sibling distance=35mm},
 	level 2/.style={sibling distance=20mm},
 	level 3/.style={sibling distance=12mm},
 	level 4/.style={sibling distance=6mm},
@@ -24,9 +24,21 @@ head = r'''\tikzset{
 tail = ''''''
 #tail used to be '''\end{tikzpicture}''', but we removed that so tweaks can be made to the drawing from the main document, e.g. \begin{tikzpicture}[scale=0.5]
 
-def basis_from_expansion(expansion, aut):
+def handle_domain(domain, aut):
+	if isinstance(domain, str):
+		d = domain.lower().strip()
+		if d == 'wrt qnb':
+			domain = aut.quasinormal_basis.minimal_expansion_for(aut)
+		elif d == 'minimal':
+			domain = aut.domain
+		else:
+			raise ValueError("Don't know what {!r} means when specifying a domain".format(domain))
+	return domain
+
+def intersection_from_domain(domain, aut):
 	"""Given a basis :math:`X` and an automorphism :math:`f`, we can always construct the minimal expansion :math:`Y` of :math:`X`. This function provides an inverse of sorts: given :math:`Y`, let :math:`Z = f(Y)` and define :math:`X` to be the basis corresponding to the intersection :math:`Y \cap Z` of trees."""
-	return aut._intersection_of_trees(expansion, aut.image_of_set(expansion))
+	range = aut.image_of_set(domain)
+	return range, aut._intersection_of_trees(domain, range)
 
 def generate_tikz_code(aut, filename, domain=None, name='', self_contained=False):
 	r""".. caution:: This is an experimental feature based partially on [SD10]_.
@@ -36,9 +48,8 @@ def generate_tikz_code(aut, filename, domain=None, name='', self_contained=False
 	The difference forests domain - range and range - domain are drawn with dashed lines. Attractors and repellers are drawn in red.
 	"""
 	#1. Compute X = L(domain \intersect range)
-	if domain is None:
-		domain = aut.domain
-	X = basis_from_expansion(domain, aut)
+	domain = handle_domain(domain, aut)
+	range, X = intersection_from_domain(domain, aut)
 	range = aut.image_of_set(domain)
 	
 	#2. Generate the tikz code
@@ -107,7 +118,6 @@ def is_repeller_attractor(path, aut, in_difference, other, intersection, in_doma
 	ctype = aut.orbit_type(path, intersection)[0]
 	if not ctype.is_type_B():
 		return False
-	# print("characteristic:", ctype.characteristic.power, "in_domain:", in_domain)
 	if not (ctype.characteristic.power < 0) == in_domain:
 		return False
 	ancestor = aut.repeated_image(path, -ctype.characteristic.power)

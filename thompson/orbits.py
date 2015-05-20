@@ -89,6 +89,10 @@ class ComponentType(BaseComponentType):
 	def is_incomplete(self):
 		"""Returns True if this component is incomplete, otherwise False."""
 		return self.type is self._incomplete
+	
+	def is_semi_infinite(self):
+		"""Returns True is this component is semi_infinite (with or without characteristic); otherwise returns False."""
+		return self.type is self._left_semi_infinite or self.type is self._right_semi_infinite
 
 def print_component_types(aut, basis=None, words=None):
 	r"""Prints the classification of the components under *aut* of each word in *words* with respect to *basis*. If *basis* is omitted, it is taken to be the smallest possible expansion which could potentially be a semi-normal basis; see :meth:`~thompson.automorphism.Automorphism.seminormal_form_start_point`. If *words* is omited, it is taken to be the same as *basis*.
@@ -125,3 +129,6 @@ def print_component_types(aut, basis=None, words=None):
 	print('with respect to the basis', basis)
 
 Characteristic = namedtuple("Characteristic", 'power multiplier')
+def _str(self):
+	return "{}({}, {})".format( self.__class__.__name__, self.power, format(self.multiplier) )
+Characteristic.__str__ = _str

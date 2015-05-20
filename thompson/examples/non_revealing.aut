@@ -1,0 +1,10 @@
+5
+(2, 1) -> (2, 1)
+x1 a1 a1    -> x1 a1 a2 a1
+x1 a1 a2    -> x1 a1 a1 a1
+x1 a2 a1    -> x1 a2      
+x1 a2 a2 a1 -> x1 a1 a2 a2
+x1 a2 a2 a2 -> x1 a1 a1 a2
+A purely infinite automorphism for which
+	- The minimal representation does NOT correspond to a revealing pair; and
+	- The quasinormal basis does NOT correspond to a revealing pair.

@@ -7,18 +7,20 @@
 	from thompson.automorphism  import *
 	from thompson.examples      import *
 """
+import os
+import sys
 
 from copy         import copy
 from itertools    import chain, product
-from subprocess   import check_call, DEVNULL
-import webbrowser
+from subprocess   import call, check_call
+from tempfile     import mktemp, mkdtemp
 
 from .number_theory import lcm
 from .word          import Word, free_monoid_on_alphas, format
 from .generators    import Generators
 from .homomorphism  import Homomorphism
 from .orbits        import ComponentType, Characteristic, SolutionSet
-from .utilities     import basis_from_expansion, generate_tikz_code
+from .utilities     import handle_domain, intersection_from_domain, generate_tikz_code
 
 ___all__ = ["Automorphism"]
 
@@ -989,40 +991,69 @@ class Automorphism(Homomorphism):
 		generate_tikz_code(self, filename, domain, name, self_contained)
 	write_tikz_code.__doc__ = generate_tikz_code.__doc__
 	
-	def render(self, filename, domain=None, name=''):
+	def render(self, jobname=None, domain=None, name=''):
 		"""Uses :meth:`write_tikz_code` and a call to ``pdflatex`` to generate a PDF drawing of the given automorphism. A call to :func:`py3:webbrowser.open` displays the PDF.
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
-		self.write_tikz_code(filename + '.tex', domain=None, name=name, self_contained=True)
-		check_call(['pdflatex', filename + '.tex'], stdout=DEVNULL)
-		webbrowser.open(filename + '.pdf')
+		outdir = mkdtemp()
+		if jobname is None:
+			jobname = name if name != '' else 'tikz_code'
+		tex_file = os.path.join(outdir, jobname + '.tex')
+		pdf_file = os.path.join(outdir, jobname + '.pdf')
+		name = name.replace('_', r'\_')
+		self.write_tikz_code(tex_file, domain=domain, name=name, self_contained=True)
+		check_call(['pdflatex', tex_file,
+			'-output-directory=' + outdir,
+			'-aux-directory='    + outdir,
+			'-quiet',
+		])
+		display_file(pdf_file)
 	
-	def test_revealing(self, domain=None):
-		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*. If *domain* is not given, it is taken to be the minimal *domain* required to specify the automorphism.
+	def _end_of_iac(self, root, leaves, backward=False):
+		"""Given a root :math:`r` of :math:`A \setminus B` of :math:`B \setminus A`, this finds the IAC containing :math:`r` and returns the endpoint :math:`u_1` or :math:`f(u_n)` which is not :math:`r`."""
+		assert root in leaves
+		u = root
+		while u in leaves:
+			u = self.image(u, inverse=backward)
+		return u
+	
+	def test_revealing(self, domain='wrt QNB'):
+		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*.
+		
+		The *domain* may be implicitly specified by the string ``'minimal'`` or ``'wrt QNB'``. In the first case, *domain* is taken to be the minimal *domain* required to specify the automorphism. In the second case, *domain* is taken to be the minimal expansion of the quasinormal basis.
 		
 		:returns: None if the pair is revealing for :math:`\phi`. Otherwise, returns (as a :class:`~thompson.word.Word`) the root of a component of either :math:`D \setminus \phi(D)` or :math:`\phi(D) \setminus D` which does not contain an attractor/repeller.
 		
-		>>> print(*load_example('olga_f').test_revealing())
-		True None
-		>>> print(*load_example('semi_inf_c').test_revealing())
-		False x1 a2 a1
+		>>> load_example('olga_f').test_revealing() is None
+		True
+		>>> print(load_example('semi_inf_c').test_revealing())
+		x1 a2 a1
+		>>> print(load_example('non_revealing').test_revealing())
+		x1 a1 a1
+		>>> f = load_example('cyclic_order_six')
+		>>> print(f.test_revealing('minimal'))
+		x1 a2
+		>>> f.test_revealing('wrt QNB') is None
+		True
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
-		if domain is None:
-			domain = self.domain
-		range = self.image_of_set(domain)
-		X = basis_from_expansion(domain, self)
-		difference_roots = X.filter(lambda x: x not in domain) + X.filter(lambda x: x not in range)
-		for root in difference_roots:
-			ctype = self.orbit_type(root, X)[0]
-			if not ctype.is_type_B():
-				return False, root
-		return True, None
+		domain = handle_domain(domain, self)
+		range, X = intersection_from_domain(domain, self)
+		
+		roots_d_minus_r = X.filter(lambda x: x not in domain)
+		roots_r_minus_d = X.filter(lambda x: x not in range )
+		
+		for roots, leaves in ( (roots_d_minus_r, range), (roots_r_minus_d, domain) ):
+			for root in roots:
+				w = self._end_of_iac(root, leaves, backward=( leaves == range ))
+				if not root.is_above(w):
+					return root
+		return None
 	
-	def is_revealing(self, domain=None):
-		r"""Determines if the given automorphism :math:`\phi` is revealed by the tree pair :math:`(D, \phi(D))`, where :math:`D` is the given *domain*. If *domain* is not given, it is taken to be the minimal *domain* required to specify the automorphism.
+	def is_revealing(self, domain='wrt QNB'):
+		r"""Calls :meth:`test_revealing`, but only returns ``True`` or ``False``.
 		
 		:returns: True if the pair is revealing, otherwise False.
 		
@@ -1030,10 +1061,26 @@ class Automorphism(Homomorphism):
 		True
 		>>> load_example('semi_inf_c').is_revealing()
 		False
+		>>> load_example('non_revealing').is_revealing()
+		False
+		>>> f = load_example('cyclic_order_six')
+		>>> f.is_revealing('minimal')
+		False
+		>>> f.is_revealing('wrt QNB')
+		True
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
-		return self.test_revealing(domain)[0]
+		return self.test_revealing(domain) is None
+
+def display_file(filepath):
+	"""From http://stackoverflow.com/a/435669. Opens the given file with the OS's default application."""
+	if sys.platform.startswith('darwin'):
+		subprocess.call(('open', filepath))
+	elif os.name == 'nt':
+		os.startfile(filepath)
+	elif os.name == 'posix':
+		subprocess.call(('xdg-open', filepath))
 
 def search_pattern(sbound, obound):
 	"""An optimistic search pattern which tries to delay expensive computations until as late as possible.
