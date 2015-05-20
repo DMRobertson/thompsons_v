@@ -34,16 +34,33 @@ def test_conjecture(aut):
 	else:
 		return 'has_SI_type_C: {}, is_revealing: {}'.format(has_SI_type_C, is_revealing)
 
+def test(aut):
+	if len(aut.characteristics) == 0:
+		return ''
+	term, init = aut.semi_infinite_end_points()
+	for t in term:
+		ctype, _, _ = aut.orbit_type(t)
+		power, mult = ctype.characteristic
+		if power > 0:
+			power -= 1
+		else:
+			power += 1
+		u = aut.repeated_image(t, power)
+		if u not in aut.quasinormal_basis:
+			return '{} has characteristic {}, but the {}th image {} is not in X.\n The QNB is {}'.format(
+			  t, characteristic, power, u, aut.quasinormal_basis)
+
+
 def generate_automorphism():
 	return random_automorphism(signature = (2, 1))
 
 def search():
 	find_examples_passing(
-	  test_functions         = [test_conjecture],
+	  test_functions         = [test],
 	  automorphism_generator = generate_automorphism,
-	  test_name              = 'semi_inf_c',
-	  description            = """This test records examples of automorphisms whose quasinormal bases have elements of type C belonging to semi-infinite characteristics. (These are neccesary for ponds to exist but [I think] not neccesarily sufficient.)""",
-	  max_examples           = 1)
+	  test_name              = 'conjecture',
+	  description            = """TODO.""",
+	  max_examples           = 10)
 
 if __name__ == "__main__":
 	search()
