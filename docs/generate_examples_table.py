@@ -8,8 +8,8 @@ import thompson.examples
 automorphisms = []
 
 for name, aut in thompson.examples.load_all_examples().items():
-	doc = aut.__doc__.split('\n', maxsplit=1)[0]
-	automorphisms.append((name, doc))
+	doc = aut.__doc__.split('\n\n', maxsplit=1)[0] #stuff is ignored after the first appearance of \n\n
+	automorphisms.append((name, doc.strip()))
 
 automorphisms.sort()
 

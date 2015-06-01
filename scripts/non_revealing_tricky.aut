@@ -1,0 +1,14 @@
+9
+(2, 1)        -> (2, 1)       
+x a1 a1 a1 a1 -> x a1 a1 a2   
+x a1 a1 a1 a2 -> x a2 a1 a1   
+x a1 a1 a2 a1 -> x a1 a2 a1   
+x a1 a1 a2 a2 -> x a2 a1 a2 a1
+x a1 a2 a1 a1 -> x a1 a2 a2   
+x a1 a2 a1 a2 -> x a2 a1 a2 a2
+x a1 a2 a2 a1 -> x a1 a1 a1   
+x a1 a2 a2 a2 -> x a2 a2 a1   
+x a2          -> x a2 a2 a2  
+I think this automorphism has 4 minimal revealing pairs. It has an orbit of characteristic (-4, a1^4) spread apart over four components of :math:`A \setminus B`. Brin's algorithm would have you add three of these components to the tree, and I think the component you DON'T add is the one that determines the revealing pair.
+
+With that said, it took me about 60--90minutes to work through the computations so I'm not sure I feel like checking it again!

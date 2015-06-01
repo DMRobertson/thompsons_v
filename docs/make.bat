@@ -60,6 +60,12 @@ if errorlevel 9009 (
 	exit /b 1
 )
 
+REM DMR: Adding in the python scripts I use to build the docs
+echo.Generating examples table from thompson source.
+python generate_examples_table.py
+echo.Generating references table from tex source.
+python generate_references.py
+
 if "%1" == "html" (
 	%SPHINXBUILD% -b html %ALLSPHINXOPTS% %BUILDDIR%/html
 	if errorlevel 1 exit /b 1

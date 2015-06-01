@@ -1,18 +1,20 @@
-"""
+"""This module provides a number of explicit examples for use in doctests. Additionally, functions to generate random automorphisms are provided.
+
 .. testsetup::
 	
 	from thompson.examples import *
 """
+
 import os.path
 import pkg_resources
 import string
+from itertools import chain
 
 from ..automorphism import Automorphism
+from .              import random
+from .random        import *
 
-from . import random
-from .random import *
-
-__all__ = random.__all__ + ['load_example', 'load_example_pair']
+__all__ = random.__all__ + ['available_examples', 'load_example', 'load_example_pair']
 
 #TODO. Allow powers in the definition of words e.g. a1^4?
 
@@ -56,6 +58,18 @@ def load_example_pair(name):
 	"""
 	return load_example(name + '_psi'), load_example(name + '_phi')
 
+def available_examples():
+	"""Returns an iterator yielding the names of the examples that are provided with the package. (Note that :ref:`the full list is provided <my-reference-label>` in this documentation.
+	
+		>>> list(available_examples())[:4]
+		['alphabet_size_two', 'arity_four', 'arity_three_order_inf', 'bleak_alpha']
+	"""
+	files = pkg_resources.resource_listdir("thompson", "examples")
+	for filename in files:
+		name, ext = os.path.splitext(filename)
+		if ext.lower() == '.aut':
+			yield name
+
 def load_all_examples():
 	"""Loads (and processes) **all** examples provided by the package. Returns a dictionary whose keys are the example names and whose values are the loaded automorphisms.
 	
@@ -66,13 +80,7 @@ def load_all_examples():
 	.. warning::
 		Some of the examples are slow to process, so calling this could take a long time.
 	"""
-	files = pkg_resources.resource_listdir("thompson", "examples")
-	for filename in files:
-		name, ext = os.path.splitext(filename)
-		if ext != '.aut':
-			continue
-		load_example(filename[:-4])
 	retreive_aliases()
-	for alias in aliases:
-		load_example(alias)	
+	for key in chain(available_examples(), aliases):
+		load_example(key)
 	return cache

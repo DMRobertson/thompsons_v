@@ -987,11 +987,11 @@ class Automorphism(Homomorphism):
 					return False
 		return True
 	
-	def write_tikz_code(self, filename, domain=None, name='', self_contained=False):
+	def write_tikz_code(self, filename, domain='wrt QNB', name='', self_contained=False):
 		generate_tikz_code(self, filename, domain, name, self_contained)
 	write_tikz_code.__doc__ = generate_tikz_code.__doc__
 	
-	def render(self, jobname=None, domain=None, name=''):
+	def render(self, jobname=None, domain='wrt QNB', name=''):
 		"""Uses :meth:`write_tikz_code` and a call to ``pdflatex`` to generate a PDF drawing of the given automorphism. A call to :func:`py3:webbrowser.open` displays the PDF.
 		
 		.. caution:: This is an experimental feature based on [SD10]_.

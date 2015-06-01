@@ -4,6 +4,8 @@ arity_four
 	Another example for sanity checking. This is an automorphism of :math:`V_{4,1}`.
 arity_three_order_inf
 	A purely :mod:`~thompson.infinite` automorphism of :math:`V_{3,1}`.
+bleak_alpha
+	The element :math:`\alpha` of :math:`V` used by Bleak *et al* [Bleak]_ to illustrate their train tracks and flow graphs.
 cyclic_order_six
 	An introductory example drawn on the board by NB. It is purely periodic of order six.
 example_4_1
@@ -70,6 +72,12 @@ nathan1_example
 	One of Nathan's examples. This is *almost*, but not quite conjugate to nathan_pond_example. Nathan had this to say: *"I untwisted one of the infinite orbits after a conjugation and so they definitely should not be conjugate."*
 nathan_pond_example
 	Nathan's example of an automorphism containing a pond. This was simpler than the first example found.
+no_minimal_revealing
+	An example from section 3.6 of [SD10]_. This is an automorphism :math:`f \in G_{2,1}` for which there is no minimal revealing pair from which every other revaling pair can be obtained via rollings.
+non_revealing
+	A purely infinite automorphism for which
+	- The minimal representation does NOT correspond to a revealing pair; and
+	- The quasinormal basis does NOT correspond to a revealing pair.
 olga_f
 	An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*"
 olga_g
@@ -83,7 +91,7 @@ periodic_QNB_206
 periodic_QNB_344
 	This purely periodic automorphism (again found by random search) has a quasinormal basis of size 344.
 pond_width_4
-	An example found by random search of a pond orbit of width 4. Prior to this we had only seen ponds of width 1 or 2. 
+	An example found by random search of a pond orbit of width 4. Prior to this we had only seen ponds of width 1 or 2.
 power_smaller_QNB
 	The square of this automorphism appears to have a QNB above the QNB of the original automorphism.
 semi_inf_c

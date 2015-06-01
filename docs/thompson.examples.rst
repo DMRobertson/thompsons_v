@@ -1,8 +1,6 @@
 Examples
 ========
 
-This module provides a number of explicit examples for use in doctests. Additionally, functions to generate random automorphisms are provided.
-
 .. automodule:: thompson.examples
 
 Explict named examples
@@ -12,9 +10,12 @@ A list of named examples is loaded from the ``.aut`` files in `the examples fold
 This includes all the examples given in the paper, as well as others used to test the package.
 Use the following functions to load one of these examples.
 
+.. autofunction:: available_examples
 .. autofunction:: load_example
 .. autofunction:: load_example_pair
 .. autofunction:: load_all_examples
+
+.. _examples-table:
 
 List of named examples
 ^^^^^^^^^^^^^^^^^^^^^^
