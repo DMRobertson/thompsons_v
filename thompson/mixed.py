@@ -193,10 +193,12 @@ class MixedAut(Automorphism):
 		
 		.. seealso:: This is an implementation of Algorithm :paperref:`conjAlgorithm` in the paper. It depends on Algorithms :paperref:`alg:periodic` and :paperref:`alg:reginf`; these are the :meth:`periodic <thompson.periodic.PeriodicAut.test_conjugate_to>` and :meth:`infinite <thompson.infinite.InfiniteAut.test_conjugate_to>` tests for conjugacy.
 		"""
+		if not isinstance(other, MixedAut):
+			return None
 		#TODO Doctest: try assembling a conjugator from factors
 		#0. Check that both automorphisms belong to the same G_{n,r}.
 		if self.signature != other.signature:
-			raise ValueError('MixedAut\'s signatures {} and {} do not match.'.format(
+			raise ValueError('Signatures {} and {} do not match.'.format(
 			  self.signature, other.signature))
 		
 		#1. Before going any further, check that the number of periodic and infinite elements are compatible.

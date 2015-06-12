@@ -913,6 +913,12 @@ class Automorphism(Homomorphism):
 					images[m - k - i] = img
 				return
 	
+	#Other functions useful for ordinary conjugacy
+	def is_conjugate_to(self, other):
+		"""A shortcut for ``self.test_conjugate_to(other) is not None``."""
+		return self.test_conjugate_to(other) is not None
+	
+	#Power conjugacy
 	def _test_power_conjugate_upto(self, other, sbound, obound, inverses=False, cheat=False):
 		r"""In both the periodic and infinite cases, we establish bounds on the powers :math:`a, b` for conjugacy; the rest is brute force.  This method tests to see if :math:`\psi^a` is conjugate to :math:`\phi^b` within the supplied bounds. Should it find a conjugator :math:`\rho`, this method yields a triple :math:`(a, b, \rho)`.
 		
