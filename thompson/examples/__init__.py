@@ -59,7 +59,7 @@ def load_example_pair(name):
 	return load_example(name + '_psi'), load_example(name + '_phi')
 
 def available_examples():
-	"""Returns an iterator yielding the names of the examples that are provided with the package. (Note that :ref:`the full list is provided <my-reference-label>` in this documentation.
+	"""Returns an iterator yielding the names of the examples that are provided with the package. (Note that :ref:`the full list is provided <examples-table>` in this documentation.)
 	
 		>>> list(available_examples())[:4]
 		['alphabet_size_two', 'arity_four', 'arity_three_order_inf', 'bleak_alpha']
