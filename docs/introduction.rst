@@ -19,12 +19,12 @@ Installation
 	
 	Once pip is installed, navigate to the project directory and run
 	
-		``pip -r requirements.txt``
+		``pip install -r requirements.txt``
 	
 	(possibly you may need to use ``pip3``). This should do all the hard work for you.
 	
 	Direct installation:
-		If you would prefer not to install ``pip``, you may install the prerequesits directly. There is only one major Python package required to run the program: `NetworkX <https://networkx.github.io/>`_, a library for working with graphs in Python. This may be available in Linux repositories, e.g. `Ubuntu <http://packages.ubuntu.com/search?keywords=python3-networkx&searchon=names>`_.
+		If you would prefer not to install ``pip``, you may install the prerequisites directly. There is only one major Python package required to run the program: `NetworkX <https://networkx.github.io/>`_, a library for working with graphs in Python. This may be available in Linux repositories, e.g. `Ubuntu <http://packages.ubuntu.com/search?keywords=python3-networkx&searchon=names>`_.
 		
 		This documentation is built using `Sphinx <http://sphinx-doc.org/>`_. If you wish to build it yourself, or run the test suite, you must install Sphinx also. Again, consider checking Linux repositories e.g. `in Ubuntu <http://packages.ubuntu.com/search?suite=default&section=all&arch=any&keywords=python3-sphinx&searchon=names>`_.
 
