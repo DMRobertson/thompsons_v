@@ -115,7 +115,8 @@ A :mod:`number of examples <thompson.examples>` are included in this package, so
 
 .. note:: Previously, one would access this example by using ``from thompson.examples import nathan_pond_example``. I changed this, because it meant that every example was loaded (and the quasinormal bases etc. computed) whenever ``thompson.examples`` was imported.
 
-To see the list of available examples, consult the :mod:`documentation for the examples module <thompson.examples>`.
+To see the list of available examples, consult the :mod:`documentation for the examples module <thompson.examples>`. You might also like to [the demo notebook](https://github.com/DMRobertson/thompsons_v/blob/master/Thompson%20example.ipynb) on GitHub.
+
 
 Running the test suite
 ----------------------
