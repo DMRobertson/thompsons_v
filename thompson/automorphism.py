@@ -434,24 +434,22 @@ class Automorphism(Homomorphism):
 			>>> basis = olga_f.quasinormal_basis.copy().expand(-1); print(basis)
 			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2 a1, x1 a2 a2 a2 a1, x1 a2 a2 a2 a2]
 			>>> from pprint import pprint
-			>>> w = Word('x a2 a2 a2', (2, 1))
-			>>> print(olga_f.orbit_type(w)[0])
+			>>> print(olga_f.orbit_type('x a2 a2 a2')[0])
 			Bi-infinite component
-			>>> print(olga_f.orbit_type(w, basis)[0])
+			>>> print(olga_f.orbit_type('x a2 a2 a2', basis)[0])
 			Incomplete component
 		
 		.. doctest::
 			:hide:
 			
-			>>> w = Word('x a1 a2 a1', (2, 1))
-			>>> ctype, images, _ = olga_f.orbit_type(w)
+			>>> ctype, images, _ = olga_f.orbit_type('x a1 a2 a1')
 			>>> print(ctype); pprint(images)
 			Left semi-infinite component with characteristic (-1, a1)
 			{-1: Word('x1 a1 a2 a1 a1', (2, 1)),
 			 0: Word('x1 a1 a2 a1', (2, 1)),
 			 1: Word('x1 a1 a2', (2, 1))}
-			>>> ctype, images, _ = olga_f.orbit_type(w, basis)
-			>>> #Component of w not changed
+			>>> ctype, images, _ = olga_f.orbit_type('x a1 a2 a1', basis)
+			>>> #Component of word not changed
 			>>> print(ctype); pprint(images)
 			Left semi-infinite component with characteristic (-1, a1)
 			{-1: Word('x1 a1 a2 a1 a1', (2, 1)),
@@ -464,6 +462,9 @@ class Automorphism(Homomorphism):
 		"""
 		images = {}
 		type_b_data = None
+		
+		if isinstance(y, str):
+			y = Word(y, (2, 1))
 		
 		if basis is None and self.quasinormal_basis is not None:
 			basis = self.quasinormal_basis

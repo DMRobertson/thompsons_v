@@ -4,6 +4,6 @@
 from .word         import Word
 from .generators   import Generators
 from .automorphism import Automorphism
-from .examples     import load_example, available_examples
+from .examples     import load_example, available_examples, show_examples
 
-__all__ = ["Word", "Generators", "Automorphism", "load_example", "available_examples"]
+__all__ = ["Word", "Generators", "Automorphism", "load_example", "available_examples", "show_examples"]

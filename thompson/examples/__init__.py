@@ -14,7 +14,7 @@ from ..automorphism import Automorphism
 from .              import random
 from .random        import *
 
-__all__ = random.__all__ + ['available_examples', 'load_example', 'load_example_pair']
+__all__ = random.__all__ + ['available_examples', 'show_examples', 'load_example', 'load_example_pair']
 
 #TODO. Allow powers in the definition of words e.g. a1^4?
 
@@ -69,6 +69,11 @@ def available_examples():
 		name, ext = os.path.splitext(filename)
 		if ext.lower() == '.aut':
 			yield name
+
+def show_examples():
+	"""Prints the list of :func:`available_examples`. This is intended for use when interacting with the interpreter."""
+	for i, name in enumerate(available_examples()):
+		print("{:>3}: {}".format(i+1, name))
 
 def load_all_examples():
 	"""Loads (and processes) **all** examples provided by the package. Returns a dictionary whose keys are the example names and whose values are the loaded automorphisms.
