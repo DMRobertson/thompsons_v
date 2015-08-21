@@ -96,6 +96,7 @@ class MixedAut(Automorphism):
 		.. doctest::
 			:hide:
 			
+			>>> example_5_3 = load_example('example_5_3')
 			>>> qnb = example_5_3.quasinormal_basis
 			>>> p, i = example_5_3._partition_basis(qnb)
 			>>> print(example_5_3.free_factor(p))

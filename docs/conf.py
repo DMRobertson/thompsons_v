@@ -60,7 +60,7 @@ print('Working in {}'.format(sys.path[0]))
 print(sys.version_info)
 
 # Additional stuff for the LaTeX preamble.
-latex_preamble = '\usepackage{amsmath,amssymb}\n'
+latex_preamble = '\\usepackage{amsmath,amssymb}\n'
 
 """THEMES"""
 if not on_rtd:  # only import and set the theme if we're building docs locally

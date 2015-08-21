@@ -7,6 +7,7 @@
 
 import operator
 from collections import namedtuple
+from fractions   import Fraction
 from itertools   import chain, product
 
 from .number_theory import divisors
@@ -595,6 +596,7 @@ class Word(tuple):
 					return (-(i + 1),) + tail
 			return None
 	
+	#Extracting information
 	def max_depth_to(self, basis):
 		r"""Let :math:`w` be the current word and let :math:`X` be a :meth:`basis <thompson.generators.Generators.is_basis>`. Choose a (possibly empty) string of alphas :math:`\Gamma` of length :math:`s \geq 0` at random. What is the smallest value of :math:`s` for which we can guarantee that :math:`w\Gamma` is below :math:`X`, i.e. in :math:`X\langle A\rangle`?
 		
@@ -624,6 +626,60 @@ class Word(tuple):
 				for child in word.expand():
 					dict[child] = expansions + 1
 		return max_depth
+	
+	def as_interval(self):
+		"""Returns a pair *(start, end)* of :class:`Fractions <py3:Fraction>` which describe the interval :math:`I \subseteq [0,1]` that this word corresponds to.
+			
+			>>> def print_interval(w, s):
+			... 	start, end = Word(w, s).as_interval()
+			... 	print('[{}, {}]'.format(start, end))
+			...
+			>>> print_interval('x a1 a2 a1 x L', (2, 1))
+			Traceback (most recent call last):
+			...
+			ValueError: The non-simple word x1 a1 a2 a1 x1 L does not correspond to a interval.
+			>>> print_interval('x1', (2, 1))
+			[0, 1]
+			>>> print_interval('x1', (3, 1))
+			[0, 1]
+			>>> print_interval('x1', (4, 2))
+			[0, 1/2]
+			>>> print_interval('x1 a1', (2, 1))
+			[0, 1/2]
+			>>> print_interval('x1 a1', (3, 1))
+			[0, 1/3]
+			>>> print_interval('x1 a1', (4, 2))
+			[0, 1/8]
+			>>> print_interval('x1 a2 a1 a2', (2, 1))
+			[5/8, 3/4]
+			>>> print_interval('x1 a2 a1 a2', (3, 1))
+			[10/27, 11/27]
+			>>> print_interval('x1 a2 a1 a2', (4, 2))
+			[17/128, 9/64]
+			
+			>>> from thompson.examples import random_simple_word
+			>>> s, e = random_simple_word().as_interval(); 0 <= s < e <= 1
+			True
+		
+			:raises ValueError: if the word :meth:`is not simple <is_simple>`.
+		"""
+		if not self.is_simple():
+			raise ValueError("The non-simple word {} does not correspond to a interval.".format(
+			  self))
+		
+		letters = iter(self)
+		letter = next(letters)
+		
+		start = Fraction(0, 1)
+		end = Fraction(letter, self.signature.alphabet_size)
+		inv_width = self.signature.alphabet_size
+		
+		for letter in letters:
+			alpha = -letter
+			inv_width *= self.signature.arity
+			start += Fraction(alpha - 1, inv_width)
+			end   += Fraction(alpha - self.signature.arity, inv_width)
+		return start, end
 	
 	#Modifiers
 	def alpha(self, index):
