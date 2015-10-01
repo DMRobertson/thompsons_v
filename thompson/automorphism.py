@@ -962,9 +962,9 @@ class Automorphism(Homomorphism):
 	def preserves_order(self):
 		"""Returns True if this automorphism is an element of :math:`F_{n,r}`, Higman's analogue of Thompson's group :math:`F`. Otherwise returns False.
 		
-			>>> random_automorphism_in_F().preserves_order()
+			>>> random_automorphism(group='F').preserves_order()
 			True
-			>>> phi = random_automorphism_in_T()
+			>>> phi = random_automorphism(group='T')
 			>>> #phi preserves order iff it is in F.
 			>>> (sorted(phi.range) == phi.range) == phi.preserves_order()
 			True
@@ -977,9 +977,9 @@ class Automorphism(Homomorphism):
 	def cycles_order(self):
 		"""Returns True if this automorphism is an element of :math:`T_{n,r}`, Higman's analogue of Thompson's group :math:`T`. Otherwise returns False.
 		
-		>>> random_automorphism_in_F().cycles_order()
+		>>> random_automorphism(group='F').cycles_order()
 		True
-		>>> random_automorphism_in_T().cycles_order()
+		>>> random_automorphism(group='T').cycles_order()
 		True
 		>>> load_example('nathan_pond_example').cycles_order() # in V
 		False
