@@ -248,21 +248,21 @@ class InfiniteAut(Automorphism):
 		
 		#3. Now the hard part---the iteration.
 		for images in maps_satisfying_choices(ladder, choices, deduce_images):
+			domain = Generators(self.signature, sorted(images))
+			range = Generators(self.signature, (images[d] for d in domain))
+			
+			#Add in type C images to domain and range
+			for word, data in type_c.items():
+				domain.append(word)
+				img = image_for_type_c(word, data, images, other)
+				range.append(img)
+			
 			try:
-				domain = Generators(self.signature, sorted(images))
-				range = Generators(self.signature, (images[d] for d in domain))
-				
-				#Add in type C images to domain and range
-				for word, data in type_c.items():
-					domain.append(word)
-					img = image_for_type_c(word, data, images, other)
-					range.append(img)
 				rho = Automorphism(domain, range)
-				rho.add_relabellers(self.domain_relabeller, other.range_relabeller)
 			except ValueError as e:
-				#For some reason, domain and range don't describe an automorphism
 				continue
 			else:
+				rho.add_relabellers(self.domain_relabeller, other.range_relabeller)
 				yield rho
 	
 	def find_power_conjugators(self, other, cheat=False):

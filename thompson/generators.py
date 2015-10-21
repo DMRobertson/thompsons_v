@@ -94,7 +94,10 @@ class Generators(list):
 	
 	#Tests on generating sets
 	def test_free(self):
-		r"""Tests to see if the current generating set :math:`X` is a free generating set. If the test fails, returns the first pair of indices :math:`(i, j)` found for which :math:`X_i` :meth:`is above <thompson.word.Word.is_above>` :math:`X_j`. If the test passes, returns :math:`(-1, -1)`.
+		r"""Tests to see if the current generating set :math:`X` is a free generating set.
+		To do so, the words contained in :math:`X` must all be :meth:`simple <thompson.word.Word.is_simple>`.
+		
+		If the test fails, returns the first pair of indices :math:`(i, j)` found for which :math:`X_i` :meth:`is above <thompson.word.Word.is_above>` :math:`X_j`. If the test passes, returns :math:`(-1, -1)`.
 		
 			>>> g = Generators((2, 3), ["x1 a1", "x1 a2 a1", "x1 a2 a1 a1", "x1 a2 a2"])
 			>>> g.test_free()
@@ -102,9 +105,19 @@ class Generators(list):
 			>>> print(g[1], g[2], sep='\n')
 			x1 a2 a1
 			x1 a2 a1 a1
+			>>> g = Generators((2, 1), ['x1 a2 a2', 'x1 a2 a1 x1 a2 a2 a2 a1 L x1 a1 L'])
+			>>> g.test_free()
+			Traceback (most recent call last):
+			...
+			ValueError: Cannot test for freeness unless all words are simple.
+		
+		:raises ValueError: if any word in the basis is not simple.
 		
 		.. seealso::  Lemma :paperref:`HigmanLemma2.5` of the paper.
 		"""
+		if any(not word.is_simple() for word in self):
+			raise ValueError('Cannot test for freeness unless all words are simple.')
+		
 		for i in range(len(self)):
 			for j in range(i+1, len(self)):
 				if self[i].is_above(self[j]):

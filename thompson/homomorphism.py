@@ -186,7 +186,13 @@ class Homomorphism:
 	
 	@classmethod
 	def _from_stream(cls, f):
-		num_generators = int(f.readline())
+		line = f.readline().strip()
+		try:
+			num_generators = int(line)
+		except ValueError as e:
+			details = 'Instead of {}, the first line should be the number of generators used to define the homorphism.'.format(repr(line))
+			raise ValueError(details) from e
+		
 		params = extract_signatures.match(f.readline().strip()).groups()
 		d = Generators([int(params[0]), int(params[1])])
 		r = Generators([int(params[2]), int(params[3])])
@@ -278,12 +284,10 @@ class Homomorphism:
 		range = other.image_of_set(self.range)
 		domain = copy(self.domain)
 		from .automorphism import Automorphism
-		for cls in (Automorphism, Homomorphism):
-			try:
-				return cls(domain, range)
-			except Exception as e:
-				print(e)
-		raise e
+		if isinstance(self, Automorphism) and isinstance(other, Automorphism):
+			return Automorphism(domain, range)
+		else:
+			return Homomorphism(domain, range)
 	
 	@classmethod
 	def identity(cls, signature):

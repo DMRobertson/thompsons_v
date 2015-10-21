@@ -76,6 +76,8 @@ class Automorphism(Homomorphism):
 			  domain.signature, range.signature))
 		
 		#Check to see that range is a basis for the range algebra
+		#Have to expand non-simple words first
+		Homomorphism._expand(domain, range)
 		i, j = range.test_free()
 		if not(i == j == -1):
 			raise ValueError("Range is not a free generating set. Check elements at indices {} and {}.".format(

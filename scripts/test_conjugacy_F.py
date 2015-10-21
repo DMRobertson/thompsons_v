@@ -142,6 +142,7 @@ def eval_word(word):
 
 def search_for_problems():
 	num_examples = 0
+	num_conjugate_pairs = 0
 	while True:
 		phi, psi = generate_auts()
 		if phi.is_identity() or psi.is_identity():
@@ -150,19 +151,21 @@ def search_for_problems():
 		if num_examples % 20 == 0:
 			print(num_examples)
 		hossain = test_via_hossain(phi, psi)
-		me = phi.test_conjugate_to(psi)
+		me = phi.is_conjugate_to(psi)
+		num_conjugate_pairs += me
 		if not implies(hossain, me):
 			print(phi)
 			print(psi)
 			phi.save_to_file('phi.aut')
 			psi.save_to_file('psi.aut')
 			break
+	print("tried {} examples. Thompson thought that {} were conjugate".format(num_examples, num_conjugate_pairs))
 
 def debug():
 	phi = Automorphism.from_file('phi.aut')
 	psi = Automorphism.from_file('psi.aut')
 	print(test_via_hossain(phi, psi))
-	print(psi.test_conjugate_to(phi))
+	print(psi.is_conjugate_to(phi))
 	globals()['phi'] = phi
 	globals()['psi'] = psi
 
