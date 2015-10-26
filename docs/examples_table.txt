@@ -78,6 +78,10 @@ non_revealing
 	A purely infinite automorphism for which
 	- The minimal representation does NOT correspond to a revealing pair; and
 	- The quasinormal basis does NOT correspond to a revealing pair.
+not_conjugate_f
+	At first glance this automorphism looks like it could be conjugate to ``not_conjugate_g``; indeed this satisfies the criteria of theorem 2 in [SD10]_. However the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>` only yields one potential conjugator :math:`\rho` which turns out not to be an automorphism (in fact, just an endomorphism) of :math:`V_{2,1}`.
+not_conjugate_g
+	At first glance this automorphism looks like it could be conjugate to ``not_conjugate_f``; indeed this satisfies the criteria of theorem 2 in [SD10]_. However the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>` only yields one potential conjugator :math:`\rho` which turns out not to be an automorphism (in fact, just an endomorphism) of :math:`V_{2,1}`.
 olga_f
 	An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*"
 olga_g

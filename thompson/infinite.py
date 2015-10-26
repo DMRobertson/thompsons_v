@@ -62,6 +62,10 @@ class InfiniteAut(Automorphism):
 			Conjugate: True  Conjugator works: True
 			Conjugate: True  Conjugator works: True
 			Conjugate: True  Conjugator works: True
+			
+			>>> f, g = (load_example('not_conjugate_' + c) for c in 'fg')
+			>>> f.is_conjugate_to(g)
+			False
 		
 		.. doctest::
 			:hide:
