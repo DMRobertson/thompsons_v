@@ -65,7 +65,7 @@ def available_examples():
 		['alphabet_size_two', 'arity_four', 'arity_three_order_inf', 'bleak_alpha']
 	"""
 	files = pkg_resources.resource_listdir("thompson", "examples")
-	for filename in files:
+	for filename in sorted(files):
 		name, ext = os.path.splitext(filename)
 		if ext.lower() == '.aut':
 			yield name

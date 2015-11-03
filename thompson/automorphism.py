@@ -1085,11 +1085,11 @@ class Automorphism(Homomorphism):
 def display_file(filepath):
 	"""From http://stackoverflow.com/a/435669. Opens the given file with the OS's default application."""
 	if sys.platform.startswith('darwin'):
-		subprocess.call(('open', filepath))
+		call(('open', filepath))
 	elif os.name == 'nt':
 		os.startfile(filepath)
 	elif os.name == 'posix':
-		subprocess.call(('xdg-open', filepath))
+		call(('xdg-open', filepath))
 
 def search_pattern(sbound, obound):
 	"""An optimistic search pattern which tries to delay expensive computations until as late as possible.
