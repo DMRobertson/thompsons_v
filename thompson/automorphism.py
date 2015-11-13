@@ -1006,16 +1006,18 @@ class Automorphism(Homomorphism):
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
 		outdir = mkdtemp()
+		print('Temporary directory for output:', outdir)
 		if jobname is None:
-			jobname = name if name != '' else 'tikz_code'
+			jobname = name or 'tikz_code'
 		tex_file = os.path.join(outdir, jobname + '.tex')
 		pdf_file = os.path.join(outdir, jobname + '.pdf')
 		name = name.replace('_', r'\_')
 		self.write_tikz_code(tex_file, domain=domain, name=name, self_contained=True)
-		check_call(['pdflatex', tex_file,
+		check_call(['pdflatex',
 			'-output-directory=' + outdir,
-			'-aux-directory='    + outdir,
-			'-quiet',
+			'-interaction=batchmode',
+			'-no-shell-escape',
+			 tex_file
 		])
 		display_file(pdf_file)
 	
