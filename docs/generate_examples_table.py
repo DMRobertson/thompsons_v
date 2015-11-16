@@ -8,8 +8,8 @@ import thompson.examples
 automorphisms = []
 
 for name, aut in thompson.examples.load_all_examples().items():
-	doc = aut.__doc__.split('\n\n', maxsplit=1)[0] #stuff is ignored after the first appearance of \n\n
-	automorphisms.append((name, doc.strip()))
+    doc = aut.__doc__.split('\n\n', maxsplit=1)[0] #stuff is ignored after the first appearance of \n\n
+    automorphisms.append((name, doc.strip()))
 
 automorphisms.sort()
 
@@ -21,5 +21,5 @@ format_string = "{}\n\t{}"
 os.chdir('docs')
 
 with open('examples_table.txt', 'wt') as f:
-	for name, docstring in automorphisms:
-		print(format_string.format(name, docstring), file=f)
+    for name, docstring in automorphisms:
+        print(format_string.format(name, docstring), file=f)

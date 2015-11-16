@@ -18,26 +18,26 @@ square.dump_QNB()
 print('Note that the first QNB contains xa211 and xa212, whereas the second contains xa21.')
 
 def search():
-	num_examples = 0
-	while True:
-		p, i = random_automorphism().free_factors()
-		if i is None:
-			continue
-		i = Automorphism(i.domain, i.range)
-		
-		num_examples += 1
-		if True or num_examples % 50 == 0:
-			print(num_examples)
-		X = i.quasinormal_basis
-		
-		power = i
-		for a in range(10):
-			power *= i
-			Y = power.quasinormal_basis
-			if not all(X.is_above(y) for y in Y):
-				print(i)
-				print(X)
-				print(a+2)
-				print(power)
-				print(Y)
-				raise ValueError()
+    num_examples = 0
+    while True:
+        p, i = random_automorphism().free_factors()
+        if i is None:
+            continue
+        i = Automorphism(i.domain, i.range)
+        
+        num_examples += 1
+        if True or num_examples % 50 == 0:
+            print(num_examples)
+        X = i.quasinormal_basis
+        
+        power = i
+        for a in range(10):
+            power *= i
+            Y = power.quasinormal_basis
+            if not all(X.is_above(y) for y in Y):
+                print(i)
+                print(X)
+                print(a+2)
+                print(power)
+                print(Y)
+                raise ValueError()

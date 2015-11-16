@@ -19,12 +19,12 @@ print(a, b)
 print(rho)
 
 def search():
-	while True:
-		psi, phi = random_power_conjugate_pair(signature=(2,1), num_expansions=5)
-		print(psi.__class__.__name__, phi.__class__.__name__)
-		if not (isinstance(psi, MixedAut) and isinstance(phi, MixedAut)):
-			continue
-		print(psi, phi, sep='\n')
-		answer = input('continue?')
-		if answer != 'y':
-			break
+    while True:
+        psi, phi = random_power_conjugate_pair(signature=(2,1), num_expansions=5)
+        print(psi.__class__.__name__, phi.__class__.__name__)
+        if not (isinstance(psi, MixedAut) and isinstance(phi, MixedAut)):
+            continue
+        print(psi, phi, sep='\n')
+        answer = input('continue?')
+        if answer != 'y':
+            break
