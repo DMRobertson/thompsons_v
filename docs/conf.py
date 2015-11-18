@@ -22,34 +22,34 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 #From http://stackoverflow.com/a/5599712 .
 #TODO. Instance variables defined in __slots__ are being picked up by the html builder.
 if 'doctest' in sys.argv:
-    def skip(app, what, name, obj, skip, options):
-        #don't skip any doctests under any _private methods
-        return False
+	def skip(app, what, name, obj, skip, options):
+		#don't skip any doctests under any _private methods
+		return False
 
 else:
-    def skip(app, what, name, obj, skip, options):
-        #include any magic methods which have a docstring
-        if hasattr(obj, '__call__') and name.endswith("__") and obj.__doc__:
-            return False
-        return skip
+	def skip(app, what, name, obj, skip, options):
+		#include any magic methods which have a docstring
+		if hasattr(obj, '__call__') and name.endswith("__") and obj.__doc__:
+			return False
+		return skip
 
 def missing_reference(app, env, node, contnode):
-    reftype = node.get('reftype')
-    target = node.get('reftarget')
-    if reftype == "viewcode":
-        return
-    if target is None:
-        app.warn("Missing reference: {}".format(node))
-    elif target.startswith('py3:') or target.endswith('Error') or reftype == "obj":
-        return
-    else:
-        app.warn("Missing reference target: {}".format(target))
+	reftype = node.get('reftype')
+	target = node.get('reftarget')
+	if reftype == "viewcode":
+		return
+	if target is None:
+		app.warn("Missing reference: {}".format(node))
+	elif target.startswith('py3:') or target.endswith('Error') or reftype == "obj":
+		return
+	else:
+		app.warn("Missing reference target: {}".format(target))
 
 def setup(app):
-    app.connect("autodoc-skip-member", skip)
-    app.connect("missing-reference", missing_reference)
-    if not on_rtd:
-        app.add_stylesheet('css/tweaks.css') 
+	app.connect("autodoc-skip-member", skip)
+	app.connect("missing-reference", missing_reference)
+	if not on_rtd:
+		app.add_stylesheet('css/tweaks.css') 
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -64,14 +64,14 @@ latex_preamble = '\\usepackage{amsmath,amssymb}\n'
 
 """THEMES"""
 if not on_rtd:  # only import and set the theme if we're building docs locally
-    try:
-        import sphinx_rtd_theme
-    except ImportError:
-        rtd_theme = False
-    else:
-        rtd_theme = True
-        html_theme = "sphinx_rtd_theme"
-        html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+	try:
+		import sphinx_rtd_theme
+	except ImportError:
+		rtd_theme = False
+	else:
+		rtd_theme = True
+		html_theme = "sphinx_rtd_theme"
+		html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 else:   
     rtd_theme = True
     # Override default css to get a larger width for ReadTheDoc build            
@@ -90,9 +90,9 @@ autodoc_member_order = 'bysource'
 sys.path.append(os.path.abspath('extensions'))
 todo_include_todos = True
 intersphinx_mapping = {
-    # 'svgwrite':    ('http://svgwrite.readthedocs.org/en/latest', None),
-    'py3':        ('https://docs.python.org/3/', None),
-    'networkx':    ('http://networkx.github.io/documentation/latest', None), 
+	# 'svgwrite':	('http://svgwrite.readthedocs.org/en/latest', None),
+	'py3':		('https://docs.python.org/3/', None),
+	'networkx':	('http://networkx.github.io/documentation/latest', None), 
 }
 
 """End my additions"""
@@ -216,7 +216,7 @@ pygments_style = 'sphinx'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 if rtd_theme:
-    html_style = "css/tweaks.css"
+	html_style = "css/tweaks.css"
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

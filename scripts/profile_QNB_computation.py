@@ -15,21 +15,21 @@ profile = 'cProfile'
 print(aut)
 #TODO. This is broken since I made the QNB automatically computed in __init__.
 if profile == 'cProfile':
-    import cProfile
-    print('profiling with cProfile')
-    cProfile.run('X = aut.quasinormal_basis')#, filename=filename+'.profile')
-    
+	import cProfile
+	print('profiling with cProfile')
+	cProfile.run('X = aut.quasinormal_basis')#, filename=filename+'.profile')
+	
 elif profile == 'callgraph':
-    from pycallgraph import PyCallGraph
-    from pycallgraph.output import GraphvizOutput
-    
-    print('profiling with PyCallGraph')
-    with PyCallGraph(output=GraphvizOutput()):
-        X = aut.quasinormal_basis
+	from pycallgraph import PyCallGraph
+	from pycallgraph.output import GraphvizOutput
+	
+	print('profiling with PyCallGraph')
+	with PyCallGraph(output=GraphvizOutput()):
+		X = aut.quasinormal_basis
 else:
-    X = aut.quasinormal_basis
+	X = aut.quasinormal_basis
 
 print(X)
 for x in X:
-    ctype, _, _ = aut.orbit_type(x, X)
-    print(x, ctype)
+	ctype, _, _ = aut.orbit_type(x, X)
+	print(x, ctype)
