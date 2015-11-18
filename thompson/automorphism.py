@@ -10,6 +10,7 @@
 import os
 import sys
 
+from base64       import b64encode
 from copy         import copy
 from itertools    import chain, product
 from subprocess   import call, check_call
@@ -1000,13 +1001,12 @@ class Automorphism(Homomorphism):
 		generate_tikz_code(self, filename, domain, name, self_contained)
 	write_tikz_code.__doc__ = generate_tikz_code.__doc__
 	
-	def render(self, jobname=None, domain='wrt QNB', name=''):
-		"""Uses :meth:`write_tikz_code` and a call to ``pdflatex`` to generate a PDF drawing of the given automorphism. A call to :func:`py3:webbrowser.open` displays the PDF.
+	def render(self, jobname=None, domain='wrt QNB', name='', display=True):
+		"""Uses :meth:`write_tikz_code` and a call to ``pdflatex`` to generate a PDF drawing of the given automorphism. If the *display* argument is ``True``, then the system will attempt to open the PDF using the OS's default application for PDFs.
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
 		outdir = mkdtemp()
-		print('Temporary directory for output:', outdir)
 		if jobname is None:
 			jobname = name or 'tikz_code'
 		tex_file = os.path.join(outdir, jobname + '.tex')
@@ -1019,7 +1019,22 @@ class Automorphism(Homomorphism):
 			'-no-shell-escape',
 			 tex_file
 		])
-		display_file(pdf_file)
+		if display:
+			display_file(pdf_file)
+		return pdf_file
+	
+	def render_notebook(self):
+		"""A version of :meth:`render` adapted for use in a jupyter notebook."""
+		pdf_file = self.render(display=False)
+		png_file = pdf_file[:-4] + '.png'
+		check_call(['convert',
+			'-density', '180',
+			pdf_file,
+			'-quality','90',
+			png_file
+		])
+		from IPython.display import Image
+		return Image(filename=png_file)
 	
 	def _end_of_iac(self, root, leaves, backward=False):
 		"""Given a root :math:`r` of :math:`A \setminus B` of :math:`B \setminus A`, this finds the IAC containing :math:`r` and returns the endpoint :math:`u_1` or :math:`f(u_n)` which is not :math:`r`."""
