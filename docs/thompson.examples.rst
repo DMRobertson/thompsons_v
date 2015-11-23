@@ -14,6 +14,9 @@ Use the following functions to load one of these examples.
 .. autofunction:: load_example
 .. autofunction:: load_example_pair
 .. autofunction:: load_all_examples
+.. autofunction:: standard_generator
+
+.. todo:: Add the named generators A, B, C of Thompson's T and V. Analogues for general G_n,r?
 
 .. _examples-table:
 

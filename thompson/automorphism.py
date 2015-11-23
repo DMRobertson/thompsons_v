@@ -10,7 +10,6 @@
 import os
 import sys
 
-from base64       import b64encode
 from copy         import copy
 from itertools    import chain, product
 from subprocess   import call, check_call
@@ -1023,9 +1022,11 @@ class Automorphism(Homomorphism):
 			display_file(pdf_file)
 		return pdf_file
 	
-	def render_notebook(self):
+	def render_notebook(self, **kwargs):
 		"""A version of :meth:`render` adapted for use in a jupyter notebook."""
-		pdf_file = self.render(display=False)
+		from IPython.display import Image
+		kwargs[display] = False
+		pdf_file = self.render(**kwargs)
 		png_file = pdf_file[:-4] + '.png'
 		check_call(['convert',
 			'-density', '180',
@@ -1033,7 +1034,6 @@ class Automorphism(Homomorphism):
 			'-quality','90',
 			png_file
 		])
-		from IPython.display import Image
 		return Image(filename=png_file)
 	
 	def _end_of_iac(self, root, leaves, backward=False):
@@ -1098,6 +1098,56 @@ class Automorphism(Homomorphism):
 		.. caution:: This is an experimental feature based on [SD10]_.
 		"""
 		return self.test_revealing(domain) is None
+	
+	def area_to_identity(self):
+		r"""Let :math:`\phi \in F_{n, 1}`, viewed as a bijection of the interval.
+		What is the (unsigned) area between :math:`\phi` and the identity?
+		
+		.. warning:: This is an experimental feature based on a suggestion by Henry Bradford.
+		
+		.. doctest::
+			>>> for n in range(4):
+			... 	print(standard_generator(n).area_to_identity())
+			... 
+			5/32
+			5/128
+			5/512
+			5/2048
+			>>> x0 = standard_generator(0)
+			>>> x1 = standard_generator(1)
+			>>> g = ~x0 * x1 * x0
+			>>> print(g.area_to_identity())
+			[todo: check] 3/32
+			
+			>>> f = load_example('non_dyadic_fixed_point')
+			>>> print(f.area_to_identity())
+			[todo: check] 59/768
+		.. todo:: a function which plots an automorphism's graph. Check the example with non-dyadic fixed points
+		
+		"""
+		if not self.preserves_order():
+			raise ValueError('This automorphism is not in F')
+		area = 0
+		for d, r in zip(self.domain, self.range):
+			x0, x1 = d.as_interval()
+			y0, y1 = r.as_interval()
+			
+			#Does this interval cross the diagonal?
+			upward_crossing   = y0 < x0 and y1 > x1
+			downward_crossing = y0 > x0 and y1 < x1
+			if upward_crossing or downward_crossing:
+				#compute the crossing point
+				gradient = (y1 - y0) / (x1 - x0)
+				intercept = y0 - gradient * x0
+				intersection = intercept / (gradient - 1)
+				
+				#add the area of the two triangles
+				area += trapezium_area(x0, y0, intersection, intersection)
+				area += trapezium_area(intersection, intersection, x1, y1)
+			else:
+				area += trapezium_area(x0, y0, x1, y1)
+		
+		return area
 
 def display_file(filepath):
 	"""From http://stackoverflow.com/a/435669. Opens the given file with the OS's default application."""
@@ -1162,3 +1212,9 @@ def inherit_relabellers(target, source):
 
 def type_b_triple(power, head, tail):
 	return dict(start_tail = tuple(), power=power, end_tail=tail, target=head)
+
+def trapezium_area(x0, y0, x1, y1):
+	"""The area of a trapezium whose edges are :math:`x = x_0`, :math:`x = x_1`, :math:`y=x` and the straight line from :math:`(x_0, y_0)` to :math:`(x_1, y_1)`."""
+	perp_height = x1 - x0
+	avg_width = (abs(y1-x1) + abs(y0-x0)) / 2
+	return perp_height * avg_width

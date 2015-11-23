@@ -74,6 +74,8 @@ nathan_pond_example
 	Nathan's example of an automorphism containing a pond. This was simpler than the first example found.
 no_minimal_revealing
 	An example from section 3.6 of [SD10]_. This is an automorphism :math:`f \in G_{2,1}` for which there is no minimal revealing pair from which every other revaling pair can be obtained via rollings.
+non_dyadic_fixed_point
+	In their paper introducing strand diagrams, Belk and Matucci provide an example of an element of :math:`F` which has a non-dyadic fixed point. This is a slight simplification of that example.
 non_revealing
 	A purely infinite automorphism for which
 	- The minimal representation does NOT correspond to a revealing pair; and

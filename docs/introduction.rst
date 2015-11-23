@@ -5,7 +5,7 @@ Installation
 ------------
 
 1. Python interpreter.
-	This program is written in `Python <python.org>`_ and needs a Python interpreter to run; to be specific, **Python 3.3 or above** is required. If you don't have this already installed on your system, your best bet is to download the latest version (currently 3.4) from the `Python website <python.org>`_. For Linux users, Python may be available from your distribution's repositories; take care to install version 3.x rather than 2.x!
+	This program is written in `Python <python.org>`_ and needs a Python interpreter to run; to be specific, **Python 3.3 or above** is required. If you don't have this already installed on your system, your best bet is to download the latest version (currently 3.5) from the `Python website <python.org>`_. For Linux users, Python may be available from your distribution's repositories; take care to install version 3.x rather than 2.x!
 
 2. Source code.
 	If you have ``git`` available on your system, the easiest way to obtain the program is to simply clone the repository:
@@ -15,7 +15,7 @@ Installation
 	If this is not possible, a ZIPped version can be downloaded from the `project page <https://github.com/DMRobertson/thompsons_v>`_ on GitHub.
 
 3. Package requirements.
-	The de-facto package management tool for Python is the ``pip`` program, which is installed alongside Python 3.4. Python 3.3 users should consult the `pip documentation <https://pypi.python.org/pypi/pip/>`_ for instructions on how to install ``pip`` directly. Some Linux distributions may also provide pip as a package (make sure it's for Python 3---it may be listed as ``pip3``).
+	The de-facto package management tool for Python is the ``pip`` program, which is installed as part of Python 3.4 and higher. Python 3.3 users should consult the `pip documentation <https://pypi.python.org/pypi/pip/>`_ for instructions on how to install ``pip`` directly. Some Linux distributions may also provide pip as a package (make sure it's for Python 3---it may be listed as ``pip3``).
 	
 	Once pip is installed, navigate to the project directory and run
 	
@@ -115,10 +115,10 @@ A :mod:`number of examples <thompson.examples>` are included in this package, so
 
 .. note:: Previously, one would access this example by using ``from thompson.examples import nathan_pond_example``. I changed this, because it meant that every example was loaded (and the quasinormal bases etc. computed) whenever ``thompson.examples`` was imported.
 
-To see the list of available examples, consult the :mod:`documentation for the examples module <thompson.examples>`. You might also like to [the demo notebook](https://github.com/DMRobertson/thompsons_v/blob/master/Thompson%20example.ipynb) on GitHub.
+To see the list of available examples, consult the :mod:`documentation for the examples module <thompson.examples>`. You might also like to consult `the demo notebook <https://github.com/DMRobertson/thompsons_v/blob/master/notebooks/Thompson%20example.ipynb>` on GitHub.
 
 
 Running the test suite
 ----------------------
 
-Make sure Sphinx is installed (see the installation section). Then navigate to the ``docs`` folder and run ``make doctest``. This should look through the source code for short tests and alert you if any of them fail. You can also run ``make html`` to build this documentation.
+Make sure Sphinx is installed (see the installation section). Then navigate to the ``docs`` folder and run ``make doctest``. This should look through the source code for short tests and alert you if any of them fail. You can also run ``make html`` to build this documentation. Reset with ``make clean``.

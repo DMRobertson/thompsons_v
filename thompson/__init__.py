@@ -4,7 +4,10 @@
 from .word            import Word
 from .generators      import Generators
 from .automorphism    import Automorphism
-from .examples        import load_example, available_examples, show_examples
+from .examples        import load_example, available_examples, show_examples, standard_generator
 from .examples.random import random_automorphism
 
-__all__ = ["Word", "Generators", "Automorphism", "load_example", "available_examples", "show_examples", "random_automorphism"]
+__all__ = [
+	"Word", "Generators", "Automorphism",
+	"load_example", "available_examples", "show_examples", "standard_generator",
+	"random_automorphism"]

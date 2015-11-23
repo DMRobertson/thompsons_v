@@ -16,10 +16,7 @@ from ..word         import Word
 from .              import random
 from .random        import *
 
-__all__ = random.__all__ + ['available_examples', 'show_examples',
-  'load_example', 'load_example_pair',
-  'standard_generator'
-  ]
+__all__ = random.__all__ + ['available_examples', 'show_examples', 'load_example', 'load_example_pair', 'standard_generator']
 
 #TODO. Allow powers in the definition of words e.g. a1^4?
 
@@ -96,23 +93,45 @@ def load_all_examples():
 	return cache
 
 def standard_generator(n=0):
-	"""Produces the standard generator :math:`X_n` of :math:`F` as described in [CFP96]_."""
-	domain  = Generators((2, 1))
+	"""Produces the standard generator :math:`X_n` of :math:`F` as described in [CFP96]_.
+	For instance, :math:`X_0` is the following:
+	
+		>>> print(standard_generator())
+		InfiniteAut: V(2, 1) -> V(2, 1) specified by 3 generators (after expansion and reduction).
+		x1 a1    -> x1 a1 a1
+		x1 a2 a1 -> x1 a1 a2
+		x1 a2 a2 -> x1 a2   
+	
+	For :math:`n > 0` the element :math:`X_n` is a :class:`Mixed automorphism <thompson.mixed.MixedAut>`, consisting of a large fixed part and a smaller part which looks like :math:`X_0`.
+	
+		>>> from random import randint
+		>>> n = randint(1, 20)
+		>>> x_n = standard_generator(n)
+		>>> type(x_n)
+		<class 'thompson.mixed.MixedAut'>
+	
+	The :math:`X_n` generate :math:`F`; in fact just :math:`X_0` and :math:`X-1` are sufficient, due to the relation :math:`X_k^{-1} X_n X_k = X_{n+1}` for :math:`k < n`.
+
+		>>> x_k = standard_generator(randint(0, n-1))
+		>>> x_k * x_n * ~x_k == standard_generator(n+1) #operation is the other way round in Python
+		True
+	"""
+	domain_basis = Generators((2, 1))
 	path = Word('x', (2, 1))
-	for i in range(n - 1):
-		domain.append(path.alpha(1))
+	for i in range(n):
+		domain_basis.append(path.alpha(1))
 		path = path.alpha(2)
 	
-	#At this stage, domain is equal to the intersection of domain and range
-	range_basis = domain.copy()
+	#At this stage, domain_basis is equal to the intersection of domain and range
+	range_basis = domain_basis.copy()
 	
-	domain.append(path.alpha(1))
-	domain.append(path.extend('a2 a1'))
-	domain.append(path.extend('a2 a2'))
+	domain_basis.append(path.alpha(1))
+	domain_basis.append(path.extend('a2 a1'))
+	domain_basis.append(path.extend('a2 a2'))
 	
 	range_basis.append(path.extend('a1 a1'))
 	range_basis.append(path.extend('a1 a2'))
 	range_basis.append(path.alpha(2))
 	
-	return Automorphism(domain, range_basis)
+	return Automorphism(domain_basis, range_basis)
 

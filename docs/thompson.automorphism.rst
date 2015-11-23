@@ -15,8 +15,6 @@ The Automorphisms class
     :undoc-members:
     :exclude-members: inverse
 
-.. todo:: Add the named generators A, B, C, X_n of Thompson's V to the examples module. Analogues for general G_n,r?
-
 Next steps
 ----------
 
