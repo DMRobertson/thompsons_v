@@ -11,10 +11,15 @@ import string
 from itertools import chain
 
 from ..automorphism import Automorphism
+from ..generators   import Generators
+from ..word         import Word
 from .              import random
 from .random        import *
 
-__all__ = random.__all__ + ['available_examples', 'show_examples', 'load_example', 'load_example_pair']
+__all__ = random.__all__ + ['available_examples', 'show_examples',
+  'load_example', 'load_example_pair',
+  'standard_generator'
+  ]
 
 #TODO. Allow powers in the definition of words e.g. a1^4?
 
@@ -89,3 +94,25 @@ def load_all_examples():
 	for key in chain(available_examples(), aliases):
 		load_example(key)
 	return cache
+
+def standard_generator(n=0):
+	"""Produces the standard generator :math:`X_n` of :math:`F` as described in [CFP96]_."""
+	domain  = Generators((2, 1))
+	path = Word('x', (2, 1))
+	for i in range(n - 1):
+		domain.append(path.alpha(1))
+		path = path.alpha(2)
+	
+	#At this stage, domain is equal to the intersection of domain and range
+	range_basis = domain.copy()
+	
+	domain.append(path.alpha(1))
+	domain.append(path.extend('a2 a1'))
+	domain.append(path.extend('a2 a2'))
+	
+	range_basis.append(path.extend('a1 a1'))
+	range_basis.append(path.extend('a1 a2'))
+	range_basis.append(path.alpha(2))
+	
+	return Automorphism(domain, range_basis)
+
