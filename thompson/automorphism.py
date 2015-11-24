@@ -1007,10 +1007,10 @@ class Automorphism(Homomorphism):
 		"""
 		outdir = mkdtemp()
 		if jobname is None:
-			jobname = name or 'tikz_code'
+			jobname = 'tikz_code'
 		tex_file = os.path.join(outdir, jobname + '.tex')
 		pdf_file = os.path.join(outdir, jobname + '.pdf')
-		name = name.replace('_', r'\_')
+		
 		self.write_tikz_code(tex_file, domain=domain, name=name, self_contained=True)
 		check_call(['pdflatex',
 			'-output-directory=' + outdir,
@@ -1024,8 +1024,8 @@ class Automorphism(Homomorphism):
 	
 	def render_notebook(self, **kwargs):
 		"""A version of :meth:`render` adapted for use in a jupyter notebook."""
-		from IPython.display import Image
-		kwargs[display] = False
+		from IPython.display import display, Image
+		kwargs['display'] = False
 		pdf_file = self.render(**kwargs)
 		png_file = pdf_file[:-4] + '.png'
 		check_call(['convert',
@@ -1034,7 +1034,7 @@ class Automorphism(Homomorphism):
 			'-quality','90',
 			png_file
 		])
-		return Image(filename=png_file)
+		display(Image(filename=png_file))
 	
 	def _end_of_iac(self, root, leaves, backward=False):
 		"""Given a root :math:`r` of :math:`A \setminus B` of :math:`B \setminus A`, this finds the IAC containing :math:`r` and returns the endpoint :math:`u_1` or :math:`f(u_n)` which is not :math:`r`."""
@@ -1117,11 +1117,11 @@ class Automorphism(Homomorphism):
 			>>> x1 = standard_generator(1)
 			>>> g = ~x0 * x1 * x0
 			>>> print(g.area_to_identity())
-			[todo: check] 3/32
+			3/32
 			
 			>>> f = load_example('non_dyadic_fixed_point')
 			>>> print(f.area_to_identity())
-			[todo: check] 59/768
+			43/768
 		.. todo:: a function which plots an automorphism's graph. Check the example with non-dyadic fixed points
 		
 		"""
@@ -1131,7 +1131,6 @@ class Automorphism(Homomorphism):
 		for d, r in zip(self.domain, self.range):
 			x0, x1 = d.as_interval()
 			y0, y1 = r.as_interval()
-			
 			#Does this interval cross the diagonal?
 			upward_crossing   = y0 < x0 and y1 > x1
 			downward_crossing = y0 > x0 and y1 < x1
@@ -1139,8 +1138,7 @@ class Automorphism(Homomorphism):
 				#compute the crossing point
 				gradient = (y1 - y0) / (x1 - x0)
 				intercept = y0 - gradient * x0
-				intersection = intercept / (gradient - 1)
-				
+				intersection = intercept / (1 - gradient)
 				#add the area of the two triangles
 				area += trapezium_area(x0, y0, intersection, intersection)
 				area += trapezium_area(intersection, intersection, x1, y1)
