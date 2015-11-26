@@ -11,6 +11,7 @@ import os
 import sys
 
 from copy         import copy
+from fractions    import Fraction
 from itertools    import chain, product
 from subprocess   import call, check_call
 from tempfile     import mktemp, mkdtemp
@@ -1099,9 +1100,11 @@ class Automorphism(Homomorphism):
 		"""
 		return self.test_revealing(domain) is None
 	
-	def area_to_identity(self):
+	def area_to_identity(self, scaled=False):
 		r"""Let :math:`\phi \in F_{n, 1}`, viewed as a bijection of the interval.
 		What is the (unsigned) area between :math:`\phi` and the identity?
+		
+		:param bool scaled: If true, the area is normalised by ignoring subintervals where the function is equal to the identity.
 		
 		.. warning:: This is an experimental feature based on a suggestion by Henry Bradford.
 		
@@ -1122,30 +1125,70 @@ class Automorphism(Homomorphism):
 			>>> f = load_example('non_dyadic_fixed_point')
 			>>> print(f.area_to_identity())
 			43/768
-		.. todo:: a function which plots an automorphism's graph. 
 		
+			>>> for n in range(4):
+			...		print(standard_generator(n).area_to_identity(scaled=True))
+			5/32
+			5/32
+			5/32
+			5/32
+
+		.. todo:: a function which plots an automorphism's graph. 
 		"""
 		if not self.preserves_order():
 			raise ValueError('This automorphism is not in F')
-		area = 0
-		for d, r in zip(self.domain, self.range):
-			x0, x1 = d.as_interval()
-			y0, y1 = r.as_interval()
-			#Does this interval cross the diagonal?
-			upward_crossing   = y0 < x0 and y1 > x1
-			downward_crossing = y0 > x0 and y1 < x1
-			if upward_crossing or downward_crossing:
-				#compute the crossing point
-				gradient = (y1 - y0) / (x1 - x0)
-				intercept = y0 - gradient * x0
-				intersection = intercept / (1 - gradient)
-				#add the area of the two triangles
-				area += trapezium_area(x0, y0, intersection, intersection)
-				area += trapezium_area(intersection, intersection, x1, y1)
-			else:
-				area += trapezium_area(x0, y0, x1, y1)
 		
-		return area
+		#1. Work out where the function is different from the identity.
+		num_sections = len(self.domain)
+		non_identity_sections = []
+		indices = []
+		for i in range(num_sections):
+			x0, x1 = self.domain[i].as_interval()
+			y0, y1 = self.range[i].as_interval()
+			matches_identity = (x0 == y0 and x1 == y1)
+			if not matches_identity:
+				indices.append(i)
+			
+			if matches_identity or i == num_sections - 1:
+				if indices:
+					non_identity_sections.append(indices)
+					indices = []
+		
+		if not non_identity_sections:
+			return Fraction(0, 1)
+		
+		#2. Compute the width and area of each non-identity section
+		widths = []
+		areas = []
+		for indices in non_identity_sections:
+			start = self.domain[indices[0]].as_interval()[0]
+			end   = self.domain[indices[-1]].as_interval()[1]
+			widths.append(end-start)
+			
+			area = 0
+			for i in indices:
+				x0, x1 = self.domain[i].as_interval()
+				y0, y1 = self.range[i].as_interval()
+				#Does this interval cross the diagonal?
+				upward_crossing   = y0 < x0 and y1 > x1
+				downward_crossing = y0 > x0 and y1 < x1
+				if upward_crossing or downward_crossing:
+					#compute the crossing point
+					gradient = (y1 - y0) / (x1 - x0)
+					intercept = y0 - gradient * x0
+					intersection = intercept / (1 - gradient)
+					#add the area of the two triangles
+					area += trapezium_area(x0, y0, intersection, intersection)
+					area += trapezium_area(intersection, intersection, x1, y1)
+				else:
+					area += trapezium_area(x0, y0, x1, y1)
+			areas.append(area)
+		
+		if not scaled:
+			scalar = 1
+		else:
+			scalar = sum(widths) ** -2
+		return sum(areas) * scalar
 
 def display_file(filepath):
 	"""From http://stackoverflow.com/a/435669. Opens the given file with the OS's default application."""
