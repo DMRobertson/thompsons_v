@@ -1,9 +1,0 @@
-5
-(2, 1) -> (2, 1)
-x1 a1 a1    -> x1 a2 a1 a2
-x1 a1 a2 a1 -> x1 a2 a2 a1
-x1 a1 a2 a2 -> x1 a1      
-x1 a2 a1    -> x1 a2 a2 a2
-x1 a2 a2    -> x1 a2 a1 a1
-x1 a2 a1 has characteristic Characteristic(power=2, multiplier=(-1, -2)), but the 1th image x1 a2 a2 a2 is not in X.
-The QNB is [x1 a1, x1 a2 a1, x1 a2 a2]

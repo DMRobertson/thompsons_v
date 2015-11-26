@@ -56,6 +56,8 @@ first_pond_example_phi
 	The first example of a pond orbit, found by a random search. Its banks are :math:`x\alpha_1^4\alpha_2` and :math:`x\alpha_1\alpha_2^2`.
 first_pond_example_psi
 	The element which was conjugate to the first example of a pond orbit, found by a random search.
+four_minimal_revealing_pairs
+	I think this automorphism has 4 minimal revealing pairs. It has an orbit of characteristic (-4, a1^4) spread apart over four components of :math:`A \setminus B`. Brin's algorithm would have you add three of these components to the tree, and I think the component you DON'T add is the one that determines the revealing pair.
 inf_conj_phi
 	An example used to debug the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>`.
 inf_conj_psi

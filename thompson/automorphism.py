@@ -1106,6 +1106,7 @@ class Automorphism(Homomorphism):
 		.. warning:: This is an experimental feature based on a suggestion by Henry Bradford.
 		
 		.. doctest::
+			
 			>>> for n in range(4):
 			... 	print(standard_generator(n).area_to_identity())
 			... 
@@ -1118,11 +1119,10 @@ class Automorphism(Homomorphism):
 			>>> g = ~x0 * x1 * x0
 			>>> print(g.area_to_identity())
 			3/32
-			
 			>>> f = load_example('non_dyadic_fixed_point')
 			>>> print(f.area_to_identity())
 			43/768
-		.. todo:: a function which plots an automorphism's graph. Check the example with non-dyadic fixed points
+		.. todo:: a function which plots an automorphism's graph. 
 		
 		"""
 		if not self.preserves_order():

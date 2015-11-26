@@ -19,6 +19,13 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
+#DMR: Adding in the python scripts I use to build the docs
+includes:
+	@echo "Generating examples table from thompson source."
+	python3 generate_examples_table.py
+	@echo "Generating references table from tex source."
+	python3 generate_references.py
+
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
 
 help:
