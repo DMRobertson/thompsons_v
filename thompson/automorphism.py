@@ -47,7 +47,7 @@ class Automorphism(Homomorphism):
 	
 	Periodic attributes:
 	
-	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)` where :math:`\phi` is the current automorphism and :math:`X_\phi` is the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` for :math:`\phi`.
+	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)`, which is the number of periodic orbits of size :math:`d` in the :meth:`quasinormal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` for :math:`\phi`. See Definition :paperref:`cycletypes` in the paper.
 	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`
 	:ivar order: The :func:`~thompson.number_theory.lcm` of the automorphism's cycle type. This is the group-theoretic order of the :mod:`periodic factor <thompson.periodic>` of :math:`\phi`. If the cycle type is empty, the order is :math:`\infty`.
 	
@@ -100,6 +100,18 @@ class Automorphism(Homomorphism):
 			self._image_simple_above_domain(root, self.range.signature, self.domain.signature, self._inv)
 		
 		self.compute_quasinormal_basis()
+		self.pond_banks = self._find_ponds()
+		#This is extremely naughty.
+		#Cast this class as a pure/mixed/infinite aut as appropriate.
+		if len(self.multiplicity) == 0:
+			from .infinite import InfiniteAut
+			self.__class__ = InfiniteAut
+		elif len(self.characteristics) == 0:
+			from .periodic import PeriodicAut
+			self.__class__ = PeriodicAut
+		else:
+			from .mixed import MixedAut
+			self.__class__ = MixedAut
 	
 	#Computing images
 	def _set_image(self, d, r, sig_in, sig_out, cache):
@@ -305,7 +317,7 @@ class Automorphism(Homomorphism):
 		
 		#Tidy up data
 		self.quasinormal_basis = basis
-		self.cycle_type = self.multiplicity.keys()
+		self.cycle_type = tuple(self.multiplicity)
 		self.order = float('inf') if len(self.cycle_type) == 0 else lcm(self.cycle_type)
 		
 		self.characteristics = set()
@@ -313,20 +325,6 @@ class Automorphism(Homomorphism):
 			ctype, _, _ = self.orbit_type(endpt, basis)
 			if ctype.is_type_B():
 				self.characteristics.add(ctype.characteristic)
-		
-		#2. Look for ponds.
-		self.pond_banks = self._find_ponds()
-		
-		#3. This is naughty. Cast this class as a pure/mixed/infinite aut as appropriate.
-		if len(self.multiplicity) == 0:
-			from .infinite import InfiniteAut
-			self.__class__ = InfiniteAut
-		elif len(self.characteristics) == 0:
-			from .periodic import PeriodicAut
-			self.__class__ = PeriodicAut
-		else:
-			from .mixed import MixedAut
-			self.__class__ = MixedAut
 	
 	def _find_ponds(self):
 		terminal, initial = self.semi_infinite_end_points(exclude_characteristics=True)
@@ -346,6 +344,7 @@ class Automorphism(Homomorphism):
 					break
 		return ponds
 	
+	#TODO: maybe this ought to be part a method of Signature
 	def _intersection_of_trees(self, domain, range):
 		r"""Given the leaves A and B of two trees (i.e. bases), computes the leaves (basis) X of the tree intersection A & B.
 		"""
@@ -1050,7 +1049,7 @@ class Automorphism(Homomorphism):
 		
 		The *domain* may be implicitly specified by the string ``'minimal'`` or ``'wrt QNB'``. In the first case, *domain* is taken to be the minimal *domain* required to specify the automorphism. In the second case, *domain* is taken to be the minimal expansion of the quasinormal basis.
 		
-		:returns: None if the pair is revealing for :math:`\phi`. Otherwise, returns (as a :class:`~thompson.word.Word`) the root of a component of either :math:`D \setminus \phi(D)` or :math:`\phi(D) \setminus D` which does not contain an attractor/repeller.
+		:returns: `None` if the pair is revealing for :math:`\phi`. Otherwise, returns (as a :class:`~thompson.word.Word`) the root of a component of either :math:`D \setminus \phi(D)` or :math:`\phi(D) \setminus D` which does not contain an attractor/repeller.
 		
 		>>> load_example('olga_f').test_revealing() is None
 		True
@@ -1189,6 +1188,35 @@ class Automorphism(Homomorphism):
 		else:
 			scalar = sum(widths) ** -2
 		return sum(areas) * scalar
+	
+	def centralise_period(period, trees, rearranger):
+		"""Constructs a new element :math:`\psi` commuting with the given element :math:`\phi`. We construct the centralising element by altering the :math:`\phi`-orbit structure below the orbits of the given *period* (relative to the :meth:`quasinormal basis <compute_quasinormal_basis>`.
+
+		There are two parameters: a collection of labelled *trees* and a *rearranger* element; in the notation of [BGG11]_ these are elements of :math:`K_{m_i}` and :math:`G_{n, r_i}` respectively.
+		
+		.. caution:: This is an experimental feature based on [BGG11]_.
+		"""
+		#Start 
+		if period not in self.cycle_type:
+			raise ValueError("There are no orbits of period {}.".format(period))
+		num_orbits = self.multiplicity[period]
+		if not num_orbits == len(trees):
+			raise ValueError("There are {} orbits but {} trees were specified.".format(
+				num_orbits, len(trees)
+			))
+		expected_signature = Signature(self.arity, num_orbits)
+		if rearranger.signature != expected_signature:
+			raise ValueError("rearranger signature was {}; expected {}.".format(
+				rearranger.signature, expected_signature
+			))
+		domain = self.domain
+		range  = self.range
+		
+		orbits = ...
+		
+		for tree, labels in trees:
+			pass
+
 
 def display_file(filepath):
 	"""From http://stackoverflow.com/a/435669. Opens the given file with the OS's default application."""
@@ -1198,6 +1226,8 @@ def display_file(filepath):
 		os.startfile(filepath)
 	elif os.name == 'posix':
 		call(('xdg-open', filepath))
+	else:
+		raise NotImplementedError
 
 def search_pattern(sbound, obound):
 	"""An optimistic search pattern which tries to delay expensive computations until as late as possible.

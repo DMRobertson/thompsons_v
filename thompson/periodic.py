@@ -45,7 +45,7 @@ class PeriodicAut(Automorphism):
 		>>> len(phi.characteristics)
 		0
 	"""
-	def enumerate_orbits(self, basis):
+	def enumerate_periodic_orbits(self, basis):
 		r"""Enumerates the periodic orbits of the current automorphism's quasinormal_basis. Returns a dictionary *orbits_by_size*. Each value ``orbits_by_size[d]`` is a list of the orbits of size *d*. Orbits themselves are represented as lists of :class:`Words <thompson.word.Word>`.
 		
 			>>> def display_orbits(orbits_by_size):
@@ -53,7 +53,7 @@ class PeriodicAut(Automorphism):
 			... 		print('Orbits of length', key)
 			... 		for list in orbits_by_size[key]:
 			... 			print('...', *list, sep=' -> ', end=' -> ...\n')
-			>>> orbits_by_size = example_5_9.enumerate_orbits(example_5_9.quasinormal_basis)
+			>>> orbits_by_size = example_5_9.enumerate_periodic_orbits(example_5_9.quasinormal_basis)
 			>>> display_orbits(orbits_by_size)
 			Orbits of length 2
 			... -> x1 a2 a1 a1 -> x1 a2 a1 a2 -> ...
@@ -61,6 +61,9 @@ class PeriodicAut(Automorphism):
 			Orbits of length 3
 			... -> x1 a1 a1 a1 -> x1 a1 a1 a2 -> x1 a1 a2 -> ...
 		"""
+		if basis is None:
+			basis = self.quasinormal_basis
+		
 		orbits_by_size = defaultdict(deque)
 		already_seen = set()
 		for gen in basis:
@@ -110,8 +113,8 @@ class PeriodicAut(Automorphism):
 				return None
 		
 		# 4. Expand bases until the orbits multiplicites are the same
-		s_orbits_of_size = self.enumerate_orbits(self.quasinormal_basis)
-		o_orbits_of_size = other.enumerate_orbits(other.quasinormal_basis)
+		s_orbits_of_size = self.enumerate_periodic_orbits(self.quasinormal_basis)
+		o_orbits_of_size = other.enumerate_periodic_orbits(other.quasinormal_basis)
 		
 		for d in self.cycle_type:
 			expansions_needed = (self.multiplicity[d] - other.multiplicity[d]) // modulus

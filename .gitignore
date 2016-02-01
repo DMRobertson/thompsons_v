@@ -2,6 +2,9 @@
 Thumbs.db
 #gedit's backup files
 *~
+#vim's backup files
+*.swp
+*.swo
 
 #Ipython notebooks
 .ipynb_checkpoints/
