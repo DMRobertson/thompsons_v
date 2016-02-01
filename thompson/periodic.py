@@ -5,7 +5,6 @@
 	from thompson.examples import *
 """
 
-
 from collections import defaultdict, deque
 
 from .generators    import Generators
@@ -45,36 +44,6 @@ class PeriodicAut(Automorphism):
 		>>> len(phi.characteristics)
 		0
 	"""
-	def enumerate_periodic_orbits(self, basis):
-		r"""Enumerates the periodic orbits of the current automorphism's quasinormal_basis. Returns a dictionary *orbits_by_size*. Each value ``orbits_by_size[d]`` is a list of the orbits of size *d*. Orbits themselves are represented as lists of :class:`Words <thompson.word.Word>`.
-		
-			>>> def display_orbits(orbits_by_size):
-			... 	for key in sorted(orbits_by_size):
-			... 		print('Orbits of length', key)
-			... 		for list in orbits_by_size[key]:
-			... 			print('...', *list, sep=' -> ', end=' -> ...\n')
-			>>> orbits_by_size = example_5_9.enumerate_periodic_orbits(example_5_9.quasinormal_basis)
-			>>> display_orbits(orbits_by_size)
-			Orbits of length 2
-			... -> x1 a2 a1 a1 -> x1 a2 a1 a2 -> ...
-			... -> x1 a2 a2 a1 -> x1 a2 a2 a2 -> ...
-			Orbits of length 3
-			... -> x1 a1 a1 a1 -> x1 a1 a1 a2 -> x1 a1 a2 -> ...
-		"""
-		if basis is None:
-			basis = self.quasinormal_basis
-		
-		orbits_by_size = defaultdict(deque)
-		already_seen = set()
-		for gen in basis:
-			if gen in already_seen:
-				continue
-			type, images, _ = self.orbit_type(gen, basis)
-			length = type.characteristic[0]
-			images = [images[i] for i in range(length)]
-			already_seen.update(images)
-			orbits_by_size[length].append(images)
-		return dict(orbits_by_size)
 	
 	def test_conjugate_to(self, other):
 		"""We can determine if two purely periodic automorphisms are conjugate by examining their orbits.
@@ -91,7 +60,6 @@ class PeriodicAut(Automorphism):
 			x1 a2 a2       -> x1 a2 a1 a2
 			>>> rho_p * phi_p == psi_p * rho_p
 			True
-			
 			>>> psi_p, phi_p = random_conjugate_periodic_pair()
 			>>> rho_p = psi_p.test_conjugate_to(phi_p)
 			>>> rho_p * phi_p == psi_p * rho_p
@@ -113,12 +81,15 @@ class PeriodicAut(Automorphism):
 				return None
 		
 		# 4. Expand bases until the orbits multiplicites are the same
-		s_orbits_of_size = self.enumerate_periodic_orbits(self.quasinormal_basis)
-		o_orbits_of_size = other.enumerate_periodic_orbits(other.quasinormal_basis)
+		s_orbits_of_size = {
+			d: deque(orbits) for d, orbits in self.periodic_orbits.items()
+		}
+		o_orbits_of_size = {
+			d: deque(orbits) for d, orbits in other.periodic_orbits.items()
+		}
 		
 		for d in self.cycle_type:
 			expansions_needed = (self.multiplicity[d] - other.multiplicity[d]) // modulus
-			
 			if expansions_needed > 0:
 				expand_orbits(o_orbits_of_size[d], expansions_needed)
 			elif expansions_needed < 0:
@@ -190,5 +161,5 @@ def expand_orbits(deque, num_expansions):
 		orbit = deque.popleft()
 		arity = orbit[0].signature.arity
 		for i in range(1, arity+1):
-			new_orbit = [w.alpha(i) for w in orbit]
+			new_orbit = tuple(w.alpha(i) for w in orbit)
 			deque.append(new_orbit)

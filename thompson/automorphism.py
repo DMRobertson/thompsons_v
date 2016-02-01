@@ -10,6 +10,7 @@
 import os
 import sys
 
+from collections  import defaultdict
 from copy         import copy
 from fractions    import Fraction
 from itertools    import chain, product
@@ -47,9 +48,23 @@ class Automorphism(Homomorphism):
 	
 	Periodic attributes:
 	
+	:ivar periodic_orbits: a mapping :math:`d \mapsto L_d`, where :math:`L_d is the list of size :math:`d` orbits in the quasinormal basis.
 	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)`, which is the number of periodic orbits of size :math:`d` in the :meth:`quasinormal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` for :math:`\phi`. See Definition :paperref:`cycletypes` in the paper.
 	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`
 	:ivar order: The :func:`~thompson.number_theory.lcm` of the automorphism's cycle type. This is the group-theoretic order of the :mod:`periodic factor <thompson.periodic>` of :math:`\phi`. If the cycle type is empty, the order is :math:`\infty`.
+	
+	..doctest::
+		>>> def display_orbits(orbits_by_size):
+		... 	for key in sorted(orbits_by_size):
+		... 		print('Orbits of length', key)
+		... 		for list in orbits_by_size[key]:
+		... 			print('...', *list, sep=' -> ', end=' -> ...\n')
+		>>> display_orbits(load_example('example_5_9').periodic_orbits)
+		Orbits of length 2
+		... -> x1 a2 a1 a1 -> x1 a2 a1 a2 -> ...
+		... -> x1 a2 a2 a1 -> x1 a2 a2 a2 -> ...
+		Orbits of length 3
+		... -> x1 a1 a1 a1 -> x1 a1 a1 a2 -> x1 a1 a2 -> ...
 	
 	.. note::
 		:mod:`mixed automorhpisms <thompson.mixed>` will have a **finite** order, despite being infinite-order group elements.
@@ -83,6 +98,7 @@ class Automorphism(Homomorphism):
 		if not(i == j == -1):
 			raise ValueError("Range is not a free generating set. Check elements at indices {} and {}.".format(
 			  i, j))
+		
 		
 		self._inv = {}
 		super().__init__(domain, range, reduce)
@@ -262,14 +278,14 @@ class Automorphism(Homomorphism):
 		
 		:rtype: a :class:`~thompson.generators.Generators` instance.
 		
-		.. note:: This method is called automatically at creation time and is **not** needed to be called by the user. Additionally, this  method is responsible for finding ponds and the :class:`other attributes available <Automorphism>`.
+		.. note:: This method is called automatically at creation time and is **not** needed to be called by the user.
 		
 		.. seealso:: Quasi-normal forms are introduced in Section :paperref:`sec:qnf` of the paper. In particular, this method implements Lemma :paperref:`lem:qnf`. Higman first described the idea of quasi-normal forms in Section 9 of [Hig74]_.
 		"""
 		#todo:: Make the QNB read-only somehow, so that it cannot be expanded once computed.
 		self.quasinormal_basis = None
 		self.pond_banks = None
-		
+		self.periodic_orbits = defaultdict(list)
 		self.multiplicity = {}
 		
 		#1. Expand the starting basis until each no element's belongs to a finite X-component.
@@ -305,10 +321,8 @@ class Automorphism(Homomorphism):
 				
 				#record this new periodic orbit
 				period = ctype.characteristic[0]
-				try:
-					self.multiplicity[period] += 1
-				except KeyError:
-					self.multiplicity[period] = 1
+				orbit = tuple( images[i] for i in range(period) )
+				self.periodic_orbits[period].append(orbit)
 			
 			elif ctype.is_type_B():
 				confirmed.add(basis[i])
@@ -317,6 +331,10 @@ class Automorphism(Homomorphism):
 		
 		#Tidy up data
 		self.quasinormal_basis = basis
+		self.multiplicity = {
+			period: len(orbits)
+			for period, orbits in self.periodic_orbits.items()
+		}
 		self.cycle_type = tuple(self.multiplicity)
 		self.order = float('inf') if len(self.cycle_type) == 0 else lcm(self.cycle_type)
 		
@@ -344,7 +362,7 @@ class Automorphism(Homomorphism):
 					break
 		return ponds
 	
-	#TODO: maybe this ought to be part a method of Signature
+	#TODO: maybe this ought to be part a method of Generators or Signature
 	def _intersection_of_trees(self, domain, range):
 		r"""Given the leaves A and B of two trees (i.e. bases), computes the leaves (basis) X of the tree intersection A & B.
 		"""
@@ -1163,7 +1181,6 @@ class Automorphism(Homomorphism):
 			start = self.domain[indices[0]].as_interval()[0]
 			end   = self.domain[indices[-1]].as_interval()[1]
 			widths.append(end-start)
-			
 			area = 0
 			for i in indices:
 				x0, x1 = self.domain[i].as_interval()
@@ -1190,13 +1207,12 @@ class Automorphism(Homomorphism):
 		return sum(areas) * scalar
 	
 	def centralise_period(period, trees, rearranger):
-		"""Constructs a new element :math:`\psi` commuting with the given element :math:`\phi`. We construct the centralising element by altering the :math:`\phi`-orbit structure below the orbits of the given *period* (relative to the :meth:`quasinormal basis <compute_quasinormal_basis>`.
-
-		There are two parameters: a collection of labelled *trees* and a *rearranger* element; in the notation of [BGG11]_ these are elements of :math:`K_{m_i}` and :math:`G_{n, r_i}` respectively.
+		"""Constructs a new element :math:`\psi` commuting with the given element :math:`\phi`. We construct the centralising element by altering the :math:`\phi`-orbit structure below the orbits of the given *period*.
 		
+		There are two parameters: a collection of labelled *trees* and a *rearranger* element; in the notation of [BGG11]_ these are elements of :math:`K_{m_i}` and :math:`G_{n, r_i}` respectively.
+	
 		.. caution:: This is an experimental feature based on [BGG11]_.
 		"""
-		#Start 
 		if period not in self.cycle_type:
 			raise ValueError("There are no orbits of period {}.".format(period))
 		num_orbits = self.multiplicity[period]
@@ -1209,14 +1225,8 @@ class Automorphism(Homomorphism):
 			raise ValueError("rearranger signature was {}; expected {}.".format(
 				rearranger.signature, expected_signature
 			))
-		domain = self.domain
-		range  = self.range
 		
-		orbits = ...
-		
-		for tree, labels in trees:
-			pass
-
+		... #TODO
 
 def display_file(filepath):
 	"""From http://stackoverflow.com/a/435669. Opens the given file with the OS's default application."""
