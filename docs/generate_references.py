@@ -2,24 +2,34 @@ from pathlib import Path
 import re
 
 def bibliography_entries(tex_source):
+	output = ""
 	with Path(tex_source).open('rt', encoding='utf-8') as f:
-		finished = False
-		while not finished:
+		at_bib_start = False
+		while not at_bib_start:
 			line = next(f)
-			finished = line.startswith(r'\begin{thebibliography}')
+			at_bib_start = line.startswith(r'\begin{thebibliography}')
 		
 		line = next(f)
-		finished = False
-		while not finished:
-			yield line.strip()
+		at_bib_end = False
+		while not at_bib_end:
+			output += line
 			line = next(f)
-			finished = line.startswith(r'\end{thebibliography}')
+			at_bib_end = line.startswith(r'\end{thebibliography}')
+	return output
 
 extractor = re.compile(r"""
-	\\bibitem	#Bibitem macro
-	\[(\w+)\]		#Displayed reference name
-	\{(\w+)\}		#Internal label
-	(.+)
+	\\bibitem             #Bibitem macro
+	%                     #Commented out
+	\[(\w+)\]             #The old displayed reference name
+	\n                    #New line
+	\{(\w+)\}             #Internal label
+	\s?                   #Optional space
+	(                     #The citation text
+		(?:               #Consists of the following group repeated at least once
+			(?!\\bibitem) #Does not begin with another bibitem macro
+			.*\n          #Rest of the current line
+		)+
+	)               
 """, re.VERBOSE)
 
 translator = [
@@ -29,9 +39,10 @@ translator = [
 	(r"\'{e}", "é"),
 	(r"\'{o}", "ó"),
 	(r"\"{o}", "ö"),
+	(r"{\v\i}" , "i" ),
 	("---"   , "—"), #em dash
 	("--"    , "–"), #en dash
-	(r"\\"    , "")
+	(r"\\"   , "" ),
 ]
 
 tex_group = r"\{{\\{}\s*(.+?)\s*\}}"
@@ -51,6 +62,8 @@ url = re.compile(tex_macro.format('url'))
 
 def tidy_up(text):
 	text = text.strip()
+	if text.startswith('%'):
+		return ''
 	for key, value in translator:
 		text = text.replace(key, value)
 	
@@ -65,18 +78,12 @@ def tidy_up(text):
 
 if __name__ == '__main__':
 	refs = {}
+	bibliography = bibliography_entries(r'..\..\barker\conj_paper\pconj.tex')
+	citations = extractor.findall(bibliography)
 	
-	for line in bibliography_entries(r'..\..\barker\conj_paper\pconj.tex'):
-		if line == '' or line.startswith('%'):
-			continue
-		try:
-			label, _, text = extractor.match(line).groups()
-			refs[label] = tidy_up(text)
-		except AttributeError:
-			print('problem with:', repr(line))
-			raise
-	from pprint import pprint
-	# pprint(refs)
+	for ext_name, int_name, text in citations:
+		lines = [tidy_up(line) for line in text.split('\n')]
+		refs[ext_name] = " ".join(lines)
 	
 	with open('paper_bibliography.txt', 'wt', encoding='utf-8') as f:
 		for key, text in sorted(refs.items()):
