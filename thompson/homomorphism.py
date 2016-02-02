@@ -13,14 +13,15 @@ In other words, a homomorphism is a function which 'commutes' with the algebra o
     from thompson.examples     import *
 """
 
-from io import StringIO
+from copy      import copy
+from io        import StringIO
 from itertools import chain
+
 import re
 import sys
 
-from .word import *
+from .word       import *
 from .generators import Generators
-from copy import copy
 
 __all__ = ['Homomorphism']
 

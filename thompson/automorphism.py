@@ -18,7 +18,7 @@ from subprocess   import call, check_call
 from tempfile     import mktemp, mkdtemp
 
 from .number_theory import lcm
-from .word          import Word, free_monoid_on_alphas, format
+from .word          import Signature, Word, free_monoid_on_alphas, format
 from .generators    import Generators
 from .homomorphism  import Homomorphism
 from .orbits        import ComponentType, Characteristic, SolutionSet
@@ -1052,7 +1052,7 @@ class Automorphism(Homomorphism):
 			'-quality','90',
 			png_file
 		])
-		display(Image(filename=png_file))
+		return Image(filename=png_file)
 	
 	def _end_of_iac(self, root, leaves, backward=False):
 		"""Given a root :math:`r` of :math:`A \setminus B` of :math:`B \setminus A`, this finds the IAC containing :math:`r` and returns the endpoint :math:`u_1` or :math:`f(u_n)` which is not :math:`r`."""
@@ -1206,7 +1206,7 @@ class Automorphism(Homomorphism):
 			scalar = sum(widths) ** -2
 		return sum(areas) * scalar
 	
-	def centralise_period(period, trees, rearranger):
+	def centralise_period(self, period, trees, rearranger):
 		"""Constructs a new element :math:`\psi` commuting with the given element :math:`\phi`. We construct the centralising element by altering the :math:`\phi`-orbit structure below the orbits of the given *period*.
 		
 		There are two parameters: a collection of labelled *trees* and a *rearranger* element; in the notation of [BGG11]_ these are elements of :math:`K_{m_i}` and :math:`G_{n, r_i}` respectively.
@@ -1215,19 +1215,57 @@ class Automorphism(Homomorphism):
 		"""
 		if period not in self.cycle_type:
 			raise ValueError("There are no orbits of period {}.".format(period))
-		num_orbits = self.multiplicity[period]
-		if not num_orbits == len(trees):
+		orbits = self.periodic_orbits[period]
+		if not len(orbits) == len(trees):
 			raise ValueError("There are {} orbits but {} trees were specified.".format(
-				num_orbits, len(trees)
+				len(orbits), len(trees)
 			))
-		expected_signature = Signature(self.arity, num_orbits)
+		expected_signature = Signature(self.signature.arity, len(orbits))
 		if rearranger.signature != expected_signature:
 			raise ValueError("rearranger signature was {}; expected {}.".format(
 				rearranger.signature, expected_signature
 			))
 		
-		... #TODO
-
+		new_domain = copy(self.domain)
+		new_range  = copy(self.range)
+		
+		for i, orbit in enumerate(orbits):
+			tree, shifts = trees[i]
+			for j, old_leaf in enumerate(orbit):
+				k = new_domain.index(old_leaf)
+				
+				d_expanded = []
+				r_expanded = []
+				
+				for leaf, shift in zip(tree, shifts):
+					tail = leaf[1:]
+					d_expanded.append(old_leaf.extend(tail))
+					r_expanded.append(self._replacement(
+						orbits, i, j, shift, tail, rearranger
+					))
+				new_domain[k:k+1] = d_expanded
+				new_range[k:k+1]  = r_expanded
+			
+		return Automorphism(new_domain, new_range)
+	
+	def _replacement(self, orbits, orbit_num, orbit_pos, shift, tail, rearranger):
+		period = len(orbits[0])
+		new_position = (orbit_pos + shift) % period
+		
+		relabelling_domain = Generators.standard_basis(rearranger.signature)
+		relabelling_range  = Generators(self.signature, (
+			orbit[new_position] for orbit in orbits
+		))
+		relabeller = Homomorphism(relabelling_domain, relabelling_range)
+		
+		source = Word([orbit_num + 1], rearranger.signature)
+		source = source.extend(tail)
+		rearrangement = rearranger.image(source)
+		target = relabeller.image(rearrangement)
+		
+		return target
+		
+				
 def display_file(filepath):
 	"""From http://stackoverflow.com/a/435669. Opens the given file with the OS's default application."""
 	if sys.platform.startswith('darwin'):
