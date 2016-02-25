@@ -1,0 +1,43 @@
+24
+(2, 12)  -> (2, 12)
+x1 a1 a1 -> x8 a1
+x1 a1 a2 -> x9 a2 a1
+x2 a1 a1 -> x7 a1
+x2 a1 a2 -> x12 a2 a1
+x3 a1 a1 -> x10 a1
+x3 a1 a2 -> x11 a2 a1 
+x4 a1 a1 -> x9 a1
+x4 a1 a2 -> x8 a2 a1
+x5 a1 a1 -> x12 a1
+x5 a1 a2 -> x7 a2 a1
+x6 a1 a1 -> x11 a1
+x6 a1 a2 -> x10 a2 a1
+x1 a2    -> x1
+x2 a2    -> x2
+x3 a2    -> x3
+x4 a2    -> x4
+x5 a2    -> x5
+x6 a2    -> x6
+x7       -> x7 a2 a2
+x8       -> x8 a2 a2
+x9       -> x9 a2 a2
+x10      -> x10 a2 a2
+x11      -> x11 a2 a2
+x12      -> x12 a2 a2
+A test to see if I've understood the factor :math:`A_j = \operatorname{ker} \mathcal{S}_j` in the centraliser decomposition of [BGG11]_. I wrote this example trying to come up with something for which :math:`\operatorname{ker} \mathcal{S}_j` is the symmetric group on 3 symbols.
+
+Modulo 6:
+	x1 identity x7
+	x2 (12)     x8
+	x3 (123)    x9
+	x4 (13)     x10
+	x5 (132)    x11
+	x6 (23)     x12
+
+x1--6
+	a1 a1 connects to root    a1 after 1 step; the x is mult by (1, 2)
+	a1 a2 connects to root a2 a1 after 1 step; the x is mult by (1, 2, 3)
+	a2 is a repeller (-1, a2)
+
+x7--12	
+	a2 a2 is an attractor (1, a2 a2)

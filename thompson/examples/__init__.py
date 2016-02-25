@@ -110,7 +110,7 @@ def standard_generator(n=0):
 		>>> type(x_n)
 		<class 'thompson.mixed.MixedAut'>
 	
-	The :math:`X_n` generate :math:`F`; in fact just :math:`X_0` and :math:`X-1` are sufficient, due to the relation :math:`X_k^{-1} X_n X_k = X_{n+1}` for :math:`k < n`.
+	The :math:`X_n` generate :math:`F`; in fact just :math:`X_0` and :math:`X_1` are sufficient, due to the relation :math:`X_k^{-1} X_n X_k = X_{n+1}` for :math:`k < n`. See [CFP96]_ for more details.
 
 		>>> x_k = standard_generator(randint(0, n-1))
 		>>> x_k * x_n * ~x_k == standard_generator(n+1) #operation is the other way round in Python
