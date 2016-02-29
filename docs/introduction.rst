@@ -8,7 +8,7 @@ Installation
 	This program is written in `Python <python.org>`_ and needs a Python interpreter to run; to be specific, **Python 3.3 or above** is required. If you don't have this already installed on your system, your best bet is to download the latest version (currently 3.5) from the `Python website <python.org>`_. For Linux users, Python may be available from your distribution's repositories; take care to install version 3.x rather than 2.x!
 
 2. Source code.
-	If you have ``git`` available on your system, the easiest way to obtain the program is to simply clone the repository:
+	If you have `git <git-scm.com>`_ available on your system, the easiest way to obtain the program is to simply clone the repository:
 		
 		``git clone https://github.com/DMRobertson/thompsons_v.git``
 		

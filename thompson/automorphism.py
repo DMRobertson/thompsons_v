@@ -335,7 +335,7 @@ class Automorphism(Homomorphism):
 			period: len(orbits)
 			for period, orbits in self.periodic_orbits.items()
 		}
-		self.cycle_type = tuple(self.multiplicity)
+		self.cycle_type = frozenset(self.multiplicity)
 		self.order = float('inf') if len(self.cycle_type) == 0 else lcm(self.cycle_type)
 		
 		self.characteristics = set()
