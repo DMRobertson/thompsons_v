@@ -1,8 +1,7 @@
 #Windows' thumbnail caches
 Thumbs.db
-#gedit's backup files
+#gedit's and vim's backup files
 *~
-#vim's backup files
 *.swp
 *.swo
 
