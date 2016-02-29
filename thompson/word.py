@@ -670,7 +670,7 @@ class Word(tuple):
 		letters = iter(self)
 		letter = next(letters)
 		
-		start = Fraction(0, 1)
+		start = Fraction(letter - 1, self.signature.alphabet_size)
 		end = Fraction(letter, self.signature.alphabet_size)
 		inv_width = self.signature.alphabet_size
 		

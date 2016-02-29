@@ -29,7 +29,7 @@ def debug():
 if __name__ == '__main__':
 	if 'debug' in sys.argv:
 		psi, phi = debug()
-	if 'profile' in sys.argv:
+	elif 'profile' in sys.argv:
 		psi, phi = debug()
 		profile(psi.test_conjugate_to, args=[phi])
 	else:
