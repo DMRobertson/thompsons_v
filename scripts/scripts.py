@@ -12,33 +12,32 @@ def setup_script(__file__):
 		parent = str(Path('..').resolve())
 	sys.path.insert(0, parent)
 
-def choose_from_enum(enum, desc = None):
-	"""An input loop which has a console user select an element of an enumeration."""
-	if desc is None:
-		desc = {}
-	if isinstance(enum, Enum):
-		enum = enum.__members__
-	num_choices = len(enum)
+def choose_option(options):
+	"""An input loop which has a console user select an element of a dictionary. Keys are options, value are descriptions of each option. Use the empty string for no description."""
+	num_choices = len(options)
 	if num_choices == 0:
 		raise ValueError("Zero choices provided.")
 	
+	keys = sorted(options)
 	print('Choices are:')
-	keys = sorted(enum.keys())
-	for i, x in enumerate(keys):
-		print('\t[{}] {}. {}'.format(i + 1, x, desc.get(x, '')))
+	
+	for i, key in enumerate(keys):
+		print('\t[{}] {}. {}'.format(i + 1, key, options[key]))
+	
 	ans = None
 	while ans is None:
 		try:
-			ans = int(input('Please make a choice by entering an integer in [1--{}]: '.format(
-			  num_choices
-			)))
+			ans = int(
+				input('Choose by entering an integer [1--{}]: '.format(num_choices))
+			)
 		except Exception as e:
 			print(e)
+			ans = None
 		else:
 			if not (1 <= ans <= num_choices):
 				ans = None
 	
-	return enum[keys[ans-1]]
+	return keys[ans-1]
 
 def prepare_logging(log_filepath):
 	"""This is how I prefer to setup the logging module."""
@@ -144,3 +143,32 @@ success = data[,2]
 plot(attempts, success, type='l')
 abline(h=mean(success), col='red', lty=2)
 """
+
+profile_methods = {
+	'cProfile'   : '',
+	'callgraph': ''
+}
+	
+def profile(func, args=None, kwargs=None, method=None):
+	if kwargs is None:
+		kwargs = {}
+	if args is None:
+		args = []
+
+	if method is None:
+		method = choose_option(profile_methods)
+		print('Chose method', method)
+	elif method not in profile_methods:
+		raise ValueError("method '{}' not recognised".format(method))
+	
+	if method == 'cProfile':
+		import cProfile
+		cProfile.runctx('func(*args, **kwargs)', globals={}, locals=locals())
+	
+	elif method == 'callgraph':
+		from pycallgraph import PyCallGraph
+		from pycallgraph.output import GraphvizOutput
+	
+		print('profiling with PyCallGraph')
+		with PyCallGraph(output=GraphvizOutput()):
+			func(*args, **kwargs)
