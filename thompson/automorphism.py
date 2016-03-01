@@ -14,15 +14,15 @@ from collections  import defaultdict
 from copy         import copy
 from fractions    import Fraction
 from itertools    import chain, product
-from subprocess   import call, check_call
-from tempfile     import mktemp, mkdtemp
 
 from .number_theory import lcm
 from .word          import Signature, Word, free_monoid_on_alphas, format
 from .generators    import Generators
 from .homomorphism  import Homomorphism
 from .orbits        import ComponentType, Characteristic, SolutionSet
-from .utilities     import handle_domain, intersection_from_domain, generate_tikz_code
+from .pconj         import PowerCollection, search_pattern, mirrored
+from .utilities     import handle_domain, intersection_from_domain
+from .drawing.tpd   import generate_tikz_code
 
 ___all__ = ["Automorphism"]
 
@@ -1001,7 +1001,7 @@ class Automorphism(Homomorphism):
 		True
 		>>> random_automorphism(group='T').cycles_order()
 		True
-		>>> load_example('nathan_pond_example').cycles_order() # in V
+		>>> load_example('nathan_pond_example').cycles_order() # in V \ T
 		False
 		"""
 		indices = range(len(self.range) - 1)
@@ -1013,46 +1013,6 @@ class Automorphism(Homomorphism):
 				else:
 					return False
 		return True
-	
-	def write_tikz_code(self, filename, domain='wrt QNB', name='', self_contained=False):
-		generate_tikz_code(self, filename, domain, name, self_contained)
-	write_tikz_code.__doc__ = generate_tikz_code.__doc__
-	
-	def render(self, jobname=None, domain='wrt QNB', name='', display=True):
-		"""Uses :meth:`write_tikz_code` and a call to ``pdflatex`` to generate a PDF drawing of the given automorphism. If the *display* argument is ``True``, then the system will attempt to open the PDF using the OS's default application for PDFs.
-		
-		.. caution:: This is an experimental feature based on [SD10]_.
-		"""
-		outdir = mkdtemp()
-		if jobname is None:
-			jobname = 'tikz_code'
-		tex_file = os.path.join(outdir, jobname + '.tex')
-		pdf_file = os.path.join(outdir, jobname + '.pdf')
-		
-		self.write_tikz_code(tex_file, domain=domain, name=name, self_contained=True)
-		check_call(['pdflatex',
-			'-output-directory=' + outdir,
-			'-interaction=batchmode',
-			'-no-shell-escape',
-			 tex_file
-		])
-		if display:
-			display_file(pdf_file)
-		return pdf_file
-	
-	def render_notebook(self, **kwargs):
-		"""A version of :meth:`render` adapted for use in a jupyter notebook."""
-		from IPython.display import display, Image
-		kwargs['display'] = False
-		pdf_file = self.render(**kwargs)
-		png_file = pdf_file[:-4] + '.png'
-		check_call(['convert',
-			'-density', '180',
-			pdf_file,
-			'-quality','90',
-			png_file
-		])
-		return Image(filename=png_file)
 	
 	def _end_of_iac(self, root, leaves, backward=False):
 		"""Given a root :math:`r` of :math:`A \setminus B` of :math:`B \setminus A`, this finds the IAC containing :math:`r` and returns the endpoint :math:`u_1` or :math:`f(u_n)` which is not :math:`r`."""
@@ -1149,8 +1109,6 @@ class Automorphism(Homomorphism):
 			5/32
 			5/32
 			5/32
-
-		.. todo:: a function which plots an automorphism's graph. 
 		"""
 		if not self.preserves_order():
 			raise ValueError('This automorphism is not in F')
@@ -1264,70 +1222,7 @@ class Automorphism(Homomorphism):
 		target = relabeller.image(rearrangement)
 		
 		return target
-		
-				
-def display_file(filepath):
-	"""From http://stackoverflow.com/a/435669. Opens the given file with the OS's default application."""
-	if sys.platform.startswith('darwin'):
-		call(('open', filepath))
-	elif os.name == 'nt':
-		os.startfile(filepath)
-	elif os.name == 'posix':
-		call(('xdg-open', filepath))
-	else:
-		raise NotImplementedError
 
-def search_pattern(sbound, obound):
-	"""An optimistic search pattern which tries to delay expensive computations until as late as possible.
-	
-		>>> list(search_pattern(3, 5))
-		[(1, 1), (2, 1), (2, 2), (1, 2), (3, 1), (3, 2), (3, 3), (2, 3), (1, 3), (1, 4), (2, 4), (3, 4), (1, 5), (2, 5), (3, 5)]
-	"""
-	assert sbound <= obound
-	for i in range(1, sbound + 1):
-		yield from corner(i)
-	for b in range(sbound + 1, obound + 1):
-		for a in range(1, sbound + 1):
-			yield a, b
-
-def corner(radius):
-	"""Yields the integer coordinates of the top right corner of a square of side length *radius* centered at the origin.
-	
-		>>> list(corner(3))
-		# [(3, 1), (3, 2), (3, 3), (2, 3), (1, 3)]
-	"""
-	for i in range(1, radius):
-		yield radius, i
-	yield radius, radius
-	for i in reversed(range(1, radius)):
-		yield i, radius
-
-def mirrored(iterator):
-	for a, b in iterator:
-		yield a, b
-		yield -a, b
-
-class PowerCollection(dict):
-	def __init__(self, aut):
-		super().__init__(self)
-		self[1] = aut
-		self[0] = Automorphism.identity(aut.signature)
-		self[-1] = ~aut
-	
-	def __getitem__(self, power):
-		try:
-			return super().__getitem__(power)
-		except KeyError:
-			base = self[1 if power > 0 else -1]
-			ref = power - 1 if power > 0 else power + 1
-			new = self[ref] * base
-			inherit_relabellers(new, base)
-			self[power] = new
-			return new
-
-def inherit_relabellers(target, source):
-	target.domain_relabeller = source.domain_relabeller
-	target.range_relabeller = source.range_relabeller
 
 def type_b_triple(power, head, tail):
 	return dict(start_tail = tuple(), power=power, end_tail=tail, target=head)
