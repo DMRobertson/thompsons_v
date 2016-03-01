@@ -779,7 +779,14 @@ class Word(tuple):
 			raise IndexError('The tail width {} is not in the range 0 to {}'.format(
 			  tail_width, len(self)))
 		return self[:-tail_width], self[-tail_width:]
-
+	
+	#iterator
+	def subwords(self):
+		"""todo docstring"""
+		assert self.is_simple()
+		for i in range(1, len(self) + 1):
+			subword = type(self)(self[:i], self.signature, preprocess=False)
+			yield subword
 
 #4. Functions for working with the free monoid A*.
 def free_monoid_on_alphas(arity):

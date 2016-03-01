@@ -1,0 +1,20 @@
+\usetikzlibrary{graphs}
+\usetikzlibrary{graphdrawing}
+\usegdlibrary{trees}
+
+\begin{tikzpicture}[
+	tree layout, minimum number of children=2,
+	caret/.style={graphs/as=, inner sep=0, minimum size=0},
+	leaf/.style={circle, inner sep=0.2em}
+]
+\graph [nodes=caret]
+{
+	x1 [root] -- {
+		x1a1 [leaf, as=$1$],
+		x1a2 -- {
+			x1a2a1 [leaf, as=$2$],
+			x1a2a2 [leaf, as=$3$]
+		}
+	}
+};
+\end{tikzpicture}

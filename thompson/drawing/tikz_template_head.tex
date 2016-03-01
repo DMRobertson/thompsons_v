@@ -1,0 +1,11 @@
+\usetikzlibrary{graphs}
+\usetikzlibrary{graphdrawing}
+\usegdlibrary{trees}
+
+\begin{tikzpicture}[
+	tree layout,
+	caret/.style={graphs/as=, inner sep=0, minimum size=0},
+	leaf/.style={circle, inner sep=0.2em}
+]
+\graph [nodes=caret]
+{
