@@ -1,15 +1,13 @@
-from scripts import setup_script
-setup_script(__file__)
-
-import sys
 from collections import defaultdict
 
-from thompson import Generators
+from ..generators import Generators
 
 from svgwrite.drawing   import Drawing
 from svgwrite.path      import Path
 from svgwrite.shapes    import Circle, Line, Polygon, Polyline, Rect
-from svgwrite.container import Group, Marker
+from svgwrite.container import Group, Marker, Style
+
+import pkg_resources
 
 PADDING = 40
 SCALE   = 400
@@ -19,8 +17,7 @@ def new_drawing(filename='plot.svg'):
 	size = 2 * PADDING + SCALE
 	dwg.viewbox(minx=0, miny=0, width=size, height=size)
 	
-	dwg.add_stylesheet('plot.css', title='Styles for plotting elements of V_{n,r}')
-	#todo eventually: embed this into the svg
+	add_stylesheet(dwg)
 	
 	canvas = Group(id='canvas')
 	canvas.translate(PADDING, PADDING)
@@ -28,10 +25,16 @@ def new_drawing(filename='plot.svg'):
 	canvas.translate(0, -SCALE)
 	dwg.add(canvas)
 	
-	include_markers(dwg)
 	return dwg, canvas
 
-def include_markers(dwg):
+def add_stylesheet(dwg, filename='plot.css'):
+	path = pkg_resources.resource_filename('thompson.drawing', filename)
+	with open(path) as f:
+		contents = f.read()
+	style = Style(contents)
+	dwg.defs.add(style)
+
+def include_markers(dwg, endpoints):
 	arrowhead = Marker(
 		insert=(4, 4), size=(4, 8), orient='auto', markerUnits='strokeWidth',
 		id='arrowhead'
@@ -46,6 +49,9 @@ def include_markers(dwg):
 	)
 	tickmark.add(Line((0, 0), (0, 10)))
 	dwg.defs.add(tickmark)
+	
+	if not endpoints:
+		return
 	
 	#DISCONTINUITY
 	discontinuity = Marker(
@@ -96,8 +102,9 @@ def draw_grid(canvas, signature, levels=None):
 		for line in lines[d]:
 			canvas.add(line)
 
-def plot(self):
-	dwg, canvas = new_drawing()
+def plot(self, filename='plot.svg', endpoints=False):
+	dwg, canvas = new_drawing(filename)
+	include_markers(dwg, endpoints)
 	draw_grid(canvas, self.signature)
 	
 	x_points = [(0, 0)]
@@ -126,13 +133,5 @@ def plot(self):
 			canvas.add(graph)
 			graph.push('M', SCALE * x0, SCALE * y0)
 		graph.push('L', SCALE * x1, SCALE * y1)
-		last = (x1, y1)	
+		last = (x1, y1)
 	dwg.save()
-
-if __name__ == "__main__":
-	from thompson.examples import random_automorphism
-	from random import randint
-	x = random_automorphism(num_expansions=randint(1, 5))
-	plot(x)
-	print(x.signature)
-
