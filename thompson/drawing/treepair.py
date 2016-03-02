@@ -2,28 +2,36 @@ from thompson import Generators
 from thompson.examples import random_automorphism
 import pkg_resources
 
-def write_tikz_code(aut, dest='tikz_generated.tex', horiz=True):
-	header = pkg_resources.resource_filename('thompson.drawing', 'tikz_template_head.tex')
-	footer = pkg_resources.resource_filename('thompson.drawing', 'tikz_template_foot.tex')
-	with open(dest, 'wt') as f:
-		append_to(header, f)
-		f.write( "[component direction={}]\n".format( "right" if horiz else "down" ) )
-		f.write("\graph [nodes=caret] {\n")
+graph_header      = pkg_resources.resource_string( __name__, 'graph_head.tex').decode('utf-8')
+graph_footer      = pkg_resources.resource_string( __name__, 'graph_foot.tex').decode('utf-8')
+standalone_header = pkg_resources.resource_string( __name__, 'standalone_head.tex').decode('utf-8')
+standalone_footer = pkg_resources.resource_string( __name__, 'standalone_foot.tex').decode('utf-8')
+diagram_header = pkg_resources.resource_string( __name__, 'diagram_head.tex').decode('utf-8')
+diagram_footer = pkg_resources.resource_string( __name__, 'diagram_foot.tex').decode('utf-8')
+
+def write_tikz_code(aut, dest='tikz_generated.tex', horiz=True, name='', standalone=True):
+	with open(dest, 'wt', encoding='utf-8') as f:
+		if standalone:
+			f.write(standalone_header)
+		f.write(diagram_header)
 		
 		domain = [ (w, i + 1) for (i, w) in enumerate(aut.domain) ]
-		write_basis(f, domain, True)
-		f.write("\n")
+		write_basis(f, domain, True, horiz)
 		
 		range  = [ (w, i + 1) for (i, w) in enumerate(aut.range)  ]
 		range.sort()
-		write_basis(f, range, False)
+		write_basis(f, range, False, horiz)
 		
-		append_to(footer, f)
-
-def append_to(src, dest):
-	with open(src, 'rt') as f:
-		for line in f:
-			dest.write(line)
+		f.write("\draw[->, thick, shorten >=0.5em, shorten <=0.5em]\n")
+		if horiz:
+			f.write("\tlet \\p1=(domain.east), \\p2=(range.west), \\n1={max(\y1,\y2)} in\n")
+			f.write("\t\t(\\x1, \\n1) -- node[auto] {{{}}} (\\x2, \\n1);\n".format(name))
+		else:
+			f.write("\t(domain) -- node[auto] {{{}}} (range);\n".format(name))
+		
+		f.write(diagram_footer)
+		if standalone:
+			f.write(standalone_footer)
 
 def name(word, domain, options):
 	prefix = 'd' if domain else 'r'
@@ -50,10 +58,16 @@ def pairs(iterator):
 			yield (this, that)
 			this = that
 
-def write_basis(f, basis, domain):
-	subgraph_start = ( "{0} [name={0}]".format("domain" if domain else "range") )
-	subgraph_start += " // [tree layout, grow=down, component direction=right, component sep=2.5em] {\n"
-	f.write(subgraph_start)
+def write_basis(f, basis, domain, horiz):
+	f.write("\\node (" + ('domain' if domain else 'range') +  ") ")
+	if not domain:
+		if horiz:
+			f.write('[right=5em of domain.north east, anchor=north west] ')
+		else:
+			f.write('[below=5em of domain.south, anchor=north]')
+	
+	f.write("{\n")
+	f.write(graph_header)
 	
 	placed = set()
 	for i, (word, label) in enumerate(basis):
@@ -63,7 +77,7 @@ def write_basis(f, basis, domain):
 				continue
 			options = {}
 			
-			f.write("\t")
+			f.write("\t\t\t")
 			if not first:
 				f.write("\t-- ")
 			else:
@@ -84,10 +98,10 @@ def write_basis(f, basis, domain):
 				else:
 					f.write(",")
 			f.write("\n")
-	
+	f.write(graph_footer)
 	f.write("};\n")
 
 if __name__ == "__main__":
 	f = random_automorphism()
 	print(f)
-	write_tikz_code(f)
+	write_tikz_code(f, horiz=True, name='$f$')
