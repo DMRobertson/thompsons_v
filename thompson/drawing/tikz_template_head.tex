@@ -3,9 +3,8 @@
 \usegdlibrary{trees}
 
 \begin{tikzpicture}[
-	tree layout,
+	tree layout, component sep=5em,
+	subgraph nodes={draw=red, rounded corners, inner sep=1.5em},
 	caret/.style={graphs/as=, inner sep=0, minimum size=0},
-	leaf/.style={circle, inner sep=0.2em}
+	leaf/.style={circle, inner sep=1pt, fill},
 ]
-\graph [nodes=caret]
-{
