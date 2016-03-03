@@ -28,9 +28,11 @@ def plot(aut, dest=None, display=True, endpoints=False):
 	return dest
 
 def forest(aut, jobname=None, name='', display=True, horiz=True):
-	outdir = mkdtemp()
 	if jobname is None:
+		outdir = mkdtemp()
 		jobname = 'forest_diagram'
+	else:
+		outdir = '.'
 	tex = os.path.join(outdir, jobname + '.tex')
 	pdf = os.path.join(outdir, jobname + '.pdf')
 	

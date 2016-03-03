@@ -1,8 +1,26 @@
-\usetikzlibrary{graphs, graphdrawing, positioning, calc, fit}
+\usetikzlibrary{graphs, graphdrawing, positioning, calc, fit, backgrounds}
 \usegdlibrary{trees}
+
+%from http://tex.stackexchange.com/a/47004/82389
+\pgfdeclarelayer{back}
+\pgfsetlayers{back,main}
+\pgfkeys{% 
+  /tikz/on layer/.code={
+    \pgfonlayer{#1}\begingroup
+    \aftergroup\endpgfonlayer
+    \aftergroup\endgroup
+  }
+}
+
 \begin{tikzpicture}[
 	component sep=3em,
-	caret/.style={graphs/as=, inner sep=0, minimum size=0},
-	leaf/.style={circle, inner sep=1pt, fill},
-	every label/.style={fill=white, inner sep=0pt, outer sep=3.5pt}
+	caret/.style       = {graphs/as=, inner sep=0, minimum size=0},
+	leaf/.style        = {circle, inner sep=1pt, fill},
+	component/.style   = {dashed},
+	spine/.style       = {component, preaction={solid,
+		draw=red!15, line width=1mm, line cap=round, on layer=back
+	}},
+	repatt/.style      = {red},
+	repatt label/.style= {red, fill=white},
+	every label/.style = {fill=white, inner sep=0pt, outer sep=3.5pt}
 ]

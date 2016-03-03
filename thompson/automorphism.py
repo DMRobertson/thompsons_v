@@ -21,7 +21,7 @@ from .generators    import Generators
 from .homomorphism  import Homomorphism
 from .orbits        import ComponentType, Characteristic, SolutionSet
 from .pconj         import PowerCollection, search_pattern, mirrored
-from .utilities     import handle_domain, intersection_from_domain
+from .utilities     import handle_domain, intersection_from_domain, intersection_of_trees
 
 ___all__ = ["Automorphism"]
 
@@ -361,20 +361,6 @@ class Automorphism(Homomorphism):
 					break
 		return ponds
 	
-	#TODO: maybe this ought to be part a method of Generators or Signature
-	def _intersection_of_trees(self, domain, range):
-		r"""Given the leaves A and B of two trees (i.e. bases), computes the leaves (basis) X of the tree intersection A & B.
-		"""
-		basis = Generators.standard_basis(self.signature)
-		i = 0
-		while i < len(basis):
-			b = basis[i]
-			if b in domain or b in range:
-				i += 1
-			else:
-				basis.expand(i)
-		return basis
-	
 	def seminormal_form_start_point(self):
 		r"""Returns the minimal expansion :math:`X` of :math:`\boldsymbol{x}` such that every element of :math:`X` belongs to either *self.domain* or *self.range*. Put differently, this is the minimal expansion of :math:`\boldsymbol{x}` which does not contain any elements which are above :math:`Y \cup Z`. This basis that this method produces is the smallest possible which *might* be semi-normal.
 		
@@ -388,7 +374,7 @@ class Automorphism(Homomorphism):
 		
 		.. seealso::  Remark :paperref:`rem:snf_start_point` of the paper.
 		"""
-		return self._intersection_of_trees(self.domain, self.range)
+		return intersection_of_trees(self.domain, self.range)
 	
 	def orbit_type(self, y, basis=None):
 		"""Returns the orbit type of *y* with respect to the given *basis*. If *basis* is omitted, the :meth:`quasi-normal basis <compute_quasinormal_basis>` is used by default. Also returns a dictionary of computed images, the list (:paperref:`eq:uorb`) from the paper.
