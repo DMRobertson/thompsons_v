@@ -22,7 +22,6 @@ from .homomorphism  import Homomorphism
 from .orbits        import ComponentType, Characteristic, SolutionSet
 from .pconj         import PowerCollection, search_pattern, mirrored
 from .utilities     import handle_domain, intersection_from_domain
-from .drawing.tpd   import generate_tikz_code
 
 ___all__ = ["Automorphism"]
 

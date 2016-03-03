@@ -9,6 +9,8 @@ standalone_footer = pkg_resources.resource_string( __name__, 'standalone_foot.te
 diagram_header = pkg_resources.resource_string( __name__, 'diagram_head.tex').decode('utf-8')
 diagram_footer = pkg_resources.resource_string( __name__, 'diagram_foot.tex').decode('utf-8')
 
+#todo highlight repellers and attractors
+
 def write_tikz_code(aut, dest='tikz_generated.tex', horiz=True, name='', standalone=True):
 	with open(dest, 'wt', encoding='utf-8') as f:
 		if standalone:

@@ -5,10 +5,10 @@
 	marker-end: url(#arrowhead);
 }
 
-.depth0 { stroke-width: 0.9px; stroke: hsl(0, 0%, 50%); }
-.depth1 { stroke-width: 0.8px; stroke: hsl(0, 0%, 65%); }
-.depth2 { stroke-width: 0.7px; stroke: hsl(0, 0%, 75%); }
-.depth3 { stroke-width: 0.6px; stroke: hsl(0, 0%, 90%); }
+.depth0 { stroke-width: 0.9px; stroke: #808080; }
+.depth1 { stroke-width: 0.8px; stroke: #A6A6A6; }
+.depth2 { stroke-width: 0.7px; stroke: #BFBFBF; }
+.depth3 { stroke-width: 0.6px; stroke: #E6E6E6; }
 
 #arrowhead {
 	stroke: black;
