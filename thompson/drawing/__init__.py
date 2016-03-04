@@ -7,8 +7,25 @@ from tempfile   import mkstemp, mkdtemp
 import os
 import sys
 
-def display_file(filepath):
-	"""From http://stackoverflow.com/a/435669. Opens the given file with the OS's default application."""
+def display_file(filepath, format=None):
+	if in_ipynb():
+		from IPython.display import Image, SVG
+		if format == 'svg':
+			return SVG(filename=filepath)
+		elif format == 'pdf':
+			png_file = filepath[:-4] + '.png'
+			check_call(['convert',
+				'-density', '180',
+				filepath,
+				'-quality','90',
+				png_file
+			])
+			return Image(filename=png_file)
+		else:
+			raise NotImplementedError
+	
+	"""From http://stackoverflow.com/a/435669.
+	Opens the given file with the OS's default application."""
 	if sys.platform.startswith('darwin'):
 		call(('open', filepath))
 	elif os.name == 'nt':
@@ -23,8 +40,9 @@ def plot(aut, dest=None, display=True, endpoints=False):
 		#Write to a temporary file
 		dest = mkstemp()[1]
 	plot_svg(aut, dest, endpoints)
+	
 	if display:
-		display_file(dest)
+		display_file(dest, format='svg')
 	return dest
 
 def forest(aut, jobname=None, name='', display=True, horiz=True):
@@ -45,6 +63,15 @@ def forest(aut, jobname=None, name='', display=True, horiz=True):
 	])
 	
 	if display:
-		display_file( pdf )
+		display_file(pdf, format='pdf')
 	return pdf
-	
+
+def in_ipynb():
+	"""From a comment http://stackoverflow.com/questions/15411967/how-can-i-check-if-code-is-executed-in-the-ipython-notebook#comment53916407_24937408"""
+	try:
+		ipy = get_ipython()
+	except NameError:
+		return False
+	else:
+		return type(ipy).__name__ == 'ZMQInteractiveShell'
+		
