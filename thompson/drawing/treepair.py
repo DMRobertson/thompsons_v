@@ -1,5 +1,4 @@
 from ..generators import Generators
-from ..examples   import random_automorphism
 from ..utilities  import intersection_of_trees
 import pkg_resources
 

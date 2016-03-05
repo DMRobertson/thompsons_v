@@ -203,8 +203,12 @@ class Homomorphism:
 				d.append(d_word)
 				r.append(r_word)
 			except Exception as e:
+				try:
+					source = f.name
+				except NameError:
+					source = "<input string>"
 				extra = "Problem reading rule {} from line {} of {}. The original error was:\n\t".format(
-				  i+1, i+3, f.name)
+				  i+1, i+3, source)
 				raise type(e)(extra + str(e)).with_traceback(sys.exc_info()[2])
 		hom = cls(d, r)
 		hom.__doc__ = f.read()

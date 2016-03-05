@@ -42,7 +42,7 @@ def plot(aut, dest=None, display=True, endpoints=False):
 	plot_svg(aut, dest, endpoints)
 	
 	if display:
-		display_file(dest, format='svg')
+		return display_file(dest, format='svg')
 	return dest
 
 def forest(aut, jobname=None, name='', display=True, horiz=True):
@@ -63,7 +63,7 @@ def forest(aut, jobname=None, name='', display=True, horiz=True):
 	])
 	
 	if display:
-		display_file(pdf, format='pdf')
+		return display_file(pdf, format='pdf')
 	return pdf
 
 def in_ipynb():

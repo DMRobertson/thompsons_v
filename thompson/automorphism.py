@@ -22,8 +22,9 @@ from .homomorphism  import Homomorphism
 from .orbits        import ComponentType, Characteristic, SolutionSet
 from .pconj         import PowerCollection, search_pattern, mirrored
 from .utilities     import handle_domain, intersection_from_domain, intersection_of_trees
+from .drawing       import plot, forest
 
-___all__ = ["Automorphism"]
+___all__ = ["Automorphism", "plot", "forest"]
 
 class Automorphism(Homomorphism):
 	r"""Represents an automorphism as a bijection between :meth:`bases <thompson.generators.Generators.is_basis>`.
