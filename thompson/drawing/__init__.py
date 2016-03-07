@@ -1,5 +1,5 @@
-from .plot     import plot as plot_svg
-from .treepair import write_tikz_code
+from .plot   import plot as plot_svg
+from .forest import write_tikz_code
 
 from subprocess import call, check_call
 from tempfile   import mkstemp, mkdtemp
@@ -54,7 +54,7 @@ def forest(aut, jobname=None, name='', display=True, horiz=True):
 	tex = os.path.join(outdir, jobname + '.tex')
 	pdf = os.path.join(outdir, jobname + '.pdf')
 	
-	write_tikz_code(aut, tex, horiz, name)
+	write_tikz_code(aut, 'wrt QNB', tex, horiz, name)
 	check_call(['lualatex',
 		'-output-directory=' + outdir,
 		'-interaction=batchmode',

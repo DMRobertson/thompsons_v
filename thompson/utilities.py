@@ -16,6 +16,18 @@ def intersection_of_trees(domain, range):
 			basis.expand(i)
 	return basis
 
+def union_of_trees(domain, range):
+	assert domain.signature == range.signature
+	basis = domain.copy()
+	i = 0
+	while i < len(basis):
+		b = basis[i]
+		if b in range or range.is_above(b):
+			i += 1
+		else:
+			basis.expand(i)
+	return basis
+
 def handle_domain(domain, aut):
 	if isinstance(domain, str):
 		d = domain.lower().strip()

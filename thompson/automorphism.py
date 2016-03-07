@@ -1028,6 +1028,8 @@ class Automorphism(Homomorphism):
 		True
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
+		
+		.. todo:: This method is badly named; something like ``test_revealed_by(basis)`` would be better.
 		"""
 		domain = handle_domain(domain, self)
 		range, X = intersection_from_domain(domain, self)
@@ -1037,7 +1039,7 @@ class Automorphism(Homomorphism):
 		
 		for roots, leaves in ( (roots_d_minus_r, range), (roots_r_minus_d, domain) ):
 			for root in roots:
-				w = self._end_of_iac(root, leaves, backward=( leaves == range ))
+				w = self._end_of_iac(root, leaves, backward=( leaves is range ))
 				if not root.is_above(w):
 					return root
 		return None
@@ -1060,6 +1062,8 @@ class Automorphism(Homomorphism):
 		True
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
+		
+		.. todo:: This method is badly named; something like ``is_revealed_by(basis)`` would be better.
 		"""
 		return self.test_revealing(domain) is None
 	
