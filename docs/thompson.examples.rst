@@ -23,6 +23,8 @@ Use the following functions to load one of these examples.
 List of named examples
 ^^^^^^^^^^^^^^^^^^^^^^
 
+Note that some automorphisms have more than one name---they will appear once in this list for every alias.
+
 .. include:: examples_table.txt
 
 Randomly generated examples

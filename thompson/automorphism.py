@@ -53,7 +53,8 @@ class Automorphism(Homomorphism):
 	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`
 	:ivar order: The :func:`~thompson.number_theory.lcm` of the automorphism's cycle type. This is the group-theoretic order of the :mod:`periodic factor <thompson.periodic>` of :math:`\phi`. If the cycle type is empty, the order is :math:`\infty`.
 	
-	..doctest::
+	.. doctest::
+	
 		>>> def display_orbits(orbits_by_size):
 		... 	for key in sorted(orbits_by_size):
 		... 		print('Orbits of length', key)
@@ -67,7 +68,7 @@ class Automorphism(Homomorphism):
 		... -> x1 a1 a1 a1 -> x1 a1 a1 a2 -> x1 a1 a2 -> ...
 	
 	.. note::
-		:mod:`mixed automorhpisms <thompson.mixed>` will have a **finite** order, despite being infinite-order group elements.
+		:mod:`mixed automorphisms <thompson.mixed>` will have a **finite** order, despite being infinite-order group elements.
 	
 	Infinite attributes:
 	
@@ -267,7 +268,9 @@ class Automorphism(Homomorphism):
 		r"""We say that :math:`\phi` is *in semi-normal form* with respect to the basis :math:`X` if no element of :math:`X` lies in an incomplete :math:`X`-component of a :math:`\phi` orbit. See the :mod:`~thompson.orbits` module for more details.
 		
 		There is a minimal such basis, :math:`X_\phi` say, and we say that :math:`\phi` is *in quasi-normal form* with respect to :math:`X_\phi`. This method determines and returns the basis :math:`X_\phi` where :math:`\phi` denotes the current automorphism. The result is cached so that further calls to this method perform no additional computation. 
-			
+		
+		.. note:: This method is called automatically at creation time and does **not** need to be called by the user.
+					
 			>>> for name in ['example_4_5', 'alphabet_size_two', 'example_5_12_phi', 'example_6_2', 'example_6_8_phi']:
 			... 	print(load_example(name).quasinormal_basis)
 			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
@@ -277,8 +280,7 @@ class Automorphism(Homomorphism):
 			[x1 a1, x1 a2]
 		
 		:rtype: a :class:`~thompson.generators.Generators` instance.
-		
-		.. note:: This method is called automatically at creation time and is **not** needed to be called by the user.
+
 		
 		.. seealso:: Quasi-normal forms are introduced in Section :paperref:`sec:qnf` of the paper. In particular, this method implements Lemma :paperref:`lem:qnf`. Higman first described the idea of quasi-normal forms in Section 9 of [Hig74]_.
 		"""

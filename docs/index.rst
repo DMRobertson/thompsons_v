@@ -55,6 +55,7 @@ Contents
    MixedAuts <thompson.mixed>
    Free factors <thompson.factors>
    Examples <thompson.examples>
+   Drawing automorphisms <thompson.drawing>
    References <references>
    Todo list <todo>
 
