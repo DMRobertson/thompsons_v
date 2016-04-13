@@ -77,16 +77,15 @@ def plot(aut, dest=None, display=True, endpoints=False):
 		return display_file(dest, format='svg')
 	return dest
 
-def forest(aut, jobname=None, name='', display=True, horiz=True):
+def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None):
 	r"""Draws the given :class:`~thompson.automorphism.Automorphism` as a forest-pair diagram.
-	We use the :meth:`minimal expansion <thompson.generators.Generators.minimal_expansion_for>` of the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` as the leaves of the domain forest.
-	
-	The image is rendered as an PDF using the `tikz` graph drawing libraries and `lualatex`.
+	The image is rendered as a PDF using the `tikz` graph drawing libraries and `lualatex`.
 	
 	:param str jobname: the destination filepath to save the PDF to. A file extension should **not** be provided. If `None`, the SVG is saved to a temporary file location.
 	:param str name: The label used for the arrow between domain and range forests.
 	:param bool display: if True, automatically call :func:`display_file` to display the PDF to the user. Otherwise does nothing.
 	:param bool horiz: if True, draws the range forest to the right of the domain forest. If false, draws the range forest below the range forest.
+	:param `~thompson.generators.Generators` domain: By default, we use the :meth:`minimal expansion <thompson.generators.Generators.minimal_expansion_for>` of the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` as the leaves of the domain forest. This can be overridden by providing a *domain* argument.
 	
 	:returns: the filepath where the PDF was saved. If *dest* is `None` this is a temporary file; otherwise the return value is simply `jobname + '.pdf'`.
 	
@@ -94,6 +93,8 @@ def forest(aut, jobname=None, name='', display=True, horiz=True):
 		
 		The graph drawing is done via a TikZ and LaTeX. The source file is compiled using `lualatex`, which must be available on the `PATH <https://en.wikipedia.org/wiki/PATH_(variable)>`_ for this function to work.
 	"""
+	if domain is None:
+		domain = 'wrt QNB'
 	if jobname is None:
 		outdir = mkdtemp()
 		jobname = 'forest_diagram'
@@ -102,7 +103,7 @@ def forest(aut, jobname=None, name='', display=True, horiz=True):
 	tex = os.path.join(outdir, jobname + '.tex')
 	pdf = os.path.join(outdir, jobname + '.pdf')
 	
-	write_tikz_code(aut, 'wrt QNB', tex, horiz, name)
+	write_tikz_code(aut, domain, tex, horiz, name)
 	check_call(['lualatex',
 		'-output-directory=' + outdir,
 		'-interaction=batchmode',

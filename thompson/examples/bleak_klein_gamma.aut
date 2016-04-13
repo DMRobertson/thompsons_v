@@ -1,0 +1,11 @@
+8
+(2, 8) -> (2, 8)
+x1 -> x2
+x2 -> x1
+x3 -> x4
+x4 -> x3
+x5 -> x6
+x6 -> x5
+x7 -> x8
+x8 -> x7
+The example :math:`\gamma` in [BBG11]_ of an element generating a Klein four group as part of the centraliser of ``bleak_klein_alpha``.

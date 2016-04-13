@@ -21,7 +21,7 @@ Use the following functions to load one of these examples.
 .. _examples-table:
 
 List of named examples
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 Note that some automorphisms have more than one name---they will appear once in this list for every alias.
 

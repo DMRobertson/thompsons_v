@@ -15,7 +15,7 @@ def write_tikz_code(aut,
 	dest='tikz_generated.tex',
 	horiz=True,
 	name='',
-	standalone=True, 		
+	standalone=True,
 	draw_revealing=True
 ):
 	#1. Decide which domain to use for plotting.
@@ -26,15 +26,15 @@ def write_tikz_code(aut,
 	range  = [ (w, i + 1) for (i, w) in enumerate(range)  ]
 	#Order the range using Higman's words
 	range.sort()
-	
+
 	with open(dest, 'wt', encoding='utf-8') as f:
 		if standalone:
 			f.write(standalone_header)
 		f.write(diagram_header)
-		
+
 		write_basis(f, aut, domain, True, horiz, intersection, draw_revealing)
 		write_basis(f, aut, range, False, horiz, intersection, draw_revealing)
-		
+
 		write_arrow(f, horiz, name)
 		f.write(diagram_footer)
 		if standalone:
@@ -42,13 +42,16 @@ def write_tikz_code(aut,
 
 def write_arrow(f, horiz, name):
 	"""The connecting arrow from the domain forest to range"""
+	if name.startswith('$') and not name.endswith('$'):
+		raise ValueError("Arrow names must end with a $ if they begin with a $.")
+
 	f.write("\draw[->, thick, shorten >=0.5em, shorten <=0.5em]\n")
 	if horiz:
 		f.write("\tlet \\p1=(domain.east), \\p2=(range.west), \\n1={max(\y1,\y2)} in\n")
 		f.write("\t\t(\\x1, \\n1) -- node[auto] {{{}}} (\\x2, \\n1);\n".format(name))
 	else:
 		f.write("\t(domain) -- node[auto] {{{}}} (range);\n".format(name))
-		
+
 def name(word, for_domain, options):
 	"""Introduce a node with the given key/value options."""
 	prefix = 'd' if for_domain else 'r'
@@ -66,7 +69,7 @@ def name(word, for_domain, options):
 def write_basis(f, aut, basis, for_domain, horiz, intersection, draw_revealing):
 	write_enclosing_node(f, for_domain, horiz)
 	f.write(graph_header)
-	
+
 	for i, (word, label) in enumerate(basis):
 		if draw_revealing:
 			highlight = is_repatt(word, intersection, for_domain, aut)
@@ -82,30 +85,30 @@ def write_word(f, word, label, for_domain, intersection, highlight):
 	for subword in word.subwords():
 		options = {}
 		f.write("\t\t\t")
-		
+
 		if len(subword) == 1:
 			options["root"] = None
 		else:
 			f.write(" -- ")
-		
+
 		if below_intersection:
 			f.write("[component] ")
 			if highlight:
 				#TODO I'm using two different ways to style an edge here---doesn't make sense.
 				options["target edge style"] = "spine"
-		
+
 		if subword == word:
 			options["leaf"] = None
 			options["label"] = "below:" + str(label)
 			if highlight:
 				options["label"] = "{[repatt label]" + options["label"] + "}"
 				options["repatt"] = None
-		
+
 		f.write(name(subword, for_domain, options))
-		
+
 		if not below_intersection:
 			below_intersection = subword in intersection
-		
+
 		if subword == word:
 			f.write(",")
 		f.write("\n")
@@ -117,11 +120,16 @@ def write_enclosing_node(f, for_domain, horiz):
 		if horiz:
 			f.write('[right=5em of domain.north east, anchor=north west] ')
 		else:
-			f.write('[below=5em of domain.south, anchor=north]')		
+			f.write('[below=5em of domain.south, anchor=north]')
 	f.write("{\n")
 
 def is_repatt(word, intersection, for_domain, aut):
 	if word in intersection:
 		return False
 	ctype = aut.orbit_type(word, intersection)[0]
-	return ctype.is_type_B() and (ctype.characteristic[0] < 0) == for_domain
+	if not ctype.is_type_B():
+		return False
+	if (ctype.characteristic[0] < 0) != for_domain:
+		return False
+	#TODO check that the root you stop at is above where you started
+	return True
