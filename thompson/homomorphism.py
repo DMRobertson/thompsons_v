@@ -194,7 +194,12 @@ class Homomorphism:
 			details = 'Instead of {}, the first line should be the number of generators used to define the homorphism.'.format(repr(line))
 			raise ValueError(details) from e
 
-		params = extract_signatures.match(f.readline().strip()).groups()
+		line = f.readline().strip()
+		params = extract_signatures.match(line)
+		try:
+			params = params.groups()
+		except AttributeError:
+			raise ValueError("Algebra signatures aren't specified in line 2: \n\t{!r}".format(line))
 		d = Generators([int(params[0]), int(params[1])])
 		r = Generators([int(params[2]), int(params[3])])
 		for i in range(num_generators):
