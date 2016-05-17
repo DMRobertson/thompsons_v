@@ -4,8 +4,9 @@
 	from thompson.drawing import *
 """
 
-from .plot   import plot as plot_svg
-from .forest import write_tikz_code
+from .plot       import plot as plot_svg
+from .forest     import write_tikz_code
+from .flow_graph import flow_graph_code
 
 from subprocess import call, check_call
 from tempfile   import mkstemp, mkdtemp
@@ -13,7 +14,7 @@ from tempfile   import mkstemp, mkdtemp
 import os
 import sys
 
-__all__ = ["display_file", "forest", "plot"]
+__all__ = ["display_file", "forest", "plot", "flow"]
 
 def display_file(filepath, format=None, scale=1.0):
 	"""Display the image at *filepath* to the user. This function behaves differently, depending on whether or not we execute it in a Jupyter notebook.
@@ -36,6 +37,8 @@ def display_file(filepath, format=None, scale=1.0):
 		format = format.lower()
 		if format == 'svg':
 			return SVG(filename=filepath)
+		elif format == 'png':
+			return Image(filename=filepath)
 		elif format == 'pdf':
 			png_file = filepath[:-4] + '.png'
 			check_call(['convert',
@@ -46,7 +49,7 @@ def display_file(filepath, format=None, scale=1.0):
 			])
 			return Image(filename=png_file)
 		else:
-			raise NotImplementedError
+			raise NotImplementedError( "Don't know how to display format {}".format(format) )
 
 	"""From http://stackoverflow.com/a/435669.
 	Opens the given file with the OS's default application."""
@@ -58,6 +61,7 @@ def display_file(filepath, format=None, scale=1.0):
 		call(('xdg-open', filepath))
 	else:
 		raise NotImplementedError
+	return filepath
 
 def plot(aut, dest=None, display=True, endpoints=False):
 	r"""Plots the given :class:`automorphism <thompson.automorphism.Automorphism>` as a function :math:`[0, 1] \to [0, 1]`. The image is rendered as an SVG using `svgwrite`.
@@ -125,3 +129,23 @@ def in_ipynb():
 		return False
 	else:
 		return type(ipy).__name__ == 'ZMQInteractiveShell'
+
+def flow(aut, jobname=None, display=True):
+	if jobname is None:
+		outdir = mkdtemp()
+		jobname = 'flow_graph'
+	else:
+		outdir = os.path.basename(jobname)
+	dot = os.path.join(outdir, jobname + ".dot")
+	png = os.path.join(outdir, jobname + ".png")
+	flow_graph_code(aut, dot)
+	check_call([
+		'dot',
+		'-T', 'png',
+		'-o', png,
+		dot
+	])
+	if display:
+		return display_file(png, format='png')
+	return png
+	

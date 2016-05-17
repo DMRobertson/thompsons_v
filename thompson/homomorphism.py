@@ -275,12 +275,12 @@ class Homomorphism:
 			>>> phi = load_example('alphabet_size_two')
 			>>> print(phi * phi)
 			MixedAut: V(3, 2) -> V(3, 2) specified by 8 generators (after expansion and reduction).
-			x1 a1    -> x1 a1
+			x1 a1    -> x1 a1      
 			x1 a2    -> x1 a2 a3 a3
-			x1 a3 a1 -> x1 a3
-			x1 a3 a2 -> x1 a2 a2
-			x1 a3 a3 -> x1 a2 a1
-			x2 a1    -> x2
+			x1 a3 a1 -> x1 a3      
+			x1 a3 a2 -> x1 a2 a2   
+			x1 a3 a3 -> x1 a2 a1   
+			x2 a1    -> x2         
 			x2 a2    -> x1 a2 a3 a2
 			x2 a3    -> x1 a2 a3 a1
 		"""
@@ -488,11 +488,11 @@ class Homomorphism:
 
 			>>> print(load_example('cyclic_order_six'))
 			PeriodicAut: V(2, 1) -> V(2, 1) specified by 5 generators (after expansion and reduction).
-			x1 a1 a1    -> x1 a1 a1
+			x1 a1 a1    -> x1 a1 a1      
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
-			x1 a1 a2 a2 -> x1 a2
+			x1 a1 a2 a2 -> x1 a2         
 			x1 a2 a1    -> x1 a1 a2 a2 a1
-			x1 a2 a2    -> x1 a1 a2 a1
+			x1 a2 a2    -> x1 a1 a2 a1   
 		"""
 		relabelled = self.domain_relabeller is not None
 		output = StringIO()
@@ -544,8 +544,8 @@ class Homomorphism:
 			>>> rho = psi.test_conjugate_to(phi)
 			>>> print(rho)
 			PeriodicAut: V(2, 1) -> V(2, 1) specified by 6 generators (after expansion and reduction).
-			x1 a1 a1 a1 a1 -> x1 a1 a2
-			x1 a1 a1 a1 a2 -> x1 a2 a2
+			x1 a1 a1 a1 a1 -> x1 a1 a2   
+			x1 a1 a1 a1 a2 -> x1 a2 a2   
 			x1 a1 a1 a2    -> x1 a1 a1 a1
 			x1 a1 a2       -> x1 a2 a1 a1
 			x1 a2 a1       -> x1 a1 a1 a2

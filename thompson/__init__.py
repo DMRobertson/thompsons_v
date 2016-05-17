@@ -6,7 +6,7 @@ from .generators      import Generators
 from .automorphism    import Automorphism
 from .examples        import load_example, available_examples, show_examples, standard_generator
 from .examples.random import random_automorphism
-from .drawing         import plot, forest
+from .drawing         import plot, forest, flow
 
 __all__ = [
 	"Word",
@@ -14,5 +14,5 @@ __all__ = [
 	"Automorphism",
 	"load_example", "available_examples", "show_examples", "standard_generator",
 	"random_automorphism",
-	"plot", "forest"
+	"plot", "forest", "flow"
 ]
