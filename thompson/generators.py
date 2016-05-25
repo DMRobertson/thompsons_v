@@ -401,7 +401,7 @@ class Generators(list):
 				basis.expand(i)
 		return basis
 
-	def embed_in(self, signature):
+	def embed_in(self, signature, shift=0):
 		"""Creates a copy of the current generating set in the algebra determined by *signature*.
 
 		:raises ValueError: if the current signature's algebra is not a subset of the given signature's algebra.
@@ -410,6 +410,8 @@ class Generators(list):
 			Generators((2, 1), ['x1 a1', 'x1 a2'])
 			>>> y = x.embed_in((3, 2)); y
 			Generators((3, 2), ['x1 a1', 'x1 a2'])
+			>>> z = x.embed_in((3, 2), shift=1); z
+			Generators((3, 2), ['x2 a1', 'x2 a2'])
 			>>> print(y.signature, y[0].signature)
 			(3, 2) (3, 2)
 			>>> x.is_basis()
@@ -421,13 +423,13 @@ class Generators(list):
 		if not isinstance(signature, Signature):
 			signature = Signature(*signature)
 		if (self.signature.arity > signature.arity or
-		    self.signature.alphabet_size > signature.alphabet_size):
-			raise ValueError("Cannot embed {} into {}".format(
-			  self.signature, signature))
+		    self.signature.alphabet_size + shift > signature.alphabet_size):
+			raise ValueError("Cannot embed {} and shift by {} into {}".format(
+			  self.signature, shift, signature))
 
 		output = Generators(signature)
 		for word in self:
-			output.append(Word(word, signature, preprocess=False))
+			output.append( word.shift(shift, signature) )
 		return output
 
 	#Modifiers

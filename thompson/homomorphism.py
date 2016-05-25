@@ -117,11 +117,11 @@ class Homomorphism:
 			>>> #This is given by 6 generators, but after reduction consists of 5:
 			>>> print(load_example('cyclic_order_six'))
 			PeriodicAut: V(2, 1) -> V(2, 1) specified by 5 generators (after expansion and reduction).
-			x1 a1 a1    -> x1 a1 a1
+			x1 a1 a1    -> x1 a1 a1      
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2
-			x1 a1 a2 a2 -> x1 a2
+			x1 a1 a2 a2 -> x1 a2         
 			x1 a2 a1    -> x1 a1 a2 a2 a1
-			x1 a2 a2    -> x1 a1 a2 a1
+			x1 a2 a2    -> x1 a1 a2 a1   
 			>>> #Swaps x1 and x2. Should reduce to two generators instead of 3
 			>>> domain = Generators((2, 2), ["x1", "x2 a1", "x2 a2"])
 			>>> range  = Generators((2, 2), ["x2", "x1 a1", "x1 a2"])
@@ -482,7 +482,13 @@ class Homomorphism:
 	def _string_header(self):
 		return "{}: V{} -> V{} specified by {} generators (after expansion and reduction).".format(
 		  type(self).__name__, self.domain.signature, self.range.signature, len(self.domain))
-
+	
+	@staticmethod
+	def _append_output(rows, output):
+		for row in rows:
+			output.write('\n')
+			output.write(row)
+	
 	def __str__(self):
 		"""Printing an automorphism gives its arity, alphabet_size, and lists the images of its domain elements.
 
@@ -506,10 +512,24 @@ class Homomorphism:
 				sep = ['~>   ', '=>', '   ~>'], root_names = 'xyyx')
 		else:
 			rows = format_table(self.domain, self.range)
-
-		for row in rows:
-			output.write('\n')
-			output.write(row)
+		self._append_output(rows, output)
+		return output.getvalue()
+		
+	def __repr__(self):
+		"""A tweaked version of :meth:`__str__`.
+		This produces a string representation which can be passed to :meth:`from_string` to reobtain the Homomorphism we started with.
+		
+			>>> f = random_automorphism()
+			>>> g = Automorphism.from_string( repr(f) )
+			>>> f == g
+			True
+		"""
+		output = StringIO()
+		output.write("{}\n{} -> {}".format(
+		  len(self.domain), self.domain.signature, self.range.signature
+		))
+		rows = format_table(self.domain, self.range)
+		self._append_output(rows, output)
 		return output.getvalue()
 
 	#Relabelling
@@ -591,6 +611,6 @@ def format_table(*columns, sep=None, root_names=None):
 
 #Used in from_file()
 extract_signatures = re.compile(r"""
-	\( \s* (\d+) [\s,]+ (\d+) \s* \)
+	[vV]?\( \s* (\d+) [\s,]+ (\d+) \s* \)
 	[\s\->]+
-	\( \s* (\d+) [\s,]+ (\d+) \s* \)""", re.VERBOSE)
+	[vV]?\( \s* (\d+) [\s,]+ (\d+) \s* \)""", re.VERBOSE)

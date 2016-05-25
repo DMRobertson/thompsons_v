@@ -340,7 +340,8 @@ def are_contractible(words):
 		if not (
 		  len(word) == expected_length
 		  and word[:len(prefix)] == prefix
-		  and word[-1] == -j - 1): #alpha_{j+1}
+		  and word[-1] == -j - 1 #alpha_{j+1}
+		): 
 			return ()
 	return prefix
 
@@ -357,7 +358,7 @@ class Word(tuple):
 	
 	#Creation
 	def __new__(cls, letters, signature, preprocess=True):
-		"""Creates a new Word consisting of the given *letters* belonging the algebra with the given *signature*. The *letters* may be given as a list of integers or as a string (which is passed to the :func:`from_string` function). The signature can be given as a tuple of a fully-fledged :class:`Signature`.
+		"""Creates a new Word consisting of the given *letters* belonging the algebra with the given *signature*. The *letters* may be given as a list of integers or as a string (which is passed to the :func:`from_string` function). The signature can be given as a tuple or a fully-fledged :class:`Signature`.
 		
 			>>> Word("x2 a1 a2 a3 x1 a1 a2 a1 x2 L a2", (3, 2))
 			Word('x1 a1 a2 a1', (3, 2))
@@ -779,6 +780,33 @@ class Word(tuple):
 			raise IndexError('The tail width {} is not in the range 0 to {}'.format(
 			  tail_width, len(self)))
 		return self[:-tail_width], self[-tail_width:]
+	
+	def shift(self, delta=1, signature=None):
+		r"""Takes a simple word :math:`x_i\Gamma` and returns the word :math:`x_{i+\delta}\Gamma`. The target word has signature :math:`(n, r+\delta)` by default where :math:`(n, r)` is the current word's signature. This can be overridden by passing in a *signature*.
+		
+			>>> w = Word("x1 a1 a2 x1 a2 x2 L", (3, 2))
+			>>> w.shift()
+			Traceback (most recent call last):
+			...
+			ValueError: Can only shift simple words.
+			>>> v = Word("x1 a2 a3", (3, 1))
+			>>> v.shift()
+			Word('x2 a2 a3', (3, 2))
+		
+		:raises ValueError: if *delta* is not a positive integer.
+		:raises ValueError: if the given word is not :meth:`simple <is_simple>`
+		"""
+		if not delta >= 0:
+			raise ValueError("delta ({}) should be a nonegative integer".format(delta))
+		if not self.is_simple():
+			raise ValueError("Can only shift simple words.")
+		if signature is None:
+			arity, alph = self.signature
+			signature = Signature(arity, alph + delta)
+		letters = (self[0] + delta,) + self[1:]
+		return Word(letters, signature, preprocess=False)
+		
+		 
 	
 	#iterator
 	def subwords(self):
