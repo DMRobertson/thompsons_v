@@ -53,6 +53,11 @@ class Generators(list):
 			super().append(w)
 		else:
 			raise ValueError("The word {} is already in this set.".format(w))
+	
+	def extend(self, words):
+		#This is probably inefficient but I just want an extend method that does the checks that append() does above
+		for word in words:
+			self.append(word)
 
 	def __str__(self):
 		return "[" + ", ".join(format(w) for w in self) + "]"
@@ -359,6 +364,24 @@ class Generators(list):
 		for i in range(1, signature.alphabet_size + 1):
 			output.append(Word((i,), signature, preprocess=False))
 		return output
+	
+	@classmethod
+	def _basis_from_dfs(cls, string):
+		if not set(string) <= {'0', '1'}:
+			raise ValueError("String {} should contain only 1s and 0s".format(string))
+		basis = cls.standard_basis((2, 1));
+		index = 0;
+		for char in string:
+			if char == '1':
+				basis.expand(index);
+			elif char == '0':
+				index += 1;
+				if index > len(basis):
+					raise ValueError("Too many zeroes in {}".format(string))
+		if index != len(basis):
+			raise ValueError("Not enough zeroes in {}".format(string))
+			
+		return basis
 
 	def minimal_expansion_for(self, *automorphisms):
 		r"""Suppose we are given a finite sequence of *automorphisms* of :math:`V_{n,r}` and that the current generaeting set is a basis :math:`X` for :math:`V_{n,r}`. This methods returns an expansion :math:`Y` of :math:`X` such that each automorphism maps :math:`Y` into :math:`X\langle A\rangle`.
@@ -439,6 +462,8 @@ class Generators(list):
 			>>> g = Generators.standard_basis((3, 1)); g
 			Generators((3, 1), ['x1'])
 			>>> g.expand(0)
+			Generators((3, 1), ['x1 a1', 'x1 a2', 'x1 a3'])
+			>>> g #has been modified
 			Generators((3, 1), ['x1 a1', 'x1 a2', 'x1 a3'])
 			>>> g.expand(-2) #expand at the second entry from the right, i.e. at 'x1 a2'
 			Generators((3, 1), ['x1 a1', 'x1 a2 a1', 'x1 a2 a2', 'x1 a2 a3', 'x1 a3'])

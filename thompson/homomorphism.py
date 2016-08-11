@@ -254,13 +254,18 @@ class Homomorphism:
 	#Simple operations on homomorphisms
 	def __eq__(self, other):
 		"""We can test for equality of homomorphisms by using Python's equality operator ``==``.
-
+		The Python integer ``1`` can be used as a shorthand for the identity of the current homomorphism's algebra.
+			
 			>>> phi = random_automorphism()
 			>>> phi == phi
 			True
-			>>> phi * ~phi == Homomorphism.identity(phi.signature)
+			>>> phi * ~phi == 1
+			True
+			>>> 1 == Homomorphism.identity(phi.signature)
 			True
 		"""
+		if isinstance(other, int) and other == 1:
+			other = type(self).identity(self.signature)
 		return all(self.image(w) == other.image(w) for w in chain(self.domain, other.domain))
 
 	def __mul__(self, other): #self * other is used for the (backwards) composition self then other
@@ -284,7 +289,9 @@ class Homomorphism:
 			x2 a2    -> x1 a2 a3 a2
 			x2 a3    -> x1 a2 a3 a1
 		"""
-		if not isinstance(other, Homomorphism):
+		if isinstance(other, int) and other == 1:
+			other = type(self).identity(self.signature)
+		elif not isinstance(other, Homomorphism):
 			return NotImplemented
 
 		if self.range.signature != other.domain.signature:
@@ -307,6 +314,9 @@ class Homomorphism:
 			PeriodicAut: V(3, 2) -> V(3, 2) specified by 2 generators (after expansion and reduction).
 			x1 -> x1
 			x2 -> x2
+			>>> sig = random_signature()
+			>>> Homomorphism.identity(sig) == 1
+			True
 		"""
 		d = Generators.standard_basis(signature)
 		r = Generators.standard_basis(signature)

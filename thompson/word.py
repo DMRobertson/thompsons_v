@@ -551,6 +551,9 @@ class Word(tuple):
 		"""
 		return self.test_above(word) is not None
 	
+	def is_above_set(self, generators):
+		return any(self.test_above(word) for word in generators)
+	
 	def test_above(self, word):
 		r"""Tests to see if the current word :math:`c` is an initial segment of the given *word* :math:`w`. In symbols, we're testing if :math:`w = c \Gamma`, where :math:`\Gamma \in \langle A \rangle` is some string of alphas only.
 		
@@ -581,7 +584,7 @@ class Word(tuple):
 			return None
 		
 		if self.lambda_length == word.lambda_length > 0:
-			#self above word iff self == word
+			#self above word iff self == word: adding an \alpha on the end reduces lambda length
 			return tuple() if self == word else None
 		
 		if self.lambda_length == word.lambda_length == 0:

@@ -81,7 +81,7 @@ def draw_grid(canvas, signature, levels=None):
 		if signature.arity > 3:
 			levels -= 1
 	
-	for d in range(levels):		
+	for d in range(levels):
 		for word in basis:
 			end = word.as_interval()[1]
 			if end in done:

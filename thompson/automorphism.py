@@ -33,13 +33,15 @@ class Automorphism(Homomorphism):
 	
 	:ivar signature: The :class:`~thompson.word.Signature` shared by the generating sets domain and range.
 	:ivar quasinormal_basis: See :meth:`compute_quasinormal_basis`.
-	:ivar pond_banks: A list of tuples :math:`(\ell, k, r)` such that :math:`(\ell, r)` are banks of a pond with :math:`\ell\phi^k = r`. For instance:
+	:ivar pond_banks: A list of tuples :math:`(\ell, k, r)` such that :math:`(\ell, r)` are banks of a pond with :math:`\ell\phi^k = r`. (See also :paperref:`rem:pondexist` of the paper.)
 	
 	.. doctest::
 		
 		>>> olga_f = load_example('olga_f')
 		>>> olga_g = load_example('olga_g')
-		>>> print(len(olga_f.pond_banks), sep=', ') #No ponds
+		>>> olga_f.signature
+		Signature(arity=2, alphabet_size=1)
+		>>> print(len(olga_f.pond_banks)) #No ponds
 		0
 		>>> print(len(olga_g.pond_banks)) #One pond
 		1
@@ -48,13 +50,22 @@ class Automorphism(Homomorphism):
 	
 	Periodic attributes:
 	
-	:ivar periodic_orbits: a mapping :math:`d \mapsto L_d`, where :math:`L_d is the list of size :math:`d` orbits in the quasinormal basis.
+	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`. This is implemented as a :class:`~py3:frozenset` which is a readonly version of Python's :class:`~py3:set` type.
+	:ivar order: The :func:`~thompson.number_theory.lcm` of the automorphism's cycle type. This is the group-theoretic order of the :mod:`periodic factor <thompson.periodic>` of :math:`\phi`. If the cycle type is empty, the order is :math:`\infty`. **NB**: :mod:`mixed automorphisms <thompson.mixed>` will have a **finite** order, despite being infinite-order group elements.
+	:ivar periodic_orbits: a mapping :math:`d \mapsto L_d`, where :math:`L_d` is the list of size :math:`d` orbits in the quasinormal basis.
 	:ivar multiplicity: a mapping :math:`d \mapsto m_\phi(d, X_\phi)`, which is the number of periodic orbits of size :math:`d` in the :meth:`quasinormal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` for :math:`\phi`. See Definition :paperref:`cycletypes` in the paper.
-	:ivar cycle_type: the set :math:`\{d \in \mathbb{N} : \text{$\exists$ an orbit of length $d$.}\}`
-	:ivar order: The :func:`~thompson.number_theory.lcm` of the automorphism's cycle type. This is the group-theoretic order of the :mod:`periodic factor <thompson.periodic>` of :math:`\phi`. If the cycle type is empty, the order is :math:`\infty`.
-	
+
 	.. doctest::
 	
+		>>> olga_f.cycle_type
+		frozenset()
+		>>> olga_f.order
+		inf
+		>>> f = load_example('cyclic_order_six')
+		>>> f.cycle_type
+		frozenset({1, 2, 3})
+		>>> f.order
+		6
 		>>> def display_orbits(orbits_by_size):
 		... 	for key in sorted(orbits_by_size):
 		... 		print('Orbits of length', key)
@@ -66,26 +77,31 @@ class Automorphism(Homomorphism):
 		... -> x1 a2 a2 a1 -> x1 a2 a2 a2 -> ...
 		Orbits of length 3
 		... -> x1 a1 a1 a1 -> x1 a1 a1 a2 -> x1 a1 a2 -> ...
-	
-	.. note::
-		:mod:`mixed automorphisms <thompson.mixed>` will have a **finite** order, despite being infinite-order group elements.
-	
+		
 	Infinite attributes:
 	
-	:ivar characteristics: the set of characteristics :math:`(m, \Gamma)` of this automorphism.
+	:ivar characteristics: the set of characteristics :math:`(m, \Gamma)` of this automorphism. Like the ``cycle_type`` above, this is a :class:`~py3:frozenset`.
+	
+	.. doctest::
+		
+		>>> for char in olga_f.characteristics:
+		... 	print(char)
+		Characteristic(2, a2 a1)
+		Characteristic(2, a1 a2)
+		Characteristic(-1, a1)
+		Characteristic(-1, a2)
+		
 	"""
 	#Initialisation
 	def __init__(self, domain, range, reduce=True):
-		r"""Creates an automorphism mapping the given *domain* basis to the *range* basis in the given order.
-		
-		.. math:: \text{domain}_{\,i} \mapsto \text{range}_{\,i}
+		r"""Creates an automorphism mapping the given *domain* basis to the *range* basis in the given order. That is, :math:`\text{domain}_{\,i} \mapsto \text{range}_{\,i}`.
 		
 		The :meth:`quasi-normal basis <compute_quasinormal_basis>` :math:`X` and the various attributes are all calculated at creation time.
 		
 		:raises TypeError: if the bases have different arities or alphabet sizes.
 		:raises TypeError: if either basis :meth:`isn't actually a basis <thompson.generators.Generators.is_basis>`.
 		
-		.. seealso:: :meth:`The superclass method <thompson.homomorphism.Homomorphism.__init__>`.
+		.. seealso:: :meth:`The superclass' method <thompson.homomorphism.Homomorphism.__init__>`.
 		"""
 		#Check to see that the domain and range algebras are the same
 		if domain.signature != range.signature:
@@ -130,6 +146,58 @@ class Automorphism(Homomorphism):
 			from .mixed import MixedAut
 			self.__class__ = MixedAut
 	
+	@classmethod
+	def from_dfs(cls, domain, range, labels):
+		"""Creates elements of :math:`V=G_{2,1}` using the notation of [Kogan]_.
+		
+		The domain and range trees are described as a string of ones and zeros.
+		A ``1`` denotes a vertex which has children; a ``0`` denotes a vertex which has none (i.e. a leaf).
+		The 'dfs' stands for *depth-first search*, the order in which we traverse the vertices of the tree.
+		We initialise the current vertex as the root.
+		Upon reading a ``1`` we add two child vertices to the current vertex, then redeclare the current vertex to be the current vertex's left child.
+		Upon reading a ``0`` we set the current vertex to be the next vertex of the tree in depth-first order. If the current vertex is the root we are done. 
+		
+		:param str domain: A description of a binary tree as a stream of ones and zeroes.
+		:param str range: The same.
+		:param str labels: A string of natural numbers :math:`1, \dots, m` in some order. 
+		
+		.. warning:: This is a work in progress. Needs to check lengths match up and labels are correct.
+		
+		.. doctest::
+		
+			>>> f = Automorphism.from_dfs("100", "100", "2 1");
+			>>> f.order
+			2
+			>>> print(f)
+			PeriodicAut: V(2, 1) -> V(2, 1) specified by 2 generators (after expansion and reduction).
+			x1 a1 -> x1 a2
+			x1 a2 -> x1 a1
+		
+			>>> g = Automorphism.from_dfs("1010100", "1011000", "1 2 3 4");
+			>>> print(g)
+			MixedAut: V(2, 1) -> V(2, 1) specified by 4 generators (after expansion and reduction).
+			x1 a1       -> x1 a1      
+			x1 a2 a1    -> x1 a2 a1 a1
+			x1 a2 a2 a1 -> x1 a2 a1 a2
+			x1 a2 a2 a2 -> x1 a2 a2   
+			>>> g == standard_generator(1)
+			True
+			
+			>>> h = load_example("example_6_2")
+			>>> h2 = Automorphism.from_dfs("1110000", "1100100", "3 1 2 4")
+			>>> h == h2
+			True
+		
+		"""
+		labels = [int(x) for x in labels.split()]
+		domain = Generators._basis_from_dfs(domain)
+		range  = Generators._basis_from_dfs(range)
+		assert len(domain) == len(range) == len(labels)
+		range2 = range.copy()
+		for index, label in enumerate(labels):
+			range2[label-1] = range[index]
+		return cls(domain, range2)
+	
 	#Computing images
 	def _set_image(self, d, r, sig_in, sig_out, cache):
 		if cache is not self._map and cache is not self._inv:
@@ -152,6 +220,8 @@ class Automorphism(Homomorphism):
 			x1 a2 a2 a2 x1 a2 a2 a1 a1 L
 			>>> print(phi.image('x a2 a2 x a1 a2 L', inverse=True))
 			x1 a2 a2 a1
+		
+		.. todo:: Overload ``__call__`` as a nice bit of syntactic sugar.
 		"""
 		if inverse:
 			return super().image(key, self.range.signature, self.domain.signature, self._inv)
@@ -259,6 +329,24 @@ class Automorphism(Homomorphism):
 		return inv
 	inverse = __invert__
 	
+	def __xor__(self, other):
+		"""We overload the bitwise exclusive or operator `^` as a shorthand for conjugation.
+		We act on the right, so that :math:`s^c = c^{-1}sc`.
+		
+		.. doctest::
+			
+			>>> sig = random_signature()
+			>>> f = random_automorphism(signature=sig)
+			>>> g = random_automorphism(signature=sig)
+			>>> h = f^g
+			>>> f.is_conjugate_to(h)
+			True
+			>>> f ^ (f.test_conjugate_to(h)) == h
+			True
+		
+		"""
+		return ~other * self * other
+	
 	#Quasinormal basis
 	#Some ideas for making this process faster:
 	#- Cache the component types (wrt QNB) for the QNB elements
@@ -345,6 +433,7 @@ class Automorphism(Homomorphism):
 			ctype, _, _ = self.orbit_type(endpt, basis)
 			if ctype.is_type_B():
 				self.characteristics.add(ctype.characteristic)
+		self.characteristics = frozenset(self.characteristics)
 	
 	def _find_ponds(self):
 		terminal, initial = self.semi_infinite_end_points(exclude_characteristics=True)
@@ -623,7 +712,6 @@ class Automorphism(Homomorphism):
 			terminal = Generators(self.signature, (t for t in terminal if not self.orbit_type(t, basis)[0].is_type_B()))
 			initial =  Generators(self.signature, (i for i in initial  if not self.orbit_type(i, basis)[0].is_type_B()))
 		return terminal, initial
-	
 	
 	def _descend_to_complete_infinite(self, endpt):
 		"""A really crude use of the lemma described in AJD's email.

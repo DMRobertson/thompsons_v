@@ -92,7 +92,7 @@ todo_include_todos = True
 intersphinx_mapping = {
 	# 'svgwrite':	('http://svgwrite.readthedocs.org/en/latest', None),
 	'py3':		('https://docs.python.org/3/', None),
-	'networkx':	('http://networkx.github.io/documentation/latest', None), 
+	'networkx':	('https://networkx.readthedocs.io/en/stable/', None), 
 }
 
 """End my additions"""
