@@ -147,7 +147,7 @@ class Automorphism(Homomorphism):
 			self.__class__ = MixedAut
 	
 	@classmethod
-	def from_dfs(cls, domain, range, labels):
+	def from_dfs(cls, domain, range, labels, reduce=True):
 		"""Creates elements of :math:`V=G_{2,1}` using the notation of [Kogan]_.
 		
 		The domain and range trees are described as a string of ones and zeros.
@@ -160,6 +160,7 @@ class Automorphism(Homomorphism):
 		:param str domain: A description of a binary tree as a stream of ones and zeroes.
 		:param str range: The same.
 		:param str labels: A string of natural numbers :math:`1, \dots, m` in some order. 
+		:param bool reduce: Passed to :meth:`Homomorphism.__init__`. If ``True``, carets are reduced in the domain and range where possible. 
 		
 		.. warning:: This is a work in progress. Needs to check lengths match up and labels are correct.
 		
@@ -330,7 +331,7 @@ class Automorphism(Homomorphism):
 	inverse = __invert__
 	
 	def __xor__(self, other):
-		"""We overload the bitwise exclusive or operator `^` as a shorthand for conjugation.
+		"""We overload the bitwise exclusive or operator ``^`` as a shorthand for conjugation.
 		We act on the right, so that :math:`s^c = c^{-1}sc`.
 		
 		.. doctest::

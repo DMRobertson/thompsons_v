@@ -34,13 +34,19 @@ else:
 		return skip
 
 def missing_reference(app, env, node, contnode):
+	"""I have no idea why, because I never properly documented this in the first place.
+	But it appears that sphinx gives of a bunch of false errors about missing reference targets,
+	thanks to the ability to view source code (first if branch) and to the intersphinx extension (third if).
+	I probably haven't configured this properly; after all I was cobbling it together with broadly no idea what I was doing.
+	"""
 	reftype = node.get('reftype')
 	target = node.get('reftarget')
 	if reftype == "viewcode":
 		return
 	if target is None:
 		app.warn("Missing reference: {}".format(node))
-	elif target.startswith('py3:') or target.endswith('Error') or reftype == "obj":
+	elif target.startswith('py3:') or target.startswith('nx:') or target.endswith('Error') or reftype == "obj":
+		#first two for intersphinx; second for intersphinx to python exceptions. No idea what the third was for
 		return
 	else:
 		app.warn("Missing reference target: {}".format(target))
@@ -91,8 +97,8 @@ sys.path.append(os.path.abspath('extensions'))
 todo_include_todos = True
 intersphinx_mapping = {
 	# 'svgwrite':	('http://svgwrite.readthedocs.org/en/latest', None),
-	'py3':		('https://docs.python.org/3/', None),
-	'networkx':	('https://networkx.readthedocs.io/en/stable/', None), 
+	'py3': ('https://docs.python.org/3/', None),
+	'nx':  ('https://networkx.readthedocs.io/en/stable/', None), 
 }
 
 """End my additions"""

@@ -2,17 +2,14 @@ from collections import defaultdict
 
 from ..generators import Generators
 
-from svgwrite.drawing   import Drawing
-from svgwrite.path      import Path
-from svgwrite.shapes    import Circle, Line, Polygon, Polyline, Rect
-from svgwrite.container import Group, Marker, Style
-
 import pkg_resources
 
 PADDING = 40
 SCALE   = 400
 
 def new_drawing(filename='plot.svg'):
+	from svgwrite.drawing   import Drawing
+	from svgwrite.container import Group
 	dwg = Drawing(filename)
 	size = 2 * PADDING + SCALE
 	dwg.viewbox(minx=0, miny=0, width=size, height=size)
@@ -28,6 +25,7 @@ def new_drawing(filename='plot.svg'):
 	return dwg, canvas
 
 def add_stylesheet(dwg, filename='plot.css'):
+	from svgwrite.container import Style
 	path = pkg_resources.resource_filename('thompson.drawing', filename)
 	with open(path) as f:
 		contents = f.read()
@@ -35,6 +33,8 @@ def add_stylesheet(dwg, filename='plot.css'):
 	dwg.defs.add(style)
 
 def include_markers(dwg, endpoints):
+	from svgwrite.container import Marker
+	from svgwrite.shapes    import Circle, Line, Polyline
 	arrowhead = Marker(
 		insert=(4, 4), size=(4, 8), orient='auto', markerUnits='strokeWidth',
 		id='arrowhead'
@@ -70,6 +70,7 @@ def include_markers(dwg, endpoints):
 	dwg.defs.add(continuity)
 
 def draw_grid(canvas, signature, levels=None):
+	from svgwrite.shapes    import Line
 	done = set()
 	basis = Generators.standard_basis(signature)
 	lines = defaultdict(list)
@@ -103,6 +104,8 @@ def draw_grid(canvas, signature, levels=None):
 			canvas.add(line)
 
 def plot(self, filename='plot.svg', endpoints=False):
+	from svgwrite.path      import Path
+	from svgwrite.shapes    import Polyline
 	dwg, canvas = new_drawing(filename)
 	include_markers(dwg, endpoints)
 	draw_grid(canvas, self.signature)

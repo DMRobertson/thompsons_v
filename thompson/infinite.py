@@ -14,8 +14,6 @@ from functools   import partial
 from io          import StringIO
 from itertools   import chain, permutations
 
-import networkx as nx
-
 from .number_theory import prod
 from .word          import Word, root, format
 from .generators    import Generators
@@ -126,7 +124,7 @@ class InfiniteAut(Automorphism):
 		
 		and allowing it to generate an equivalence relation. This method returns a pair *(roots, graph)* where
 		
-		- *graph* is a `DiGraph <https://networkx.github.io/documentation/latest/reference/classes.digraph.html>`_
+		- *graph* is a :func:`~nx:networkx.DiGraph`
 		
 			- vertices are type B words in :math:`X`
 			- directed edges :math:`x \to y` correspond to the direct relation :math:`x \equiv y`
@@ -147,11 +145,12 @@ class InfiniteAut(Automorphism):
 	
 	def _congruence_graph(self):
 		"""Form a graph whose vertex set is the QNF basis. The edges store the information which makes two vertices congruent."""
+		from networkx.classes.digraph import DiGraph
 		basis = self.quasinormal_basis
 		min_exp = basis.minimal_expansion_for(self)
 		terminal, initial = self.semi_infinite_end_points()
 		endpts = sorted(terminal + initial)
-		G = nx.DiGraph()
+		G = DiGraph()
 		orbit_generators = set(min_exp + endpts)
 		
 		#1. Add an edge for every direct congruence relationship.
@@ -208,6 +207,7 @@ class InfiniteAut(Automorphism):
 	@staticmethod
 	def _reduce_to_forest(G):
 		"""Removes edges from G so that each connected component is a tree."""
+		from networkx.algorithms.traversal.depth_first_search import dfs_edges
 		unseen_nodes = set(G.nodes_iter())
 		unvisisted_edges = set(G.edges_iter())
 		roots = []
@@ -215,7 +215,7 @@ class InfiniteAut(Automorphism):
 		while unseen_nodes:
 			root = unseen_nodes.pop()
 			roots.append(root)
-			for edge in nx.dfs_edges(G, root):
+			for edge in dfs_edges(G, root):
 				unvisisted_edges.remove(edge)
 				_, target = edge
 				unseen_nodes.remove(target)
@@ -243,9 +243,10 @@ class InfiniteAut(Automorphism):
 	
 	def _potential_conjugators(self, other, roots, graph, choices, type_c):
 		#1. Flatten and glue the graph components together to form the ladder
+		from networkx.algorithms.traversal.depth_first_search import dfs_preorder_nodes
 		ladder = []
 		for root in roots:
-			ladder.extend(nx.dfs_preorder_nodes(graph, root))
+			ladder.extend(dfs_preorder_nodes(graph, root))
 		
 		#2. Define the test function. See the docstring for maps_satisfying_choices
 		deduce_images = partial(image_for_type_b, roots=roots, graph=graph, aut=other)
@@ -481,20 +482,20 @@ def print_edge(source, target, data):
 	print("{} --> {} with data {}".format(source, target, fmt_triple(data)))
 
 def dump_graph(roots, graph):
-	import networkx as nx
+	from networkx.algorithms.traversal.depth_first_search import dfs_preorder_nodes
 	for i, root in enumerate(roots):
 		print('component', i, 'with root', root)
 		print('type B elements:')
-		for node in nx.dfs_preorder_nodes(graph, root):
+		for node in dfs_preorder_nodes(graph, root):
 			print('\tEdges out of', node)
 			for source, target in graph.out_edges_iter(node):
 				data = graph[source][target]
 				print('\t\tto', target, 'with data\n\t\t\t', fmt_triple(data))
 
 def verify_graph(aut, roots, graph):
-	import networkx as nx
+	from networkx.algorithms.traversal.depth_first_search import dfs_preorder_nodes
 	for i, root in enumerate(roots):
-		for node in nx.dfs_preorder_nodes(graph, root):
+		for node in dfs_preorder_nodes(graph, root):
 			for source, target in graph.out_edges_iter(node):
 				data = graph[source][target]
 				assert aut.repeated_image(source.extend(data['start_tail']), data['power']) == target.extend(data['end_tail'])

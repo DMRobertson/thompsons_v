@@ -12,6 +12,7 @@ from subprocess import call, check_call
 from tempfile   import mkstemp, mkdtemp
 
 import os
+import shutil
 import sys
 
 __all__ = ["display_file", "forest", "plot", "flow"]
@@ -86,7 +87,7 @@ def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None, sc
 	The image is rendered as a PDF using the `tikz` graph drawing libraries and `lualatex`.
 
 	:param str jobname: the destination filepath to save the PDF to. A file extension should **not** be provided. If `None`, the SVG is saved to a temporary file location.
-	:param str name: The label used for the arrow between domain and range forests.
+	:param str name: The label used for the arrow between domain and range forests. This is passed directly to TeX, so you can include mathematics by delimiting it with dollars. Note that backslashes are treated specially in Python unless you use a *raw string*, which is preceeded with an ``r``. For instance, try ``name=r'\gamma_1``
 	:param bool display: if True, automatically call :func:`display_file` to display the PDF to the user. Otherwise does nothing.
 	:param bool horiz: if True, draws the range forest to the right of the domain forest. If false, draws the range forest below the range forest.
 	:param `~thompson.generators.Generators` domain: By default, we use the :meth:`minimal expansion <thompson.generators.Generators.minimal_expansion_for>` of the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` as the leaves of the domain forest. This can be overridden by providing a *domain* argument.
@@ -100,11 +101,14 @@ def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None, sc
 	"""
 	if domain is None:
 		domain = 'wrt QNB'
-	if jobname is None:
-		outdir = mkdtemp()
+	outdir = mkdtemp()
+	
+	specific_location = jobname is not None
+	if not specific_location:
 		jobname = 'forest_diagram'
 	else:
-		outdir = os.path.basename(jobname)
+		destdir = os.path.dirname(jobname)
+		jobname = os.path.basename(jobname)
 	tex = os.path.join(outdir, jobname + '.tex')
 	pdf = os.path.join(outdir, jobname + '.pdf')
 
@@ -115,7 +119,12 @@ def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None, sc
 		'-no-shell-escape',
 		 tex
 	])
-
+	
+	if specific_location:
+		new_pdf = os.path.join(destdir, jobname + '.pdf')
+		shutil.copy(pdf, new_pdf)
+		pdf = new_pdf
+	
 	if display:
 		return display_file(pdf, format='pdf', scale=scale)
 	return pdf
