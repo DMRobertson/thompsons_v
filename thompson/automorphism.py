@@ -1248,9 +1248,9 @@ class Automorphism(Homomorphism):
 	def centralise_period(self, period, trees, rearranger):
 		"""Constructs a new element :math:`\psi` commuting with the given element :math:`\phi`. We construct the centralising element by altering the :math:`\phi`-orbit structure below the orbits of the given *period*.
 		
-		There are two parameters: a collection of labelled *trees* and a *rearranger* element; in the notation of [BGG11]_ these are elements of :math:`K_{m_i}` and :math:`G_{n, r_i}` respectively.
+		There are two parameters: a collection of labelled *trees* and a *rearranger* element; in the notation of [BBG11]_ these are elements of :math:`K_{m_i}` and :math:`G_{n, r_i}` respectively.
 		.. todo:: doctests
-		.. caution:: This is an experimental feature based on [BGG11]_.
+		.. caution:: This is an experimental feature based on [BBG11]_.
 		"""
 		if period not in self.cycle_type:
 			raise ValueError("There are no orbits of period {}.".format(period))

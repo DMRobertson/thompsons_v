@@ -3,7 +3,7 @@ References
 
 The main reference is to the paper describing theory behind these algorithms.
 
-.. [BDR] \N. Barker, A. J. Duncan, and D. M. Robertson, "The power conjugacy problem in Higman-Thompson groups". (2015) Preprint available at `arXiv:1503.01032 <http://arxiv.org/abs/1503.01032>`_ \[math.GR].
+.. [BDR] \N. Barker, A. J. Duncan, and D. M. Robertson, "`The power conjugacy problem in Higman-Thompson groups <http://www.worldscientific.com/doi/abs/10.1142/S0218196716500144>`_", *International Journal of Algebra and Computation* 26, Issue 2 (2016). Preprint available at `arXiv:1503.01032 <http://arxiv.org/abs/1503.01032>`_ \[math.GR].
 
 From the paper
 --------------
@@ -12,8 +12,6 @@ From the paper
 
 Other references
 ----------------
-
-.. [Bleak] \C. Bleak *et al*, "`Centralisers in the R. Thompson group  <http://arxiv.org/abs/1107.0672>`_ :math:`V_n`", *Groups, Geometry, and Dynamics* 7, no. 4, pp. 821–865 (2013).
 
 .. [Kogan] \R. Kogan, "`nVTrees Applet <http://www.math.tamu.edu/~romwell/nvTrees/>`_" (2008). Accessed 17th September, 2014. Source code `available on GitHub <https://github.com/romwell/nvTrees>`_.
 

@@ -1,0 +1,10 @@
+6
+(2, 1) -> (2, 1)
+x1 a1 a1 a1       -> x1 a1 a1 a1 a1   
+x1 a1 a1 a2 a1 a1 -> x1 a2            
+x1 a1 a1 a2 a1 a2 -> x1 a1 a2         
+x1 a1 a1 a2 a2    -> x1 a1 a1 a2      
+x1 a1 a2          -> x1 a1 a1 a1 a2 a2
+x1 a2             -> x1 a1 a1 a1 a2 a1
+The element beta in the appendix of [Scott]_ which generates a free group of rank 2 with alpha, also from the appendix.
+

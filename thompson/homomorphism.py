@@ -173,6 +173,8 @@ class Homomorphism:
 		- list of :math:`k` rules domain -> range
 
 		Any lines after this are ignored, and can be treated as comments. Comments are read in and added to the __doc__ attribute of the homomorphism that gets created.
+		
+		.. todo:: Should use a different attribute (.comment?) rather than __doc__.
 
 		.. seealso: The thompson/examples directory in the source code.
 		"""
@@ -242,14 +244,18 @@ class Homomorphism:
 		if filename is None:
 			clsname = type(self).__name__
 			filename = clsname + '.' + clsname.lower()[:3]
+		if comment is None:
+			if self.__doc__ != type(self).__doc__:
+				comment = self.__doc__
+			else:
+				comment = "[No comment saved with this {}]".format(type(self).__name__)
 		rows = format_table(self.domain, self.range)
 		with open(filename, 'wt', encoding='utf-8') as f:
 			print(len(self.domain), file=f)
 			print("{} -> {}".format(self.domain.signature, self.range.signature), file=f)
 			for row in rows:
 				print(row, file=f)
-			if comment is not None:
-				print(comment, file=f)
+			print(comment, file=f)
 
 	#Simple operations on homomorphisms
 	def __eq__(self, other):

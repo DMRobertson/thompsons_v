@@ -1,3 +1,6 @@
+"""This was a very hacky extension (read: I didn't know what I was doing) which allows you to refer to \labels declared in a tex source, using whatever the last avialable compilation used as the cross reference name.
+"""
+
 import re
 
 from docutils.nodes import Text

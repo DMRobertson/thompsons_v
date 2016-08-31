@@ -1,7 +1,10 @@
 from pathlib import Path
+from os.path import expanduser
 import re
 
+
 def bibliography_entries(tex_source):
+	tex_source = expanduser(tex_source)
 	output = ""
 	with Path(tex_source).open('rt', encoding='utf-8') as f:
 		at_bib_start = False
@@ -78,7 +81,7 @@ def tidy_up(text):
 
 if __name__ == '__main__':
 	refs = {}
-	bibliography = bibliography_entries(r'..\..\barker\conj_paper\pconj.tex')
+	bibliography = bibliography_entries('~/barker/conj_paper/pconj_ijac.tex')
 	citations = extractor.findall(bibliography)
 	
 	for ext_name, int_name, text in citations:

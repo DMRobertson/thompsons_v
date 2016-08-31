@@ -1,0 +1,14 @@
+instructions for a full documentation rebuild
+
+make clean
+python generate_examples_table.py
+python generate_references.py
+- This needs access to the paper's tex source, where the majority of bibliography entries are kept.
+Copy the paper's aux file to paper_references.aux
+- This is needed so the custom sphinx extension I wrote can handle references to the tex's \labels
+
+make doctest
+- check for errors or warnings
+make clean
+make html
+- check for errors or warnings

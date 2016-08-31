@@ -5,7 +5,13 @@ arity_four
 arity_three_order_inf
 	A purely :mod:`~thompson.infinite` automorphism of :math:`V_{3,1}`.
 bleak_alpha
-	The element :math:`\alpha` of :math:`V` used by Bleak *et al* [Bleak]_ to illustrate their train tracks and flow graphs.
+	The element :math:`\alpha` of :math:`V` used by Bleak *et al* [BBG11]_ to illustrate their train tracks and flow graphs.
+bleak_klein_alpha
+	The example in [BBG11]_ of an element whose centraliser contains the Klein four group :math:`\mathbb{Z_2 \oplus Z_2}` as a subgroup. We have represented it as an element of :math:`G_{2, 8}` rather than :math:`G_{2, 1}`.
+bleak_klein_beta
+	The example :math:`\beta` in [BBG11]_ of an element generating a Klein four group as part of the centraliser of ``bleak_klein_alpha``.
+bleak_klein_gamma
+	The example :math:`\gamma` in [BBG11]_ of an element generating a Klein four group as part of the centraliser of ``bleak_klein_alpha``.
 cyclic_order_six
 	An introductory example drawn on the board by NB. It is purely periodic of order six.
 example_4_1
@@ -15,11 +21,11 @@ example_4_11
 example_4_12
 	This example is used in the paper to illustrate the meaning of a semi-normal form. This example needs to be expanded from its minimal representation to find a semi-normal (in fact quasi-normal) form.
 example_4_17
-	Nathan's example of an automorphism containing a pond. This was simpler than the first example found.
+	Nathan's example of an automorphism containing a pond. This has a simpler tree pair than ``first_pond_example_phi``.
 example_4_33
-	Nathan's example of an automorphism containing a pond. This was simpler than the first example found.
+	Nathan's example of an automorphism containing a pond. This has a simpler tree pair than ``first_pond_example_phi``.
 example_4_35
-	Nathan's example of an automorphism containing a pond. This was simpler than the first example found.
+	Nathan's example of an automorphism containing a pond. This has a simpler tree pair than ``first_pond_example_phi``.
 example_4_5
 	This example is used to illustrate the different types of :mod:`components/orbits <thompson.orbits>` in the paper.
 example_4_7
@@ -53,9 +59,9 @@ example_6_9_phi
 example_6_9_psi
 	This example is used in the paper to illustrate the meaning of a semi-normal form (Example :paperref:`ex:snf1`) and of a tree pair diagram (Example :paperref:`snf0`).
 first_pond_example_phi
-	The first example of a pond orbit, found by a random search. Its banks are :math:`x\alpha_1^4\alpha_2` and :math:`x\alpha_1\alpha_2^2`.
+	The example of a pond orbit we found by a random search. Its banks are :math:`x\alpha_1^4\alpha_2` and :math:`x\alpha_1\alpha_2^2`.
 first_pond_example_psi
-	The element which was conjugate to the first example of a pond orbit, found by a random search.
+	The element which was conjugate to ``first_pond_example_phi``.
 four_minimal_revealing_pairs
 	I think this automorphism has 4 minimal revealing pairs. It has an orbit of characteristic (-4, a1^4) spread apart over four components of :math:`A \setminus B`. Brin's algorithm would have you add three of these components to the tree, and I think the component you DON'T add is the one that determines the revealing pair.
 inf_conj_phi
@@ -67,13 +73,13 @@ mixed_pconj_phi
 mixed_pconj_psi
 	An example of mixed power conjugacy found by random search. Should have :math:`\psi^{-4} \sim \phi^2`.
 multiple_classes
-	A purely infinite automorphism for which there are two equivalence classes defined on X. This was the first example found (via random search) of such an automorphism. Photographic notes are contained in /thompson/examples.
+	A purely infinite automorphism for which there are two equivalence classes defined on X.
 multiple_classes_smaller
 	A purely infinite automorphism for which there are two equivalence classes defined on X. It was more straightforward to see that this automorphism had two equivalence classes.
 nathan1_example
 	One of Nathan's examples. This is *almost*, but not quite conjugate to nathan_pond_example. Nathan had this to say: *"I untwisted one of the infinite orbits after a conjugation and so they definitely should not be conjugate."*
 nathan_pond_example
-	Nathan's example of an automorphism containing a pond. This was simpler than the first example found.
+	Nathan's example of an automorphism containing a pond. This has a simpler tree pair than ``first_pond_example_phi``.
 no_minimal_revealing
 	An example from section 3.6 of [SD10]_. This is an automorphism :math:`f \in G_{2,1}` for which there is no minimal revealing pair from which every other revaling pair can be obtained via rollings.
 non_dyadic_fixed_point
@@ -83,9 +89,9 @@ non_revealing
 	- The minimal representation does NOT correspond to a revealing pair; and
 	- The quasinormal basis does NOT correspond to a revealing pair.
 not_conjugate_f
-	At first glance this automorphism looks like it could be conjugate to ``not_conjugate_g``; indeed this satisfies the criteria of theorem 2 in [SD10]_. However the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>` only yields one potential conjugator :math:`\rho` which turns out not to be an automorphism (in fact, just an endomorphism) of :math:`V_{2,1}`.
+	An example of an element which isn't conjugate to ``not_conjugate_g``, even though it comes quite close to being so!
 not_conjugate_g
-	At first glance this automorphism looks like it could be conjugate to ``not_conjugate_f``; indeed this satisfies the criteria of theorem 2 in [SD10]_. However the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>` only yields one potential conjugator :math:`\rho` which turns out not to be an automorphism (in fact, just an endomorphism) of :math:`V_{2,1}`.
+	An element which is not conjugate to ``not_conjugate_f``, even though it comes quite close to being so!
 olga_f
 	An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*"
 olga_g
@@ -102,5 +108,9 @@ pond_width_4
 	An example found by random search of a pond orbit of width 4. Prior to this we had only seen ponds of width 1 or 2.
 power_smaller_QNB
 	The square of this automorphism appears to have a QNB above the QNB of the original automorphism.
+scott_free_alpha
+	The element alpha in the appendix of [Scott]_ which generates a free group of rank 2 with beta, also from the appendix.
+scott_free_beta
+	The element beta in the appendix of [Scott]_ which generates a free group of rank 2 with alpha, also from the appendix.
 semi_inf_c
 	An example of an automorphism whose :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` :math:`X` contains an element :math:`x\alpha_2\alpha_1` which belongs to a semi-infinite :math:`X`-component which is not characteristic.

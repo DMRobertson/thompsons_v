@@ -1,19 +1,19 @@
 .. [AS74] \M. Anshel and P. Stebe, "The solvability of the conjugacy problem for certain HNN groups",  *Bull. Amer. Math. Soc.* ,  **80**  (2) (1974) 266–270.  
 .. [B87] \K. S. Brown, "Finiteness properties of groups", Journal of Pure and Applied Algebra,  **44**  (1987) 45-75.    
+.. [BBG11] \C. Bleak, H. Bowman, A. Gordon, G. Graham, J. Hughes, F. Matucci and J. Sapir, "Centralizers in R.Thompson's group  :math:`V_{n}`",  *Groups, Geometry and Dynamics*   **7** , No. 4 (2013), 821–865.  
 .. [BCR] \J. Burillo, S. Cleary and C. E. R\"over, "Obstructions for subgroups of Thompson's group  :math:`V`", arxiv.org/abs/1402.3860  
-.. [BGG11] \C. Bleak, H. Bowman, A. Gordon, G. Graham, J. Hughes, F. Matucci and J. Sapir, "Centralizers in R.Thompson's group  :math:`V_{n}`",  *Groups, Geometry and Dynamics*   **7** , No. 4 (2013), 821–865.  
-.. [BK08] \V.N. Bezverkhnii, A.N. Kuznetsova, "Solvability of the power conjugacy problem for words in Artin groups of extra large type",  *Chebyshevskii Sb.*   **9**  (1) (2008)  50–68.  
+.. [BK08] \V. N. Bezverkhnii, A.N. Kuznetsova, "Solvability of the power conjugacy problem for words in Artin groups of extra large type",  *Chebyshevskii Sb.*   **9**  (1) (2008)  50–68.  
 .. [BM07] \J. M. Belk and F. Matucci, "Conjugacy and dynamics in Thompson's groups",  *Geom. Dedicata*   **169**  (1) (2014) 239–261.  
 .. [BMOV] \O. Bogopolski, A. Martino, O. Maslakova and E. Ventura, "The conjugacy problem is solvable in free-by-cyclic groups",  *Bulletin of the London Mathematical Society* ,  **38** , (10) (2006) 787–794.    
 .. [Bar] \N. Barker, "Topics in Algebra: The Higman-Thompson Group  :math:`G_{2,1}` and Beauville  :math:`p`-groups",  *Thesis, Newcastle University*  (2014) 
-.. [Bez14] \N.V. Bezverkhnii, "Ring Diagrams with Periodic Labels and Power Conjugacy Problem in Groups with Small Cancellation Conditions C (3) -T (6)",  *Science and Education of the Bauman MSTU* ,  **14**  (11) (2014).  
+.. [Bez14] \N. V. Bezverhnii, "Ring Diagrams with Periodic Labels and Power Conjugacy Problem in Groups with Small Cancellation Conditions C (3) -T (6)",  *Science and Education of the Bauman MSTU* ,  **14**  (11) (2014).  
 .. [Brin04] \M. G. Brin, "Higher dimensional Thompson groups",  *Geom. Dedicata* ,  **108**  (2004) 163–192.  
 .. [CFP96] \J. W. Cannon, W.J. Floyd and W. R. Parry, "Introductory notes on Richard Thompson's groups",  *Enseign. Math.* , (2)  **42** (3–4) (1996) 215–256.   
 .. [Cohn81] \P. M. Cohn, "Universal Algebra". Mathematics and its Applications, 6, D. Reidel Pub. Company, (1981).  
 .. [Cohn91] \P. M. Cohn, "Algebra, Volume 3". J. Wiley, (1991).  
 .. [Com77] \L. P. J. Comerford, A note on power-conjugacy,  *Houston J. Math.*  3 (1977), no. 3, 337—341.  
 .. [DMP14] \W. Dicks, C. Martinez-Pérez, "Isomorphisms of Brin-Higman-Thompson groups",  *Israel Journal of Mathematics* ,  **199**  (2014), 189–218.   
-.. [Fes14] \A.V. Fesenko, "Vulnerability of Cryptographic Primitives Based on the Power Conjugacy Search Problem in Quantum Computing",  *Cybernetics and Systems Analysis* ,  **50**  (5) (2014) 815–816.    
+.. [Fes14] \A. V. Fesenko, "Vulnerability of Cryptographic Primitives Based on the Power Conjugacy Search Problem in Quantum Computing",  *Cybernetics and Systems Analysis* ,  **50**  (5) (2014) 815–816.    
 .. [Hig74] \G. Higman, "Finitely presented infinite simple groups",   *Notes on Pure Mathematics* , Vol. 8 (1974).     
 .. [JT61] \B. Jónsson and A. Tarski, "On two properties of free algebras",  *Math. Scand.* ,  **9**  (1961) 95–101.  
 .. [KA09] \D. Kahrobaei and M. Anshel, "Decision and Search in Non-Abelian Cramer-Shoup Public Key Cryptosystem",  *Groups-Complexity-Cryptology* ,  **1**  (2) (2009) 217-–225.  
@@ -22,7 +22,7 @@
 .. [MPN13] \C. Martinez-Perez, B. Nucinkis, "Bredon cohomological finiteness conditions for generalisations of Thompson's groups",  *Groups Geom. Dyn.*   **7**  (4) (2013) 931–959.  
 .. [MT73] \R. McKenzie and R. J. Thompson, "An elementary construction of unsolvable word problems in group theory", Word problems: decision problems and the Burnside problem in group theory, Studies in Logic and the Foundations of Math., 71, pp. 457–478. North-Holland, Amsterdam, (1973).  
 .. [Pa11] \E. Pardo, "The isomorphism problem for Higman-Thompson groups",  *Journal of Algebra* ,  **344**  (2011), 172–183.  
-.. [Pr08] \S.J. Pride, "On the residual finiteness and other properties of (relative) one-relator groups",  *Proc. Amer. Math. Soc.*   **136**  (2) (2008) 377–386.  
-.. [R15] \D. M. Robertson, "``thompson``: a package for Python 3.3+ to work with elements of the Higman-Thompson groups  :math:`G_{n,r}`". Source code available from https://github.com/DMRobertson/thompsons\_v and documentation available from http://thompsons-v.readthedocs.org/.  
+.. [Pr08] \S. J. Pride, "On the residual finiteness and other properties of (relative) one-relator groups",  *Proc. Amer. Math. Soc.*   **136**  (2) (2008) 377–386.  
+.. [R15] \D. M. Robertson, "``thompson``: a package for Python 3.3+ to work with elements of the Higman-Thompson groups  :math:`G_{n,r}`". Source code available from https://github.com/DMRobertson/thompsons_v and documentation available from http://thompsons-v.readthedocs.org/.  
 .. [SD10] \O. P. Salazar-Diaz, "Thompson's group V from a dynamical viewpoint",  *Internat. J. Algebra Comput.* , 1, 39–70, 20, (2010).  
 .. [Tho] \R. J. Thompson, unpublished notes. http://www.math.binghamton.edu/matt/thompson/index.html 
