@@ -6,7 +6,7 @@
 	from thompson.examples   import *
 """
 from copy        import copy
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 from .     import word
 from .word import Word, Signature
@@ -366,21 +366,58 @@ class Generators(list):
 		return output
 	
 	@classmethod
-	def _basis_from_dfs(cls, string):
-		if not set(string) <= {'0', '1'}:
+	def from_dfs(cls, string):
+		"""Creates bases correponding to binary trees via a string of 1s and 0s correponding to branches and carets respectively. See :meth:`~thompson.automorphism.Automorphism.from_dfs`. The *string* can also be specified as a :class:`~py3:int`, in which case it is replaced by its base 10 string representation.
+		
+			>>> print(Generators.from_dfs("100"))
+			[x1 a1, x1 a2]
+			>>> print(Generators.from_dfs(1100100)) #ints are fine too
+			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2]
+		
+		:raises ValueError: if the *string* doesn't correctly describe a rooted binary tree.
+		
+			>>> print(Generators.from_dfs(""))
+			Traceback (most recent call last):
+			...
+			ValueError: Should have one more zero than one (got 0 and 0 respectively)
+			>>> print(Generators.from_dfs("10"))
+			Traceback (most recent call last):
+			...
+			ValueError: Should have one more zero than one (got 1 and 1 respectively)
+			>>> print(Generators.from_dfs(10001))
+			Traceback (most recent call last):
+			...
+			ValueError: Error at character 3: complete description of tree with unprocessed digits remaining. String was 10001
+		"""
+		if isinstance(string, int):
+			string = str(string)
+		counts = Counter(string)
+		if not set(counts) <= set('01'):
 			raise ValueError("String {} should contain only 1s and 0s".format(string))
-		basis = cls.standard_basis((2, 1));
-		index = 0;
-		for char in string:
-			if char == '1':
-				basis.expand(index);
-			elif char == '0':
-				index += 1;
-				if index > len(basis):
-					raise ValueError("Too many zeroes in {}".format(string))
-		if index != len(basis):
-			raise ValueError("Not enough zeroes in {}".format(string))
+		if counts['0'] != counts['1'] + 1:
+			raise ValueError("Should have one more zero than one (got {} and {} respectively)".format(
+				counts['0'], counts['1']))
+		
+		basis = cls.standard_basis((2, 1))
+		index = 0
+		counts = Counter()
+		for string_index, char in enumerate(string, start=1):
+			counts[char] += 1
+			balance = counts['0'] - (counts['1'] + 1)
+			if balance > 0:
+				raise ValueError("Error at character {}: too many zeroes before a one. String was {}".format(
+					string_index, string))
+			elif balance == 0 and string_index != len(string):
+				#should now be at the end of the string. If not, error
+				raise ValueError("Error at character {}: complete description of tree with unprocessed digits remaining. String was {}".format(
+					string_index, string))
 			
+			#else all is well, handle this char.
+			if char == '1':
+				basis.expand(index)
+			elif char == '0':
+				index += 1
+		
 		return basis
 
 	def minimal_expansion_for(self, *automorphisms):

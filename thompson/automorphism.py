@@ -191,8 +191,8 @@ class Automorphism(Homomorphism):
 		
 		"""
 		labels = [int(x) for x in labels.split()]
-		domain = Generators._basis_from_dfs(domain)
-		range  = Generators._basis_from_dfs(range)
+		domain = Generators.from_dfs(domain)
+		range  = Generators.from_dfs(range)
 		assert len(domain) == len(range) == len(labels)
 		range2 = range.copy()
 		for index, label in enumerate(labels):
