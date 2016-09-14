@@ -1,0 +1,6 @@
+#For plotting elements as homeomorphisms of the interval
+svgwrite>=1.1.6
+#For building the documentation
+sphinx>=1.2.3
+sphinx_rtd_theme>=0.1.6
+#For interacting with the software in a jupyter notebook
