@@ -419,7 +419,10 @@ class Generators(list):
 				index += 1
 		
 		return basis
-
+	
+	#TODO: Generators.to_dfs(self):
+		#...
+	
 	def minimal_expansion_for(self, *automorphisms):
 		r"""Suppose we are given a finite sequence of *automorphisms* of :math:`V_{n,r}` and that the current generaeting set is a basis :math:`X` for :math:`V_{n,r}`. This methods returns an expansion :math:`Y` of :math:`X` such that each automorphism maps :math:`Y` into :math:`X\langle A\rangle`.
 

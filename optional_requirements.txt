@@ -4,3 +4,5 @@ svgwrite>=1.1.6
 sphinx>=1.2.3
 sphinx_rtd_theme>=0.1.6
 #For interacting with the software in a jupyter notebook
+jupyter>=1.0.0
+
