@@ -210,6 +210,12 @@ class Automorphism(Homomorphism):
 	def image(self, key, inverse=False):
 		"""If *inverse* is True, the inverse of the current automorphism is used to map *key* instead. Otherwise this method delegates to :meth:`Homomorphism.image <thompson.homomorphism.Homomorphism.image>`.
 		
+		As a shorthand, we can use function call syntax in place of this method. For instance:
+			
+			>>> phi = load_example('example_5_15')
+			>>> print(phi('x1 a2 a2 a1 a1'))
+			x1 a2 a2
+		
 		Examples of finding inverse images:
 		
 			>>> phi = load_example('example_5_15')
@@ -221,13 +227,13 @@ class Automorphism(Homomorphism):
 			x1 a2 a2 a2 x1 a2 a2 a1 a1 L
 			>>> print(phi.image('x a2 a2 x a1 a2 L', inverse=True))
 			x1 a2 a2 a1
-		
-		.. todo:: Overload ``__call__`` as a nice bit of syntactic sugar.
 		"""
 		if inverse:
 			return super().image(key, self.range.signature, self.domain.signature, self._inv)
 		else:
 			return super().image(key)
+	
+	__call__ = image
 	
 	def image_of_set(self, set, inverse=False):
 		"""If *inverse* is True, the inverse of the current automorphism is used to map *set* instead. Otherwise this method delegates to :meth:`Homomorphism.image_of_set <thompson.homomorphism.Homomorphism.image_of_set>`.

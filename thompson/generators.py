@@ -256,6 +256,13 @@ class Generators(list):
 			>>> i, tail = basis.test_above(Word('x1 a2 a2 a1', (2, 1)), return_index=True)
 			>>> print(basis[i])
 			x1 a2
+			>>> basis.test_above(Word('x1', (2,1))) is None
+			True
+			>>> gen, tail = basis.test_above(basis[0])
+			>>> print(gen)
+			x1 a1 a1 a1
+			>>> gen is basis[0] and len(tail) == 0
+			True
 		"""
 		if not return_index and self.cache is not None:
 			return self._test_above_cached(word)
@@ -537,7 +544,7 @@ class Generators(list):
 
 	def expand_to_size(self, size):
 		"""Expands the current generating set until it has the given *size*. The expansions begin from the end of the generating set and work leftwards, wrapping around if we reach the start. (This is to try and avoid creating long words where possible.)
-
+		
 			>>> basis = Generators.standard_basis((3, 1)); print(basis)
 			[x1]
 			>>> basis.expand_to_size(11); print(basis)
@@ -550,10 +557,31 @@ class Generators(list):
 			[x1 a1, x1 a2, x2, x3 a1, x3 a2]
 			>>> basis.expand_to_size(12); print(basis)
 			[x1 a1 a1, x1 a1 a2, x1 a2 a1, x1 a2 a2, x2 a1, x2 a2, x3 a1 a1, x3 a1 a2, x3 a2 a1 a1, x3 a2 a1 a2, x3 a2 a2 a1, x3 a2 a2 a2]
-
-		:returns: the current generating set
-
-		:raises ValueError: if an expansion to the given size is not possible.
+			
+		Expanding a basis to its current size does nothing.
+		
+			>>> b1 = random_basis()
+			>>> b2 = b1.copy()
+			>>> b2.expand_to_size(len(b1))
+			>>> b1 == b2
+			True
+		
+		If expansion to the target size is not possible, a :class:`py3:ValueError` is raised.
+		
+			>>> basis = Generators.standard_basis((3,2))
+			>>> len(basis)
+			2
+			>>> basis.expand_to_size(3)
+			Traceback (most recent call last):
+			...
+			ValueError: Cannot expand from length 2 to length 3 in steps of size 2.
+			>>> basis.expand_to_size(4)
+			>>> len(basis)
+			4
+			>>> basis.expand_to_size(1)
+			Traceback (most recent call last):
+			...
+			ValueError: Cannot expand from length 4 to length 2 in steps of size 2.
 		"""
 		modulus = self.signature.arity - 1
 		if (size % modulus != len(self) % modulus) or size < len(self):

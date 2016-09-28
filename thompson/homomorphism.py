@@ -193,7 +193,7 @@ class Homomorphism:
 		try:
 			num_generators = int(line)
 		except ValueError as e:
-			details = 'Instead of {}, the first line should be the number of generators used to define the homorphism.'.format(repr(line))
+			details = 'Instead of {!r}, the first line should be the number of generators used to define the homorphism.'.format(line)
 			raise ValueError(details) from e
 
 		line = f.readline().strip()
