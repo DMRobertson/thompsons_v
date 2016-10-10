@@ -86,7 +86,7 @@ def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None, sc
 	r"""Draws the given :class:`~thompson.automorphism.Automorphism` as a forest-pair diagram.
 	The image is rendered as a PDF using the `tikz` graph drawing libraries and `lualatex`.
 
-	:param str jobname: the destination filepath to save the PDF to. A file extension should **not** be provided. If `None`, the SVG is saved to a temporary file location.
+	:param str jobname: the destination filepath to save the PDF to. A file extension should **not** be provided. If `None`, the PDF is saved to a temporary file location.
 	:param str name: The label used for the arrow between domain and range forests. This is passed directly to TeX, so you can include mathematics by delimiting it with dollars. Note that backslashes are treated specially in Python unless you use a *raw string*, which is preceeded with an ``r``. For instance, try ``name=r'\gamma_1``
 	:param bool display: if True, automatically call :func:`display_file` to display the PDF to the user. Otherwise does nothing.
 	:param bool horiz: if True, draws the range forest to the right of the domain forest. If false, draws the range forest below the range forest.

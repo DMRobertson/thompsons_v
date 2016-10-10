@@ -13,7 +13,7 @@ from itertools   import chain, product
 from .number_theory import divisors
 
 __all__ = ["Signature", "Word",
-	"format", "from_string", "validate", "standardise", "are_contractible", "lambda_arguments", "_concat", "free_monoid_on_alphas", "root"]
+	"format", "format_cantor", "from_string", "validate", "standardise", "are_contractible", "lambda_arguments", "_concat", "free_monoid_on_alphas", "root"]
 
 BaseSignature = namedtuple('BaseSignature', 'arity alphabet_size')
 class Signature(BaseSignature):
@@ -77,8 +77,12 @@ def _char(symbol):
 		return 'L'
 
 def format(word):
-	"""Turns a sequence of integers representing a *word* into a nicely formatted string. Can be thought of as an inverse to :func:`from_string`. The *word* is not processed or reduced in any way.
-	
+	"""Turns a :class:`~thompson.word.Word`, or a sequence of integers representing a *word* into a nicely formatted string.
+	Can be thought of as an inverse to :func:`from_string`.
+	The *word* is not processed or reduced in any way by this function.
+		
+		>>> format(Word("x1 a1 a2 a1 a1", (2, 1)))
+		'x1 a1 a2 a1 a1'
 		>>> format([2, -1, 2, -2, 0])
 		'x2 a1 x2 a2 L'
 		>>> format([])
@@ -87,6 +91,23 @@ def format(word):
 	if len(word) == 0:
 		return "<the empty word>"
 	return " ".join(_char(i) for i in word)
+
+def format_cantor(word):
+	"""An alternative, more concise notation for simple words.
+	We use the Cantor set notation, where we write :math:`n-1` in place of `\alpha_n`.
+	All other symbols :math:`\lambda` and :math:`x_i` are omitted, so this should really only be used on simple words.
+	
+	:raises ValueError: if the given *word* is not simple. 
+		
+		>>> format_cantor(Word("x1 a1 a2 a1 a1", (2, 1)))
+		'0100'
+		>>> format_cantor([2, -1, 2, -2, 0])
+		'01'
+		>>> format_cantor([])
+		''
+	"""
+	return "".join( str(-i-1) for i in word if i < 0)
+	
 
 def from_string(str):
 	"""Converts a string representing a word to the internal format---a tuple of integers. Anything which does not denote a basis letter (e.g. ``'x'``, ``'x2'``, ``'x45'``) a descendant operator (e.g.  ``'a1'``, ``'a3'``, ``'a27'``) or a  contraction (``'L'`` for :math:`\lambda`) is ignored.

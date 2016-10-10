@@ -295,6 +295,7 @@ class Automorphism(Homomorphism):
 		if power == 0:
 			return Automorphism.identity(self.signature)
 		if power == 1:
+			#TODO: maybe this should return a copy of self
 			return self
 		if power == -1:
 			return ~self
@@ -1157,6 +1158,8 @@ class Automorphism(Homomorphism):
 		False
 		>>> f.is_revealing('wrt QNB')
 		True
+		>>> load_example('v_revealing_test').is_revealing()
+		False
 		
 		.. caution:: This is an experimental feature based on [SD10]_.
 		
