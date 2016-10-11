@@ -488,7 +488,7 @@ class Homomorphism:
 		if set.signature != sig_in:
 			raise ValueError("Set signature {} does not match the input signature {}.".format(
 			  set.signature, sig_in))
-		images = Generators(sig_out)
+		images = type(set)(sig_out)
 		for preimage in set:
 			images.append(self._compute_image(preimage, sig_in, sig_out, cache))
 

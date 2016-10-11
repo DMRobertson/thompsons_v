@@ -58,6 +58,7 @@ Contents
    Drawing automorphisms <thompson.drawing>
    References <references>
    Todo list <todo>
+   Experimental: Cantor subsets <thompson.cantorsubset>
 
 Indices
 -------

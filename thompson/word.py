@@ -107,37 +107,68 @@ def format_cantor(word):
 		''
 	"""
 	return "".join( str(-i-1) for i in word if i < 0)
-	
 
-def from_string(str):
-	"""Converts a string representing a word to the internal format---a tuple of integers. Anything which does not denote a basis letter (e.g. ``'x'``, ``'x2'``, ``'x45'``) a descendant operator (e.g.  ``'a1'``, ``'a3'``, ``'a27'``) or a  contraction (``'L'`` for :math:`\lambda`) is ignored.
-	
+def from_string(string):
+	r"""Converts a *string* representing a word to the internal format---a tuple of integers.
+	No kind of validation or processing is performed.
+	This is used internally by other functions and doesn't typically need to be called directly.
+	Two forms of string are accepted: 'Higman' and 'Cantor'.
+	We assume the former is in use if the string contains an ``x``, ``a`` or ``L``; else we assume the latter. 
+	The first is the Higman notation (involving :math:`x`s, :math:`\alpha`s and :math:`\lambda`s).
+	Anything which does not denote a basis letter (e.g. ``'x'``, ``'x2'``, ``'x45'``) a descendant operator (e.g.  ``'a1'``, ``'a3'``, ``'a27'``) or a  contraction (``'L'`` for :math:`\lambda`) is ignored.
 	Note that ``'x'`` is interpreted as shorthand for ``'x1'``.
 	
 		>>> x = from_string('x2 a1 x2 a2 L')
-		>>> print(x); print(format(x))
+		>>> print(x, format(x), sep='\n')
 		(2, -1, 2, -2, 0)
 		x2 a1 x2 a2 L
+		>>> x = from_string('x a1 a2 a3')
+		>>> print(x, format(x), sep='\n')
+		(1, -1, -2, -3)
+		x1 a1 a2 a3
 		>>> w = random_simple_word()
 		>>> from_string(str(w)) == w
 		True
 	
+	The second form is the Cantor-set notation.
+	This only applies when there is a single basis letter :math:`x`, which is not written down as part of the format.
+	We use this mode if the first non-whitespace character of the input *string* is not ``x``.
+	A descendant operator :math:`\alpha_n` is written as the integer :math:`n-1`.
+	All characters outside the range 0–9 are ignored.
+	
+		>>> x = from_string("001101")
+		>>> print(x, format(x), format_cantor(x), sep='\n')
+		(1, -1, -1, -2, -2, -1, -2)
+		x1 a1 a1 a2 a2 a1 a2
+		001101
+	
 	:rtype: :class:`tuple <py3:tuple>` of integers
 	
-	.. todo:: More convenient ways of inputting words, e.g. ``x a1^3`` instead of ``x a1 a1 a1``.
+	.. todo:: More convenient ways of inputting words, e.g. ``x a1^3`` instead of ``x a1 a1 a1``. Use of unicode characters α and λ?
 	"""
-	output = str.lower().split()
-	for i, string in enumerate(output):
-		char = string[0]
-		if char == 'x':
-			value = 1 if len(string) == 1 else int(string[1:])
-			output[i] = value
-		elif char == 'a':
-			value = int(string[1:])
-			output[i] = -value
-		elif char == ('l'):
-			output[i] = 0
-	return tuple(output)
+	string = string.strip().lower()
+	
+	if 'a' in string or 'x' in string or 'L' in string:
+		#Higman notation
+		return tuple( _higman(x) for x in string.split() )
+	
+	else:
+		#Cantor notation
+		#[48, 57] is the unicode (ASCII) range for decimal digits.
+		return (1,) + tuple(47 - ord(x) for x in string if 48 <= ord(x) <= 57)
+
+def _higman(string):
+	char = string[0]
+	output = ""
+	if char == 'x':
+		value = 1 if len(string) == 1 else int(string[1:])
+		output = value
+	elif char == 'a':
+		value = int(string[1:])
+		output = -value
+	elif char == 'l':
+		output = 0
+	return output
 
 def validate(letters, signature):
 	r"""Checks that the given *letters* describe a valid word belonging to the algebra with the given *signature = (arity, alphabet_size)*. If no errors are raised when running this function, then we know that:
@@ -149,8 +180,10 @@ def validate(letters, signature):
 	- No :math:`x_i` occurs with  :math:`i >` *alphabet_size*.
 	
 	Calling this function does not modify *letters*. The argument *letters* need not be in standard form.
-	
-		>>> validate(from_string('a1 x a2 L'), (2, 1))
+		
+		>>> w = from_string('a1 x a2 L'); w
+		(-1, 1, -2, 0)
+		>>> validate(w, (2, 1))
 		Traceback (most recent call last):
 			...
 		ValueError: The first letter (a1) should be an x.

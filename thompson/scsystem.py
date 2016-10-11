@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from .automorphism import Automorphism
-from .generators   import Generators
+from .cantorsubset import CantorSubset
 
 class SCSystem:
 	def __init__(self, list1, list2):
@@ -33,15 +33,24 @@ class SCSystem:
 		rules = []
 		for index, (aut1, aut2) in enumerate(self):
 			for period in aut1.periodic_orbits:
-				rule = Generators((2,1)), Generators((2,1))
+				rule = CantorSubset((2,1)), CantorSubset((2,1))
 				for orbit in aut1.periodic_orbits[period]:
 					rule[0].extend(orbit)
 				for orbit in aut2.periodic_orbits[period]:
 					rule[1].extend(orbit)
-				rule[0].contract()
-				rule[1].contract()
+				rule[0].simplify()
+				rule[1].simplify()
 				rules.append(rule)
-					 
+				#2. Conjugate by the relations
+				for index2, (otheraut1, otheraut2) in enumerate(self):
+					if index2 == index:
+						continue
+					conjugated_rule = ( otheraut1.image_of_set(rule[0]), otheraut2.image_of_set(rule[1]) )
+					conjugated_rule[0].simplify()
+					conjugated_rule[1].simplify()
+					rules.append(conjugated_rule)
+		
+		#TODO: an efficient way to see if these rules contain any duplicates.
 		return rules
 		
 
