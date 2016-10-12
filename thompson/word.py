@@ -96,16 +96,22 @@ def format_cantor(word):
 	"""An alternative, more concise notation for simple words.
 	We use the Cantor set notation, where we write :math:`n-1` in place of `\alpha_n`.
 	All other symbols :math:`\lambda` and :math:`x_i` are omitted, so this should really only be used on simple words.
-	
-	:raises ValueError: if the given *word* is not simple. 
-		
+			
 		>>> format_cantor(Word("x1 a1 a2 a1 a1", (2, 1)))
 		'0100'
 		>>> format_cantor([2, -1, 2, -2, 0])
 		'01'
 		>>> format_cantor([])
-		''
+		'<the empty word>'
+		>>> format_cantor([1])
+		'<entire Cantor set>'
+		>>> format_cantor([-1])
+		'0'
 	"""
+	if len(word) == 0:
+		return "<the empty word>"
+	elif len(word) == 1 and word[0] > 0:
+		return "<entire Cantor set>"
 	return "".join( str(-i-1) for i in word if i < 0)
 
 def from_string(string):
