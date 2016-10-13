@@ -532,7 +532,22 @@ class Generators(list):
 		self.expand(index)
 		self.cache.update(self[index : index + self.signature.arity])
 		return self
-
+	
+	def expand_away_lambdas(self):
+		r"""Experimental method to recursively (and inefficiently) expand a generating set until every word has lambda-length 0.
+		
+			>>> X = Generators((2,1), ['x1 a1 a1 a1 a2', 'x1 a2 a1 a2 x1 a2 a1 a1 a2 x1 a2 a2 a2 L x1 a2 a2 a1 L L'])
+			>>> X.expand_away_lambdas()
+			>>> print(X)
+			[x1 a1 a1 a1 a2, x1 a2 a1 a2, x1 a2 a1 a1 a2, x1 a2 a2 a2, x1 a2 a2 a1]
+		"""
+		index = 0
+		while index < len(self):
+			if self[index].lambda_length > 0:
+				self.expand(index)
+			else:
+				index += 1
+		
 	@classmethod
 	def sort_mapping_pair(cls, domain, range):
 		"""Makes copies of the given lists of words *domain* and *range*. The copy of *domain* is sorted according to the :meth:`order <thompson.word.Word.__lt__>` defined on words. The same re-ordering is applied to the *range*, so that the mapping from *domain* to *range* is preserved.

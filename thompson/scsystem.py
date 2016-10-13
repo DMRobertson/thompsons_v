@@ -33,7 +33,7 @@ class SCSystem:
 		rules = []
 		for index, (aut1, aut2) in enumerate(self):
 			for period in aut1.periodic_orbits:
-				rule = CantorSubset((2,1)), CantorSubset((2,1))
+				rule = (CantorSubset((2,1)), CantorSubset((2,1)))
 				for orbit in aut1.periodic_orbits[period]:
 					rule[0].extend(orbit)
 				for orbit in aut2.periodic_orbits[period]:
@@ -51,9 +51,37 @@ class SCSystem:
 					rules.append(conjugated_rule)
 		
 		remove_duplicates(rules)
-		#3. 
-		#atoms = [None] * 2 ** n
-		return rules
+		
+		dump_rules = rules.copy()
+		
+		#3. Compute the complementary rules
+		comp_rules = [(~set1, ~set2) for set1, set2 in rules]
+		
+		dump_comp_rules = comp_rules.copy()
+		
+		#4. Compute the atomic intersections
+		#TODO: only include non empty rule pairs
+		atoms = [None] * 2 ** len(rules)
+		for index in range(len(atoms)):
+			bitmask = index
+			bit = bitmask % 2
+			if bit:
+				rule = list(rules[0])
+			else:
+				rule = list(comp_rules[0])
+			for j in range(1, len(rules)):
+				bitmask >>= 1
+				bit = bitmask % 2
+				if bit:
+					rule[0] &= rules[j][0]
+					rule[1] &= rules[j][1]
+				else:
+					rule[0] &= comp_rules[j][0]
+					rule[1] &= comp_rules[j][1]
+			#TODO make this raise a proper exception
+			assert bool(rule[0]) == bool(rule[1])
+			atoms[index] = rule
+		return rules, comp_rules, atoms
 		
 
 def _aut_in_V(x):

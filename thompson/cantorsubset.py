@@ -17,17 +17,6 @@ class CantorSubset(Generators):
 	We store this as a (typically sorted) list of :class:`~thompson.generators.Generators` :math:`u_1, \dots, u_n`.
 	This stands for the set of all points :math:`u_i\Gamma` where :math:`\Gamma \in \{0,1\}^{\mathbb N}`.
 	"""
-	def expand_lambdas(self):
-		"""
-			>>> X = CantorSubset((2,1), ["x1 a1 a1 x1 a1 a2 a1 x1 a2 a1 a1 a1 L L"])
-			>>> X.expand_lambdas(); print(X);
-			[00, 010, 1000]
-		"""
-		index = 0
-		while index < len(self):
-			if not self[index].is_simple():
-				self[index:index+1] = lambda_arguments(self[index])
-			index += 1
 	
 	def contract(self):
 		r"""Contracts the current generating set as much as possible (without using words involving a :math:`\lambda`).
@@ -71,7 +60,7 @@ class CantorSubset(Generators):
 			>>> X.simplify(); print(X)
 			[1]
 		"""
-		self.expand_lambdas()
+		self.expand_away_lambdas()
 		self.sort()
 		
 		index = 0
