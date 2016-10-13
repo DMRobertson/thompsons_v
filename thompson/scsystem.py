@@ -41,7 +41,7 @@ class SCSystem:
 				rule[0].simplify()
 				rule[1].simplify()
 				rules.append(rule)
-				#2. Conjugate by the relations
+				#2. Impose the restrictions we get from the other conjugation relations
 				for index2, (otheraut1, otheraut2) in enumerate(self):
 					if index2 == index:
 						continue
@@ -50,9 +50,21 @@ class SCSystem:
 					conjugated_rule[1].simplify()
 					rules.append(conjugated_rule)
 		
-		#TODO: an efficient way to see if these rules contain any duplicates.
+		remove_duplicates(rules)
+		#3. 
+		#atoms = [None] * 2 ** n
 		return rules
 		
 
 def _aut_in_V(x):
 	return isinstance(x, Automorphism) and x.signature == (2, 1)
+
+def remove_duplicates(rules):
+	rules.sort()
+	i = 0
+	while i + 1 < len(rules):
+		if rules[i] == rules[i+1]:
+			del rules[i+1]
+		else:
+		 	i += 1
+	

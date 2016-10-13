@@ -92,11 +92,13 @@ def format(word):
 		return "<the empty word>"
 	return " ".join(_char(i) for i in word)
 
-def format_cantor(word):
+def format_cantor(word, subset=False):
 	"""An alternative, more concise notation for simple words.
 	We use the Cantor set notation, where we write :math:`n-1` in place of `\alpha_n`.
 	All other symbols :math:`\lambda` and :math:`x_i` are omitted, so this should really only be used on simple words.
-			
+	The *subset* argument changes how we display a single :math:`x_i`.
+	It's here for experimental use by :meth:`CantorSubset.__str__ <thompson.cantorsubset.CantorSubset.__str__>`.
+		
 		>>> format_cantor(Word("x1 a1 a2 a1 a1", (2, 1)))
 		'0100'
 		>>> format_cantor([2, -1, 2, -2, 0])
@@ -104,6 +106,8 @@ def format_cantor(word):
 		>>> format_cantor([])
 		'<the empty word>'
 		>>> format_cantor([1])
+		'<root>'
+		>>> format_cantor([1], subset=True)
 		'<entire Cantor set>'
 		>>> format_cantor([-1])
 		'0'
@@ -111,7 +115,7 @@ def format_cantor(word):
 	if len(word) == 0:
 		return "<the empty word>"
 	elif len(word) == 1 and word[0] > 0:
-		return "<entire Cantor set>"
+		return "<entire Cantor set>" if subset else "<root>"
 	return "".join( str(-i-1) for i in word if i < 0)
 
 def from_string(string):

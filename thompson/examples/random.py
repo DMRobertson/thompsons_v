@@ -14,7 +14,7 @@ from ..mixed        import MixedAut
 from ..periodic     import PeriodicAut
 from ..infinite     import InfiniteAut
 
-__all__ = ['random_signature', 'random_simple_word', 'random_basis',
+__all__ = ['random_signature', 'random_simple_word', 'random_basis', 'random_generators',
 	'random_automorphism',   'random_periodic_automorphism',   'random_infinite_automorphism',
 	'random_conjugate_pair', 'random_conjugate_periodic_pair', 'random_conjugate_infinite_pair',
 	'random_powers', 'random_power_bounds', 'random_power_conjugate_pair']
@@ -69,6 +69,18 @@ def random_basis(signature, num_expansions, cls=Generators):
 		i = randint(0, len(basis) - 1)
 		basis.expand(i)
 	return basis
+
+@needs_defaults
+def random_generators(signature, num_expansions, cls=Generators):
+	r"""Generates a :func:`random_basis` ``X``, then uniformly at random chooses an integer ``0 <= n <= len(X)`` and removes ``n`` elements from ``X``.
+		
+		:returns: ``X``
+	"""
+	X = random_basis(signature=signature, num_expansions=num_expansions, cls=cls)
+	shuffle(X)
+	for _ in range(randint(0, len(X))):
+		X.pop()
+	return X
 
 @needs_defaults
 def random_automorphism(signature, num_expansions, group="V"):
