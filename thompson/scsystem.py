@@ -60,9 +60,14 @@ class SCSystem:
 		dump_comp_rules = comp_rules.copy()
 		
 		#4. Compute the atomic intersections
-		#TODO: only include non empty rule pairs
-		atoms = [None] * 2 ** len(rules)
-		for index in range(len(atoms)):
+		atoms = list(type(self).filtered_atoms(rules, comp_rules))
+		#5. TODO Check that the union of S atoms = C and same for T atoms 
+		#6. Construct a conjugator
+		return rules, comp_rules, atoms
+		
+	@staticmethod
+	def filtered_atoms(rules, comp_rules):
+		for index in range( 2**len(rules) ):
 			bitmask = index
 			bit = bitmask % 2
 			if bit:
@@ -78,10 +83,10 @@ class SCSystem:
 				else:
 					rule[0] &= comp_rules[j][0]
 					rule[1] &= comp_rules[j][1]
-			#TODO make this raise a proper exception
-			assert bool(rule[0]) == bool(rule[1])
-			atoms[index] = rule
-		return rules, comp_rules, atoms
+			if bool(rule[0]) != bool(rule[1]):
+				raise ValueError("Problem with constraint #" + str(index))
+			if rule[0]:
+				yield rule
 		
 
 def _aut_in_V(x):
