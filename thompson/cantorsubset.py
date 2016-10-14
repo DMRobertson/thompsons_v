@@ -17,6 +17,9 @@ class CantorSubset(Generators):
 	We store this as a (typically sorted) list of :class:`~thompson.generators.Generators` :math:`u_1, \dots, u_n`.
 	This stands for the set of all points :math:`u_i\Gamma` where :math:`\Gamma \in \{0,1\}^{\mathbb N}`.
 	"""
+	def is_entire_Cantor_set(self):
+		self.simplify()
+		return self == CantorSubset.standard_basis(self.signature)
 	
 	def contract(self):
 		r"""Contracts the current generating set as much as possible (without using words involving a :math:`\lambda`).
@@ -164,7 +167,7 @@ class CantorSubset(Generators):
 		return type(self)(self.signature, ( Word(x, self.signature) for x in self._complement() ))
 	 
 	def _complement(self):
-		def print(*args, **kwargs): pass
+		#def print(*args, **kwargs): pass
 		if len(self) == 0:
 			yield "x1"
 			return
@@ -174,38 +177,38 @@ class CantorSubset(Generators):
 		while index < len(self):
 			target = self[index]
 			subword, comparison = detailed_comparison(needle, target)
-			print("needle:", format_cantor(needle), "target:", format_cantor(target), "subword:", subword, "comparison:", comparison)
+			#print("needle:", format_cantor(needle), "target:", format_cantor(target), "subword:", subword, "comparison:", comparison)
 			if subword and comparison == -1:
 				#needle strictly above word
-				print("attempting to add on zeroes")
+				#print("attempting to add on zeroes")
 				extend_zeroes(needle, target)
-				print("extended needle:", format_cantor(needle), "target:", format_cantor(target))
+				#print("extended needle:", format_cantor(needle), "target:", format_cantor(target))
 				if len(target) == len(needle):
-					print("extended needle same length as target")
+					#print("extended needle same length as target")
 					comparison = 0
 				else:
 					assert len(target) > len(needle)
-					print("extended needle shorter than target, adding a zero")
+					#print("extended needle shorter than target, adding a zero")
 					needle.append(-1)
-					print("extra zero on needle:", format_cantor(needle))
+					#print("extra zero on needle:", format_cantor(needle))
 					subword = False
 					comparison = -1
 				
 			if subword and comparison == 0:
 				needle == target
-				print("needle == target\n===DON'T YIELD")
+				#print("needle == target\n===DON'T YIELD")
 				needle = next_leaf(needle)
 				index += 1
-				print("next target, next needle")
+				#print("next target, next needle")
 			elif not subword and comparison == -1:
-				print("needle not above target")
-				print("===YIELD ", format_cantor(needle))
+				#print("needle not above target")
+				#print("===YIELD ", format_cantor(needle))
 				yield needle
 				needle = next_leaf(needle)
-				print("next needle", format_cantor(needle))
+				#print("next needle", format_cantor(needle))
 			else:
 				raise Exception("This shouldn't happen. Design your algorithm more carefully next time David!")
-			print("bottom of loop")
+			#print("bottom of loop")
 		
 		while needle is not None:
 			yield needle
