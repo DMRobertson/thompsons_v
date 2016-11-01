@@ -762,6 +762,22 @@ class Automorphism(Homomorphism):
 			ctype, _, _ = self.orbit_type(gen, self.quasinormal_basis)
 			print(gen, ctype)
 	
+	def dump_periodic(self):
+		"""A convenience method for printing out periodic orbits in the quasinormal basis.
+		
+			>>> load_example("cyclic_order_six").dump_periodic()
+			Period 1
+			x1 a1 a1
+			Period 2
+			x1 a1 a2 a2 a1 -> x1 a2 a1
+			Period 3
+			x1 a1 a2 a1 -> x1 a1 a2 a2 a2 -> x1 a2 a2
+		"""
+		for period, list_of_orbits in self.periodic_orbits.items():
+			print("Period", period)
+			for orbit in list_of_orbits:
+				print(*orbit, sep=' -> ')
+	
 	def print_characteristics(self):
 		"""For convenience, a method that prints out all of the characteristics of type B components wrt the quasinormal_basis.
 		

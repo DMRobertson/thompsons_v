@@ -61,7 +61,10 @@ class Generators(list):
 
 	def __str__(self):
 		return "[" + ", ".join(format(w) for w in self) + "]"
-
+	
+	def __format__(self, specification):
+		return str(self).__format__(specification)
+	
 	def __repr__(self):
 		return type(self).__name__ + "({}, [{}])".format(
 		  self.signature, ", ".join(repr(format(w)) for w in self))
