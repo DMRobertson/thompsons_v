@@ -16,7 +16,7 @@ from fractions    import Fraction
 from itertools    import chain, product
 
 from .number_theory import lcm
-from .word          import Signature, Word, free_monoid_on_alphas, format
+from .word          import Signature, Word, free_monoid_on_alphas, format, format_cantor
 from .generators    import Generators
 from .homomorphism  import Homomorphism
 from .orbits        import ComponentType, Characteristic, SolutionSet
@@ -762,21 +762,30 @@ class Automorphism(Homomorphism):
 			ctype, _, _ = self.orbit_type(gen, self.quasinormal_basis)
 			print(gen, ctype)
 	
-	def dump_periodic(self):
+	def dump_periodic(self, cantor=False):
 		"""A convenience method for printing out periodic orbits in the quasinormal basis.
 		
-			>>> load_example("cyclic_order_six").dump_periodic()
+			>>> f = load_example("cyclic_order_six")
+			>>> f.dump_periodic()
 			Period 1
 			x1 a1 a1
 			Period 2
 			x1 a1 a2 a2 a1 -> x1 a2 a1
 			Period 3
 			x1 a1 a2 a1 -> x1 a1 a2 a2 a2 -> x1 a2 a2
-		"""
+			>>> f.dump_periodic(cantor=True)
+			Period 1
+			00
+			Period 2
+			0110 -> 10
+			Period 3
+			010 -> 0111 -> 11
+			"""
+		formatter = format_cantor if cantor else format
 		for period, list_of_orbits in self.periodic_orbits.items():
 			print("Period", period)
 			for orbit in list_of_orbits:
-				print(*orbit, sep=' -> ')
+				print(*(formatter(x) for x in orbit), sep=' -> ')
 	
 	def print_characteristics(self):
 		"""For convenience, a method that prints out all of the characteristics of type B components wrt the quasinormal_basis.
