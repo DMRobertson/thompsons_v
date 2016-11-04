@@ -29,6 +29,10 @@ class CantorSubset(Generators):
 			>>> basis.contract()
 			>>> basis == CantorSubset.standard_basis(basis.signature)
 			True
+			>>> basis = CantorSubset((2,1), '01011 01010'.split())
+			>>> basis.contract()
+			>>> print(basis)
+			[0101]
 		"""
 		arity = self.signature.arity
 		index = 0
@@ -36,16 +40,20 @@ class CantorSubset(Generators):
 			this = self[index]
 			L = len(this)
 			parent = Word(this[:L-1], self.signature, preprocess=False)
+			#can we contract this and the next (arity-1) elements?
 			if (
 				all( len(self[index+i]) == L > 1 for i in range(1, arity) )
 				and
 				all( self[index+i][:L-1] == parent for i in range(1, arity) )
 			):
 				self[index:index+arity] = [parent]
-				#alpha_n is stored as -n
 				index += 1
+				#Maybe we can contract the thing we've just contracted with something previous that we couldn't contract before.
+				#If parent ends in alpha n, we need to go back n-1 steps.
 				if len(parent) > 1:
-					index += min(0, parent[-1])
+					#Last symbol is an alpha_n, stored as -n
+					#Already gone forward one, so we go back by n steps.
+						index = max(0, index + parent[-1])
 			else:
 				index += 1
 	
