@@ -56,6 +56,9 @@ class Rule:
 	
 	def __invert__(self):
 		return type(self)(~self.source, ~self.target, self.id)
+	
+	def __bool__(self):
+		return bool(self.source) or bool(self.target)
 
 class SCSystem:
 	def __init__(self, list1, list2):
@@ -162,25 +165,44 @@ class SCSystem:
 			subset.simplify()
 			assert subset.is_entire_Cantor_set()
 		return atoms
-		
+	
 	def filtered_atoms(self, rules, comp_rules):
-		print("#possible atoms:", 2**len(rules))
-		for index in range( 2**len(rules) ):
-			if index % 20000 == 0:
-				print(index)
-			bitmask = bits(index, len(rules))
-			rule = Rule.full(id=index)
-			for j, bit in enumerate(bitmask):
-				next_intersectand = (rules if bit else comp_rules)[j]
-				rule.source &= next_intersectand.source
-				rule.target &= next_intersectand.target
-				if len(rule.source) == 0 or len(rule.target) == 0:
-					break
+		max_depth = len(rules) - 1
+		intersection_stack = {-1: Rule.full(), 0: comp_rules[0]}
+		choices_stack = [False]
+		
+		index = 0
+		depth = 0
+		force_skip = False
+		while choices_stack:
+			if force_skip or depth == max_depth:
+				if not force_skip:
+					#Check that the rule is consistant: not mapping empty <-> nonempty
+					if bool(rule.source) != bool(rule.target):
+						raise ValueError("Inconsistency with constraint #" + str(index))
+					yield intersection_stack[depth]
+				force_skip = False
 				
-			#Check that the rule is consistant: not mapping empty <-> nonempty
-			if bool(rule.source) != bool(rule.target):
-				raise ValueError("Inconsistency with constraint #" + str(index))
-			yield rule
+				#b. If we're a right child:
+				while choices_stack and choices_stack[-1]:
+					choices_stack.pop()
+					del intersection_stack[depth]
+					depth -= 1
+				#If we're a left child of something, move to the right child
+				if choices_stack:
+					index += 1 << (max_depth - depth)
+					choices_stack[-1] = True
+					intersection_stack[depth] = intersection_stack[depth - 1] & rules[depth]
+			
+			#a. If we're not at a leaf, just pick the left child (intersecting with a complement)
+			elif depth < max_depth:
+				depth += 1
+				choices_stack.append(False)
+				rule = intersection_stack[depth-1] & comp_rules[depth]
+				if not rule:
+					force_skip = True
+				else:
+					intersection_stack[depth] = rule
 	
 	def iterate_rules(self, rules):
 		rules = self.deduce(rules)
@@ -203,7 +225,6 @@ class SCSystem:
 		domain   = Generators(self.list1[0].signature)
 		codomain = Generators(self.list2[0].signature)
 		for source, target in atoms:
-			print(source, '->', target)
 			size = max(len(source), len(target))
 			source.expand_to_size(size)
 			target.expand_to_size(size)
