@@ -1,12 +1,14 @@
-from bisect        import bisect_left
-from collections   import defaultdict, namedtuple
-from functools     import total_ordering
-from os.path       import join, exists
-from warnings      import warn
+from bisect           import bisect_left
+from collections      import defaultdict, namedtuple
+from functools        import total_ordering
+from os.path          import join, exists
+from warnings         import warn
+from random           import randint
 
-from .automorphism import Automorphism
-from .generators   import Generators
-from .cantorsubset import CantorSubset
+from .automorphism    import Automorphism
+from .generators      import Generators
+from .cantorsubset    import CantorSubset
+from .examples.random import random_automorphism
 
 __all__ = ["SCSystem", "RuleSet"]
 
@@ -35,7 +37,7 @@ class Rule:
 		s_status = self.source.status()
 		t_status = self.target.status()
 		if s_status != t_status:
-			raise ValueError("Incompatible source and target: {}, {}".format(source, target))
+			raise ValueError("Incompatible source and target: {}, {}".format(self.source, self.target))
 		return s_status in {-1, 1}
 	
 	def __str__(self):
@@ -236,24 +238,24 @@ class SCSystem:
 		# if they are different pairs the system is not SC
 	
 	@classmethod
-	def from_dir(cls, dir='.'):
+	def from_dir(cls, dir='.', dname="d_{}.aut", ename="e_{}.aut", initial=0):
 		#1. Determine the number of automorphism pairs in given directory
 		length = 0
 		while True:
-			name = "_{}.aut".format(length)
-			d = join(dir, "d" + name)
-			e = join(dir, "e" + name)
+			d = join(dir, dname.format(length + initial))
+			e = join(dir, ename.format(length + initial))
 			if not(exists(d) and exists(e)):
 				break
 			length += 1
 		
 		if length == 0:
-			raise FileNotFoundError("Could not find at least one of d_0.aut or e_0.aut in {}".format(dir))
+			raise FileNotFoundError("Could not find at least one of {} or {} in '{}'".format(
+				dname.format(initial), ename.format(initial), dir))
 		list1 = [
-			Automorphism.from_file( join(dir, "d_{}.aut".format(i)) )
+			Automorphism.from_file( join(dir, dname.format(i + initial)) )
 		for i in range(length)]
 		list2 = [
-			Automorphism.from_file( join(dir, "e_{}.aut".format(i)) )
+			Automorphism.from_file( join(dir, ename.format(i + initial)) )
 		for i in range(length)]
 		
 		return cls(list1, list2)
@@ -266,6 +268,19 @@ class SCSystem:
 		conjugator = random_automorphism(signature=(2,1))
 		list2 = [x^conjugator for x in list1]
 		return cls(list1, list2)
+	
+	@classmethod
+	def random(cls, length=None):
+		if length is None:
+			length = randint(2, 5)
+		list1 = [random_automorphism(signature=(2,1))   for _ in range(length)]
+		list2 = [x^random_automorphism(signature=(2,1)) for x in list1]
+		return cls(list1, list2)
+	
+	def save_to_dir(self, dir='.'):
+		for i, (d, e) in enumerate(self):
+			d.save_to_file( join(dir, 'd_{}.aut'.format(i)) )
+			e.save_to_file( join(dir, 'e_{}.aut'.format(i)) )
 	
 	def __len__(self):
 		return self.length
