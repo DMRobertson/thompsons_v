@@ -21,6 +21,18 @@ class CantorSubset(Generators):
 		self.simplify()
 		return self == CantorSubset.standard_basis(self.signature)
 	
+	def is_empty(self):
+		return len(self) == 0
+	
+	def status(self):
+		#should really be an enumeration
+		if self.is_empty():
+			return -1
+		elif self.is_entire_Cantor_set():
+			return 1
+		else:
+			return 0
+	
 	def contract(self):
 		r"""Contracts the current generating set as much as possible (without using words involving a :math:`\lambda`).
 		The set should be sorted before using this method.

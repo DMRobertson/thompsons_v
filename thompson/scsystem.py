@@ -1,19 +1,23 @@
-from collections import defaultdict, namedtuple
-from functools   import total_ordering
+from bisect        import bisect_left
+from collections   import defaultdict, namedtuple
+from functools     import total_ordering
+from warnings      import warn
 
 from .automorphism import Automorphism
 from .generators   import Generators
 from .cantorsubset import CantorSubset
 
-__all__ = ["SCSystem", "print_rules"]
+__all__ = ["SCSystem", "RuleSet"]
 
 @total_ordering
 class Rule:
+	#todo: this should really be immutable
 	def __init__(self, source, target, id=None):
 		if not isinstance(source, CantorSubset):
 			raise TypeError("source is not a CantorSubset")
 		if not isinstance(target, CantorSubset):
 			raise TypeError("target is not a CantorSubset")
+		
 		self.source = source
 		self.target = target
 		self.id	 = id
@@ -25,6 +29,13 @@ class Rule:
 	@classmethod
 	def full(cls, id=None):
 		return cls(CantorSubset.standard_basis((2,1)), CantorSubset.standard_basis((2,1)), id)
+	
+	def is_trivial(self):
+		s_status = self.source.status()
+		t_status = self.target.status()
+		if s_status != t_status:
+			raise ValueError("Incompatible source and target: {}, {}".format(source, target))
+		return s_status in {-1, 1}
 	
 	def __str__(self):
 		return str(self.source) + ' -> ' + str(self.target)
@@ -38,12 +49,6 @@ class Rule:
 			return self.source
 		elif key == 1:
 			return self.target
-	
-	def deduce(self, d, e):
-		result = type(self)(d.image_of_set(self.source), e.image_of_set(self.target))
-		result.source.simplify()
-		result.target.simplify()
-		return result
 	
 	def __eq__(self, other):
 		return self.source == other.source and self.target == other.target
@@ -59,6 +64,151 @@ class Rule:
 	
 	def __bool__(self):
 		return bool(self.source) or bool(self.target)
+	
+	def simplify(self):
+		self.source.simplify()
+		self.target.simplify()
+	
+	def deduce(self, d, e):
+		result = type(self)(d.image_of_set(self.source), e.image_of_set(self.target))
+		result.source.simplify()
+		result.target.simplify()
+		return result
+
+class RuleSet:
+	def __init__(self, rules=tuple()):
+		self.rules = [rule for rule in rules if not rule.is_trivial()]
+		self.rules.sort()
+		self.atomic = False
+	
+	def __len__(self):
+		return len(self.rules)
+	
+	def __iter__(self):
+		return iter(self.rules)
+	
+	def __str__(self):
+		output = str(len(self))
+		if self.atomic:
+			output += " atomic"
+		output += " rules:\n"
+		
+		widths = [0, 0]
+		id_length = 0
+		for rule in self:
+			widths[0] = max(len(str(rule.source)), widths[0])
+			widths[1] = max(len(str(rule.target)), widths[1])
+			if rule.id is not None:
+				id_length = max(len(bin(rule.id), id_length))
+		
+		fmt_string = "{{:{}}} -> {{:{}}}\n".format(*widths)
+		if id_length > 0:
+			fmt_string = "{{:{}}}: ".format(id_length) + fmt_string
+			for rule in self:
+				output += fmt_string.format(rule.id or "", rule.source, rule.target)
+		else:
+			for rule in self:
+				output += fmt_string.format(rule.source, rule.target)
+		return output[:-1]
+	
+	def add(self, rule):
+		#Return True if rule added, else False
+		if rule.is_trivial():
+			return False
+		if len(self) == 0:
+			self.rules.append(rule)
+		#Is this element already present?
+		index = bisect_left(self.rules, rule)
+		if index >= len(self) or self.rules[index] != rule:
+			#insertion is O(n); append then sort is O(log n)
+			self.rules.append(rule)
+			self.rules.sort()
+			self.atomic = False
+			return True
+		return False
+	
+	def atomise(self):
+		if self.atomic:
+			return
+		atoms = []
+		for atomic_rule in self.filtered_atoms():
+			if not atomic_rule.is_trivial():
+				atoms.append(atomic_rule)
+		atoms.sort()
+		
+		#5. Check that the union of S atoms = Cantor set. The same for T atoms
+		for index in {0, 1}:
+			subset = CantorSubset((2,1))
+			for atom in atoms:
+				subset.extend(atom[index])
+			subset.simplify()
+			assert subset.is_entire_Cantor_set()
+		self.rules = atoms
+		self.atomic = True
+	
+	def filtered_atoms(self):
+		comp_rules = [~rule for rule in self]
+		max_depth = len(self) - 1
+		intersection_stack = {-1: Rule.full(), 0: comp_rules[0]}
+		choices_stack = [False]
+		
+		index = 0
+		depth = 0
+		force_skip = False
+		while choices_stack:
+			if force_skip or depth == max_depth:
+				if not force_skip:
+					#Check that the rule is consistant: not mapping empty <-> nonempty
+					yield intersection_stack[depth]
+				force_skip = False
+				
+				#b. If we're a right child:
+				while choices_stack and choices_stack[-1]:
+					choices_stack.pop()
+					del intersection_stack[depth]
+					depth -= 1
+				#If we're a left child of something, move to the right child
+				if choices_stack:
+					index += 1 << (max_depth - depth)
+					choices_stack[-1] = True
+					intersection_stack[depth] = intersection_stack[depth - 1] & self.rules[depth]
+			
+			#a. If we're not at a leaf, just pick the left child (intersecting with a complement)
+			elif depth < max_depth:
+				depth += 1
+				choices_stack.append(False)
+				rule = intersection_stack[depth-1] & comp_rules[depth]
+				if not rule:
+					force_skip = True
+				else:
+					intersection_stack[depth] = rule
+	
+	def clear_labels(self):
+		for rule in self.rules:
+			rule.id = None
+	
+	def deduce_new(self, system):
+		self.clear_labels()
+		starting_rules = self.rules.copy()
+		for rule in starting_rules:
+			#d. Impose the restrictions we get from the other conjugate pairs
+			for otheraut1, otheraut2 in system:
+				extra_rule = rule.deduce(otheraut1, otheraut2)
+				self.add(extra_rule)
+	
+	def iterate(self, system, message=None):
+		if not self.atomic:
+			self.atomise()
+		old_count = len(self)
+		self.deduce_new(system)
+		if message is not None:
+			message = "\n" + message
+			print(message, self)
+		self.atomise()
+		if message is not None:
+			print(message, self)
+		if len(self) == old_count:
+			warn("This iteration didn't produce new atoms")
 
 class SCSystem:
 	def __init__(self, list1, list2):
@@ -71,10 +221,10 @@ class SCSystem:
 		if len(list1) == 0:
 			raise ValueError("Element lists are empty")
 			
-		self.check_valid_conjugacies(list1, list2)
 		self.list1 = list1
-		self.list1_original = list1.copy()
 		self.list2 = list2
+		self.check_conjugate_pairs()
+		self.list1_original = list1.copy()
 		self.conjugator = Automorphism.identity((2,1))
 		self.length = len(list1)
 		
@@ -91,8 +241,11 @@ class SCSystem:
 	def __iter__(self):
 		yield from zip(self.list1, self.list2)
 	
-	def __bool__(self):
+	def solved(self):
 		return all(aut1 == aut2 for aut1, aut2 in self)
+	
+	def verify(self):
+		return all(aut1^self.conjugator == aut2 for aut1, aut2 in zip(self.list1_original, self.list2))
 	
 	def display(self):
 		conjugated = self.conjugator != 1
@@ -106,121 +259,37 @@ class SCSystem:
 			display( forest(aut1, name=name) )
 			display( forest(aut2, name="$e_{}$".format(i)) )
 	
-	@staticmethod
-	def check_valid_conjugacies(list1, list2):
-		for index, (aut1, aut2) in enumerate(zip(list1, list2)):
+	def check_conjugate_pairs(self):
+		for index, (aut1, aut2) in enumerate(self):
 			if not aut1.is_conjugate_to(aut2):
-				raise ValueError("Pair number {} is not conjguate".format(index))
+				raise ValueError("Pair #{} is not conjguate".format(index))
 	
 	def periodic_constraints(self):
-		#1. Assert that period M orbits for aut1 have to go to period M orbits for aut 2
-		rules = []
+		#Assert that period M orbits for aut1 have to go to period M orbits for aut 2
 		for index, (aut1, aut2) in enumerate(self):
 			for period in aut1.periodic_orbits:
 				#a. Make a rule whose source is (aut1's period m elements)
 				rule = Rule.empty()
 				for orbit in aut1.periodic_orbits[period]:
 					rule.source.extend(orbit)
-				rule.source.simplify()
-				#b. If the source is the entire Cantor set, the target will be too when we compute it.
-				#   Skip this: there's no point considering a rule saying C -> C.
-				if rule.source.is_entire_Cantor_set():
-					continue
-				#   otherwise we know we will make use of this rule
-				rules.append(rule)
-				#c. The target for the rule is (aut2's periodic elements)
+				#b. The target for the rule is (aut2's periodic elements)
 				for orbit in aut2.periodic_orbits[period]:
 					rule.target.extend(orbit)
-				rule.target.simplify()
+				rule.simplify()
+				yield rule
+	
+	def align_periodic_orbits(self, iterations=1, verbose=False):
+		rules = RuleSet(self.periodic_constraints())
+		if verbose:
+			print("Initial rules:", rules)
+		for i in range(1, iterations+1):
+			message = "Iteration {}".format(i) if verbose else None
+			rules.iterate(self, message)
 		return rules
 	
-	def deduce(self, rules):
-		for index in range(len(rules)):
-			rule = rules[index]
-			rule.id = None
-			#d. Impose the restrictions we get from the other conjugate pairs
-			for otheraut1, otheraut2 in self:
-				extra_rule = rule.deduce(otheraut1, otheraut2)
-				rules.append(extra_rule)
-		#TODO: make a `ruleset' class which tries to efficiently prevent duplicates
-		simplify_rules(rules)
-		return rules
-	
-	def reduce_to_atoms(self, rules):
-		#3. Compute the complementary rules
-		comp_rules = [~rule for rule in rules]
-		
-		#4. Compute the atomic intersections
-		atoms = []
-		for atomic_rule in self.filtered_atoms(rules, comp_rules):
-			#Don't remember rules that say empty <-> empty
-			if atomic_rule.source:
-				atoms.append(atomic_rule)
-		
-		#5. Check that the union of S atoms = Cantor set. The same for T atoms
-		for index in {0, 1}:
-			subset = CantorSubset((2,1))
-			for atom in atoms:
-				subset.extend(atom[index])
-			subset.simplify()
-			assert subset.is_entire_Cantor_set()
-		return atoms
-	
-	def filtered_atoms(self, rules, comp_rules):
-		max_depth = len(rules) - 1
-		intersection_stack = {-1: Rule.full(), 0: comp_rules[0]}
-		choices_stack = [False]
-		
-		index = 0
-		depth = 0
-		force_skip = False
-		while choices_stack:
-			if force_skip or depth == max_depth:
-				if not force_skip:
-					#Check that the rule is consistant: not mapping empty <-> nonempty
-					if bool(rule.source) != bool(rule.target):
-						raise ValueError("Inconsistency with constraint #" + str(index))
-					yield intersection_stack[depth]
-				force_skip = False
-				
-				#b. If we're a right child:
-				while choices_stack and choices_stack[-1]:
-					choices_stack.pop()
-					del intersection_stack[depth]
-					depth -= 1
-				#If we're a left child of something, move to the right child
-				if choices_stack:
-					index += 1 << (max_depth - depth)
-					choices_stack[-1] = True
-					intersection_stack[depth] = intersection_stack[depth - 1] & rules[depth]
-			
-			#a. If we're not at a leaf, just pick the left child (intersecting with a complement)
-			elif depth < max_depth:
-				depth += 1
-				choices_stack.append(False)
-				rule = intersection_stack[depth-1] & comp_rules[depth]
-				if not rule:
-					force_skip = True
-				else:
-					intersection_stack[depth] = rule
-	
-	def iterate_rules(self, rules):
-		rules = self.deduce(rules)
-		print_rules(rules, "Deduced new rules")
-		rules = self.reduce_to_atoms(rules)
-		print_rules(rules, "Reduce to atoms")
-		return rules
-	
-	def periodic_orbit_constraints(self):
-		rules = self.periodic_constraints()
-		print_rules(rules, "Initial rules")
-		rules = self.reduce_to_atoms(rules)
-		print_rules(rules, "Reduce to atoms")
-		for i in range(1):
-			rules = self.iterate_rules(rules)
-		return rules
-	
-	def coarsely_conjuate(self, atoms):
+	def coarsely_conjugate(self, atoms):
+		if not atoms.atomic:
+			raise ValueError("Given rules have not been atomised")
 		#need atomic rules here, not just rules
 		domain   = Generators(self.list1[0].signature)
 		codomain = Generators(self.list2[0].signature)
@@ -240,44 +309,15 @@ class SCSystem:
 		for index, _ in enumerate(self.list1):
 			self.list1[index] ^= conjugator
 		self.conjugator *= conjugator
+	
+	def reset(self):
+		self.list1 = self.list1_original
+		self.conjugator = Automorphism.identity((2,1))
 
 def _aut_in_V(x):
 	return isinstance(x, Automorphism) and x.signature == (2, 1)
-
-def simplify_rules(rules):
-	rules.sort()
-	remove_duplicates_sorted(rules)
-	#
-	
-def remove_duplicates_sorted(rules):
-	i = 0
-	while i + 1 < len(rules):
-		if rules[i] == rules[i+1]:
-			del rules[i+1]
-		else:
-		 	i += 1
 
 def bits(num, num_bits):
 	for _ in range(num_bits):
 		yield num % 2
 		num >>= 1
-
-def print_rules(rules, message=None):
-	if message is not None:
-		print(message + ":", "(count={})".format(len(rules)))
-	widths = [0, 0]
-	for rule in rules:
-		widths[0] = max(len(str(rule.source)), widths[0])
-		widths[1] = max(len(str(rule.target)), widths[1])
-	
-	fmt_string = "{{:{}}} -> {{:{}}}".format(*widths)
-	length = max(
-		( len(bin(rule.id)) for rule in rules if isinstance(rule.id, int) )
-		, default=0)
-	if length > 0:
-		fmt_string = "{{:0{}b}}: ".format(length) + fmt_string
-		for rule in rules:
-			print(fmt_string.format(rule.id or -1, rule.source, rule.target))
-	else:
-		for rule in rules:
-			print(fmt_string.format(rule.source, rule.target))
