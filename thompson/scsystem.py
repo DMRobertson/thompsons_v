@@ -1,6 +1,7 @@
 from bisect        import bisect_left
 from collections   import defaultdict, namedtuple
 from functools     import total_ordering
+from os.path       import join, exists
 from warnings      import warn
 
 from .automorphism import Automorphism
@@ -99,7 +100,7 @@ class RuleSet:
 			widths[0] = max(len(str(rule.source)), widths[0])
 			widths[1] = max(len(str(rule.target)), widths[1])
 			if rule.id is not None:
-				id_length = max(len(bin(rule.id), id_length))
+				id_length = max( len(str(rule.id)), id_length)
 		
 		fmt_string = "{{:{}}} -> {{:{}}}\n".format(*widths)
 		if id_length > 0:
@@ -146,12 +147,13 @@ class RuleSet:
 		self.rules = atoms
 		self.atomic = True
 	
-	def filtered_atoms(self):
+	def filtered_atoms(self, label=True):
 		comp_rules = [~rule for rule in self]
 		max_depth = len(self) - 1
 		intersection_stack = {-1: Rule.full(), 0: comp_rules[0]}
 		choices_stack = [False]
 		
+		fmt_string = "{{:0{}b}}".format(len(self))
 		index = 0
 		depth = 0
 		force_skip = False
@@ -159,17 +161,18 @@ class RuleSet:
 			if force_skip or depth == max_depth:
 				if not force_skip:
 					#Check that the rule is consistant: not mapping empty <-> nonempty
+					intersection_stack[depth].id = fmt_string.format(index)
 					yield intersection_stack[depth]
 				force_skip = False
 				
 				#b. If we're a right child:
+				index += 1 << (max_depth - depth)
 				while choices_stack and choices_stack[-1]:
 					choices_stack.pop()
 					del intersection_stack[depth]
 					depth -= 1
 				#If we're a left child of something, move to the right child
 				if choices_stack:
-					index += 1 << (max_depth - depth)
 					choices_stack[-1] = True
 					intersection_stack[depth] = intersection_stack[depth - 1] & self.rules[depth]
 			
@@ -232,11 +235,46 @@ class SCSystem:
 		# if they are the same pair then remove one copy;
 		# if they are different pairs the system is not SC
 	
+	@classmethod
+	def from_dir(cls, dir='.'):
+		#1. Determine the number of automorphism pairs in given directory
+		length = 0
+		while True:
+			name = "_{}.aut".format(length)
+			d = join(dir, "d" + name)
+			e = join(dir, "e" + name)
+			if not(exists(d) and exists(e)):
+				break
+			length += 1
+		
+		if length == 0:
+			raise FileNotFoundError("Could not find at least one of d_0.aut or e_0.aut in {}".format(dir))
+		list1 = [
+			Automorphism.from_file( join(dir, "d_{}.aut".format(i)) )
+		for i in range(length)]
+		list2 = [
+			Automorphism.from_file( join(dir, "e_{}.aut".format(i)) )
+		for i in range(length)]
+		
+		return cls(list1, list2)
+	
+	@classmethod
+	def random_solvable(cls, length=None):
+		if length is None:
+			length = randint(2, 5)
+		list1 = [random_automorphism(signature=(2,1)) for _ in range(length)]
+		conjugator = random_automorphism(signature=(2,1))
+		list2 = [x^conjugator for x in list1]
+		return cls(list1, list2)
+	
 	def __len__(self):
 		return self.length
 	
 	def __str__(self):
 		return "<System of {} conjugacy equations>".format(self.length)
+	
+	def __getitem__(self, key):
+		return self.list1[key], self.list2[key]
 	
 	def __iter__(self):
 		yield from zip(self.list1, self.list2)
