@@ -1,0 +1,18 @@
+15
+(2, 1) -> (2, 1)
+x1 a1 a1 a1 a1          -> x1 a1 a1 a1 a2 a2 a1
+x1 a1 a1 a1 a2 a1       -> x1 a1 a2 a2 a2      
+x1 a1 a1 a1 a2 a2 a1 a1 -> x1 a1 a2 a1         
+x1 a1 a1 a1 a2 a2 a1 a2 -> x1 a1 a1 a2         
+x1 a1 a1 a1 a2 a2 a2 a1 -> x1 a1 a1 a1 a1      
+x1 a1 a1 a1 a2 a2 a2 a2 -> x1 a1 a2 a2 a1      
+x1 a1 a1 a2             -> x1 a1 a1 a1 a2 a1 a2
+x1 a1 a2 a1             -> x1 a1 a1 a1 a2 a1 a1
+x1 a1 a2 a2 a1          -> x1 a1 a1 a1 a2 a2 a2
+x1 a1 a2 a2 a2          -> x1 a2 a1 a2 a2 a2   
+x1 a2 a1 a1 a1          -> x1 a2 a2 a2         
+x1 a2 a1 a1 a2          -> x1 a2 a1 a2 a1      
+x1 a2 a1 a2 a1          -> x1 a2 a1 a1         
+x1 a2 a1 a2 a2          -> x1 a2 a1 a2 a2 a1   
+x1 a2 a2                -> x1 a2 a2 a1         
+An example which found a bug in the infinite conjugacy test. This automorphism is a conjugated version of ``two_flow_components_d``.
