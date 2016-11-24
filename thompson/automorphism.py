@@ -84,12 +84,13 @@ class Automorphism(Homomorphism):
 	
 	.. doctest::
 		
-		>>> for char in olga_f.characteristics:
+		>>> for char in sorted(olga_f.characteristics):
+		...		#TODO the order here isn't sorted intuitively
 		... 	print(char)
+		Characteristic(-1, a2)
+		Characteristic(-1, a1)
 		Characteristic(2, a2 a1)
 		Characteristic(2, a1 a2)
-		Characteristic(-1, a1)
-		Characteristic(-1, a2)
 		
 	"""
 	#Initialisation

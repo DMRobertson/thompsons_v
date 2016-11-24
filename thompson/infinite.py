@@ -79,6 +79,10 @@ class InfiniteAut(Automorphism):
 			True
 			>>> f * h == h * g
 			True
+			
+			>>> d, e = ( load_example('two_flow_components_' + c) for c in 'de')
+			>>> d.is_conjugate_to(e)
+			True
 		
 		.. seealso:: This implements Algorithm :paperref:`alg:reginf` of the paper---see Section :paperref:`subsectionRI`.
 		"""
@@ -95,7 +99,7 @@ class InfiniteAut(Automorphism):
 		potential_endpoints = other.potential_image_endpoints(type_b)
 		
 		#5. Type B representitives for each class are stored in *roots*.
-		#6. Iterate through all the automorhpisms which be conjugators.
+		#6. Iterate through all the automorphisms which could be conjugators.
 		for rho in self._potential_conjugators(other, roots, graph, potential_endpoints, type_c):
 			if self * rho == rho * other:
 				return rho
@@ -241,21 +245,25 @@ class InfiniteAut(Automorphism):
 		orbit_endpts = {word : images_by_char[char] for word, char in self_type_b.items()}
 		return orbit_endpts
 	
-	def _potential_conjugators(self, other, roots, graph, choices, type_c):
+	def _potential_conjugators(self, other, roots, graph, choices, type_c, verbose=False):
+		log = get_logger(verbose)
 		#1. Flatten and glue the graph components together to form the ladder
 		from networkx.algorithms.traversal.depth_first_search import dfs_preorder_nodes
 		ladder = []
 		for root in roots:
 			ladder.extend(dfs_preorder_nodes(graph, root))
+		log("ladder is:")
+		log(*ladder, sep="\n")
 		
 		#2. Define the test function. See the docstring for maps_satisfying_choices
 		deduce_images = partial(image_for_type_b, roots=roots, graph=graph, aut=other)
 		
 		#3. Now the hard part---the iteration.
-		for images in maps_satisfying_choices(ladder, choices, deduce_images):
+		for images in maps_satisfying_choices(ladder, choices, deduce_images, verbose):
 			domain = Generators(self.signature, sorted(images))
 			range = Generators(self.signature, (images[d] for d in domain))
 			
+			log("deducing images for type C words")
 			#Add in type C images to domain and range
 			for word, data in type_c.items():
 				domain.append(word)
@@ -265,8 +273,10 @@ class InfiniteAut(Automorphism):
 			try:
 				rho = Automorphism(domain, range)
 			except ValueError as e:
+				log("This didn't define an automorphism")
 				continue
 			else:
+				log("These images DID build an automorphism")
 				rho.add_relabellers(self.domain_relabeller, other.range_relabeller)
 				yield rho
 	
@@ -388,7 +398,7 @@ class InfiniteAut(Automorphism):
 			bound *= prod(root_power for power, mult, root_power in Q_i) ** len(P_i)
 		return bound
 
-def maps_satisfying_choices(domain, choices, image_for):
+def maps_satisfying_choices(domain, choices, image_for, verbose=False):
 	r"""Suppose we have a list of elements :math:`d` belonging to some list *domain*. We would like to efficiently enumerate the functions :math:`f\colon\text{domain} -> I` where :math:`I` is some set. We would also like these functions :math:`f` to abide by certain rules described below.
 	
 	For each such :math:`d` we have a set of *choices* to make: say :math:`\text{choices}(d) = \{c_{d,1}, \dots c_{d,n_d}\}`. Making a choice :math:`c_{d,i}` for :math:`d` will determine the set of potential images for :math:`d`. This set is allowed to depend on:
@@ -403,13 +413,28 @@ def maps_satisfying_choices(domain, choices, image_for):
 	
 	:returns: yields mappings which satisfy all the constraints until it is no longer possible to do so.
 	"""
+	log = get_logger(verbose)
 	#2. Setup the state we need
 	images = {}                             #mapping from ladder to images
 	choice_iterators = [None] * len(domain) #iterators yielding the choices at each rung
 	depth  = 0                              #current position on the ladder
 	ascend = False                          #do we go up or down?
+	yield_images = False                    #have we found a possible mapping?
 	
 	while True:
+		log("\ndepth", depth, "and going", "up" if ascend else "down")
+		log("candidate images from ladder:")
+		for key in domain:
+			try:
+				log(key, "->", images[key])
+			except KeyError:
+				break
+		
+		if yield_images:
+			log("yielding these images")
+			yield images
+			yield_images = False
+		
 		#If the last choice we made didn't work (or we reached the bottom of the ladder) go up
 		if ascend:
 			current = domain[depth]
@@ -420,28 +445,37 @@ def maps_satisfying_choices(domain, choices, image_for):
 			choice_iterators[depth] = None
 			depth -= 1
 			if depth < 0:
+				log("all choices considered; ending loop")
 				break
 		ascend = False
 		
 		#Select the next choice for this depth
 		current = domain[depth]
+		log("where should we map", current)
 		if choice_iterators[depth] is None:
 			choice_iterators[depth] = iter(choices[current])
 		try:
 			choice = next(choice_iterators[depth])
+			log("next choice:", choice) 
 		except StopIteration:
+			log("no more choices at depth", depth)
 			ascend = True
 			continue
 		
 		#Does this choice give us an image?
 		img = image_for(current, choice, images)
 		if img is None:
+			log("no suitable image")
 			continue
+		if img in images.values():
+			log("already mapped something to this image")
+			continue
+		log("corresponding image:", img)
 		images[current] = img
 		
 		#If we've made it this far, we've chosen an image. Try to go down the ladder.
 		if depth + 1 == len(domain):
-			yield images
+			yield_images = True
 			ascend = True
 		else:
 			depth += 1
@@ -499,3 +533,10 @@ def verify_graph(aut, roots, graph):
 			for source, target in graph.out_edges_iter(node):
 				data = graph[source][target]
 				assert aut.repeated_image(source.extend(data['start_tail']), data['power']) == target.extend(data['end_tail'])
+
+def get_logger(verbose):
+	if verbose:
+		log = print
+	else:
+		def log(*args, **kwargs): pass
+	return log
