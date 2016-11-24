@@ -1123,6 +1123,23 @@ class Automorphism(Homomorphism):
 					return False
 		return True
 	
+	def commutes(self, other):
+		"""A shorthand for ``self * other == other * self``.
+		
+			>>> x = random_automorphism()
+			>>> x.commutes(x)
+			True
+			>>> x.commutes(~x)
+			True
+			>>> x.commutes(1)
+			True
+			>>> x.commutes(x*x))
+			True
+		"""
+		if self.signature != other.signature:
+			raise ValueError("Signatures do not match ({} and {})".format(self.signature, other.signature))
+		return self*other == other*self
+	
 	def _end_of_iac(self, root, leaves, backward=False):
 		"""Given a root :math:`r` of :math:`A \setminus B` of :math:`B \setminus A`, this finds the IAC containing :math:`r` and returns the endpoint :math:`u_1` or :math:`f(u_n)` which is not :math:`r`."""
 		assert root in leaves

@@ -335,6 +335,9 @@ class SCSystem:
 		rules = RuleSet(self.periodic_constraints())
 		if verbose:
 			print("Initial rules:", rules)
+		if len(rules) == 0:
+			warn("No rules deduced from periodic constraints")
+			return rules
 		for i in range(1, iterations+1):
 			message = "Iteration {}".format(i) if verbose else None
 			rules.iterate(self, message)
