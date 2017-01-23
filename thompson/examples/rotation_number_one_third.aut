@@ -1,0 +1,15 @@
+12
+(2,3) -> (2,3)
+x1 a1 a1 a1 -> x2 a1 a1   
+x1 a1 a1 a2 -> x2 a1 a2 a1
+x1 a1 a2    -> x2 a1 a2 a2
+x1 a2       -> x2 a2      
+x2 a1 a1 a1 -> x3 a1 a1   
+x2 a1 a1 a2 -> x3 a1 a2 a1
+x2 a1 a2    -> x3 a1 a2 a2
+x2 a2       -> x3 a2      
+x3 a1 a1 a1 -> x1 a1 a1   
+x3 a1 a1 a2 -> x1 a1 a2 a1
+x3 a1 a2    -> x1 a1 a2 a2
+x3 a2       -> x1 a2      
+An non-periodic element of T_{2,3} which should have rotation number 1/3.

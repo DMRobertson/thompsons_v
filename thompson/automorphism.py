@@ -148,7 +148,7 @@ class Automorphism(Homomorphism):
 			self.__class__ = MixedAut
 	
 	@classmethod
-	def from_dfs(cls, domain, range, labels, reduce=True):
+	def from_dfs(cls, domain, range, labels=None, reduce=True):
 		"""Creates elements of :math:`V=G_{2,1}` using the notation of [Kogan]_.
 		
 		The domain and range trees are described as a string of ones and zeros.
@@ -160,10 +160,8 @@ class Automorphism(Homomorphism):
 		
 		:param str domain: A description of a binary tree as a stream of ones and zeroes.
 		:param str range: The same.
-		:param str labels: A string of natural numbers :math:`1, \dots, m` in some order. 
+		:param str labels: A string of natural numbers :math:`1, \dots, m` in some order. If omitted, taken to be the string ``"1 2 "..."len(domain)"``
 		:param bool reduce: Passed to :meth:`Homomorphism.__init__`. If ``True``, carets are reduced in the domain and range where possible. 
-		
-		.. warning:: This is a work in progress. Needs to check lengths match up and labels are correct.
 		
 		.. doctest::
 		
@@ -175,7 +173,7 @@ class Automorphism(Homomorphism):
 			x1 a1 -> x1 a2
 			x1 a2 -> x1 a1
 		
-			>>> g = Automorphism.from_dfs("1010100", "1011000", "1 2 3 4");
+			>>> g = Automorphism.from_dfs("1010100", "1011000");
 			>>> print(g)
 			MixedAut: V(2, 1) -> V(2, 1) specified by 4 generators (after expansion and reduction).
 			x1 a1       -> x1 a1      
@@ -191,9 +189,12 @@ class Automorphism(Homomorphism):
 			True
 		
 		"""
-		labels = [int(x) for x in labels.split()]
 		domain = Generators.from_dfs(domain)
 		range  = Generators.from_dfs(range)
+		if labels is None:
+			labels = [i for i, _ in enumerate(domain, start=1)]
+		else:
+			labels = [int(x) for x in labels.split()]
 		assert len(domain) == len(range) == len(labels)
 		range2 = range.copy()
 		for index, label in enumerate(labels):
@@ -480,6 +481,10 @@ class Automorphism(Homomorphism):
 	def orbit_type(self, y, basis=None):
 		"""Returns the orbit type of *y* with respect to the given *basis*. If *basis* is omitted, the :meth:`quasi-normal basis <compute_quasinormal_basis>` is used by default. Also returns a dictionary of computed images, the list (:paperref:`eq:uorb`) from the paper.
 		
+		:returns: A triple ``(ctype, images, type_b_data)``.
+		
+		.. doctest::
+			
 			>>> phi = load_example('example_4_5')
 			>>> print_component_types(phi, phi.domain)
 			x1 a1 a1 a1: Left semi-infinite component with characteristic (-1, a1)
@@ -1107,12 +1112,12 @@ class Automorphism(Homomorphism):
 	def cycles_order(self):
 		"""Returns True if this automorphism is an element of :math:`T_{n,r}`, Higman's analogue of Thompson's group :math:`T`. Otherwise returns False.
 		
-		>>> random_automorphism(group='F').cycles_order()
-		True
-		>>> random_automorphism(group='T').cycles_order()
-		True
-		>>> load_example('nathan_pond_example').cycles_order() # in V \ T
-		False
+			>>> random_automorphism(group='F').cycles_order()
+			True
+			>>> random_automorphism(group='T').cycles_order()
+			True
+			>>> load_example('nathan_pond_example').cycles_order() # in V \ T
+			False
 		"""
 		indices = range(len(self.range) - 1)
 		looped = False
@@ -1123,9 +1128,64 @@ class Automorphism(Homomorphism):
 				else:
 					return False
 		return True
+		
+	def rotation_number(self):
+		r"""The *rotation number* is a map :math:`\operatorname{Homeo}_+(\mathbb{S}^1) \to \mathbb{R/Z}` which is constant on conjugacy classes.
+		
+		:rtype: :class:`~py3:fractions.Fraction` if the current automorphism is a :meth:`circle homeomorphism <cycles_order>`; otherwise `None`.
+		
+		.. doctest::
+			
+			>>> f = random_automorphism()
+			>>> rot = f.rotation_number()
+			>>> (rot is None) == (not f.cycles_order())
+			True
+			>>> Automorphism.identity(random_signature()).rotation_number() == 0
+			True
+			
+			>>> f_examples = "example_4_1 example_4_11 example_6_8_psi example_6_9_psi non_dyadic_fixed_point".split()
+			>>> all( load_example(name).rotation_number() == 0 for name in f_examples )
+			True
+			>>> t_examples = "example_5_12_phi example_6_2 example_6_8_phi example_6_9_phi rotation_number_one_third".split()
+			>>> for name in t_examples:
+			... 	print(load_example(name).rotation_number())
+			1/2
+			0
+			0
+			0
+			1/3
+			
+		"""
+		if not self.cycles_order():
+			return None
+		elif self.preserves_order():
+			return Fraction(0)
+		
+		orbit = []
+		numerator = 0
+		denominator = 0
+		
+		#Find a periodic orbit, or else
+		if self.periodic_orbits:
+			orbit = self.periodic_orbits[self.order][0]
+			denominator = len(orbit)
+		else:
+			#Find a type B element---there should be one somewhere in the QNB.
+			#Wish I'd cached this information somewhere!
+			for x in self.quasinormal_basis:
+				ctype, images, _ = self.orbit_type(x)
+				if ctype.is_type_B() and ctype.characteristic.power > 0:
+					denominator = ctype.characteristic.power
+					orbit = [ images[i] for i in range(denominator) ]
+					break
+		
+		#count the number of times the orbit winds round itself
+		for previous, current in cyclic_pairs(orbit):
+			numerator += current < previous
+		return Fraction(numerator, denominator) % 1
 	
 	def commutes(self, other):
-		"""A shorthand for ``self * other == other * self``.
+		"""A shorthand for the expression ``self * other == other * self``.
 		
 			>>> x = random_automorphism()
 			>>> x.commutes(x)
@@ -1134,10 +1194,12 @@ class Automorphism(Homomorphism):
 			True
 			>>> x.commutes(1)
 			True
-			>>> x.commutes(x*x))
+			>>> x.commutes(x*x)
 			True
 		"""
-		if self.signature != other.signature:
+		if other == 1:
+			other = Automorphism.identity(self.signature)
+		elif self.signature != other.signature:
 			raise ValueError("Signatures do not match ({} and {})".format(self.signature, other.signature))
 		return self*other == other*self
 	
@@ -1365,3 +1427,13 @@ def trapezium_area(x0, y0, x1, y1):
 	perp_height = x1 - x0
 	avg_width = (abs(y1-x1) + abs(y0-x0)) / 2
 	return perp_height * avg_width
+
+def cyclic_pairs(iterable):
+	#Nicked from http://stackoverflow.com/a/1257446/5252017
+	iterator = iter(iterable)
+	first = previous = item = next(iterator)
+	for item in iterator:
+		yield previous, item
+		previous = item
+	yield item, first
+	

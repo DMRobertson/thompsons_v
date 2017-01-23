@@ -45,9 +45,9 @@ def write_arrow(f, horiz, name):
 	if name.startswith('$') and not name.endswith('$'):
 		raise ValueError("Arrow names must end with a $ if they begin with a $.")
 
-	f.write("\draw[->, thick, shorten >=0.5em, shorten <=0.5em]\n")
+	f.write("\\draw[->, thick, shorten >=0.5em, shorten <=0.5em]\n")
 	if horiz:
-		f.write("\tlet \\p1=(domain.east), \\p2=(range.west), \\n1={max(\y1,\y2)} in\n")
+		f.write("\tlet \\p1=(domain.east), \\p2=(range.west), \\n1={max(\\y1,\\y2)} in\n")
 		f.write("\t\t(\\x1, \\n1) -- node[auto] {{{}}} (\\x2, \\n1);\n".format(name))
 	else:
 		f.write("\t(domain) -- node[auto] {{{}}} (range);\n".format(name))

@@ -37,6 +37,7 @@ class Rule:
 		s_status = self.source.status()
 		t_status = self.target.status()
 		if s_status != t_status:
+			#TODO: use our own error class here so we can catch it and only it in iterate() more easily
 			raise ValueError("Incompatible source and target: {}, {}".format(self.source, self.target))
 		return s_status in {-1, 1}
 	
