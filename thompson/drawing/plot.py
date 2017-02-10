@@ -10,8 +10,8 @@ SCALE   = 400
 def new_drawing(filename='plot.svg'):
 	from svgwrite.drawing   import Drawing
 	from svgwrite.container import Group
-	dwg = Drawing(filename)
 	size = 2 * PADDING + SCALE
+	dwg = Drawing(filename, size=(size, size))
 	dwg.viewbox(minx=0, miny=0, width=size, height=size)
 	
 	add_stylesheet(dwg)
@@ -103,9 +103,9 @@ def draw_grid(canvas, signature, levels=None):
 		for line in lines[d]:
 			canvas.add(line)
 
-def plot(self, filename='plot.svg', endpoints=False):
+def plot(self, filename='plot.svg', diagonal=True, endpoints=False):
 	from svgwrite.path      import Path
-	from svgwrite.shapes    import Polyline
+	from svgwrite.shapes    import Line, Polyline
 	dwg, canvas = new_drawing(filename)
 	include_markers(dwg, endpoints)
 	draw_grid(canvas, self.signature)
@@ -128,6 +128,10 @@ def plot(self, filename='plot.svg', endpoints=False):
 	y_axis = Polyline(y_points, class_="axis")
 	canvas.add(x_axis)
 	canvas.add(y_axis)
+	
+	if diagonal:
+		diag = Line((0,0), (SCALE, SCALE), class_="grid depth0")
+		canvas.add(diag)
 	
 	last = (None, None)
 	for (x0, y0, x1, y1) in graph_segments:

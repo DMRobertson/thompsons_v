@@ -749,6 +749,23 @@ class Word(tuple):
 			end   += Fraction(alpha - self.signature.arity, inv_width)
 		return start, end
 	
+	@staticmethod
+	def ray_as_rational(base, spine):
+		"""Converts the infinite string :math:`\text{base} \, \text{spine}^\infty` to a rational in the unit interval.
+		
+			>>> Word.ray_as_rational(Word("x", (2,1)), from_string("a1 a2"))
+			Fraction(1, 3)
+		"""
+		start, end = base.as_interval()
+		coefficient = 0
+		denominator = 1
+		for value in spine:
+			denominator *=  base.signature.arity
+			value = -value #alpha_i is stored as -i
+			coefficient += Fraction(value-1, denominator)
+		
+		return start + (end - start) * coefficient / (1 - coefficient)
+	
 	#Modifiers
 	def alpha(self, index):
 		r"""Let :math:`w` stand for the current word. This method creates and returns a new word :math:`w\alpha_\text{index}`.

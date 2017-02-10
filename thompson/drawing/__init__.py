@@ -17,7 +17,7 @@ import sys
 
 __all__ = ["display_file", "forest", "plot", "flow"]
 
-def display_file(filepath, format=None, scale=1.0):
+def display_file(filepath, format=None, scale=1.0, verbose=False):
 	"""Display the image at *filepath* to the user. This function behaves differently, depending on whether or not we execute it in a Jupyter notebook.
 
 	If we are **not** in a notebook, this function opens the given image using the operating system's default application for that file.
@@ -34,6 +34,7 @@ def display_file(filepath, format=None, scale=1.0):
 	.. todo:: use a Python binding to ImageMagick rather than just shelling out?
 	"""
 	if in_ipynb():
+		print(filepath)
 		from IPython.display import Image, SVG
 		format = format.lower()
 		if format == 'svg':
@@ -64,11 +65,12 @@ def display_file(filepath, format=None, scale=1.0):
 		raise NotImplementedError
 	return filepath
 
-def plot(aut, dest=None, display=True, endpoints=False):
+def plot(aut, dest=None, display=True, diagonal=False, endpoints=False):
 	r"""Plots the given :class:`automorphism <thompson.automorphism.Automorphism>` as a function :math:`[0, 1] \to [0, 1]`. The image is rendered as an SVG using `svgwrite`.
 
 	:param str dest: the destination filepath to save the SVG to. If `None`, the SVG is saved to a temporary file location.
 	:param bool display: if True, automatically call :func:`display_file` to display the SVG to the user. Otherwise does nothing.
+	:param bool diagonal: if True, draws the diagonal to highlight fixed points of *aut*.
 	:param bool endpoints: if True, open and closed endpoints are drawn on the plot to emphasise any discontinuities that *aut* has.
 
 	:returns: the filepath where the SVG was saved. If *dest* is `None` this is a temporary file; otherwise the return value is simply *dest*.
@@ -76,7 +78,7 @@ def plot(aut, dest=None, display=True, endpoints=False):
 	if dest is None:
 		#Write to a temporary file
 		dest = mkstemp()[1]
-	plot_svg(aut, dest, endpoints)
+	plot_svg(aut, dest, diagonal, endpoints)
 
 	if display:
 		return display_file(dest, format='svg')

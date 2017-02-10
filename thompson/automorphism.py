@@ -286,10 +286,13 @@ class Automorphism(Homomorphism):
 	
 	#Group operations
 	def __pow__(self, power):
-		"""
-		>>> psi = random_automorphism()
-		>>> ~psi ** 2 == ~psi * ~psi == psi ** -2
-		True
+		"""Python uses the double star operator to denote exponentiation.
+		
+			>>> psi = random_automorphism()
+			>>> psi ** 0 == 1 #identity
+			True
+			>>> ~psi ** 2 == ~psi * ~psi == psi ** -2
+			True
 		"""
 		if not isinstance(power, int):
 			raise TypeError("Power must be an integer (instead of {}).".format(power))
@@ -1271,6 +1274,58 @@ class Automorphism(Homomorphism):
 		.. todo:: This method is badly named; something like ``is_revealed_by(basis)`` would be better.
 		"""
 		return self.test_revealing(domain) is None
+	
+	def fixed_points(self):
+		"""Returns a list of :class:`~py3:fractions.Fraction` and :class`~thompson.word.Word`s which are the fixed points and intervals of this function.
+		
+			>>> print( *Automorphism.identity((2, 1)).fixed_points() , sep=" ")
+			x1
+			>>> standard_generator().fixed_points()
+			[Fraction(0, 1), Fraction(1, 1)]
+			>>> f = load_example("non_dyadic_fixed_point")
+			>>> f.fixed_points()
+			[Fraction(0, 1), Fraction(1, 3), Word('x1 a2 a2', (2, 1))]
+			
+			>>> f = random_automorphism()
+			>>> fixed_intervals = (x for x in f.fixed_points() if isinstance(x, Word))
+			>>> all( f(interval) == interval for interval in fixed_intervals )
+			True
+		
+		.. caution:: This is an experimental feature.
+		"""
+		output = []
+		for x in self.quasinormal_basis:
+			if self.image(x) == x:
+				output.append(x)
+			ctype, _, _ = self.orbit_type(x)
+			if ctype.is_type_B():
+				output.append(Word.ray_as_rational(x, ctype.characteristic.multiplier))
+		
+		i = 0
+		while i + 1 < len(output):
+			if isinstance(output[i], Word):
+				start, end = output[i].as_interval()
+				#can assume output[i+1] is a point
+				if end == output[i + 1]:
+					del output[i + 1]
+					continue
+			elif isinstance(output[i + 1], Word):
+				start, end = output[i + 1].as_interval()
+				if output[i] == start:
+					del output[i]
+					continue
+			i += 1
+		return output
+	
+	def fixed_point_boundary(self):
+		output = []
+		for x in fixed_points:
+			if isinstance(x, Fraction):
+				output.append(x)
+			start, end = x.as_interval()
+			output.append(start)
+			output.append(end)
+		return output
 	
 	def area_to_identity(self, scaled=False):
 		r"""Let :math:`\phi \in F_{n, 1}`, viewed as a bijection of the interval.
