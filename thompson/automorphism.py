@@ -1285,6 +1285,12 @@ class Automorphism(Homomorphism):
 			>>> f = load_example("non_dyadic_fixed_point")
 			>>> f.fixed_points()
 			[Fraction(0, 1), Fraction(1, 3), Word('x1 a2 a2', (2, 1))]
+			>>> x = Automorphism.from_dfs("1101000", "1100100", "2 3 4 1")
+			>>> x.fixed_points()
+			[Fraction(1, 2)]
+			>>> y = Automorphism.from_dfs("1101000", "1011000", "2 3 4 1")
+			>>> y.fixed_points()
+			[Fraction(1, 3), Fraction(2, 3)]
 			
 			>>> f = random_automorphism()
 			>>> fixed_intervals = (x for x in f.fixed_points() if isinstance(x, Word))
@@ -1309,9 +1315,14 @@ class Automorphism(Homomorphism):
 				if end == output[i + 1]:
 					del output[i + 1]
 					continue
+			#now output[i] is a point
 			elif isinstance(output[i + 1], Word):
 				start, end = output[i + 1].as_interval()
 				if output[i] == start:
+					del output[i]
+					continue
+			elif isinstance(output[i + 1], Fraction):
+				if output[i + 1] == output[i]:
 					del output[i]
 					continue
 			i += 1
@@ -1473,7 +1484,6 @@ class Automorphism(Homomorphism):
 		
 		return target
 
-
 def type_b_triple(power, head, tail):
 	return dict(start_tail = tuple(), power=power, end_tail=tail, target=head)
 
@@ -1491,4 +1501,13 @@ def cyclic_pairs(iterable):
 		yield previous, item
 		previous = item
 	yield item, first
-	
+
+def is_dyadic(fraction):
+	"""Returns ``True`` if and only if the denominator of the given *fraction* is a power of two.
+		
+		>>> examples = [ (1,24), (2,8), (1,4), (2, 3), (5, 128), (5, 7)]
+		>>> [ is_dyadic( Fraction(*x) ) for x in examples ]
+		[False, True, True, False, True, False]
+	"""
+	#See http://stackoverflow.com/a/600306/5252017 
+	return fraction.denominator & (fraction.denominator - 1) == 0

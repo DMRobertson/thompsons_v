@@ -755,16 +755,14 @@ class Word(tuple):
 		
 			>>> Word.ray_as_rational(Word("x", (2,1)), from_string("a1 a2"))
 			Fraction(1, 3)
+			>>> Word.ray_as_rational(Word("x a1", (2,1)), from_string("a2 a1"))
+			Fraction(1, 3)
 		"""
 		start, end = base.as_interval()
-		coefficient = 0
-		denominator = 1
-		for value in spine:
-			denominator *=  base.signature.arity
-			value = -value #alpha_i is stored as -i
-			coefficient += Fraction(value-1, denominator)
-		
-		return start + (end - start) * coefficient / (1 - coefficient)
+		next = base.extend(spine)
+		next_start, next_end = next.as_interval()
+		gradient = (next_end - next_start) / (end - start)
+		return start + (next_start - start) / (1 - gradient)
 	
 	#Modifiers
 	def alpha(self, index):
