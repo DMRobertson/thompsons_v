@@ -1143,7 +1143,12 @@ class Automorphism(Homomorphism):
 			>>> rot = f.rotation_number()
 			>>> (rot is None) == (not f.cycles_order())
 			True
-			>>> Automorphism.identity(random_signature()).rotation_number() == 0
+			>>> sig = random_signature()
+			>>> Automorphism.identity(sig).rotation_number() == 0
+			True
+			>>> g = random_automorphism(group='T', signature=sig)
+			>>> k = random_automorphism(group='T', signature=sig)
+			>>> (g^k).rotation_number() == g.rotation_number()
 			True
 			
 			>>> f_examples = "example_4_1 example_4_11 example_6_8_psi example_6_9_psi non_dyadic_fixed_point".split()
@@ -1329,10 +1334,18 @@ class Automorphism(Homomorphism):
 		return output
 	
 	def fixed_point_boundary(self):
+		"""Replaces any intervals in the output of :meth:`fixed_points` with their endpoints.
+		
+			>>> f = load_example("non_dyadic_fixed_point")
+			>>> f.fixed_point_boundary()
+			[Fraction(0, 1), Fraction(1, 3), Fraction(3, 4), Fraction(1, 1)]
+		"""
+		
 		output = []
-		for x in fixed_points:
+		for x in self.fixed_points():
 			if isinstance(x, Fraction):
 				output.append(x)
+				continue
 			start, end = x.as_interval()
 			output.append(start)
 			output.append(end)
