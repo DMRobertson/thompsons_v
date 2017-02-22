@@ -81,7 +81,7 @@ def tidy_up(text):
 
 if __name__ == '__main__':
 	refs = {}
-	bibliography = bibliography_entries('~/barker/conj_paper/pconj_ijac.tex')
+	bibliography = bibliography_entries('~/local/work/barker/conj_paper/pconj_ijac.tex')
 	citations = extractor.findall(bibliography)
 	
 	for ext_name, int_name, text in citations:

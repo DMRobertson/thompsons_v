@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg baseProfile="full" height="480" version="1.1" viewBox="0,0,480,480" width="480" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><style type="text/css"><![CDATA[.axis {
+	stroke: black;
+	stroke-width: 1px;
+	marker-mid: url(#tickmark);
+	marker-end: url(#arrowhead);
+}
+
+.depth0 { stroke-width: 0.9px; stroke: #808080; }
+.depth1 { stroke-width: 0.8px; stroke: #A6A6A6; }
+.depth2 { stroke-width: 0.7px; stroke: #BFBFBF; }
+.depth3 { stroke-width: 0.6px; stroke: #E6E6E6; }
+
+#arrowhead {
+	stroke: black;
+	fill: none;
+}
+
+#tickmark {
+	stroke: black;
+	stroke-width: 2px;
+}
+
+.graph {
+	fill: none;
+	stroke: black;
+	stroke-width: 1.5px;
+	marker-start: url(#continuity);
+	marker-end: url(#discontinuity);
+}
+
+#discontinuity {
+	fill: white;
+	stroke: black;
+}
+]]></style><marker id="arrowhead" markerHeight="8" markerUnits="strokeWidth" markerWidth="4" orient="auto" refX="4" refY="4"><polyline points="0,8 4,4 0,0" /></marker><marker id="tickmark" markerHeight="10" markerUnits="strokeWidth" markerWidth="1" orient="auto" refX="0.5" refY="5"><line x1="0" x2="0" y1="0" y2="10" /></marker></defs><g id="canvas" transform="translate(40,40) scale(1,-1) translate(0,-400)"><line class="grid depth3" x1="50.0" x2="50.0" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="50.0" y2="50.0" /><line class="grid depth3" x1="150.0" x2="150.0" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="150.0" y2="150.0" /><line class="grid depth3" x1="250.0" x2="250.0" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="250.0" y2="250.0" /><line class="grid depth3" x1="350.0" x2="350.0" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="350.0" y2="350.0" /><line class="grid depth2" x1="100.0" x2="100.0" y1="0" y2="400" /><line class="grid depth2" x1="0" x2="400" y1="100.0" y2="100.0" /><line class="grid depth2" x1="300.0" x2="300.0" y1="0" y2="400" /><line class="grid depth2" x1="0" x2="400" y1="300.0" y2="300.0" /><line class="grid depth1" x1="200.0" x2="200.0" y1="0" y2="400" /><line class="grid depth1" x1="0" x2="400" y1="200.0" y2="200.0" /><line class="grid depth0" x1="400.0" x2="400.0" y1="0" y2="400" /><line class="grid depth0" x1="0" x2="400" y1="400.0" y2="400.0" /><polyline class="axis" points="0,0 200.0,0 300.0,0 312.5,0 325.0,0 350.0,0 400.0,0" /><polyline class="axis" points="0,0 0,100.0 0,200.0 0,250.0 0,275.0 0,300.0 0,400.0" /><line class="grid depth0" x1="0" x2="400" y1="0" y2="400" /><path class="graph" d="M 0.0 200.0 L 200.0 250.0" /><path class="graph" d="M 200.0 0.0 L 300.0 100.0" /><path class="graph" d="M 300.0 300.0 L 312.5 400.0" /><path class="graph" d="M 312.5 250.0 L 325.0 275.0" /><path class="graph" d="M 325.0 100.0 L 350.0 200.0" /><path class="graph" d="M 350.0 275.0 L 400.0 300.0" /></g></svg>

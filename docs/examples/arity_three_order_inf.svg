@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg baseProfile="full" height="480" version="1.1" viewBox="0,0,480,480" width="480" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><style type="text/css"><![CDATA[.axis {
+	stroke: black;
+	stroke-width: 1px;
+	marker-mid: url(#tickmark);
+	marker-end: url(#arrowhead);
+}
+
+.depth0 { stroke-width: 0.9px; stroke: #808080; }
+.depth1 { stroke-width: 0.8px; stroke: #A6A6A6; }
+.depth2 { stroke-width: 0.7px; stroke: #BFBFBF; }
+.depth3 { stroke-width: 0.6px; stroke: #E6E6E6; }
+
+#arrowhead {
+	stroke: black;
+	fill: none;
+}
+
+#tickmark {
+	stroke: black;
+	stroke-width: 2px;
+}
+
+.graph {
+	fill: none;
+	stroke: black;
+	stroke-width: 1.5px;
+	marker-start: url(#continuity);
+	marker-end: url(#discontinuity);
+}
+
+#discontinuity {
+	fill: white;
+	stroke: black;
+}
+]]></style><marker id="arrowhead" markerHeight="8" markerUnits="strokeWidth" markerWidth="4" orient="auto" refX="4" refY="4"><polyline points="0,8 4,4 0,0" /></marker><marker id="tickmark" markerHeight="10" markerUnits="strokeWidth" markerWidth="1" orient="auto" refX="0.5" refY="5"><line x1="0" x2="0" y1="0" y2="10" /></marker></defs><g id="canvas" transform="translate(40,40) scale(1,-1) translate(0,-400)"><line class="grid depth3" x1="14.814814814814813" x2="14.814814814814813" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="14.814814814814813" y2="14.814814814814813" /><line class="grid depth3" x1="29.629629629629626" x2="29.629629629629626" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="29.629629629629626" y2="29.629629629629626" /><line class="grid depth3" x1="59.25925925925925" x2="59.25925925925925" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="59.25925925925925" y2="59.25925925925925" /><line class="grid depth3" x1="74.07407407407408" x2="74.07407407407408" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="74.07407407407408" y2="74.07407407407408" /><line class="grid depth3" x1="103.7037037037037" x2="103.7037037037037" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="103.7037037037037" y2="103.7037037037037" /><line class="grid depth3" x1="118.5185185185185" x2="118.5185185185185" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="118.5185185185185" y2="118.5185185185185" /><line class="grid depth3" x1="148.14814814814815" x2="148.14814814814815" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="148.14814814814815" y2="148.14814814814815" /><line class="grid depth3" x1="162.96296296296296" x2="162.96296296296296" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="162.96296296296296" y2="162.96296296296296" /><line class="grid depth3" x1="192.59259259259258" x2="192.59259259259258" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="192.59259259259258" y2="192.59259259259258" /><line class="grid depth3" x1="207.4074074074074" x2="207.4074074074074" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="207.4074074074074" y2="207.4074074074074" /><line class="grid depth3" x1="237.037037037037" x2="237.037037037037" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="237.037037037037" y2="237.037037037037" /><line class="grid depth3" x1="251.85185185185185" x2="251.85185185185185" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="251.85185185185185" y2="251.85185185185185" /><line class="grid depth3" x1="281.48148148148147" x2="281.48148148148147" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="281.48148148148147" y2="281.48148148148147" /><line class="grid depth3" x1="296.2962962962963" x2="296.2962962962963" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="296.2962962962963" y2="296.2962962962963" /><line class="grid depth3" x1="325.9259259259259" x2="325.9259259259259" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="325.9259259259259" y2="325.9259259259259" /><line class="grid depth3" x1="340.74074074074076" x2="340.74074074074076" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="340.74074074074076" y2="340.74074074074076" /><line class="grid depth3" x1="370.3703703703704" x2="370.3703703703704" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="370.3703703703704" y2="370.3703703703704" /><line class="grid depth3" x1="385.18518518518516" x2="385.18518518518516" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="385.18518518518516" y2="385.18518518518516" /><line class="grid depth2" x1="44.44444444444444" x2="44.44444444444444" y1="0" y2="400" /><line class="grid depth2" x1="0" x2="400" y1="44.44444444444444" y2="44.44444444444444" /><line class="grid depth2" x1="88.88888888888889" x2="88.88888888888889" y1="0" y2="400" /><line class="grid depth2" x1="0" x2="400" y1="88.88888888888889" y2="88.88888888888889" /><line class="grid depth2" x1="177.77777777777777" x2="177.77777777777777" y1="0" y2="400" /><line class="grid depth2" x1="0" x2="400" y1="177.77777777777777" y2="177.77777777777777" /><line class="grid depth2" x1="222.22222222222223" x2="222.22222222222223" y1="0" y2="400" /><line class="grid depth2" x1="0" x2="400" y1="222.22222222222223" y2="222.22222222222223" /><line class="grid depth2" x1="311.11111111111114" x2="311.11111111111114" y1="0" y2="400" /><line class="grid depth2" x1="0" x2="400" y1="311.11111111111114" y2="311.11111111111114" /><line class="grid depth2" x1="355.55555555555554" x2="355.55555555555554" y1="0" y2="400" /><line class="grid depth2" x1="0" x2="400" y1="355.55555555555554" y2="355.55555555555554" /><line class="grid depth1" x1="133.33333333333331" x2="133.33333333333331" y1="0" y2="400" /><line class="grid depth1" x1="0" x2="400" y1="133.33333333333331" y2="133.33333333333331" /><line class="grid depth1" x1="266.66666666666663" x2="266.66666666666663" y1="0" y2="400" /><line class="grid depth1" x1="0" x2="400" y1="266.66666666666663" y2="266.66666666666663" /><line class="grid depth0" x1="400.0" x2="400.0" y1="0" y2="400" /><line class="grid depth0" x1="0" x2="400" y1="400.0" y2="400.0" /><polyline class="axis" points="0,0 44.44444444444444,0 88.88888888888889,0 133.33333333333331,0 266.66666666666663,0 311.11111111111114,0 355.55555555555554,0 400.0,0" /><polyline class="axis" points="0,0 0,133.33333333333331 0,266.66666666666663 0,311.11111111111114 0,355.55555555555554 0,370.3703703703704 0,385.18518518518516 0,400.0" /><line class="grid depth0" x1="0" x2="400" y1="0" y2="400" /><path class="graph" d="M 0.0 0.0 L 44.44444444444444 133.33333333333331 L 88.88888888888889 266.66666666666663 L 133.33333333333331 311.11111111111114 L 266.66666666666663 355.55555555555554" /><path class="graph" d="M 266.66666666666663 385.18518518518516 L 311.11111111111114 400.0" /><path class="graph" d="M 311.11111111111114 370.3703703703704 L 355.55555555555554 385.18518518518516" /><path class="graph" d="M 355.55555555555554 355.55555555555554 L 400.0 370.3703703703704" /></g></svg>
