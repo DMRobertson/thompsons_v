@@ -1309,8 +1309,9 @@ class Automorphism(Homomorphism):
 			if self.image(x) == x:
 				output.append(x)
 			ctype, _, _ = self.orbit_type(x)
-			if ctype.is_type_B():
-				output.append(Word.ray_as_rational(x, ctype.characteristic.multiplier))
+			if ctype.is_type_B() and abs(ctype.characteristic.power) == 1:
+				intersection = Word.ray_as_rational(x, ctype.characteristic.multiplier)
+				output.append(intersection)
 		
 		i = 0
 		while i + 1 < len(output):
@@ -1514,13 +1515,3 @@ def cyclic_pairs(iterable):
 		yield previous, item
 		previous = item
 	yield item, first
-
-def is_dyadic(fraction):
-	"""Returns ``True`` if and only if the denominator of the given *fraction* is a power of two.
-		
-		>>> examples = [ (1,24), (2,8), (1,4), (2, 3), (5, 128), (5, 7)]
-		>>> [ is_dyadic( Fraction(*x) ) for x in examples ]
-		[False, True, True, False, True, False]
-	"""
-	#See http://stackoverflow.com/a/600306/5252017 
-	return fraction.denominator & (fraction.denominator - 1) == 0

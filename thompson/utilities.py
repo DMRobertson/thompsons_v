@@ -87,4 +87,12 @@ def basis_to_tree(aut, basis, other, intersection, f, name, extra=''):
 	print(';', file=f)
 	print(r'\end{scope}', file=f)
 
-
+def is_dyadic(fraction):
+	"""Returns ``True`` if and only if the denominator of the given *fraction* is a power of two.
+		
+		>>> examples = [ (1,24), (2,8), (1,4), (2, 3), (5, 128), (5, 7)]
+		>>> [ is_dyadic( Fraction(*x) ) for x in examples ]
+		[False, True, True, False, True, False]
+	"""
+	#See http://stackoverflow.com/a/600306/5252017 
+	return fraction.denominator & (fraction.denominator - 1) == 0

@@ -751,7 +751,7 @@ class Word(tuple):
 	
 	@staticmethod
 	def ray_as_rational(base, spine):
-		"""Converts the infinite string :math:`\text{base} \, \text{spine}^\infty` to a rational in the unit interval.
+		r"""Converts the infinite string :math:`\text{base} \, \text{spine}^\infty` to a rational in the unit interval.
 		
 			>>> Word.ray_as_rational(Word("x", (2,1)), from_string("a1 a2"))
 			Fraction(1, 3)
