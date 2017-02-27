@@ -163,7 +163,7 @@ class Automorphism(Homomorphism):
 		:param str domain: A description of a binary tree as a stream of ones and zeroes.
 		:param str range: The same.
 		:param str labels: A string of natural numbers :math:`1, \dots, m` in some order. If omitted, taken to be the string ``"1 2 "..."len(domain)"``
-		:param bool reduce: Passed to :meth:`Homomorphism.__init__`. If ``True``, carets are reduced in the domain and range where possible. 
+		:param bool reduce: Passed to :meth:`the superclass' initialiser method <thompson.homomorphism.Homomorphism.__init__>`. If ``True``, carets are reduced in the domain and range where possible. 
 		
 		.. doctest::
 		

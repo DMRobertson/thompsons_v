@@ -25,8 +25,6 @@ List of named examples
 
 Note that some automorphisms have more than one name---they will appear once in this list for every alias.
 
-.. todo:: make the documentation build process include links to forest pair diagrams for these elements.
-
 .. include:: examples_table.txt
 
 Randomly generated examples

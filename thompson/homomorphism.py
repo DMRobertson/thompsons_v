@@ -434,7 +434,7 @@ class Homomorphism:
 			return image
 
 	def _image_simple_below_domain(self, word, sig_in, sig_out, cache):
-		r"""This method takes a :meth:`simple <Word.is_simple>` *word* of the form :math:`d \alpha_i_1 \dots \alpha_i_m` where :math:`d` is the largest such word whose image has already been computed. The images of the words
+		r"""This method takes a :meth:`simple <thompson.word.Word.is_simple>` *word* of the form :math:`d \alpha_i_1 \dots \alpha_i_m` where :math:`d` is the largest such word whose image has already been computed. The images of the words
 
 		.. math:: d \alpha_i_1, d \alpha_i_1 \alpha_i_2, \dotsc, d\alpha_i_1 \alpha i_2 \dots \alpha i_m
 
@@ -457,7 +457,7 @@ class Homomorphism:
 		return image
 
 	def _image_of_lambda(self, word, sig_in, sig_out, cache):
-		r"""This method accepts a *word* which ends in a lambda and extracts the arguments of the lambda. Next, the method calls :meth:`_get_image` on each argument, continuing the process recursively. Once we have computed/retreived all of the images we need, the images are concatenated and standardised, forming the image of *word*. This image is cached and returned.
+		r"""This method accepts a *word* which ends in a lambda and extracts the arguments of the lambda. The image of each argument is computed (or looked up in the cache), proceeding recursively if neccessary. Once we have obtained of the images we need, the images are concatenated and standardised, forming the image of *word*. This image is cached and returned.
 
 		:raises ValueError: if the last letter in *word* is not a lambda.
 		"""
