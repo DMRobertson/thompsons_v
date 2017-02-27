@@ -628,6 +628,7 @@ class Generators(list):
 			>>> X == X.cycled(0) == X.cycled(len(X))
 			True
 		"""
+		positions = positions % len(self)
 		out = type(self)(self.signature)
 		for i in range(positions, len(self)):
 			out.append(self[i])

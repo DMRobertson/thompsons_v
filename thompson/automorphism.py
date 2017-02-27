@@ -1,6 +1,8 @@
 """
 .. testsetup::
 	
+	from random import randrange, randint
+	
 	from thompson.number_theory import gcd
 	from thompson.word          import Signature, from_string
 	from thompson.orbits        import print_component_types
@@ -21,7 +23,7 @@ from .generators    import Generators
 from .homomorphism  import Homomorphism
 from .orbits        import ComponentType, Characteristic, SolutionSet
 from .pconj         import PowerCollection, search_pattern, mirrored
-from .utilities     import handle_domain, intersection_from_domain, intersection_of_trees
+from .utilities     import handle_domain, intersection_from_domain, intersection_of_trees, is_dyadic
 from .drawing       import plot, forest
 
 ___all__ = ["Automorphism", "plot", "forest"]
@@ -200,6 +202,59 @@ class Automorphism(Homomorphism):
 		for index, label in enumerate(labels):
 			range2[label-1] = range[index]
 		return cls(domain, range2)
+	
+	@classmethod
+	def rotation(cls, numerator, denominator=None):
+		"""Constructs an automorphism which represents a rotation when thought of as a homeomorphism of the circle. The *displacement* of this rotation be a dyadic rational. If both arguments are given, the displacement is ``numerator/denominator``; if only one argument is given, the displacement is the result of passing *numerator* to the constructor of :class:`~py3:fractions.Fraction`.
+		
+		.. note:: This only works in :math:`T_{2,1}`, but could be modified in future to work for different arities.
+		
+		:raises ValueError: if the displacement is not dyadic.
+		:returns: :class:`~thompson.periodic.PeriodicAut`
+		
+		.. doctest::
+		
+			>>> print(Automorphism.rotation(1, 2))
+			PeriodicAut: V(2, 1) -> V(2, 1) specified by 2 generators (after expansion and reduction).
+			x1 a1 -> x1 a2
+			x1 a2 -> x1 a1
+			>>> print(Automorphism.rotation(3, 8))
+			PeriodicAut: V(2, 1) -> V(2, 1) specified by 8 generators (after expansion and reduction).
+			x1 a1 a1 a1 -> x1 a1 a2 a2
+			x1 a1 a1 a2 -> x1 a2 a1 a1
+			x1 a1 a2 a1 -> x1 a2 a1 a2
+			x1 a1 a2 a2 -> x1 a2 a2 a1
+			x1 a2 a1 a1 -> x1 a2 a2 a2
+			x1 a2 a1 a2 -> x1 a1 a1 a1
+			x1 a2 a2 a1 -> x1 a1 a1 a2
+			x1 a2 a2 a2 -> x1 a1 a2 a1
+			>>> Automorphism.rotation(0) == Automorphism.rotation(100) == Automorphism.identity((2, 1))
+			True
+		
+			>>> denominator = 2 ** randint(1, 10)
+			>>> numerator = randrange(denominator)
+			>>> rot = Automorphism.rotation(numerator, denominator)
+			>>> rot.rotation_number() == Fraction(numerator, denominator)
+			True
+			>>> rot.cycles_order()
+			True
+			>>> rot.preserves_order() == (numerator == 0)
+			True
+		"""
+		
+		if not isinstance(numerator, Fraction):
+			if denominator is not None:
+				displacement = Fraction(numerator, denominator)
+			else:
+				displacement = Fraction(numerator)
+		if not is_dyadic(displacement):
+			raise ValueError("displacement ({}) is not dyadic".format(displacement))
+		
+		#If memory serves, the expand_to_size method tries to expand out the 
+		domain = Generators.standard_basis((2, 1))
+		domain.expand_to_size(displacement.denominator)
+		range = domain.cycled(displacement.numerator)
+		return cls(domain, range)
 	
 	#Computing images
 	def _set_image(self, d, r, sig_in, sig_out, cache):
