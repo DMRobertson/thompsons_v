@@ -68,7 +68,14 @@ class Generators(list):
 	def __repr__(self):
 		return type(self).__name__ + "({}, [{}])".format(
 		  self.signature, ", ".join(repr(format(w)) for w in self))
-
+	
+	def __getitem__(self, key):
+		if isinstance(key, slice):
+			output = type(self)(self.signature)
+			output.extend( super().__getitem__(key) )
+			return output
+		return super().__getitem__(key)
+	
 	def __eq__(self, other):
 		"""Two Generators instances are equal iff they have the same signature and the same elements in the same order.
 
