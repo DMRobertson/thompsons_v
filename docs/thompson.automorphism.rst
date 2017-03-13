@@ -15,8 +15,15 @@ The Automorphisms class
     :undoc-members:
     :exclude-members: inverse
 
+Membership placeholders
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: thompson.membership
+
 Next steps
 ----------
+
+.. currentmodule:: thompson.automorphism
 
 Because an Automorphism can be :meth:`repeatedly applied <Automorphism.__pow__>`, we may consider the orbit :math:`\{w\psi^n \mid n \in \mathbb{Z}\}` of any word :math:`w`. (Note that this is the orbit of :math:`w` under the cyclic subgroup :math:`\langle \psi \rangle`, rather than all of :math:`G_{n,r}`.)
 

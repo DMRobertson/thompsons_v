@@ -1,7 +1,8 @@
 """
 .. testsetup::
 	
-	from random import randrange, randint
+	from fractions import Fraction
+	from random    import randrange, randint
 	
 	from thompson.number_theory import gcd
 	from thompson.word          import Signature, from_string
@@ -1498,7 +1499,9 @@ class Automorphism(Homomorphism):
 		"""Constructs a new element :math:`\psi` commuting with the given element :math:`\phi`. We construct the centralising element by altering the :math:`\phi`-orbit structure below the orbits of the given *period*.
 		
 		There are two parameters: a collection of labelled *trees* and a *rearranger* element; in the notation of [BBG11]_ these are elements of :math:`K_{m_i}` and :math:`G_{n, r_i}` respectively.
+		
 		.. todo:: doctests
+		
 		.. caution:: This is an experimental feature based on [BBG11]_.
 		"""
 		if period not in self.cycle_type:
@@ -1552,6 +1555,45 @@ class Automorphism(Homomorphism):
 		target = relabeller.image(rearrangement)
 		
 		return target
+	
+	def gradients_around(self, x):
+		r"""Let :math:`x \in \mathbb{Q} \cap [0, 1]`. What's the gradient to the left of :math:`x` and right of :math:`x`?
+		If :math:`x` is a breakpoint it could be different; if not, it'll be the same number on both sides.
+		
+		:rtype: 2-:class:`~py3:tuple` of :class:`py3:fractions.Fraction`.
+		
+		.. doctest::
+		
+			>>> f = standard_generator(0)
+			>>> f.gradients_around(5/6)
+			(Fraction(2, 1), Fraction(2, 1))
+			>>> f.gradients_around(1/2)
+			(Fraction(1, 2), Fraction(1, 1))
+			>>> f.gradients_around(0)
+			(Fraction(2, 1), Fraction(1, 2))
+			
+			>>> g = load_example("alphabet_size_two")
+			>>> g.gradients_around(1/2)
+			(Fraction(3, 1), Fraction(1, 1))
+			>>> g.gradients_around(1/3)
+			(Fraction(1, 3), Fraction(1, 3))
+			>>> #One third is a breakpoint, but floating point can't accurately represent one third. Need to use a Fraction here
+			>>> g.gradients_around(Fraction(1, 3))
+			(Fraction(1, 3), Fraction(3, 1))
+			>>> g.gradients_around(0)
+			(Fraction(1, 3), Fraction(1, 1))
+		"""
+		assert 0 <= x < 1
+		for i, (d, r) in enumerate(zip(self.domain, self.range)):
+			d1, d2 = d.as_interval()
+			if d1 < x < d2:
+				m = self.gradient(d, r)
+				return m, m
+			elif d1 == x:
+				m_left  = self.gradient(self.domain[i - 1], self.range[i - 1])
+				m_right = self.gradient(d, r)
+				return m_left, m_right
+		
 
 def type_b_triple(power, head, tail):
 	return dict(start_tail = tuple(), power=power, end_tail=tail, target=head)

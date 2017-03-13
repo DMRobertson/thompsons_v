@@ -9,6 +9,7 @@ from .examples.random import random_automorphism, random_periodic_automorphism
 from .drawing         import plot, forest, flow, in_ipynb
 from .cantorsubset    import CantorSubset
 from .scsystem        import SCSystem
+from .membership      import F, T
 
 __all__ = [
 	"Word",
@@ -17,8 +18,11 @@ __all__ = [
 	"load_example", "available_examples", "show_examples", "standard_generator",
 	"random_automorphism", "random_periodic_automorphism",
 	"plot", "forest", "flow",
-	"SCSystem", "CantorSubset"
+	"SCSystem", "CantorSubset",
+	"F", "T"
 ]
+
+
 
 if in_ipynb():
 	from IPython.display import display

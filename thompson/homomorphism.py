@@ -7,6 +7,7 @@ In other words, a homomorphism is a function which 'commutes' with the algebra o
 
 .. testsetup::
 
+    from thompson.word         import Word
     from thompson.generators   import Generators
     from thompson.homomorphism import *
     from thompson.automorphism import Automorphism
@@ -592,6 +593,64 @@ class Homomorphism:
 		if self.domain_relabeller is None or self.range_relabeller is None:
 			raise AttributeError("This factor has not been assigned relabellers.")
 		return self.domain_relabeller.image_of_set(self.domain), self.range_relabeller.image_of_set(self.range)
+	
+	def gradients(self):
+		"""Interprets the current homomorphism as a piecewise linear map, and returns the list of gradients of each linear piece. The :math:`i` th element of this list is the gradient of the affine map sending ``self.domain[i]`` to ``self.range[i]``.
+		
+		:rtype: :class:`~py3:list` of :class:`~py3:fractions.Fraction` s.
+		
+		.. doctest::
+		
+			>>> standard_generator(0).gradients()
+			[Fraction(1, 2), Fraction(1, 1), Fraction(2, 1)]
+			>>> load_example("alphabet_size_two").gradients()
+			[Fraction(1, 1), Fraction(1, 3), Fraction(3, 1), Fraction(1, 1), Fraction(1, 3), Fraction(1, 3)]
+		
+		"""
+		return [self.gradient(d, r) for d, r in zip(self.domain, self.range)]
+	
+	def gradient_at(self, x):
+		"""Interprets the current homomorphism as a piecewise linear map, and returns the right-derivative of the current homomorphism at :math:`x`.
+		
+		:rtype: :class:`~py3:fractions.Fraction`
+		
+		.. doctest::
+		
+			>>> f = standard_generator(0)
+			>>> f.gradient_at(0)
+			Fraction(1, 2)
+			>>> f.gradient_at(-1)
+			Traceback (most recent call last):
+			...
+			AssertionError
+			>>> f.gradient_at(2/3)
+			Fraction(1, 1)
+			>>> f.gradient_at(Word("x a2", (2, 1)))
+			Traceback (most recent call last):
+			...
+			ValueError: Automorphism doesn't map x1 a2 affinely
+		"""
+		if isinstance(x, Word):
+			try:
+				index, tail = self.domain.test_above(x, return_index=True)
+			except TypeError:
+				raise ValueError("Automorphism doesn't map {} affinely".format(x))
+			else:
+				return self.gradient(self.domain[i], self.range[i])
+		else:
+			assert 0 <= x < self.signature.alphabet_size
+			for d, r in zip(self.domain, self.range):
+				d1, d2 = d.as_interval()
+				if d1 <= x < d2:
+					return self.gradient(d, r)
+	
+	@staticmethod
+	def gradient(domain, range):
+		"""Computes the gradient of the affine map sending the interval represented by *domain* to the interval represented by *range*."""
+		assert domain.signature == range.signature
+		d1, d2 = domain.as_interval()
+		r1, r2 = range.as_interval()
+		return (r2 - r1) / (d2 - d1)
 
 def format_table(*columns, sep=None, root_names=None):
 	for row in zip(*columns):
