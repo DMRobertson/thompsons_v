@@ -103,29 +103,17 @@ def draw_grid(canvas, signature, levels=None):
 		for line in lines[d]:
 			canvas.add(line)
 
-def plot(self, filename='plot.svg', diagonal=True, endpoints=False):
+def plot(*auts, filename='plot.svg', diagonal=True, endpoints=False):
+	assert len({aut.signature for aut in auts}) == 1
 	from svgwrite.path      import Path
 	from svgwrite.shapes    import Line, Polyline
+	from svgwrite.container import Group
 	dwg, canvas = new_drawing(filename)
 	include_markers(dwg, endpoints)
-	draw_grid(canvas, self.signature)
+	draw_grid(canvas, auts[0].signature)
 	
-	x_points = [(0, 0)]
-	y_points = [(0, 0)]
-	graph_segments = []
-	for d, r in zip(self.domain, self.range):
-		x0, x1 = (float(x) for x in d.as_interval())
-		y0, y1 = (float(y) for y in r.as_interval())
-		
-		x_points.append( (SCALE * x1, 0) )
-		y_points.append( (0, SCALE * y1) )
-		graph_segments.append( (x0, y0, x1, y1) )
-	
-	x_points = sorted(x_points)
-	y_points = sorted(y_points)
-	
-	x_axis = Polyline(x_points, class_="axis")
-	y_axis = Polyline(y_points, class_="axis")
+	x_axis = Polyline([(0, 0), (SCALE, 0)], class_="axis")
+	y_axis = Polyline([(0, 0), (0, SCALE)], class_="axis")
 	canvas.add(x_axis)
 	canvas.add(y_axis)
 	
@@ -133,12 +121,22 @@ def plot(self, filename='plot.svg', diagonal=True, endpoints=False):
 		diag = Line((0,0), (SCALE, SCALE), class_="grid depth0")
 		canvas.add(diag)
 	
-	last = (None, None)
-	for (x0, y0, x1, y1) in graph_segments:
-		if last != (x0, y0):
-			graph = Path(class_='graph')
-			canvas.add(graph)
-			graph.push('M', SCALE * x0, SCALE * y0)
-		graph.push('L', SCALE * x1, SCALE * y1)
-		last = (x1, y1)
+	for i, aut in enumerate(auts):
+		group = Group(class_="graph", id='graph_' + str(i))
+		canvas.add(group)
+		last = (None, None)
+		for (x0, y0, x1, y1) in graph_segments(aut):
+			if last != (x0, y0):
+				graph = Path(class_='graph_segment')
+				group.add(graph)
+				graph.push('M', SCALE * x0, SCALE * y0)
+			graph.push('L', SCALE * x1, SCALE * y1)
+			last = (x1, y1)
+		
 	dwg.save()
+
+def graph_segments(aut):
+	for d, r in zip(aut.domain, aut.range):
+		x0, x1 = (float(x) for x in d.as_interval())
+		y0, y1 = (float(y) for y in r.as_interval())
+		yield (x0, y0, x1, y1) 
