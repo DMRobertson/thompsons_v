@@ -190,14 +190,14 @@ class Homomorphism:
 
 	@classmethod
 	def _from_stream(cls, f):
-		line = f.readline().strip()
+		line = cls.next_non_comment_line(f)
 		try:
 			num_generators = int(line)
 		except ValueError as e:
 			details = 'Instead of {!r}, the first line should be the number of generators used to define the homorphism.'.format(line)
 			raise ValueError(details) from e
 
-		line = f.readline().strip()
+		line = cls.next_non_comment_line(f)
 		params = extract_signatures.match(line)
 		try:
 			params = params.groups()
@@ -206,7 +206,8 @@ class Homomorphism:
 		d = Generators([int(params[0]), int(params[1])])
 		r = Generators([int(params[2]), int(params[3])])
 		for i in range(num_generators):
-			d_word, r_word = (word.strip() for word in f.readline().split('->'))
+			line = cls.next_non_comment_line(f)
+			d_word, r_word = (word.strip() for word in line.split('->'))
 			try:
 				d.append(d_word)
 				r.append(r_word)
@@ -223,7 +224,14 @@ class Homomorphism:
 		if len(hom.__doc__.strip()) == 0:
 			del hom.__doc__
 		return hom
-
+	
+	@staticmethod
+	def next_non_comment_line(file):
+		while True:
+			line = file.readline().strip()
+			if not line.startswith('#'):
+				return line
+	
 	def save_to_file(self, filename=None, comment=None):
 		"""Takes a homomorphism and saves it to the file with the given *filename*. The homomorphism is stored in a format which is compatible with :meth:`from_file`. Optionally, a *comment* may be appended to the end of the homomorphism file.
 
