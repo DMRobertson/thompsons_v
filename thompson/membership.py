@@ -18,16 +18,25 @@ from .automorphism import Automorphism
 __all__ = ["F", "T"]
 
 class FClass:
+	def __str__(self):
+		return 'F'
+	
 	def __contains__(self, key):
 		return isinstance(key, Automorphism) and key.preserves_order()
 F = FClass()
 
 class TClass:
+	def __str__(self):
+		return 'T'
+	
 	def __contains__(self, key):
 		return isinstance(key, Automorphism) and key.cycles_order()
 T = TClass()
 
 class VClass:
+	def __str__(self):
+		return 'V'
+	
 	def __contains__(self, key):
 		return isinstance(key, Automorphism)
 V = VClass()

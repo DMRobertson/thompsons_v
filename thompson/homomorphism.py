@@ -15,6 +15,7 @@ In other words, a homomorphism is a function which 'commutes' with the algebra o
 """
 
 from copy      import copy
+from fractions import Fraction
 from io        import StringIO
 from itertools import chain
 
@@ -392,6 +393,8 @@ class Homomorphism:
 
 		:rtype: a :class:`~thompson.word.Word` instance (which are always in standard form).
 		"""
+		if isinstance(key, (int, Fraction)):
+			return self.image_of_point(key)
 		sig_in = sig_in or self.domain.signature
 		sig_out = sig_out or self.range.signature
 		cache = cache or self._map
@@ -406,14 +409,14 @@ class Homomorphism:
 				raise TypeError("Signature {} of input {} does not match {}".format(
 				  key.signature, key, sig_in))
 			word = key
-		elif isinstance(key, (str, tuple)):
+		else:
 			word = Word(key, sig_in)
-
+		
 		try:
 			return cache[word]
 		except KeyError:
 			pass
-
+		
 		#1. First deal with the easy words (no lambdas).
 		if word.is_simple():
 			#Cache should already have dealt with anything above the domain
@@ -502,7 +505,27 @@ class Homomorphism:
 			images.append(self._compute_image(preimage, sig_in, sig_out, cache))
 
 		return images
-
+	
+	def image_of_point(self, x):
+		"""Interpret the current homomorphism as a piecewise linear map and evalutate the image of :math:`x` under this map.
+		
+			>>> from fractions import Fraction
+			>>> x = standard_generator(0)
+			>>> x.image_of_point(0)
+			Fraction(0, 1)
+			>>> x.image_of_point(Fraction(1, 3))
+			Fraction(1, 6)
+		"""
+		assert 0 <= x < self.signature.alphabet_size
+		for d, r in zip(self.domain, self.range):
+			d1, d2 = d.as_interval()
+			if d1 <= x < d2:
+				t = (x - d1) / (d2 - d1)
+				r1, r2 = r.as_interval()
+				return r1 + t * (r2 - r1)
+		
+		raise ValueError("Couldn't find point {} contained in the domain".format(x))
+	
 	#Printing
 	def _string_header(self):
 		return "{}: V{} -> V{} specified by {} generators (after expansion and reduction).".format(
