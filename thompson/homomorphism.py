@@ -579,7 +579,74 @@ class Homomorphism:
 		rows = format_table(self.domain, self.range)
 		self._append_output(rows, output)
 		return output.getvalue()
-
+	
+	def pl_segments(self, LaTeX=False):
+		r"""Returns a description of the current homomorphism as a piecewise-linear map on the interval.
+		
+			>>> x = standard_generator()
+			>>> print(x.pl_segments())
+			0   + 1/2 (t - 0   ) from 0   to 1/2
+			1/4 + 1   (t - 1/2 ) from 1/2 to 3/4
+			1/2 + 2   (t - 3/4 ) from 3/4 to 1  
+		
+		:param bool LaTeX: if True, the description is formatted as a LaTeX ``cases`` environment.
+		
+			>>> print(x.pl_segments(LaTeX=True))
+			\begin{cases}
+			    0   + 1/2 (t - 0   ) &\text{if $ 0   \leq t < 1/2 $} \\
+			    1/4 + 1   (t - 1/2 ) &\text{if $ 1/2 \leq t < 3/4 $} \\
+			    1/2 + 2   (t - 3/4 ) &\text{if $ 3/4 \leq t < 1   $} 
+			\end{cases}
+		"""
+		segments = []
+		for d, r in zip(self.domain, self.range):
+			d1, d2 = d.as_interval()
+			r1, r2 = r.as_interval()
+			gradient = self.gradient(d, r)
+			intercept = r1 - gradient * d1
+			segments.append({
+				"ystart":     r1,
+				"yend":       r2,
+				"xstart":     d1,
+				"xend":       d2,
+				"intercept": intercept,
+				"gradient":  self.gradient(d, r),
+			})
+		
+		i = 1
+		while i < len(segments):
+			if segments[i]['gradient'] == segments[i-1]['gradient']:
+				segments[i-1]['end'] = segments[i]['end']
+				del segments[i]
+			else:
+				i += 1
+				
+		ystarts = []
+		gradients = []
+		xstarts = []
+		xends  = []
+		for segment in segments:
+			ystarts.append( str(segment["ystart"]) )
+			gradients.append( str(segment["gradient"]) )
+			xstarts.append( str(segment["xstart"]) )
+			xends.append( str(segment["xend"]) )
+		
+		columns = [ystarts, gradients, xstarts, xstarts, xends]
+		if LaTeX:
+			joiner = "\\\\\n"
+			sep = [" "*2, "+", "(t -", ") &\\text{{if $", "\\leq t <", "$}}"]
+			blank_column = ["" for _ in columns[0]]
+			columns.insert(0, blank_column)
+			columns.append(blank_column)
+		else:
+			joiner = "\n"
+			sep = ["+", "(t -", ") from", "to"]
+		body = joiner.join( format_table(*columns, sep=sep) )
+		if LaTeX:
+			return "\\begin{cases}\n" + body + "\n\\end{cases}"
+		else:
+			return body
+	
 	#Relabelling
 	def add_relabellers(self, domain_relabeller, range_relabeller):
 		""":raises LookupError: if a relabeller is provided and the relabeller's signature does not match that of *domain* or *range*
