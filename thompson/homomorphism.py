@@ -618,7 +618,8 @@ class Homomorphism:
 		i = 1
 		while i < len(segments):
 			if segments[i]['gradient'] == segments[i-1]['gradient']:
-				segments[i-1]['end'] = segments[i]['end']
+				segments[i-1]['xend'] = segments[i]['xend']
+				segments[i-1]['yend'] = segments[i]['yend']
 				del segments[i]
 			else:
 				i += 1
