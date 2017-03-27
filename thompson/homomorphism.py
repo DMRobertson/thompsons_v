@@ -591,6 +591,8 @@ class Homomorphism:
 		
 		:param bool LaTeX: if True, the description is formatted as a LaTeX ``cases`` environment.
 		
+		.. doctest::
+		
 			>>> print(x.pl_segments(LaTeX=True))
 			\begin{cases}
 			    0   + 1/2 (t - 0   ) &\text{if $ 0   \leq t < 1/2 $} \\
