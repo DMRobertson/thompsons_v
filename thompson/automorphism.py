@@ -1394,12 +1394,19 @@ class Automorphism(Homomorphism):
 			i += 1
 		return output
 	
-	def fixed_point_boundary(self):
+	def fixed_point_boundary(self, on_circle=False):
 		"""Replaces any intervals in the output of :meth:`fixed_points` with their endpoints.
 		
 			>>> f = load_example("non_dyadic_fixed_point")
 			>>> f.fixed_point_boundary()
 			[Fraction(0, 1), Fraction(1, 3), Fraction(3, 4), Fraction(1, 1)]
+		
+		:param bool on_circle: if True, treat 0 and 1 as the same point.
+		
+		.. doctest::
+			
+			>>> f.fixed_point_boundary(on_circle=True)
+			[Fraction(0, 1), Fraction(1, 3), Fraction(3, 4)]
 		"""
 		
 		output = []
@@ -1410,6 +1417,9 @@ class Automorphism(Homomorphism):
 			start, end = x.as_interval()
 			output.append(start)
 			output.append(end)
+		if on_circle:
+			if output[0] == 0 and output[-1] == 1:
+				output.pop()
 		return output
 	
 	def area_to_identity(self, scaled=False):
