@@ -508,10 +508,17 @@ class Homomorphism:
 	
 	def image_of_point(self, x):
 		"""Interpret the current homomorphism as a piecewise linear map and evalutate the image of :math:`x` under this map.
+		Note that inverse images aren't supported, as homomorphisms need not be invertible.
+		
+		:param Fraction x: the current point, as an :class:`py3:int` or a :class:`~py3:fractions.Fraction`.
+		
+		.. doctest::
 		
 			>>> from fractions import Fraction
 			>>> x = standard_generator(0)
 			>>> x.image_of_point(0)
+			Fraction(0, 1)
+			>>> x(0)    #can also just use __call__ syntax
 			Fraction(0, 1)
 			>>> x.image_of_point(Fraction(1, 3))
 			Fraction(1, 6)
@@ -525,6 +532,17 @@ class Homomorphism:
 				return r1 + t * (r2 - r1)
 		
 		raise ValueError("Couldn't find point {} contained in the domain".format(x))
+	
+	def __call__(self, *args, **kwargs):
+		"""Homomorphisms are callable. Treating them as a function just calls the :meth:`image` method.
+		
+			>>> from fractions import Fraction
+			>>> x0 = standard_generator()
+			>>> x0(Fraction(1, 2))
+			Fraction(1, 4)
+			
+		"""
+		return self.image(*args, **kwargs)
 	
 	#Printing
 	def _string_header(self):

@@ -291,8 +291,6 @@ class Automorphism(Homomorphism):
 		else:
 			return super().image(key)
 	
-	__call__ = image
-	
 	def image_of_set(self, set, inverse=False):
 		"""If *inverse* is True, the inverse of the current automorphism is used to map *set* instead. Otherwise this method delegates to :meth:`Homomorphism.image_of_set <thompson.homomorphism.Homomorphism.image_of_set>`.
 		
