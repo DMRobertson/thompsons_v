@@ -152,7 +152,7 @@ class Automorphism(Homomorphism):
 	
 	@classmethod
 	def from_dfs(cls, domain, range, labels=None, reduce=True):
-		"""Creates elements of :math:`V=G_{2,1}` using the notation of [Kogan]_.
+		r"""Creates elements of :math:`V=G_{2,1}` using the notation of [Kogan]_.
 		
 		The domain and range trees are described as a string of ones and zeros.
 		A ``1`` denotes a vertex which has children; a ``0`` denotes a vertex which has none (i.e. a leaf).
@@ -163,20 +163,22 @@ class Automorphism(Homomorphism):
 		
 		:param str domain: A description of a binary tree as a stream of ones and zeroes.
 		:param str range: The same.
-		:param str labels: A string of natural numbers :math:`1, \dots, m` in some order. If omitted, taken to be the string ``"1 2 "..."len(domain)"``
+		:param str labels: A string of natural numbers :math:`1, \dots, m` in some order. If omitted, taken to be the string ``"1 2 "..."len(domain)"``. If a single string ``n``, taken to be the cyclic permuation mapping :math:`1 \mapsto n`.
 		:param bool reduce: Passed to :meth:`the superclass' initialiser method <thompson.homomorphism.Homomorphism.__init__>`. If ``True``, carets are reduced in the domain and range where possible. 
 		
 		.. doctest::
 		
-			>>> f = Automorphism.from_dfs("100", "100", "2 1");
+			>>> f = Automorphism.from_dfs("100", "100", "2 1")
 			>>> f.order
 			2
 			>>> print(f)
 			PeriodicAut: V(2, 1) -> V(2, 1) specified by 2 generators (after expansion and reduction).
 			x1 a1 -> x1 a2
 			x1 a2 -> x1 a1
+			>>> Automorphism.from_dfs("100", "100", "2") == f
+			True
 		
-			>>> g = Automorphism.from_dfs("1010100", "1011000");
+			>>> g = Automorphism.from_dfs("1010100", "1011000")
 			>>> print(g)
 			MixedAut: V(2, 1) -> V(2, 1) specified by 4 generators (after expansion and reduction).
 			x1 a1       -> x1 a1      
@@ -198,6 +200,10 @@ class Automorphism(Homomorphism):
 			labels = [i for i, _ in enumerate(domain, start=1)]
 		else:
 			labels = [int(x) for x in labels.split()]
+			
+		if len(labels) == 1:
+			start = labels[0]
+			labels = [ (start + i) % len(domain)  for i, _ in enumerate(domain, start=0)]
 		assert len(domain) == len(range) == len(labels)
 		range2 = range.copy()
 		for index, label in enumerate(labels):
