@@ -22,8 +22,6 @@ __all__ = [
 	"F", "T"
 ]
 
-
-
 if in_ipynb():
 	from IPython.display import display
 	__all__.append("display")

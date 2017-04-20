@@ -598,26 +598,7 @@ class Homomorphism:
 		self._append_output(rows, output)
 		return output.getvalue()
 	
-	def pl_segments(self, LaTeX=False):
-		r"""Returns a description of the current homomorphism as a piecewise-linear map on the interval.
-		
-			>>> x = standard_generator()
-			>>> print(x.pl_segments())
-			0   + 1/2 (t - 0   ) from 0   to 1/2
-			1/4 + 1   (t - 1/2 ) from 1/2 to 3/4
-			1/2 + 2   (t - 3/4 ) from 3/4 to 1  
-		
-		:param bool LaTeX: if True, the description is formatted as a LaTeX ``cases`` environment.
-		
-		.. doctest::
-		
-			>>> print(x.pl_segments(LaTeX=True))
-			\begin{cases}
-			    0   + 1/2 (t - 0   ) &\text{if $ 0   \leq t < 1/2 $} \\
-			    1/4 + 1   (t - 1/2 ) &\text{if $ 1/2 \leq t < 3/4 $} \\
-			    1/2 + 2   (t - 3/4 ) &\text{if $ 3/4 \leq t < 1   $} 
-			\end{cases}
-		"""
+	def pl_segments(self):
 		segments = []
 		for d, r in zip(self.domain, self.range):
 			d1, d2 = d.as_interval()
@@ -641,7 +622,29 @@ class Homomorphism:
 				del segments[i]
 			else:
 				i += 1
-				
+		return segments
+	
+	def format_pl_segments(self, LaTeX=False):
+		r"""Returns a description of the current homomorphism as a piecewise-linear map on the interval.
+		
+			>>> x = standard_generator()
+			>>> print(x.format_pl_segments())
+			0   + 1/2 (t - 0   ) from 0   to 1/2
+			1/4 + 1   (t - 1/2 ) from 1/2 to 3/4
+			1/2 + 2   (t - 3/4 ) from 3/4 to 1  
+		
+		:param bool LaTeX: if True, the description is formatted as a LaTeX ``cases`` environment.
+		
+		.. doctest::
+		
+			>>> print(x.format_pl_segments(LaTeX=True))
+			\begin{cases}
+			    0   + 1/2 (t - 0   ) &\text{if $ 0   \leq t < 1/2 $} \\
+			    1/4 + 1   (t - 1/2 ) &\text{if $ 1/2 \leq t < 3/4 $} \\
+			    1/2 + 2   (t - 3/4 ) &\text{if $ 3/4 \leq t < 1   $} 
+			\end{cases}
+		"""
+		segments = self.pl_segments()
 		ystarts = []
 		gradients = []
 		xstarts = []
@@ -667,6 +670,18 @@ class Homomorphism:
 			return "\\begin{cases}\n" + body + "\n\\end{cases}"
 		else:
 			return body
+	
+	def tikz_path(self):
+		from .automorphism import Automorphism
+		assert isinstance(self, Automorphism)
+		assert self.preserves_order()
+		segments = self.pl_segments()
+		coords = [ (seg['xstart'], seg['ystart']) for seg in segments ]
+		coords.append( (segments[-1]['xend'], segments[-1]['yend']) )
+		coords = [ "({}, {})".format(*coord) for coord in coords ]
+		
+		return " -- ".join(coords)
+
 	
 	#Relabelling
 	def add_relabellers(self, domain_relabeller, range_relabeller):
