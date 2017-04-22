@@ -67,7 +67,7 @@ def write_enclosing_node(f, for_domain, horiz):
 	f.write( "\\node [{}] {{\n".format(tree_style) )
 
 
-def write_word(f, word, label, for_domain, intersection, highlight):
+def write_word(f, word, index, for_domain, intersection, highlight):
 	below_intersection = False
 	for subword in word.subwords():
 		options = {}
@@ -83,7 +83,7 @@ def write_word(f, word, label, for_domain, intersection, highlight):
 				options["target edge style"] = "spine"
 
 		if subword == word:
-			options["label"] = "below:" + str(label)
+			options["label"] = "below:${}$".format(index)
 			if highlight:
 				options["label"] = "{[repatt label]" + options["label"] + "}"
 				options["repatt"] = None

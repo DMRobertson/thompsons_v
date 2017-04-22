@@ -84,7 +84,7 @@ def plot(*auts, dest=None, display=True, diagonal=False, endpoints=False):
 		return display_file(dest, format='svg')
 	return dest
 
-def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None, scale=1):
+def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None, scale=1, draw_revealing=True):
 	r"""Draws the given :class:`~thompson.automorphism.Automorphism` as a forest-pair diagram.
 	The image is rendered as a PDF using the `tikz` graph drawing libraries and `lualatex`.
 
@@ -94,6 +94,7 @@ def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None, sc
 	:param bool horiz: if True, draws the range forest to the right of the domain forest. If false, draws the range forest below the range forest.
 	:param `~thompson.generators.Generators` domain: By default, we use the :meth:`minimal expansion <thompson.generators.Generators.minimal_expansion_for>` of the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` as the leaves of the domain forest. This can be overridden by providing a *domain* argument.
 	:param float scale: In a Jupyter notebook, this controls the size of the rendered PNG image. See the note in :func:`display_file`.
+	:param bool draw_revealing: Should attractor/repeller paths be highlighted in red?
 
 	:returns: the filepath where the PDF was saved. If *dest* is `None` this is a temporary file; otherwise the return value is simply `jobname + '.pdf'`.
 
@@ -114,7 +115,7 @@ def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None, sc
 	tex = os.path.join(outdir, jobname + '.tex')
 	pdf = os.path.join(outdir, jobname + '.pdf')
 
-	write_tikz_code(aut, domain, tex, horiz, name)
+	write_tikz_code(aut, domain, tex, horiz, name, True, draw_revealing)
 	check_call(['lualatex',
 		'-output-directory=' + outdir,
 		'-interaction=batchmode',
