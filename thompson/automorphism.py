@@ -1,7 +1,8 @@
 """
 .. testsetup::
 	
-	from random import randrange, randint
+	from fractions import Fraction
+	from random    import randrange, randint
 	
 	from thompson.number_theory import gcd
 	from thompson.word          import Signature, from_string
@@ -151,7 +152,7 @@ class Automorphism(Homomorphism):
 	
 	@classmethod
 	def from_dfs(cls, domain, range, labels=None, reduce=True):
-		"""Creates elements of :math:`V=G_{2,1}` using the notation of [Kogan]_.
+		r"""Creates elements of :math:`V=G_{2,1}` using the notation of [Kogan]_.
 		
 		The domain and range trees are described as a string of ones and zeros.
 		A ``1`` denotes a vertex which has children; a ``0`` denotes a vertex which has none (i.e. a leaf).
@@ -162,20 +163,22 @@ class Automorphism(Homomorphism):
 		
 		:param str domain: A description of a binary tree as a stream of ones and zeroes.
 		:param str range: The same.
-		:param str labels: A string of natural numbers :math:`1, \dots, m` in some order. If omitted, taken to be the string ``"1 2 "..."len(domain)"``
+		:param str labels: A string of natural numbers :math:`1, \dots, m` in some order. If omitted, taken to be the string ``"1 2 "..."len(domain)"``. If a single string ``n``, taken to be the cyclic permuation mapping :math:`1 \mapsto n`.
 		:param bool reduce: Passed to :meth:`the superclass' initialiser method <thompson.homomorphism.Homomorphism.__init__>`. If ``True``, carets are reduced in the domain and range where possible. 
 		
 		.. doctest::
 		
-			>>> f = Automorphism.from_dfs("100", "100", "2 1");
+			>>> f = Automorphism.from_dfs("100", "100", "2 1")
 			>>> f.order
 			2
 			>>> print(f)
 			PeriodicAut: V(2, 1) -> V(2, 1) specified by 2 generators (after expansion and reduction).
 			x1 a1 -> x1 a2
 			x1 a2 -> x1 a1
+			>>> Automorphism.from_dfs("100", "100", "2") == f
+			True
 		
-			>>> g = Automorphism.from_dfs("1010100", "1011000");
+			>>> g = Automorphism.from_dfs("1010100", "1011000")
 			>>> print(g)
 			MixedAut: V(2, 1) -> V(2, 1) specified by 4 generators (after expansion and reduction).
 			x1 a1       -> x1 a1      
@@ -197,6 +200,10 @@ class Automorphism(Homomorphism):
 			labels = [i for i, _ in enumerate(domain, start=1)]
 		else:
 			labels = [int(x) for x in labels.split()]
+			
+		if len(labels) == 1:
+			start = labels[0]
+			labels = [ (start + i) % len(domain)  for i, _ in enumerate(domain, start=0)]
 		assert len(domain) == len(range) == len(labels)
 		range2 = range.copy()
 		for index, label in enumerate(labels):
@@ -289,8 +296,6 @@ class Automorphism(Homomorphism):
 			return super().image(key, self.range.signature, self.domain.signature, self._inv)
 		else:
 			return super().image(key)
-	
-	__call__ = image
 	
 	def image_of_set(self, set, inverse=False):
 		"""If *inverse* is True, the inverse of the current automorphism is used to map *set* instead. Otherwise this method delegates to :meth:`Homomorphism.image_of_set <thompson.homomorphism.Homomorphism.image_of_set>`.
@@ -1389,12 +1394,19 @@ class Automorphism(Homomorphism):
 			i += 1
 		return output
 	
-	def fixed_point_boundary(self):
+	def fixed_point_boundary(self, on_circle=False):
 		"""Replaces any intervals in the output of :meth:`fixed_points` with their endpoints.
 		
 			>>> f = load_example("non_dyadic_fixed_point")
 			>>> f.fixed_point_boundary()
 			[Fraction(0, 1), Fraction(1, 3), Fraction(3, 4), Fraction(1, 1)]
+		
+		:param bool on_circle: if True, treat 0 and 1 as the same point.
+		
+		.. doctest::
+			
+			>>> f.fixed_point_boundary(on_circle=True)
+			[Fraction(0, 1), Fraction(1, 3), Fraction(3, 4)]
 		"""
 		
 		output = []
@@ -1405,6 +1417,9 @@ class Automorphism(Homomorphism):
 			start, end = x.as_interval()
 			output.append(start)
 			output.append(end)
+		if on_circle:
+			if output[0] == 0 and output[-1] == 1:
+				output.pop()
 		return output
 	
 	def area_to_identity(self, scaled=False):
@@ -1498,7 +1513,9 @@ class Automorphism(Homomorphism):
 		"""Constructs a new element :math:`\psi` commuting with the given element :math:`\phi`. We construct the centralising element by altering the :math:`\phi`-orbit structure below the orbits of the given *period*.
 		
 		There are two parameters: a collection of labelled *trees* and a *rearranger* element; in the notation of [BBG11]_ these are elements of :math:`K_{m_i}` and :math:`G_{n, r_i}` respectively.
+		
 		.. todo:: doctests
+		
 		.. caution:: This is an experimental feature based on [BBG11]_.
 		"""
 		if period not in self.cycle_type:
@@ -1552,6 +1569,45 @@ class Automorphism(Homomorphism):
 		target = relabeller.image(rearrangement)
 		
 		return target
+	
+	def gradients_around(self, x):
+		r"""Let :math:`x \in \mathbb{Q} \cap [0, 1]`. What's the gradient to the left of :math:`x` and right of :math:`x`?
+		If :math:`x` is a breakpoint it could be different; if not, it'll be the same number on both sides.
+		
+		:rtype: 2-:class:`~py3:tuple` of :class:`py3:fractions.Fraction`.
+		
+		.. doctest::
+		
+			>>> f = standard_generator(0)
+			>>> f.gradients_around(5/6)
+			(Fraction(2, 1), Fraction(2, 1))
+			>>> f.gradients_around(1/2)
+			(Fraction(1, 2), Fraction(1, 1))
+			>>> f.gradients_around(0)
+			(Fraction(2, 1), Fraction(1, 2))
+			
+			>>> g = load_example("alphabet_size_two")
+			>>> g.gradients_around(1/2)
+			(Fraction(3, 1), Fraction(1, 1))
+			>>> g.gradients_around(1/3)
+			(Fraction(1, 3), Fraction(1, 3))
+			>>> #One third is a breakpoint, but floating point can't accurately represent one third. Need to use a Fraction here
+			>>> g.gradients_around(Fraction(1, 3))
+			(Fraction(1, 3), Fraction(3, 1))
+			>>> g.gradients_around(0)
+			(Fraction(1, 3), Fraction(1, 1))
+		"""
+		assert 0 <= x < 1
+		for i, (d, r) in enumerate(zip(self.domain, self.range)):
+			d1, d2 = d.as_interval()
+			if d1 < x < d2:
+				m = self.gradient(d, r)
+				return m, m
+			elif d1 == x:
+				m_left  = self.gradient(self.domain[i - 1], self.range[i - 1])
+				m_right = self.gradient(d, r)
+				return m_left, m_right
+		
 
 def type_b_triple(power, head, tail):
 	return dict(start_tail = tuple(), power=power, end_tail=tail, target=head)

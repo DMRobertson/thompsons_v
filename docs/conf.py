@@ -49,7 +49,7 @@ def missing_reference(app, env, node, contnode):
 		#first two for intersphinx; second for intersphinx to python exceptions. No idea what the third was for
 		return
 	else:
-		app.warn("Missing reference target: {}".format(target))
+		app.warn("Missing reference target: {} {}".format(target, node))
 
 def setup(app):
 	app.connect("autodoc-skip-member", skip)

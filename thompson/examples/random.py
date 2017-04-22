@@ -179,6 +179,8 @@ def handle_group(domain, range, group):
 	#If group is F, do nothing.
 	#Else raise an exception.
 	#Range is modified in place.
+	if not isinstance(group, str):
+		group = str(group)
 	group = group.upper().strip()
 	if group == "V":
 		shuffle(range)

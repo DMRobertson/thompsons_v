@@ -21,8 +21,20 @@
 }
 
 .graph {
+	stroke: red;
+}
+
+/* :nth-of-type not supported by GNOME's image reader */
+.graph:nth-of-type(2) {
+	stroke: blue;
+}
+
+.graph:nth-of-type(3) {
+	stroke: green;
+}
+
+.graph_segment {
 	fill: none;
-	stroke: black;
 	stroke-width: 1.5px;
 	marker-start: url(#continuity);
 	marker-end: url(#discontinuity);

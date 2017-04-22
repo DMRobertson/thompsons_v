@@ -7,6 +7,7 @@ In other words, a homomorphism is a function which 'commutes' with the algebra o
 
 .. testsetup::
 
+    from thompson.word         import Word
     from thompson.generators   import Generators
     from thompson.homomorphism import *
     from thompson.automorphism import Automorphism
@@ -14,6 +15,7 @@ In other words, a homomorphism is a function which 'commutes' with the algebra o
 """
 
 from copy      import copy
+from fractions import Fraction
 from io        import StringIO
 from itertools import chain
 
@@ -189,14 +191,14 @@ class Homomorphism:
 
 	@classmethod
 	def _from_stream(cls, f):
-		line = f.readline().strip()
+		line = cls.next_non_comment_line(f)
 		try:
 			num_generators = int(line)
 		except ValueError as e:
 			details = 'Instead of {!r}, the first line should be the number of generators used to define the homorphism.'.format(line)
 			raise ValueError(details) from e
 
-		line = f.readline().strip()
+		line = cls.next_non_comment_line(f)
 		params = extract_signatures.match(line)
 		try:
 			params = params.groups()
@@ -205,7 +207,8 @@ class Homomorphism:
 		d = Generators([int(params[0]), int(params[1])])
 		r = Generators([int(params[2]), int(params[3])])
 		for i in range(num_generators):
-			d_word, r_word = (word.strip() for word in f.readline().split('->'))
+			line = cls.next_non_comment_line(f)
+			d_word, r_word = (word.strip() for word in line.split('->'))
 			try:
 				d.append(d_word)
 				r.append(r_word)
@@ -222,7 +225,14 @@ class Homomorphism:
 		if len(hom.__doc__.strip()) == 0:
 			del hom.__doc__
 		return hom
-
+	
+	@staticmethod
+	def next_non_comment_line(file):
+		while True:
+			line = file.readline().strip()
+			if not line.startswith('#'):
+				return line
+	
 	def save_to_file(self, filename=None, comment=None):
 		"""Takes a homomorphism and saves it to the file with the given *filename*. The homomorphism is stored in a format which is compatible with :meth:`from_file`. Optionally, a *comment* may be appended to the end of the homomorphism file.
 
@@ -383,6 +393,8 @@ class Homomorphism:
 
 		:rtype: a :class:`~thompson.word.Word` instance (which are always in standard form).
 		"""
+		if isinstance(key, (int, Fraction)):
+			return self.image_of_point(key)
 		sig_in = sig_in or self.domain.signature
 		sig_out = sig_out or self.range.signature
 		cache = cache or self._map
@@ -397,14 +409,14 @@ class Homomorphism:
 				raise TypeError("Signature {} of input {} does not match {}".format(
 				  key.signature, key, sig_in))
 			word = key
-		elif isinstance(key, (str, tuple)):
+		else:
 			word = Word(key, sig_in)
-
+		
 		try:
 			return cache[word]
 		except KeyError:
 			pass
-
+		
 		#1. First deal with the easy words (no lambdas).
 		if word.is_simple():
 			#Cache should already have dealt with anything above the domain
@@ -493,7 +505,45 @@ class Homomorphism:
 			images.append(self._compute_image(preimage, sig_in, sig_out, cache))
 
 		return images
-
+	
+	def image_of_point(self, x):
+		"""Interpret the current homomorphism as a piecewise linear map and evalutate the image of :math:`x` under this map.
+		Note that inverse images aren't supported, as homomorphisms need not be invertible.
+		
+		:param Fraction x: the current point, as an :class:`py3:int` or a :class:`~py3:fractions.Fraction`.
+		
+		.. doctest::
+		
+			>>> from fractions import Fraction
+			>>> x = standard_generator(0)
+			>>> x.image_of_point(0)
+			Fraction(0, 1)
+			>>> x(0)    #can also just use __call__ syntax
+			Fraction(0, 1)
+			>>> x.image_of_point(Fraction(1, 3))
+			Fraction(1, 6)
+		"""
+		assert 0 <= x < self.signature.alphabet_size
+		for d, r in zip(self.domain, self.range):
+			d1, d2 = d.as_interval()
+			if d1 <= x < d2:
+				t = (x - d1) / (d2 - d1)
+				r1, r2 = r.as_interval()
+				return r1 + t * (r2 - r1)
+		
+		raise ValueError("Couldn't find point {} contained in the domain".format(x))
+	
+	def __call__(self, *args, **kwargs):
+		"""Homomorphisms are callable. Treating them as a function just calls the :meth:`image` method.
+		
+			>>> from fractions import Fraction
+			>>> x0 = standard_generator()
+			>>> x0(Fraction(1, 2))
+			Fraction(1, 4)
+			
+		"""
+		return self.image(*args, **kwargs)
+	
 	#Printing
 	def _string_header(self):
 		return "{}: V{} -> V{} specified by {} generators (after expansion and reduction).".format(
@@ -547,7 +597,92 @@ class Homomorphism:
 		rows = format_table(self.domain, self.range)
 		self._append_output(rows, output)
 		return output.getvalue()
+	
+	def pl_segments(self):
+		segments = []
+		for d, r in zip(self.domain, self.range):
+			d1, d2 = d.as_interval()
+			r1, r2 = r.as_interval()
+			gradient = self.gradient(d, r)
+			intercept = r1 - gradient * d1
+			segments.append({
+				"ystart":     r1,
+				"yend":       r2,
+				"xstart":     d1,
+				"xend":       d2,
+				"intercept": intercept,
+				"gradient":  self.gradient(d, r),
+			})
+		
+		i = 1
+		while i < len(segments):
+			if segments[i]['gradient'] == segments[i-1]['gradient']:
+				segments[i-1]['xend'] = segments[i]['xend']
+				segments[i-1]['yend'] = segments[i]['yend']
+				del segments[i]
+			else:
+				i += 1
+		return segments
+	
+	def format_pl_segments(self, LaTeX=False):
+		r"""Returns a description of the current homomorphism as a piecewise-linear map on the interval.
+		
+			>>> x = standard_generator()
+			>>> print(x.format_pl_segments())
+			0   + 1/2 (t - 0   ) from 0   to 1/2
+			1/4 + 1   (t - 1/2 ) from 1/2 to 3/4
+			1/2 + 2   (t - 3/4 ) from 3/4 to 1  
+		
+		:param bool LaTeX: if True, the description is formatted as a LaTeX ``cases`` environment.
+		
+		.. doctest::
+		
+			>>> print(x.format_pl_segments(LaTeX=True))
+			\begin{cases}
+			    0   + 1/2 (t - 0   ) &\text{if $ 0   \leq t < 1/2 $} \\
+			    1/4 + 1   (t - 1/2 ) &\text{if $ 1/2 \leq t < 3/4 $} \\
+			    1/2 + 2   (t - 3/4 ) &\text{if $ 3/4 \leq t < 1   $} 
+			\end{cases}
+		"""
+		segments = self.pl_segments()
+		ystarts = []
+		gradients = []
+		xstarts = []
+		xends  = []
+		for segment in segments:
+			ystarts.append( str(segment["ystart"]) )
+			gradients.append( str(segment["gradient"]) )
+			xstarts.append( str(segment["xstart"]) )
+			xends.append( str(segment["xend"]) )
+		
+		columns = [ystarts, gradients, xstarts, xstarts, xends]
+		if LaTeX:
+			joiner = "\\\\\n"
+			sep = [" "*2, "+", "(t -", ") &\\text{{if $", "\\leq t <", "$}}"]
+			blank_column = ["" for _ in columns[0]]
+			columns.insert(0, blank_column)
+			columns.append(blank_column)
+		else:
+			joiner = "\n"
+			sep = ["+", "(t -", ") from", "to"]
+		body = joiner.join( format_table(*columns, sep=sep) )
+		if LaTeX:
+			return "\\begin{cases}\n" + body + "\n\\end{cases}"
+		else:
+			return body
+	
+	def tikz_path(self):
+		from .automorphism import Automorphism
+		assert isinstance(self, Automorphism)
+		assert self.preserves_order()
+		segments = self.pl_segments()
+		coords = [ (seg['xstart'], seg['ystart']) for seg in segments ]
+		coords.append( (segments[-1]['xend'], segments[-1]['yend']) )
+		coords = [ "({}, {})".format(*coord) for coord in coords ]
+		
+		return " -- ".join(coords)
 
+	
 	#Relabelling
 	def add_relabellers(self, domain_relabeller, range_relabeller):
 		""":raises LookupError: if a relabeller is provided and the relabeller's signature does not match that of *domain* or *range*
@@ -592,6 +727,64 @@ class Homomorphism:
 		if self.domain_relabeller is None or self.range_relabeller is None:
 			raise AttributeError("This factor has not been assigned relabellers.")
 		return self.domain_relabeller.image_of_set(self.domain), self.range_relabeller.image_of_set(self.range)
+	
+	def gradients(self):
+		"""Interprets the current homomorphism as a piecewise linear map, and returns the list of gradients of each linear piece. The :math:`i` th element of this list is the gradient of the affine map sending ``self.domain[i]`` to ``self.range[i]``.
+		
+		:rtype: :class:`~py3:list` of :class:`~py3:fractions.Fraction` s.
+		
+		.. doctest::
+		
+			>>> standard_generator(0).gradients()
+			[Fraction(1, 2), Fraction(1, 1), Fraction(2, 1)]
+			>>> load_example("alphabet_size_two").gradients()
+			[Fraction(1, 1), Fraction(1, 3), Fraction(3, 1), Fraction(1, 1), Fraction(1, 3), Fraction(1, 3)]
+		
+		"""
+		return [self.gradient(d, r) for d, r in zip(self.domain, self.range)]
+	
+	def gradient_at(self, x):
+		"""Interprets the current homomorphism as a piecewise linear map, and returns the right-derivative of the current homomorphism at :math:`x`.
+		
+		:rtype: :class:`~py3:fractions.Fraction`
+		
+		.. doctest::
+		
+			>>> f = standard_generator(0)
+			>>> f.gradient_at(0)
+			Fraction(1, 2)
+			>>> f.gradient_at(-1)
+			Traceback (most recent call last):
+			...
+			AssertionError
+			>>> f.gradient_at(2/3)
+			Fraction(1, 1)
+			>>> f.gradient_at(Word("x a2", (2, 1)))
+			Traceback (most recent call last):
+			...
+			ValueError: Automorphism doesn't map x1 a2 affinely
+		"""
+		if isinstance(x, Word):
+			try:
+				index, tail = self.domain.test_above(x, return_index=True)
+			except TypeError:
+				raise ValueError("Automorphism doesn't map {} affinely".format(x))
+			else:
+				return self.gradient(self.domain[i], self.range[i])
+		else:
+			assert 0 <= x < self.signature.alphabet_size
+			for d, r in zip(self.domain, self.range):
+				d1, d2 = d.as_interval()
+				if d1 <= x < d2:
+					return self.gradient(d, r)
+	
+	@staticmethod
+	def gradient(domain, range):
+		"""Computes the gradient of the affine map sending the interval represented by *domain* to the interval represented by *range*."""
+		assert domain.signature == range.signature
+		d1, d2 = domain.as_interval()
+		r1, r2 = range.as_interval()
+		return (r2 - r1) / (d2 - d1)
 
 def format_table(*columns, sep=None, root_names=None):
 	for row in zip(*columns):
