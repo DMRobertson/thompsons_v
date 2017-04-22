@@ -1,4 +1,4 @@
-\usetikzlibrary{graphs, graphdrawing, positioning, calc, fit, backgrounds}
+\usetikzlibrary{graphs, graphdrawing, positioning, calc, backgrounds}
 \usegdlibrary{trees}
 
 %from http://tex.stackexchange.com/a/47004/82389
@@ -12,15 +12,53 @@
   }
 }
 
-\begin{tikzpicture}[
+\tikzset{
+	domain tree/.style = { name = domain },
+	range tree horiz/.style = {
+		name = range,
+		right=2.4em of domain.north east,
+		anchor=north west,
+	},
+	range tree vert/.style = {
+		name = range,
+		below=5em of domain.south,
+		anchor=north,
+	},
+	connecting arrow/.style = {
+		->, semithick
+	},
 	component sep=3em,
-	caret/.style       = {graphs/as=, inner sep=0, minimum size=0},
-	leaf/.style        = {circle, inner sep=1pt, fill},
 	component/.style   = {dashed},
-	spine/.style       = {component, preaction={solid,
-		draw=red!15, line width=1mm, line cap=round, on layer=back
-	}},
+	spine/.style       = {
+		component,
+		preaction={
+			solid,
+			draw=red!15,
+			line width=1mm,
+			line cap=round,
+			on layer=back
+		}
+	},
 	repatt/.style      = {red},
 	repatt label/.style= {red, fill=white},
 	every label/.style = {fill=white, inner sep=0pt, outer sep=3.5pt}
-]
+}
+
+\tikzgraphsset{
+	every graph/.style = {
+		extended binary tree layout,
+		empty nodes,
+		edges = { line cap = round },
+		nodes = {
+			inner sep = 0, 
+			minimum size = 0,
+		},
+		level distance = 2.25em,
+		level sep = 0,
+		sibling distance = 2.25em,
+		sibling sep = 0,
+		significant sep = 0.1em,		
+	}
+}
+
+\begin{tikzpicture}
