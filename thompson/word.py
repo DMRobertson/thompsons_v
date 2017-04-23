@@ -458,6 +458,22 @@ class Word(tuple):
 	def __str__(self):
 		return format(self)
 	
+	def address(self, include_root=False):
+		"""A shorthand to :func:`format_cantor` for printing :meth:`simple <is_simple>` words. By default, it discards the the root :math:`x_i`.
+		
+		>>> w = Word("x2 a1 a3 a1 a1 a2", (3, 4))
+		>>> w.address()
+		'02001'
+		>>> Word("x2 a1 a3 a1 a1 a2", (3, 4)).address(include_root=True)
+		'202001'
+		"""
+		assert self.is_simple()
+		if include_root:
+			output = str(self[0])
+		else:
+			output = ""
+		return output + format_cantor(self[1:])
+	
 	def __repr__(self):
 		return "Word('{}', {})".format(str(self), self.signature)
 	
@@ -887,14 +903,27 @@ class Word(tuple):
 			signature = Signature(arity, alph + delta)
 		letters = (self[0] + delta,) + self[1:]
 		return Word(letters, signature, preprocess=False)
-		
-		 
 	
 	#iterator
-	def subwords(self):
-		"""todo docstring"""
+	def subwords(self, discard_root=False):
+		r"""An iterator method which yields the anscestors of a :meth:`simple word <is_simple>. Use *discard_root* if you want to ignore words which correspond to :math:`x_i`.
+		
+			>>> w = Word("x1 a1 a2 a1 a2", (2, 1))
+			>>> print( *w.subwords(), sep="\n")
+			x1
+			x1 a1
+			x1 a1 a2
+			x1 a1 a2 a1
+			x1 a1 a2 a1 a2
+			>>> print( *w.subwords(discard_root=True), sep="\n" )
+			x1 a1
+			x1 a1 a2
+			x1 a1 a2 a1
+			x1 a1 a2 a1 a2
+		"""
 		assert self.is_simple()
-		for i in range(1, len(self) + 1):
+		start = 2 if discard_root else 1
+		for i in range(start, len(self) + 1):
 			subword = type(self)(self[:i], self.signature, preprocess=False)
 			yield subword
 

@@ -1,107 +1,102 @@
+from functools import partial
+
 from ..generators import Generators
 from ..utilities  import intersection_of_trees, intersection_from_domain, handle_domain
-import pkg_resources
 
-#TODO load these when required, not at import time
-graph_header      = pkg_resources.resource_string( __name__, 'graph_head.tex').decode('utf-8')
-graph_footer      = pkg_resources.resource_string( __name__, 'graph_foot.tex').decode('utf-8')
-standalone_header = pkg_resources.resource_string( __name__, 'standalone_head.tex').decode('utf-8')
-standalone_footer = pkg_resources.resource_string( __name__, 'standalone_foot.tex').decode('utf-8')
-diagram_header    = pkg_resources.resource_string( __name__, 'diagram_head.tex').decode('utf-8')
-diagram_footer    = pkg_resources.resource_string( __name__, 'diagram_foot.tex').decode('utf-8')
+#First time setup
+template = None
+def setup():
+	from jinja2 import Environment, PackageLoader
+	global template
+	if template is not None:
+		return template
+	env = Environment(
+		loader=PackageLoader('thompson', 'drawing'),
+		lstrip_blocks = True,
+		trim_blocks   = True,
+	)
+	template = env.get_template('forest_diagram.tpl')
+	return template
 
-def write_tikz_code(aut,
-	domain='wrt QNB',
-	dest='tikz_generated.tex',
-	horiz=True,
+def forest_code(aut,
 	name='',
+	domain='wrt QNB',
+	include_styles = True,
+	horiz=True,
 	standalone=True,
-	draw_revealing=True
+	draw_revealing=True,
 ):
+	"""
+	Generate TikZ code for representing an automorphism *aut* as a forest pair diagram. The code is written to *dest*, which must be a writeable file-like object in text mode.
+	
+	:param str name: The label used for the arrow between domain and range forests. This is passed directly to TeX, so you can include mathematics by delimiting it with dollars. Note that backslashes are treated specially in Python unless you use a *raw string*, which is preceeded with an ``r``. For instance, try ``name=r'\gamma_1``
+	:param `~thompson.generators.Generators` domain: By default, we use the :meth:`minimal expansion <thompson.generators.Generators.minimal_expansion_for>` of the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` as the leaves of the domain forest. This can be overridden by providing a *domain* argument.
+	:param bool include_styles: Should the styling commands be added to this document?
+	:param bool horiz: If True, place the range forest to the right of the domain. Otherwise, place it below.
+	:param bool standalone: If True, create a standalone LaTeX file. Otherwise just create TikZ code.
+	:param bool draw_revealing: Should attractor/repeller paths be highlighted in red?
+	"""
+	if name.startswith('$') and not name.endswith('$'):
+		raise ValueError("Arrow names must end with a $ if they begin with a $.")
+	
 	#1. Decide which domain to use for plotting.
 	domain = handle_domain(domain, aut)
 	range, intersection = intersection_from_domain(domain, aut)
+	is_repatt_specialised = partial(is_repatt, intersection=intersection, aut=aut)
+	
 	# Number the leaves.
-	domain = [ (w, i + 1) for (i, w) in enumerate(domain) ]
-	range  = [ (w, i + 1) for (i, w) in enumerate(range)  ]
+	domain = [  ( w, i, draw_revealing and is_repatt_specialised(w, True) )
+		for (i, w) in enumerate(domain, start=1)]
+	range  = [  ( w, i, draw_revealing and is_repatt_specialised(w, False))
+		for (i, w) in enumerate(range, start=1) ]
 	#Order the range using Higman's words
 	range.sort()
+	
+	template = setup()
+	return template.render(
+		#options
+		name = name,
+		domain = domain,
+		range = range,
+		horiz = horiz,
+		standalone = standalone,
+		include_styles = include_styles,
+		write_word = partial(write_word, intersection = intersection)
+	)
 
-	with open(dest, 'wt', encoding='utf-8') as f:
-		if standalone:
-			f.write(standalone_header)
-		f.write(diagram_header)
-
-		write_basis(f, aut, domain, True, horiz, intersection, draw_revealing)
-		write_basis(f, aut, range, False, horiz, intersection, draw_revealing)
-
-		write_arrow(f, horiz, name)
-		f.write(diagram_footer)
-		if standalone:
-			f.write(standalone_footer)
-
-def write_basis(f, aut, basis, for_domain, horiz, intersection, draw_revealing):
-	write_enclosing_node(f, for_domain, horiz)
-	f.write(graph_header)
-
-	for word, label in basis:
-		if draw_revealing:
-			highlight = is_repatt(word, intersection, for_domain, aut)
-		else:
-			highlight = False
-		write_word(f, word, label, for_domain, intersection, highlight)
-
-	f.write(graph_footer)
-	#close the enclosing node
-	f.write("};\n")
-
-def write_enclosing_node(f, for_domain, horiz):
-	"""We draw each forest as a tikzpicture inside a node."""
-	if for_domain:
-		tree_style = 'domain tree'
-	else:
-		if horiz:
-			tree_style = 'range tree horiz'
-		else:
-			tree_style = 'range tree vert'
-	f.write( "\\node [{}] {{\n".format(tree_style) )
-
-
-def write_word(f, word, index, for_domain, intersection, highlight):
+def write_word(word, index, highlight, intersection):
 	below_intersection = False
-	for subword in word.subwords():
-		options = {}
-		f.write("\t\t")
-
-		if len(subword) > 1:
-			f.write("\t-- ")
-
-		if below_intersection:
-			f.write("[component] ")
-			if highlight:
-				#TODO I'm using two different ways to style an edge here---doesn't make sense.
-				options["target edge style"] = "spine"
-
-		if subword == word:
-			options["label"] = "below:${}$".format(index)
-			if highlight:
-				options["label"] = "{[repatt label]" + options["label"] + "}"
-				options["repatt"] = None
-
-		f.write(name(subword, options))
+	lines = ["root"]
+	output = ""
+	for subword in word.subwords(discard_root=True):
+		lines.append( write_subword(
+			subword, index, highlight, below_intersection, subword == word
+		))
 		if not below_intersection:
 			below_intersection = subword in intersection
+	return "\n\t\t\t\t".join(lines)
 
-		if subword == word:
-			f.write(",")
-		f.write("\n")
+def write_subword(subword, index, highlight, below_intersection, last):
+	options = {}
+	output = "-- "
+	if below_intersection:
+		output += "[component] "
+		if highlight:
+			#TODO I'm using two different ways to style an edge here---doesn't make sense.
+			options["target edge style"] = "spine"
+	if last:
+		options["label"] = "below:${}$".format(index)
+		if highlight:
+			options["label"] = "{[repatt label]" + options["label"] + "}"
+			options["repatt"] = None
+	output += name(subword, options)
+	if last:
+		output += ","
+	return output
 
 def name(word, options):
 	"""Introduce a node with the given key/value options."""
-	if len(word) == 1:
-		label = "root"
-	else:
-		label = "".join( str(-i-1) for i in word[1:] )
+	label = word.address()
 	pairs = []
 	for key, value in options.items():
 		if value is None:
@@ -112,19 +107,7 @@ def name(word, options):
 		label += " [{}]".format( ', '.join(pairs) )
 	return label
 
-def write_arrow(f, horiz, name):
-	"""The connecting arrow from the domain forest to range"""
-	if name.startswith('$') and not name.endswith('$'):
-		raise ValueError("Arrow names must end with a $ if they begin with a $.")
-
-	f.write("\\draw[connecting arrow]\n")
-	if horiz:
-		f.write("\tlet \\p1=(domain.east), \\p2=(range.west), \\n1={max(\\y1,\\y2)} in\n")
-		f.write("\t\t(\\x1, \\n1) -- node[auto] {{{}}} (\\x2, \\n1);\n".format(name))
-	else:
-		f.write("\t(domain) -- node[auto] {{{}}} (range);\n".format(name))
-
-def is_repatt(word, intersection, for_domain, aut):
+def is_repatt(word, for_domain, intersection, aut):
 	if word in intersection:
 		return False
 	ctype = aut.orbit_type(word, intersection)[0]

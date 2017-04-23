@@ -6,7 +6,7 @@ from .generators      import Generators
 from .automorphism    import Automorphism
 from .examples        import load_example, available_examples, show_examples, standard_generator
 from .examples.random import random_automorphism, random_periodic_automorphism
-from .drawing         import plot, forest, flow, in_ipynb
+from .drawing         import plot, forest, forest_plain, flow, in_ipynb
 from .cantorsubset    import CantorSubset
 from .scsystem        import SCSystem
 from .membership      import F, T
@@ -17,7 +17,7 @@ __all__ = [
 	"Automorphism",
 	"load_example", "available_examples", "show_examples", "standard_generator",
 	"random_automorphism", "random_periodic_automorphism",
-	"plot", "forest", "flow",
+	"plot", "forest", "forest_plain", "flow",
 	"SCSystem", "CantorSubset",
 	"F", "T"
 ]

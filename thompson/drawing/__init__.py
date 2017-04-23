@@ -5,17 +5,18 @@
 """
 
 from .plot       import plot as plot_svg
-from .forest     import write_tikz_code
+from .forest     import forest_code
 from .flow_graph import flow_graph_code
 
 from subprocess import call, check_call
 from tempfile   import mkstemp, mkdtemp
 
+from io import StringIO
 import os
 import shutil
 import sys
 
-__all__ = ["display_file", "forest", "plot", "flow"]
+__all__ = ["display_file", "forest", "forest_code", "plot", "flow"]
 
 def display_file(filepath, format=None, scale=1.0, verbose=False):
 	"""Display the image at *filepath* to the user. This function behaves differently, depending on whether or not we execute it in a Jupyter notebook.
@@ -84,17 +85,13 @@ def plot(*auts, dest=None, display=True, diagonal=False, endpoints=False):
 		return display_file(dest, format='svg')
 	return dest
 
-def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None, scale=1, draw_revealing=True):
+def forest(aut, jobname=None, display=True, scale=1, **kwargs):
 	r"""Draws the given :class:`~thompson.automorphism.Automorphism` as a forest-pair diagram.
 	The image is rendered as a PDF using the `tikz` graph drawing libraries and `lualatex`.
 
 	:param str jobname: the destination filepath to save the PDF to. A file extension should **not** be provided. If `None`, the PDF is saved to a temporary file location.
-	:param str name: The label used for the arrow between domain and range forests. This is passed directly to TeX, so you can include mathematics by delimiting it with dollars. Note that backslashes are treated specially in Python unless you use a *raw string*, which is preceeded with an ``r``. For instance, try ``name=r'\gamma_1``
 	:param bool display: if True, automatically call :func:`display_file` to display the PDF to the user. Otherwise does nothing.
-	:param bool horiz: if True, draws the range forest to the right of the domain forest. If false, draws the range forest below the range forest.
-	:param `~thompson.generators.Generators` domain: By default, we use the :meth:`minimal expansion <thompson.generators.Generators.minimal_expansion_for>` of the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` as the leaves of the domain forest. This can be overridden by providing a *domain* argument.
 	:param float scale: In a Jupyter notebook, this controls the size of the rendered PNG image. See the note in :func:`display_file`.
-	:param bool draw_revealing: Should attractor/repeller paths be highlighted in red?
 
 	:returns: the filepath where the PDF was saved. If *dest* is `None` this is a temporary file; otherwise the return value is simply `jobname + '.pdf'`.
 
@@ -102,8 +99,6 @@ def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None, sc
 
 		The graph drawing is done via a TikZ and LaTeX. The source file is compiled using `lualatex`, which must be available on the `PATH <https://en.wikipedia.org/wiki/PATH_(variable)>`_ for this function to work.
 	"""
-	if domain is None:
-		domain = 'wrt QNB'
 	outdir = mkdtemp()
 	
 	specific_location = jobname is not None
@@ -114,8 +109,9 @@ def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None, sc
 		jobname = os.path.basename(jobname)
 	tex = os.path.join(outdir, jobname + '.tex')
 	pdf = os.path.join(outdir, jobname + '.pdf')
-
-	write_tikz_code(aut, domain, tex, horiz, name, True, draw_revealing)
+	
+	with open(tex, 'wt') as texfile:
+		texfile.write(forest_code(aut, **kwargs))
 	check_call(['lualatex',
 		'-output-directory=' + outdir,
 		'-interaction=batchmode',
@@ -131,6 +127,16 @@ def forest(aut, jobname=None, name='', display=True, horiz=True, domain=None, sc
 	if display:
 		return display_file(pdf, format='pdf', scale=scale)
 	return pdf
+
+def forest_plain(aut, **overrides):
+	"""The same as :func:`forest_code`, but this passes in arguments to produce minimal TikZ code only."""
+	options = dict(
+		include_styles = False,
+		standalone = False,
+		draw_revealing = False
+	)
+	options.update(overrides)
+	return forest_code(aut, **options)
 
 def in_ipynb():
 	"""From a comment on Stack overflow:

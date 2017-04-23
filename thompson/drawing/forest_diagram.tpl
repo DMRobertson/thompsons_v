@@ -1,12 +1,16 @@
+{% if standalone %}
+\documentclass[tikz]{standalone}
 \usetikzlibrary{graphs, graphdrawing, positioning, calc, backgrounds}
 \usegdlibrary{trees}
-
+\begin{document}
+{% endif %}
+{% if include_styles: %}
 %from http://tex.stackexchange.com/a/47004/82389
 \pgfdeclarelayer{back}
 \pgfsetlayers{back,main}
-\pgfkeys{% 
+\pgfkeys{ 
   /tikz/on layer/.code={
-    \pgfonlayer{#1}\begingroup
+    \pgfonlayer{{'{#1}'}}\begingroup
     \aftergroup\endpgfonlayer
     \aftergroup\endgroup
   }
@@ -60,5 +64,32 @@
 		significant sep = 0.1em,		
 	}
 }
-
+{% endif %}
 \begin{tikzpicture}
+{% macro basis_template(basis, style) -%}
+	\node [{{style}}] {
+		\tikz\graph{
+			{% for word, label, highlight in basis %}
+				{#{word}} {{label}} {{highlight}#}
+			{{ write_word(word, label, highlight) }}
+		{% endfor %}
+		}; %end \tikz\graph
+	}; %end \node
+{%- endmacro %}
+	{{ basis_template(domain, 'domain tree') }}
+{% if horiz %}
+	{{ basis_template(range, 'range tree horiz') }}
+{% else %}
+ 	{{ basis_template(range, 'range tree vert' ) }}
+{% endif %}
+\draw[connecting arrow]
+	{% if horiz %}
+	let \p1=(domain.east), \p2=(range.west), \n1={max(\y1,\y2)} in
+		(\x1, \n1) -- node[auto] { {{name}} } (\x2, \n1);
+	{% else %}
+		(domain) -- node[auto] { {{name}} } (range);
+	{% endif %}
+\end{tikzpicture}
+{% if standalone %}
+\end{document}
+{% endif %}
