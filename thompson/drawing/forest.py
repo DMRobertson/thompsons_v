@@ -85,7 +85,7 @@ def write_subword(subword, index, highlight, below_intersection, last):
 			#TODO I'm using two different ways to style an edge here---doesn't make sense.
 			options["target edge style"] = "spine"
 	if last:
-		options["label"] = "below:${}$".format(index)
+		options["label"] = "below:\\strut${}$".format(index)
 		if highlight:
 			options["label"] = "{[repatt label]" + options["label"] + "}"
 			options["repatt"] = None
