@@ -20,8 +20,8 @@
 	domain tree/.style = { name = domain },
 	range tree horiz/.style = {
 		name = range,
-		right=2.4em of domain.north east,
-		anchor=north west,
+		left=2.4em of domain.north west,
+		anchor=north east,
 	},
 	range tree vert/.style = {
 		name = range,
@@ -83,11 +83,14 @@
  	{{ basis_template(range, 'range tree vert' ) }}
 {% endif %}
 \draw[connecting arrow]
-	{% if horiz %}
+	{% if horiz and LTR %}
 	let \p1=(domain.east), \p2=(range.west), \n1={max(\y1,\y2)} in
-		(\x1, \n1) -- node[auto] { {{name}} } (\x2, \n1);
+		(\x1, \n1) -- node[above] { {{name}} } (\x2, \n1);
+	{% elif horiz and not LTR %}
+	let \p1=(domain.west), \p2=(range.east), \n1={max(\y1,\y2)} in
+		(\x1, \n1) -- node[above] { {{name}} } (\x2, \n1);
 	{% else %}
-		(domain) -- node[auto] { {{name}} } (range);
+		(domain) -- node[left] { {{name}} } (range);
 	{% endif %}
 \end{tikzpicture}
 {% if standalone %}

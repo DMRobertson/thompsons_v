@@ -129,11 +129,12 @@ def forest(aut, jobname=None, display=True, scale=1, **kwargs):
 	return pdf
 
 def forest_plain(aut, **overrides):
-	"""The same as :func:`forest_code`, but this passes in arguments to produce minimal TikZ code only."""
+	"""The same as :func:`forest_code`, but this is a custom version for my own use. It passes in arguments to produce minimal TikZ code only, and draws RTL."""
 	options = dict(
 		include_styles = False,
 		standalone = False,
-		draw_revealing = False
+		draw_revealing = False,
+		LTR = False
 	)
 	options.update(overrides)
 	return forest_code(aut, **options)

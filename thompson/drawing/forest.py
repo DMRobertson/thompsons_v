@@ -23,6 +23,7 @@ def forest_code(aut,
 	domain='wrt QNB',
 	include_styles = True,
 	horiz=True,
+	LTR=True,
 	standalone=True,
 	draw_revealing=True,
 ):
@@ -33,8 +34,9 @@ def forest_code(aut,
 	:param `~thompson.generators.Generators` domain: By default, we use the :meth:`minimal expansion <thompson.generators.Generators.minimal_expansion_for>` of the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` as the leaves of the domain forest. This can be overridden by providing a *domain* argument.
 	:param bool include_styles: Should the styling commands be added to this document?
 	:param bool horiz: If True, place the range forest to the right of the domain. Otherwise, place it below.
+	:param bool LTR: if True and if horiz is True, draw the domain tree to the left of the range tree. If horiz is True but LTR is false, draw the domain tree to the right of the range tree.
 	:param bool standalone: If True, create a standalone LaTeX file. Otherwise just create TikZ code.
-	:param bool draw_revealing: Should attractor/repeller paths be highlighted in red?
+	:param bool draw_revealing: Should attractor/repeller paths be highlighted in red? 
 	"""
 	if name.startswith('$') and not name.endswith('$'):
 		raise ValueError("Arrow names must end with a $ if they begin with a $.")
