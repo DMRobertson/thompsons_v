@@ -624,7 +624,7 @@ class Homomorphism:
 				i += 1
 		return segments
 	
-	def format_pl_segments(self, LaTeX=False):
+	def format_pl_segments(self, LaTeX=False, sfrac=False):
 		r"""Returns a description of the current homomorphism as a piecewise-linear map on the interval.
 		
 			>>> x = standard_generator()
@@ -634,6 +634,7 @@ class Homomorphism:
 			1/2 + 2   (t - 3/4 ) from 3/4 to 1  
 		
 		:param bool LaTeX: if True, the description is formatted as a LaTeX ``cases`` environment.
+		:param bool sfrac: if True, and if *LaTeX* is True, format fractions using xfrac's ``\sfrac`` command.
 		
 		.. doctest::
 		
@@ -649,16 +650,26 @@ class Homomorphism:
 		gradients = []
 		xstarts = []
 		xends  = []
+		
+		original_formatter = Fraction.__str__
+		if sfrac:
+			#naughty hack: monkey patch the __str__ method of Fractions
+			Fraction.__str__ = sfrac_formatter
+		
 		for segment in segments:
 			ystarts.append( str(segment["ystart"]) )
 			gradients.append( str(segment["gradient"]) )
 			xstarts.append( str(segment["xstart"]) )
 			xends.append( str(segment["xend"]) )
 		
+		if sfrac:
+			#undo the patch
+			Fraction.__str__ = original_formatter
+		
 		columns = [ystarts, gradients, xstarts, xstarts, xends]
 		if LaTeX:
 			joiner = "\\\\\n"
-			sep = [" "*2, "+", "(t -", ") &\\text{{if $", "\\leq t <", "$}}"]
+			sep = [" "*2, "+", "(t -", ") &\\text{{if\\quad $", "\\leq t <", "$}}"]
 			blank_column = ["" for _ in columns[0]]
 			columns.insert(0, blank_column)
 			columns.append(blank_column)
@@ -823,3 +834,8 @@ extract_signatures = re.compile(r"""
 	[vV]?\( \s* (\d+) [\s,]+ (\d+) \s* \)
 	[\s\->]+
 	[vV]?\( \s* (\d+) [\s,]+ (\d+) \s* \)""", re.VERBOSE)
+
+def sfrac_formatter(fraction):
+	if fraction.denominator == 1:
+		return str(fraction.numerator)
+	return r"\sfrac{{{}}}{{{}}}".format(fraction.numerator, fraction.denominator)

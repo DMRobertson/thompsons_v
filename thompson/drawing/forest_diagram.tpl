@@ -18,7 +18,12 @@
 
 \tikzset{
 	domain tree/.style = { name = domain },
-	range tree horiz/.style = {
+	range tree horiz LTR/.style = {
+		name = range,
+		right=2.4em of domain.north east,
+		anchor=north west,
+	},
+	range tree horiz RTL/.style = {
 		name = range,
 		left=2.4em of domain.north west,
 		anchor=north east,
@@ -78,7 +83,11 @@
 {%- endmacro %}
 	{{ basis_template(domain, 'domain tree') }}
 {% if horiz %}
-	{{ basis_template(range, 'range tree horiz') }}
+	{% if LTR %}
+	{{ basis_template(range, 'range tree horiz LTR') }}
+	{% else %}
+	{{ basis_template(range, 'range tree horiz RTL') }}
+	{% endif %}
 {% else %}
  	{{ basis_template(range, 'range tree vert' ) }}
 {% endif %}
@@ -86,7 +95,7 @@
 	{% if horiz and LTR %}
 	let \p1=(domain.east), \p2=(range.west), \n1={max(\y1,\y2)} in
 		(\x1, \n1) -- node[above] { {{name}} } (\x2, \n1);
-	{% elif horiz and not LTR %}
+	{% elif horiz %}
 	let \p1=(domain.west), \p2=(range.east), \n1={max(\y1,\y2)} in
 		(\x1, \n1) -- node[above] { {{name}} } (\x2, \n1);
 	{% else %}

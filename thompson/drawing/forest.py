@@ -63,7 +63,8 @@ def forest_code(aut,
 		horiz = horiz,
 		standalone = standalone,
 		include_styles = include_styles,
-		write_word = partial(write_word, intersection = intersection)
+		write_word = partial(write_word, intersection = intersection),
+		LTR = LTR
 	)
 
 def write_word(word, index, highlight, intersection):
