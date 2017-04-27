@@ -70,4 +70,8 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+#From virtualenv
 etc
+
+#Local scratch notebook space
+notebooks/*

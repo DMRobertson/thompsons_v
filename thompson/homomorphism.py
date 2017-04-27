@@ -683,15 +683,21 @@ class Homomorphism:
 			return body
 	
 	def tikz_path(self):
-		from .automorphism import Automorphism
-		assert isinstance(self, Automorphism)
-		assert self.preserves_order()
+		r"""Return a string which can be passed to a ``\tikz\draw`` command to graph the current homomorphism."""
 		segments = self.pl_segments()
-		coords = [ (seg['xstart'], seg['ystart']) for seg in segments ]
-		coords.append( (segments[-1]['xend'], segments[-1]['yend']) )
-		coords = [ "({}, {})".format(*coord) for coord in coords ]
+		subpaths = [ ]
+		last_end = None
+		for seg in self.pl_segments():
+			start = (seg['xstart'], seg['ystart'])
+			end   = (seg[ 'xend' ], seg[ 'yend' ])
+			if start != last_end:
+				subpaths.append(list())
+				current_subpath = subpaths[-1]
+				current_subpath.append(start)
+			current_subpath.append(end)
+			last_end = end
 		
-		return " -- ".join(coords)
+		return "\n".join(tikz_subpath(subpath) for subpath in subpaths) + ";"
 
 	
 	#Relabelling
@@ -839,3 +845,7 @@ def sfrac_formatter(fraction):
 	if fraction.denominator == 1:
 		return str(fraction.numerator)
 	return r"\sfrac{{{}}}{{{}}}".format(fraction.numerator, fraction.denominator)
+
+def tikz_subpath(subpath):
+	points = ( "({}, {})".format(*coord) for coord in subpath)
+	return " -- ".join(points)
