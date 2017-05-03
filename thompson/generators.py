@@ -393,6 +393,8 @@ class Generators(list):
 		
 		:raises ValueError: if the *string* doesn't correctly describe a rooted binary tree.
 		
+		.. doctest::
+			
 			>>> print(Generators.from_dfs(""))
 			Traceback (most recent call last):
 			...
