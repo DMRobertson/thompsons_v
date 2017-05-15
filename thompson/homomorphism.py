@@ -617,7 +617,7 @@ class Homomorphism:
 		i = 1
 		while i < len(segments):
 			if (segments[i]['gradient'] == segments[i-1]['gradient']) and (
-			segments[i]['ystart'] == segments[i]['yend']):
+			segments[i]['ystart'] == segments[i-1]['yend']):
 				segments[i-1]['xend'] = segments[i]['xend']
 				segments[i-1]['yend'] = segments[i]['yend']
 				del segments[i]
@@ -641,9 +641,9 @@ class Homomorphism:
 		
 			>>> print(x.format_pl_segments(LaTeX=True))
 			\begin{cases}
-			    0   + 1/2 (t - 0   ) &\text{if $ 0   \leq t < 1/2 $} \\
-			    1/4 + 1   (t - 1/2 ) &\text{if $ 1/2 \leq t < 3/4 $} \\
-			    1/2 + 2   (t - 3/4 ) &\text{if $ 3/4 \leq t < 1   $} 
+			    0   + 1/2 (t - 0   ) &\text{if\quad $ 0   \leq t < 1/2 $} \\
+			    1/4 + 1   (t - 1/2 ) &\text{if\quad $ 1/2 \leq t < 3/4 $} \\
+			    1/2 + 2   (t - 3/4 ) &\text{if\quad $ 3/4 \leq t < 1   $} 
 			\end{cases}
 		"""
 		segments = self.pl_segments()

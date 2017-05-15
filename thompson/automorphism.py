@@ -1182,15 +1182,11 @@ class Automorphism(Homomorphism):
 			>>> load_example('nathan_pond_example').cycles_order() # in V \ T
 			False
 		"""
-		indices = range(len(self.range) - 1)
-		looped = False
+		indices = range(len(self.range))
+		breaks = 0
 		for i in indices:
-			if not self.range[i] < self.range[i+1]:
-				if not looped and all(abs(x) == 1 for x in self.range[i+1]):
-					looped = True
-				else:
-					return False
-		return True
+			breaks += (self.range[i-1] > self.range[i])
+		return breaks < 2
 		
 	def rotation_number(self):
 		r"""The *rotation number* is a map :math:`\operatorname{Homeo}_+(\mathbb{S}^1) \to \mathbb{R/Z}` which is constant on conjugacy classes.
@@ -1214,15 +1210,16 @@ class Automorphism(Homomorphism):
 			>>> f_examples = "example_4_1 example_4_11 example_6_8_psi example_6_9_psi non_dyadic_fixed_point".split()
 			>>> all( load_example(name).rotation_number() == 0 for name in f_examples )
 			True
-			>>> t_examples = "example_5_12_phi example_6_2 example_6_8_phi example_6_9_phi rotation_number_one_third".split()
+			>>> t_examples = "example_4_1 example_5_12_phi example_6_8_phi non_dyadic_fixed_point rotation_number_one_third scott_free_alpha thirds_fixed".split()
 			>>> for name in t_examples:
 			... 	print(load_example(name).rotation_number())
+			0
 			1/2
 			0
 			0
-			0
 			1/3
-			
+			0
+			0
 		"""
 		if not self.cycles_order():
 			return None
