@@ -20,6 +20,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 #DMR: Adding in the python scripts I use to build the docs
+.PHONY: includes
 includes:
 	@echo "Generating examples table from thompson source."
 	python3 generate_examples_table.py

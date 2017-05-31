@@ -906,7 +906,7 @@ class Word(tuple):
 	
 	#iterator
 	def subwords(self, discard_root=False):
-		r"""An iterator method which yields the anscestors of a :meth:`simple word <is_simple>. Use *discard_root* if you want to ignore words which correspond to :math:`x_i`.
+		r"""An iterator method which yields the anscestors of a :meth:`simple word <is_simple>`. Use *discard_root* if you want to ignore words which correspond to :math:`x_i`.
 		
 			>>> w = Word("x1 a1 a2 a1 a2", (2, 1))
 			>>> print( *w.subwords(), sep="\n")

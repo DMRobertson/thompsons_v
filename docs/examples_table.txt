@@ -1,206 +1,267 @@
 alphabet_size_two
 	See the :download:`forest <examples/alphabet_size_two.pdf>` diagram and function :download:`plot <examples/alphabet_size_two.svg>`.
 
-	A toy example to test that the program works in :math:`V_{3,2}`. 
+	A toy example to test that the program works in :math:`V_{3,2}`.
+
 arity_four
 	See the :download:`forest <examples/arity_four.pdf>` diagram and function :download:`plot <examples/arity_four.svg>`.
 
-	Another example for sanity checking. This is an automorphism of :math:`V_{4,1}`. 
+	Another example for sanity checking. This is an automorphism of :math:`V_{4,1}`.
+
 arity_three_order_inf
 	See the :download:`forest <examples/arity_three_order_inf.pdf>` diagram and function :download:`plot <examples/arity_three_order_inf.svg>`.
 
-	A purely :mod:`~thompson.infinite` automorphism of :math:`V_{3,1}`. 
+	A purely :mod:`~thompson.infinite` automorphism of :math:`V_{3,1}`.
+
 bleak_alpha
 	See the :download:`forest <examples/bleak_alpha.pdf>` diagram and function :download:`plot <examples/bleak_alpha.svg>`.
 
-	The element :math:`\alpha` of :math:`V` used by Bleak *et al* [BBG11]_ to illustrate their train tracks and flow graphs. 
+	The element :math:`\alpha` of :math:`V` used by Bleak *et al* [BBG11]_ to illustrate their train tracks and flow graphs.
+
 bleak_klein_alpha
 	See the :download:`forest <examples/bleak_klein_alpha.pdf>` diagram and function :download:`plot <examples/bleak_klein_alpha.svg>`.
 
-	The example in [BBG11]_ of an element whose centraliser contains the Klein four group :math:`\mathbb{Z_2 \oplus Z_2}` as a subgroup. We have represented it as an element of :math:`G_{2, 8}` rather than :math:`G_{2, 1}`. 
+	The example in [BBG11]_ of an element whose centraliser contains the Klein four group :math:`\mathbb{Z_2 \oplus Z_2}` as a subgroup. We have represented it as an element of :math:`G_{2, 8}` rather than :math:`G_{2, 1}`.
+
 bleak_klein_beta
 	See the :download:`forest <examples/bleak_klein_beta.pdf>` diagram and function :download:`plot <examples/bleak_klein_beta.svg>`.
 
-	The example :math:`\beta` in [BBG11]_ of an element generating a Klein four group as part of the centraliser of ``bleak_klein_alpha``. 
+	The example :math:`\beta` in [BBG11]_ of an element generating a Klein four group as part of the centraliser of ``bleak_klein_alpha``.
+
 bleak_klein_gamma
 	See the :download:`forest <examples/bleak_klein_gamma.pdf>` diagram and function :download:`plot <examples/bleak_klein_gamma.svg>`.
 
-	The example :math:`\gamma` in [BBG11]_ of an element generating a Klein four group as part of the centraliser of ``bleak_klein_alpha``. 
+	The example :math:`\gamma` in [BBG11]_ of an element generating a Klein four group as part of the centraliser of ``bleak_klein_alpha``.
+
 cyclic_order_six
 	See the :download:`forest <examples/cyclic_order_six.pdf>` diagram and function :download:`plot <examples/cyclic_order_six.svg>`.
 
-	An introductory example drawn on the board by NB. It is purely periodic of order six. 
+	An introductory example drawn on the board by NB. It is purely periodic of order six.
+
 example_4_1
 	See the :download:`forest <examples/example_4_1.pdf>` diagram and function :download:`plot <examples/example_4_1.svg>`.
 
-	This example is used in the paper to illustrate the meaning of a semi-normal form (Example :paperref:`ex:snf1`) and of a tree pair diagram (Example :paperref:`snf0`). 
+	This example is used in the paper to illustrate the meaning of a semi-normal form (Example :paperref:`ex:snf1`) and of a tree pair diagram (Example :paperref:`snf0`).
+
 example_4_12
 	See the :download:`forest <examples/example_4_12.pdf>` diagram and function :download:`plot <examples/example_4_12.svg>`.
 
-	This example is used in the paper to illustrate the meaning of a semi-normal form. This example needs to be expanded from its minimal representation to find a semi-normal (in fact quasi-normal) form. 
+	This example is used in the paper to illustrate the meaning of a semi-normal form. This example needs to be expanded from its minimal representation to find a semi-normal (in fact quasi-normal) form.
+
 example_4_5
 	See the :download:`forest <examples/example_4_5.pdf>` diagram and function :download:`plot <examples/example_4_5.svg>`.
 
-	This example is used to illustrate the different types of :mod:`components/orbits <thompson.orbits>` in the paper. 
+	This example is used to illustrate the different types of :mod:`components/orbits <thompson.orbits>` in the paper.
+
 example_5_12_phi
 	See the :download:`forest <examples/example_5_12_phi.pdf>` diagram and function :download:`plot <examples/example_5_12_phi.svg>`.
 
-	The example used in the paper to demonstrate the :meth:`periodic conjugacy test <thompson.periodic.PeriodicAut.test_conjugate_to>`. 
+	The example used in the paper to demonstrate the :meth:`periodic conjugacy test <thompson.periodic.PeriodicAut.test_conjugate_to>`.
+
 example_5_12_psi
 	See the :download:`forest <examples/example_5_12_psi.pdf>` diagram and function :download:`plot <examples/example_5_12_psi.svg>`.
 
-	The example used in the paper to demonstrate the :meth:`periodic conjugacy test <thompson.periodic.PeriodicAut.test_conjugate_to>`. 
+	The example used in the paper to demonstrate the :meth:`periodic conjugacy test <thompson.periodic.PeriodicAut.test_conjugate_to>`.
+
 example_5_15
 	See the :download:`forest <examples/example_5_15.pdf>` diagram and function :download:`plot <examples/example_5_15.svg>`.
 
-	This example is used in the paper to illustrate the process of finding the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>`. 
+	This example is used in the paper to illustrate the process of finding the :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>`.
+
 example_5_26_psi
 	See the :download:`forest <examples/example_5_26_psi.pdf>` diagram and function :download:`plot <examples/example_5_26_psi.svg>`.
 
-	The example used in the paper to demonstrate the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>`. 
+	The example used in the paper to demonstrate the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>`.
+
 example_5_3
 	See the :download:`forest <examples/example_5_3.pdf>` diagram and function :download:`plot <examples/example_5_3.svg>`.
 
-	This example is used to demonstrate how we can break down an automorphism into its :meth:`~thompson.mixed.MixedAut.free_factors`. 
+	This example is used to demonstrate how we can break down an automorphism into its :meth:`~thompson.mixed.MixedAut.free_factors`.
+
 example_5_9
 	See the :download:`forest <examples/example_5_9.pdf>` diagram and function :download:`plot <examples/example_5_9.svg>`.
 
-	This example is used in the paper to illustrate the definition of :class:`cycle types <thompson.periodic.PeriodicAut>`. 
+	This example is used in the paper to illustrate the definition of :class:`cycle types <thompson.periodic.PeriodicAut>`.
+
 example_6_2
 	See the :download:`forest <examples/example_6_2.pdf>` diagram and function :download:`plot <examples/example_6_2.svg>`.
 
-	Example :paperref:`pcExample1` of the paper, used to illustrate lemma :paperref:`AJDLEMMACMa`. 
+	Example :paperref:`pcExample1` of the paper, used to illustrate lemma :paperref:`AJDLEMMACMa`.
+
 example_6_8_phi
 	See the :download:`forest <examples/example_6_8_phi.pdf>` diagram and function :download:`plot <examples/example_6_8_phi.svg>`.
 
-	A purely infinite automorphism which illustrates the bounds :math:`\hat a, \hat b` for power conjugacy. 
+	A purely infinite automorphism which illustrates the bounds :math:`\hat a, \hat b` for power conjugacy.
+
 first_pond_example_phi
 	See the :download:`forest <examples/first_pond_example_phi.pdf>` diagram and function :download:`plot <examples/first_pond_example_phi.svg>`.
 
-	The example of a pond orbit we found by a random search. Its banks are :math:`x\alpha_1^4\alpha_2` and :math:`x\alpha_1\alpha_2^2`. 
+	The example of a pond orbit we found by a random search. Its banks are :math:`x\alpha_1^4\alpha_2` and :math:`x\alpha_1\alpha_2^2`.
+
 first_pond_example_psi
 	See the :download:`forest <examples/first_pond_example_psi.pdf>` diagram and function :download:`plot <examples/first_pond_example_psi.svg>`.
 
-	The element which was conjugate to ``first_pond_example_phi``. 
+	The element which was conjugate to ``first_pond_example_phi``.
+
 four_minimal_revealing_pairs
 	See the :download:`forest <examples/four_minimal_revealing_pairs.pdf>` diagram and function :download:`plot <examples/four_minimal_revealing_pairs.svg>`.
 
-	I think this automorphism has 4 minimal revealing pairs. It has an orbit of characteristic (-4, a1^4) spread apart over four components of :math:`A \setminus B`. Brin's algorithm would have you add three of these components to the tree, and I think the component you DON'T add is the one that determines the revealing pair. 
+	I think this automorphism has 4 minimal revealing pairs. It has an orbit of characteristic (-4, a1^4) spread apart over four components of :math:`A \setminus B`. Brin's algorithm would have you add three of these components to the tree, and I think the component you DON'T add is the one that determines the revealing pair.
+
 inf_conj_phi
 	See the :download:`forest <examples/inf_conj_phi.pdf>` diagram and function :download:`plot <examples/inf_conj_phi.svg>`.
 
-	An example used to debug the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>`. 
+	An example used to debug the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>`.
+
 inf_conj_psi
 	See the :download:`forest <examples/inf_conj_psi.pdf>` diagram and function :download:`plot <examples/inf_conj_psi.svg>`.
 
-	An example used to debug the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>`. 
+	An example used to debug the :meth:`infinite conjugacy test <thompson.infinite.InfiniteAut.test_conjugate_to>`.
+
 mixed_pconj_phi
 	See the :download:`forest <examples/mixed_pconj_phi.pdf>` diagram and function :download:`plot <examples/mixed_pconj_phi.svg>`.
 
-	An example of mixed power conjugacy found by random search. Should have :math:`\psi^{-4} \sim \phi^2`. 
+	An example of mixed power conjugacy found by random search. Should have :math:`\psi^{-4} \sim \phi^2`.
+
 mixed_pconj_psi
 	See the :download:`forest <examples/mixed_pconj_psi.pdf>` diagram and function :download:`plot <examples/mixed_pconj_psi.svg>`.
 
-	An example of mixed power conjugacy found by random search. Should have :math:`\psi^{-4} \sim \phi^2`. 
+	An example of mixed power conjugacy found by random search. Should have :math:`\psi^{-4} \sim \phi^2`.
+
+mixed_plines
+	See the :download:`forest <examples/mixed_plines.pdf>` diagram and function :download:`plot <examples/mixed_plines.svg>`.
+
+	An element of :math:`T` with rotation number :math:`1/2`. The square of this element acts like :math:`x_0^2` on the first and third quarters, and acts like the identity elsewhere. Thus it has two periodic flow lines and two pointwise periodic lines. The same is true of the square of mixed_plines_2, but even though it does not act as the identity on the second and fourth quarters.
+
+mixed_plines_2
+	See the :download:`forest <examples/mixed_plines_2.pdf>` diagram and function :download:`plot <examples/mixed_plines_2.svg>`.
+
+	An element of :math:`T` with rotation number :math:`1/2` and no fixed intervals. The square of this element acts like :math:`x_0^2` on the first and third quarters, and acts like the identity elsewhere. Thus it has two periodic flow lines and two pointwise periodic lines. The same is true of the square of mixed_plines, which acts as the identity on the second and fourth quarters.
+
 multiple_classes
 	See the :download:`forest <examples/multiple_classes.pdf>` diagram and function :download:`plot <examples/multiple_classes.svg>`.
 
-	A purely infinite automorphism for which there are two equivalence classes defined on X. 
+	A purely infinite automorphism for which there are two equivalence classes defined on X.
+
 multiple_classes_smaller
 	See the :download:`forest <examples/multiple_classes_smaller.pdf>` diagram and function :download:`plot <examples/multiple_classes_smaller.svg>`.
 
-	A purely infinite automorphism for which there are two equivalence classes defined on X. It was more straightforward to see that this automorphism had two equivalence classes. 
+	A purely infinite automorphism for which there are two equivalence classes defined on X. It was more straightforward to see that this automorphism had two equivalence classes.
+
 nathan1_example
 	See the :download:`forest <examples/nathan1_example.pdf>` diagram and function :download:`plot <examples/nathan1_example.svg>`.
 
-	One of Nathan's examples. This is *almost*, but not quite conjugate to nathan_pond_example. Nathan had this to say: *"I untwisted one of the infinite orbits after a conjugation and so they definitely should not be conjugate."* 
+	One of Nathan's examples. This is *almost*, but not quite conjugate to nathan_pond_example. Nathan had this to say: *"I untwisted one of the infinite orbits after a conjugation and so they definitely should not be conjugate."*
+
 nathan_pond_example
 	See the :download:`forest <examples/nathan_pond_example.pdf>` diagram and function :download:`plot <examples/nathan_pond_example.svg>`.
 
-	Nathan's example of an automorphism containing a pond. This has a simpler tree pair than ``first_pond_example_phi``. 
+	Nathan's example of an automorphism containing a pond. This has a simpler tree pair than ``first_pond_example_phi``.
+
 no_minimal_revealing
 	See the :download:`forest <examples/no_minimal_revealing.pdf>` diagram and function :download:`plot <examples/no_minimal_revealing.svg>`.
 
-	An example from section 3.6 of [SD10]_. This is an automorphism :math:`f \in G_{2,1}` for which there is no minimal revealing pair from which every other revaling pair can be obtained via rollings. 
+	An example from section 3.6 of [SD10]_. This is an automorphism :math:`f \in G_{2,1}` for which there is no minimal revealing pair from which every other revaling pair can be obtained via rollings.
+
 non_dyadic_fixed_point
 	See the :download:`forest <examples/non_dyadic_fixed_point.pdf>` diagram and function :download:`plot <examples/non_dyadic_fixed_point.svg>`.
 
-	In their paper introducing strand diagrams, Belk and Matucci provide an example of an element of :math:`F` which has a non-dyadic fixed point. This is a slight simplification of that example. 
+	In their paper introducing strand diagrams, Belk and Matucci provide an example of an element of :math:`F` which has a non-dyadic fixed point. This is a slight simplification of that example.
+
 non_revealing
 	See the :download:`forest <examples/non_revealing.pdf>` diagram and function :download:`plot <examples/non_revealing.svg>`.
 
 	A purely infinite automorphism for which
 	- The minimal representation does NOT correspond to a revealing pair; and
-	- The quasinormal basis does NOT correspond to a revealing pair. 
+	- The quasinormal basis does NOT correspond to a revealing pair.
+
 not_conjugate_f
 	See the :download:`forest <examples/not_conjugate_f.pdf>` diagram and function :download:`plot <examples/not_conjugate_f.svg>`.
 
-	An example of an element which isn't conjugate to ``not_conjugate_g``, even though it comes quite close to being so! 
+	An example of an element which isn't conjugate to ``not_conjugate_g``, even though it comes quite close to being so!
+
 not_conjugate_g
 	See the :download:`forest <examples/not_conjugate_g.pdf>` diagram and function :download:`plot <examples/not_conjugate_g.svg>`.
 
-	An element which is not conjugate to ``not_conjugate_f``, even though it comes quite close to being so! 
+	An element which is not conjugate to ``not_conjugate_f``, even though it comes quite close to being so!
+
 olga_f
 	See the :download:`forest <examples/olga_f.pdf>` diagram and function :download:`plot <examples/olga_f.svg>`.
 
-	An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*" 
+	An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*"
+
 olga_g
 	See the :download:`forest <examples/olga_g.pdf>` diagram and function :download:`plot <examples/olga_g.svg>`.
 
-	An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*" 
+	An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*"
+
 olga_gdash
 	See the :download:`forest <examples/olga_gdash.pdf>` diagram and function :download:`plot <examples/olga_gdash.svg>`.
 
-	An automorphism described in example 5 of [SD10]_. The paper claims that ``olga_f`` and ``olga_gdash`` are not conjugate. 
+	An automorphism described in example 5 of [SD10]_. The paper claims that ``olga_f`` and ``olga_gdash`` are not conjugate.
+
 olga_h
 	See the :download:`forest <examples/olga_h.pdf>` diagram and function :download:`plot <examples/olga_h.svg>`.
 
-	An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*" 
+	An automorphism described in example 5 of [SD10]_. Nathan had this to say: "*olga_f is conjugate to olga_g, via a rho that can be found using your program or olga_h. Note that characteristics are not the same for two of the semi-infinite orbits.*"
+
 periodic_QNB_206
 	See the :download:`forest <examples/periodic_QNB_206.pdf>` diagram and function :download:`plot <examples/periodic_QNB_206.svg>`.
 
-	This purely periodic automorphism (again found by random search) has a quasinormal basis of size 206. 
+	This purely periodic automorphism (again found by random search) has a quasinormal basis of size 206.
+
 periodic_QNB_344
 	See the :download:`forest <examples/periodic_QNB_344.pdf>` diagram and function :download:`plot <examples/periodic_QNB_344.svg>`.
 
-	This purely periodic automorphism (again found by random search) has a quasinormal basis of size 344. 
+	This purely periodic automorphism (again found by random search) has a quasinormal basis of size 344.
+
 pond_width_4
 	See the :download:`forest <examples/pond_width_4.pdf>` diagram and function :download:`plot <examples/pond_width_4.svg>`.
 
-	An example found by random search of a pond orbit of width 4. Prior to this we had only seen ponds of width 1 or 2. 
+	An example found by random search of a pond orbit of width 4. Prior to this we had only seen ponds of width 1 or 2.
+
 power_smaller_QNB
 	See the :download:`forest <examples/power_smaller_QNB.pdf>` diagram and function :download:`plot <examples/power_smaller_QNB.svg>`.
 
-	The square of this automorphism appears to have a QNB above the QNB of the original automorphism. 
+	The square of this automorphism appears to have a QNB above the QNB of the original automorphism.
+
 rotation_number_one_third
 	See the :download:`forest <examples/rotation_number_one_third.pdf>` diagram and function :download:`plot <examples/rotation_number_one_third.svg>`.
 
-	An non-periodic element of T_{2,3} which should have rotation number 1/3. 
+	An non-periodic element of T_{2,3} which should have rotation number 1/3.
+
 scott_free_alpha
 	See the :download:`forest <examples/scott_free_alpha.pdf>` diagram and function :download:`plot <examples/scott_free_alpha.svg>`.
 
-	The element alpha in the appendix of [Scott]_ which generates a free group of rank 2 with beta, also from the appendix. 
+	The element alpha in the appendix of [Scott]_ which generates a free group of rank 2 with beta, also from the appendix.
+
 scott_free_beta
 	See the :download:`forest <examples/scott_free_beta.pdf>` diagram and function :download:`plot <examples/scott_free_beta.svg>`.
 
-	The element beta in the appendix of [Scott]_ which generates a free group of rank 2 with alpha, also from the appendix. 
+	The element beta in the appendix of [Scott]_ which generates a free group of rank 2 with alpha, also from the appendix.
+
 semi_inf_c
 	See the :download:`forest <examples/semi_inf_c.pdf>` diagram and function :download:`plot <examples/semi_inf_c.svg>`.
 
-	An example of an automorphism whose :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` :math:`X` contains an element :math:`x\alpha_2\alpha_1` which belongs to a semi-infinite :math:`X`-component which is not characteristic. 
+	An example of an automorphism whose :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` :math:`X` contains an element :math:`x\alpha_2\alpha_1` which belongs to a semi-infinite :math:`X`-component which is not characteristic.
+
 thirds_fixed
 	See the :download:`forest <examples/thirds_fixed.pdf>` diagram and function :download:`plot <examples/thirds_fixed.svg>`.
 
-	This element of T has only two fixed points: 1/3 and 2/3. 
+	This element of T has only two fixed points: 1/3 and 2/3; note that these are non dyadic!
+
 two_flow_components_d
 	See the :download:`forest <examples/two_flow_components_d.pdf>` diagram and function :download:`plot <examples/two_flow_components_d.svg>`.
 
-	An example which found a bug in the infinite conjugacy test. This automorphism contains two flow components which are identical in all but their location. 
+	An example which found a bug in the infinite conjugacy test. This automorphism contains two flow components which are identical in all but their location.
+
 two_flow_components_e
 	See the :download:`forest <examples/two_flow_components_e.pdf>` diagram and function :download:`plot <examples/two_flow_components_e.svg>`.
 
-	An example which found a bug in the infinite conjugacy test. This automorphism is a conjugated version of ``two_flow_components_d``. 
+	An example which found a bug in the infinite conjugacy test. This automorphism is a conjugated version of ``two_flow_components_d``.
+
 v_revealing_test
 	See the :download:`forest <examples/v_revealing_test.pdf>` diagram and function :download:`plot <examples/v_revealing_test.svg>`.
 
-	A short example used to test the is_revealing method 
+	A short example used to test the is_revealing method
+

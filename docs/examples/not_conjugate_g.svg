@@ -22,8 +22,20 @@
 }
 
 .graph {
+	stroke: red;
+}
+
+/* :nth-of-type not supported by GNOME's image reader */
+.graph:nth-of-type(2) {
+	stroke: blue;
+}
+
+.graph:nth-of-type(3) {
+	stroke: green;
+}
+
+.graph_segment {
 	fill: none;
-	stroke: black;
 	stroke-width: 1.5px;
 	marker-start: url(#continuity);
 	marker-end: url(#discontinuity);
@@ -33,4 +45,4 @@
 	fill: white;
 	stroke: black;
 }
-]]></style><marker id="arrowhead" markerHeight="8" markerUnits="strokeWidth" markerWidth="4" orient="auto" refX="4" refY="4"><polyline points="0,8 4,4 0,0" /></marker><marker id="tickmark" markerHeight="10" markerUnits="strokeWidth" markerWidth="1" orient="auto" refX="0.5" refY="5"><line x1="0" x2="0" y1="0" y2="10" /></marker></defs><g id="canvas" transform="translate(40,40) scale(1,-1) translate(0,-400)"><line class="grid depth3" x1="50.0" x2="50.0" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="50.0" y2="50.0" /><line class="grid depth3" x1="150.0" x2="150.0" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="150.0" y2="150.0" /><line class="grid depth3" x1="250.0" x2="250.0" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="250.0" y2="250.0" /><line class="grid depth3" x1="350.0" x2="350.0" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="350.0" y2="350.0" /><line class="grid depth2" x1="100.0" x2="100.0" y1="0" y2="400" /><line class="grid depth2" x1="0" x2="400" y1="100.0" y2="100.0" /><line class="grid depth2" x1="300.0" x2="300.0" y1="0" y2="400" /><line class="grid depth2" x1="0" x2="400" y1="300.0" y2="300.0" /><line class="grid depth1" x1="200.0" x2="200.0" y1="0" y2="400" /><line class="grid depth1" x1="0" x2="400" y1="200.0" y2="200.0" /><line class="grid depth0" x1="400.0" x2="400.0" y1="0" y2="400" /><line class="grid depth0" x1="0" x2="400" y1="400.0" y2="400.0" /><polyline class="axis" points="0,0 200.0,0 300.0,0 350.0,0 375.0,0 400.0,0" /><polyline class="axis" points="0,0 0,100.0 0,125.0 0,150.0 0,200.0 0,400.0" /><line class="grid depth0" x1="0" x2="400" y1="0" y2="400" /><path class="graph" d="M 0.0 150.0 L 200.0 200.0" /><path class="graph" d="M 200.0 100.0 L 300.0 125.0" /><path class="graph" d="M 300.0 200.0 L 350.0 400.0" /><path class="graph" d="M 350.0 125.0 L 375.0 150.0" /><path class="graph" d="M 375.0 0.0 L 400.0 100.0" /></g></svg>
+]]></style><marker id="arrowhead" markerHeight="8" markerUnits="strokeWidth" markerWidth="4" orient="auto" refX="4" refY="4"><polyline points="0,8 4,4 0,0" /></marker><marker id="tickmark" markerHeight="10" markerUnits="strokeWidth" markerWidth="1" orient="auto" refX="0.5" refY="5"><line x1="0" x2="0" y1="0" y2="10" /></marker></defs><g id="canvas" transform="translate(40,40) scale(1,-1) translate(0,-400)"><line class="grid depth3" x1="50.0" x2="50.0" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="50.0" y2="50.0" /><line class="grid depth3" x1="150.0" x2="150.0" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="150.0" y2="150.0" /><line class="grid depth3" x1="250.0" x2="250.0" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="250.0" y2="250.0" /><line class="grid depth3" x1="350.0" x2="350.0" y1="0" y2="400" /><line class="grid depth3" x1="0" x2="400" y1="350.0" y2="350.0" /><line class="grid depth2" x1="100.0" x2="100.0" y1="0" y2="400" /><line class="grid depth2" x1="0" x2="400" y1="100.0" y2="100.0" /><line class="grid depth2" x1="300.0" x2="300.0" y1="0" y2="400" /><line class="grid depth2" x1="0" x2="400" y1="300.0" y2="300.0" /><line class="grid depth1" x1="200.0" x2="200.0" y1="0" y2="400" /><line class="grid depth1" x1="0" x2="400" y1="200.0" y2="200.0" /><line class="grid depth0" x1="400.0" x2="400.0" y1="0" y2="400" /><line class="grid depth0" x1="0" x2="400" y1="400.0" y2="400.0" /><polyline class="axis" points="0,0 400,0" /><polyline class="axis" points="0,0 0,400" /><line class="grid depth0" x1="0" x2="400" y1="0" y2="400" /><g class="graph" id="graph_0"><path class="graph_segment" d="M 0.0 150.0 L 200.0 200.0" /><path class="graph_segment" d="M 200.0 100.0 L 300.0 125.0" /><path class="graph_segment" d="M 300.0 200.0 L 350.0 400.0" /><path class="graph_segment" d="M 350.0 125.0 L 375.0 150.0" /><path class="graph_segment" d="M 375.0 0.0 L 400.0 100.0" /></g></g></svg>

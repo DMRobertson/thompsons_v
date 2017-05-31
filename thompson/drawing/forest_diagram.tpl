@@ -56,6 +56,7 @@
 \tikzgraphsset{
 	every graph/.style = {
 		extended binary tree layout,
+		simple,
 		empty nodes,
 		edges = { line cap = round },
 		nodes = {

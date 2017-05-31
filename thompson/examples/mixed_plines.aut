@@ -1,0 +1,11 @@
+8
+(2, 1) -> (2, 1)
+x1 a1 a1 a1 a1 -> x1 a2 a1 a1   
+x1 a1 a1 a1 a2 -> x1 a2 a1 a2 a1
+x1 a1 a1 a2    -> x1 a2 a1 a2 a2
+x1 a1 a2       -> x1 a2 a2      
+x1 a2 a1 a1 a1 -> x1 a1 a1 a1   
+x1 a2 a1 a1 a2 -> x1 a1 a1 a2 a1
+x1 a2 a1 a2    -> x1 a1 a1 a2 a2
+x1 a2 a2       -> x1 a1 a2   
+An element of :math:`T` with rotation number :math:`1/2`. The square of this element acts like :math:`x_0^2` on the first and third quarters, and acts like the identity elsewhere. Thus it has two periodic flow lines and two pointwise periodic lines. The same is true of the square of mixed_plines_2, but even though it does not act as the identity on the second and fourth quarters.

@@ -5,7 +5,7 @@ sys.path.append(os.getcwd())
 from thompson import load_example, available_examples, forest, plot
 
 names = sorted(available_examples())
-format_string = "{0}\n\tSee the :download:`forest <examples/{0}.pdf>` diagram and function :download:`plot <examples/{0}.svg>`.\n\n\t{1} "
+format_string = "{0}\n\tSee the :download:`forest <examples/{0}.pdf>` diagram and function :download:`plot <examples/{0}.svg>`.\n\n\t{1}\n"
 
 os.chdir('docs')
 
