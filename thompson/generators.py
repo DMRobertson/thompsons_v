@@ -411,8 +411,8 @@ class Generators(list):
 		if isinstance(string, int):
 			string = str(string)
 		counts = Counter(string)
-		if not set(counts) <= set('01'):
-			raise ValueError("String {} should contain only 1s and 0s".format(string))
+		if not set(counts) <= set('01 '):
+			raise ValueError("String {} should contain only 1s, 0s and optionally spaces".format(string))
 		if counts['0'] != counts['1'] + 1:
 			raise ValueError("Should have one more zero than one (got {} and {} respectively)".format(
 				counts['0'], counts['1']))
@@ -421,6 +421,8 @@ class Generators(list):
 		index = 0
 		counts = Counter()
 		for string_index, char in enumerate(string, start=1):
+			if char == ' ':
+				continue
 			counts[char] += 1
 			balance = counts['0'] - (counts['1'] + 1)
 			if balance > 0:

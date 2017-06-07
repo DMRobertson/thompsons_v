@@ -93,6 +93,11 @@ example_6_8_phi
 
 	A purely infinite automorphism which illustrates the bounds :math:`\hat a, \hat b` for power conjugacy.
 
+f_thirds_fixed
+	See the :download:`forest <examples/f_thirds_fixed.pdf>` diagram and function :download:`plot <examples/f_thirds_fixed.svg>`.
+
+	An element of :math:`F` whose fixed point set is exactly :math:`\{ 0, 1/3, 2/3, 1\}`.
+
 first_pond_example_phi
 	See the :download:`forest <examples/first_pond_example_phi.pdf>` diagram and function :download:`plot <examples/first_pond_example_phi.svg>`.
 
