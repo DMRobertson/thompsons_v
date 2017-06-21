@@ -50,7 +50,8 @@
 	},
 	repatt/.style      = {red},
 	repatt label/.style= {red, fill=white},
-	every label/.style = {fill=white, inner sep=0pt, outer sep=3.5pt}
+	every label/.style = {fill=white, inner sep=0pt, outer sep=3.5pt},
+	point/.style = {circle, fill, inner sep=1pt},
 }
 
 \tikzgraphsset{

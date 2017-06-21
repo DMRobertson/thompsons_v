@@ -71,6 +71,8 @@ def write_word(word, index, highlight, intersection):
 	below_intersection = False
 	lines = ["root"]
 	output = ""
+	if len(word) == 1:
+		lines[0] += " [point, label=below:\\strut$1$]"
 	for subword in word.subwords(discard_root=True):
 		lines.append( write_subword(
 			subword, index, highlight, below_intersection, subword == word
