@@ -112,7 +112,7 @@ def random_periodic_automorphism(signature, num_expansions, group="V"):
 	return Automorphism(domain, range)
 
 @needs_defaults
-def random_infinite_automorphism(signature, num_expansions):
+def random_infinite_automorphism(signature, num_expansions, group="V"):
 	"""Randomly generates an infinite automorphism---either by chance, or by extracting an infinite :meth:`~thompson.mixed.MixedAut.free_factor`.
 	
 	.. todo:: The implementation is inefficient: just make auts at random until you find an infinite one. Fix this!
@@ -122,7 +122,7 @@ def random_infinite_automorphism(signature, num_expansions):
 		num_expansions = 2
 	phi = None
 	while not isinstance(phi, InfiniteAut):
-		phi = random_automorphism(signature, num_expansions)
+		phi = random_automorphism(signature, num_expansions, group=group)
 	return phi
 
 @needs_defaults
