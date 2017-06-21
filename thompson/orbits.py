@@ -40,7 +40,7 @@ class ComponentType(BaseComponentType):
 	@classmethod
 	def periodic(cls, period):
 		"""Describes a complete finite (i.e. periodic, type 2) component. The argument is the period of the the component."""
-		return cls(cls._complete_finite, (period, tuple()))
+		return cls(cls._complete_finite, Characteristic(period, tuple()))
 	
 	@classmethod
 	def semi_infinite(cls, characteristic, backward=False):

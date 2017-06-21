@@ -13,7 +13,7 @@
 import os
 import sys
 
-from collections  import defaultdict
+from collections  import defaultdict, OrderedDict
 from copy         import copy
 from fractions    import Fraction
 from itertools    import chain, product
@@ -1336,6 +1336,27 @@ class Automorphism(Homomorphism):
 		.. todo:: This method is badly named; something like ``is_revealed_by(basis)`` would be better.
 		"""
 		return self.test_revealing(domain) is None
+	
+	def periodic_points(self, include_intervals=True):
+		"""Identifies the intervals and points which are (pointwise) peridically mapped under the current automorphism.
+		Pointwise periodic intervals are represented as :class`~thompson.word.Word`s; isolated periodic points are represented as :class:`~py3:fractions.Fraction`s.
+		
+		:param bool include_intervals: If False, intervals are not included in the output. If the current automorphism is in T, the result is the boundary of the set of fixed points.
+		
+		:returns: an :class:`~py3:collections.OrderedDict` mapping periodic objects to their period size.
+		
+		.. caution:: This is an experimental feature and provides different information to :meth:`fixed_points`.
+		"""
+		output = OrderedDict()
+		for x in self.quasinormal_basis:
+			ctype, _, _ = self.orbit_type(x)
+			if ctype.is_type_B():
+				point = Word.ray_as_rational(x, ctype.characteristic.multiplier)
+				output[point] = abs(ctype.characteristic.power)
+			if include_intervals and ctype.is_type_A():
+				output[x] = ctype.characteristic.power
+		
+		return output
 	
 	def fixed_points(self):
 		"""Returns a list of :class:`~py3:fractions.Fraction` and :class`~thompson.word.Word`s which are the fixed points and intervals of this function.
