@@ -1,5 +1,5 @@
 from fractions import Fraction
-from .util import all_satisfy, grad, pairwise
+from .util import all_satisfy, grad, increasing_sequence, int_power_of_two, lerp, pairwise
 
 class PLMap:
 	r"""
@@ -30,23 +30,58 @@ class PLMap:
 		:raises ValueError: if *domain* or *range* are not increasing sequences.
 		:raises ValueError: if *domain* or *range* contain invalid breakpoints. This requirement does **not** apply the first or last element of each list.
 		:raises ValueError: if *domain* or *range* describe linear segments with invalid gradients.
+		
+		.. doctest::
+			
+			>>> PLMap([0, 1], [0, Fraction(1, 2), 1])
+			Traceback (most recent call last):
+			...
+			ValueError: Domain and range lengths differ
+
+			
 		"""
 		if len(domain) != len(range):
 			raise ValueError("Domain and range lengths differ")
 		if len(domain) < 2:
 			raise ValueError("Domain must be defined by at least two points")
-		for list, name in (("domain", domain), ("range", range)):
+		for name, list in (("domain", domain), ("range", range)):
 			if not increasing_sequence(list):
 				raise ValueError(name + " is not an increasing sequence")
 			if not all_satisfy(list[1:-1], self._validate_breakpoint):
 				raise ValueError(name + "contains an invalid breakpoint for " + self.__class__.__name__)
+		
+		#TODO: normalise domain and range: delete redundant breakpoints
+		
 		self.domain = tuple(domain)
 		self.range  = tuple(range)
 		self.gradients = tuple(
-			grad(start, end) for start, end in pairwise(self)
+			grad(start[0], end[0], start[1], end[1]) for start, end in pairwise(self)
 		)
 		if not all_satisfy(self.gradients, self._validate_gradient):
 			raise ValueError("Invalid gradient")
+	
+	@classmethod
+	def from_aut(cls, aut):
+		"""Creates a new PLMap using a :class:`~thompson.homomorphism.Homomorphism`."""
+		domain = []
+		range = []
+		for segment in aut.pl_segments():
+			domain.append(segment['xstart'])
+			range.append(segment['ystart'])
+		domain.append(segment['xend'])
+		range.append(segment['yend'])
+		return cls(domain, range)
+		
+	def image(self, x):
+		"""Where does the current PLMap send :math:`x`?
+		
+		:raises ValueError: if :math:`x` is not in the current map's domain.
+		"""
+		if not self.domain[0] <= x <= self.domain[-1]:
+			raise ValueError(str(x) + " is not in the domain")
+		for (x0, x1), (y0, y1) in pairwise(self):
+			if start[0] <= x <= end[0]:
+				return lerp(x, x0, x1, y0, y1)
 	
 	@staticmethod
 	def _validate_gradient(gradient):
