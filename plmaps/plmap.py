@@ -1,5 +1,5 @@
 from fractions import Fraction
-from .util import all_satisfy, grad, increasing_sequence, int_power_of_two, lerp, pairwise
+from .util import all_satisfy, ends, grad, increasing_sequence, int_power_of_two, lerp, pairwise
 
 __all__ = ["PLMap", "PL2"]
 
@@ -19,7 +19,7 @@ class PLMap:
 	
 	:ivar domain: see :meth:`__init__`.
 	:ivar range: see :meth:`__init__`.
-	:ivar gradients: see :meth:`__init__`.
+	:ivar gradients: The ith entry of this list is the gradient of the ith linear segment.
 		
 	"""
 	def __init__(self, domain, range):
@@ -56,47 +56,52 @@ class PLMap:
 			raise ValueError("Domain and range lengths differ")
 		if len(domain) < 2:
 			raise ValueError("Domain must be defined by at least two points")
+		
+		domain = [Fraction(d) for d in domain]
+		range  = [Fraction(r) for r in range ]
+		
 		for name, list in (("domain", domain), ("range", range)):
 			if not increasing_sequence(list):
 				raise ValueError(name + " is not an increasing sequence")
 			if not all_satisfy(list[1:-1], self._validate_breakpoint):
-				raise ValueError(name + "contains an invalid breakpoint for " + self.__class__.__name__)
+				raise ValueError(name + " contains an invalid breakpoint for " + self.__class__.__name__)
 			if not (isinstance(list[ 0], (Fraction, int)) and
 			        isinstance(list[-1], (Fraction, int))):
 				raise ValueError(name + "'s endpoints should be rational")
 		
-		#TODO: normalise domain and range: delete redundant breakpoints
-		
-		self.domain = tuple(Fraction(d) for d in domain)
-		self.range  = tuple(Fraction(r) for r in range)
-		self.gradients = tuple(
-			grad(start[0], end[0], start[1], end[1]) for start, end in pairwise(self)
-		)
-		if not all_satisfy(self.gradients, self._validate_gradient):
-			raise ValueError("Invalid gradient")
+		self.domain, self.range, self.gradients = self._normalise_breakpoints(domain, range)
 	
 	@classmethod
-	def from_aut(cls, aut):
-		"""Creates a new PLMap using a :class:`~thompson.homomorphism.Homomorphism`."""
-		domain = []
-		range = []
-		for segment in aut.pl_segments():
-			domain.append(segment['xstart'])
-			range.append(segment['ystart'])
-		domain.append(segment['xend'])
-		range.append(segment['yend'])
-		return cls(domain, range)
-		
-	def image(self, x):
-		"""Where does the current PLMap send :math:`x`?
-		
-		:raises ValueError: if :math:`x` is not in the current map's domain.
+	def _normalise_breakpoints(cls, domain, range):
 		"""
-		if not self.domain[0] <= x <= self.domain[-1]:
-			raise ValueError(str(x) + " is not in the domain")
-		for (x0, x1), (y0, y1) in pairwise(self):
-			if start[0] <= x <= end[0]:
-				return lerp(x, x0, x1, y0, y1)
+		.. doctest::
+		
+			>>> x = PLMap(range(5), range(5))
+			>>> x.domain
+			(Fraction(0, 1), Fraction(4, 1))
+			>>> x.range
+			(Fraction(0, 1), Fraction(4, 1))
+		"""
+		initial_gradient = grad(domain[0], domain[1], range[0], range[1])
+		if not cls._validate_gradient(initial_gradient):
+			raise ValueError("Invalid gradient")
+		gradients = [ initial_gradient ]
+		
+		i = 2
+		previous_gradient = initial_gradient
+		while i < len(domain):
+			next_gradient = grad(domain[i-1], domain[i], range[i-1], range[i])
+			if previous_gradient == next_gradient:
+				del domain[i-1]
+				del range[i-1]
+			elif not cls._validate_gradient(initial_gradient):
+				raise ValueError("Invalid gradient")
+			else:
+				gradients.append(next_gradient)
+				i += 1
+				previous_gradient = next_gradient
+		
+		return tuple(domain), tuple(range), tuple(gradients)
 	
 	@classmethod
 	def _validate_gradient(cls, gradient):
@@ -109,10 +114,87 @@ class PLMap:
 	def __iter__(self):
 		r"""Iterating over a ``PLMap`` yields its breakpoints."""
 		yield from zip(self.domain, self.range)
+		
+	@classmethod
+	def from_aut(cls, aut):
+		"""Creates a new PLMap using a :class:`~thompson.homomorphism.Homomorphism`."""
+		domain = []
+		range = []
+		for segment in aut.pl_segments():
+			domain.append(segment['xstart'])
+			range.append(segment['ystart'])
+		domain.append(segment['xend'])
+		range.append(segment['yend'])
+		return cls(domain, range)
+	
+	@classmethod
+	def from_stream(cls, stream):
+		...
+	
+	def save_to_file(self, filename):
+		...
+	
+	def __mul__(self, other):
+		"""
+		Postcompose on the right.
+		"""
+		if not isinstance(other, type(self)):
+			return NotImplemented
+		if ends(self.range) != ends(other.domain):
+			raise ValueError("left multiplicand's range is different from right multiplicand's domain")
+		
+		domain = set(self.domain)
+		for r in other.range:
+			domain.update(self.inverse_image(r))
+		domain = sorted(domain)
+		range = [other.image(self.image(d)) for d in domain]
+		return type(self)(domain, range)
+	
+	def image(self, x):
+		"""Where does the current PLMap send the point :math:`x`?
+		
+		:raises ValueError: if :math:`x` is not in the current map's domain.
+		"""
+		if not self.domain[0] <= x <= self.domain[-1]:
+			raise ValueError(str(x) + " is not in the domain")
+		for (x0, x1), (y0, y1) in pairwise(self):
+			if x0 <= x <= x1:
+				return lerp(x, x0, x1, y0, y1)
+	
+	def inverse_image(self, y):
+		"""Where is mapped by the current PLMap to the point :math:`y`?
+		
+		:raises ValueError: if :math:`y` is not in the current map's range.
+		"""
+		if not self.range[0] <= x <= self.range[-1]:
+			raise ValueError(str(x) + " is not in the range")
+		for (x0, x1), (y0, y1) in pairwise(self):
+			if y0 <= y <= y1:
+				return lerp(y, y0, y1, x0, x1)
+	
+	def __eq__(self, other):
+		return self.domain == other.domain and self.range == other.range
+	
+	def is_identity(self):
+		return len(self.domain) == len(self.range) == 2 and domain == range
+	
+	def __invert__(self):
+		return type(self)(self.range, self.domain)
+	
+	def __xor__(self, other):
+		if ends(other.domain) != ends(self.range) or ends(self.domain) != ends(other.range):
+			raise ValueError("Mismatching domains and ranges")
+		return ~other * self * other
+	
+	def commutes(self, other):
+		return self * other == other * self
+	
+	def centralise_in_F(*params):
+		...
 
 class PL2(PLMap):
 	r"""
-	:math:`\operatorname{PL_2}` is shorthand for the set of ``PLMap`` s with :math:`S = \mathbb{Z}[1/2]` and :math:`G = 2^{\mathbb Z}`.
+	:math:`\operatorname{PL}_2` is shorthand for the set of ``PLMap`` s with :math:`S = \mathbb{Z}[1/2]` and :math:`G = 2^{\mathbb Z}`.
 	
 	.. doctest::
 	
@@ -133,9 +215,9 @@ class PL2(PLMap):
 		if not super()._validate_gradient(gradient):
 			return False
 		if gradient > 1:
-			return gradient.denominator == 1 and int_power_of_two(gradient.numerator)
+			return gradient.denominator == 1 and int_power_of_two(gradient.numerator  )
 		else:
-			return gradient.numerator == 1 and int_power_of_two(gradient.denominator)
+			return gradient.numerator   == 1 and int_power_of_two(gradient.denominator)
 	
 	@classmethod
 	def _validate_breakpoint(cls, breakpoint):

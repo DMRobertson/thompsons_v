@@ -25,3 +25,6 @@ def int_power_of_two(n):
 
 def lerp(x, x0, x1, y0, y1):
 	return y0 + grad(x0, x1, y0, y1) * (x - x0)
+
+def ends(indexable):
+	return indexable[0], indexable[-1]
