@@ -59,6 +59,7 @@ Contents
    References <references>
    Todo list <todo>
    Experimental: Cantor subsets <thompson.cantorsubset>
+   Experimental: PLMaps <plmaps>
 
 Indices
 -------
