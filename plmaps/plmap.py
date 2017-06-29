@@ -1,6 +1,8 @@
 from fractions import Fraction
 from .util import all_satisfy, grad, increasing_sequence, int_power_of_two, lerp, pairwise
 
+__all__ = ["PLMap", "PL2"]
+
 class PLMap:
 	r"""
 	Let :math:`I` and :math:`J` be closed intervals.
@@ -37,8 +39,18 @@ class PLMap:
 			Traceback (most recent call last):
 			...
 			ValueError: Domain and range lengths differ
-
-			
+			>>> PLMap([], [])
+			Traceback (most recent call last):
+			...
+			ValueError: Domain must be defined by at least two points
+			>>> PLMap([0, 0], [1, 0])
+			Traceback (most recent call last):
+			...
+			ValueError: domain is not an increasing sequence
+			>>> PLMap([0, 1], [1, 0])
+			Traceback (most recent call last):
+			...
+			ValueError: range is not an increasing sequence
 		"""
 		if len(domain) != len(range):
 			raise ValueError("Domain and range lengths differ")
@@ -49,11 +61,14 @@ class PLMap:
 				raise ValueError(name + " is not an increasing sequence")
 			if not all_satisfy(list[1:-1], self._validate_breakpoint):
 				raise ValueError(name + "contains an invalid breakpoint for " + self.__class__.__name__)
+			if not (isinstance(list[ 0], (Fraction, int)) and
+			        isinstance(list[-1], (Fraction, int))):
+				raise ValueError(name + "'s endpoints should be rational")
 		
 		#TODO: normalise domain and range: delete redundant breakpoints
 		
-		self.domain = tuple(domain)
-		self.range  = tuple(range)
+		self.domain = tuple(Fraction(d) for d in domain)
+		self.range  = tuple(Fraction(r) for r in range)
 		self.gradients = tuple(
 			grad(start[0], end[0], start[1], end[1]) for start, end in pairwise(self)
 		)
@@ -83,12 +98,12 @@ class PLMap:
 			if start[0] <= x <= end[0]:
 				return lerp(x, x0, x1, y0, y1)
 	
-	@staticmethod
-	def _validate_gradient(gradient):
+	@classmethod
+	def _validate_gradient(cls, gradient):
 		return gradient > 0 and isinstance(gradient, Fraction)
 	
-	@staticmethod
-	def _validate_breakpoint(breakpoint):
+	@classmethod
+	def _validate_breakpoint(cls, breakpoint):
 		return isinstance(breakpoint, Fraction)
 	
 	def __iter__(self):
@@ -98,15 +113,30 @@ class PLMap:
 class PL2(PLMap):
 	r"""
 	:math:`\operatorname{PL_2}` is shorthand for the set of ``PLMap`` s with :math:`S = \mathbb{Z}[1/2]` and :math:`G = 2^{\mathbb Z}`.
+	
+	.. doctest::
+	
+		>>> PL2([0, Fraction(1, 3)], [1, Fraction(5, 3)])
+		<plmaps.plmap.PL2 object at 0x...>
+		>>> PL2([0, Fraction(1, 2), 1], [1, Fraction(5, 3), 2])
+		Traceback (most recent call last):
+		...
+		ValueError: range contains an invalid breakpoint
+		>>> PL2([0, 1], [0, 3])
+		Traceback (most recent call last):
+		...
+		ValueError: Invalid gradient
+	
 	"""
-	@staticmethod
-	def _validate_gradient(gradient):
+	@classmethod
+	def _validate_gradient(cls, gradient):
 		if not super()._validate_gradient(gradient):
 			return False
-		if gradient < 1:
-			gradient = 1 / gradient
-		return gradient.denominator == 1 and int_power_of_two(gradient.numerator)
+		if gradient > 1:
+			return gradient.denominator == 1 and int_power_of_two(gradient.numerator)
+		else:
+			return gradient.numerator == 1 and int_power_of_two(gradient.denominator)
 	
-	@staticmethod
-	def _validate_breakpoint(breakpoint):
-		return super()._validate_breakpoint(breakpoint) and int_power_of_two(gradient.denominator)
+	@classmethod
+	def _validate_breakpoint(cls, breakpoint):
+		return super()._validate_breakpoint(breakpoint) and int_power_of_two(breakpoint.denominator)
