@@ -97,8 +97,8 @@ sys.path.append(os.path.abspath('extensions'))
 todo_include_todos = True
 intersphinx_mapping = {
 	# 'svgwrite':	('http://svgwrite.readthedocs.org/en/latest', None),
-	'py3': ('https://docs.python.org/3/', None),
-	'nx':  ('https://networkx.readthedocs.io/en/stable/', None), 
+	#'py3': ('https://docs.python.org/3/', None),
+	#'nx':  ('https://networkx.readthedocs.io/en/stable/', None), 
 }
 
 """End my additions"""
