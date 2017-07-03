@@ -25,6 +25,7 @@ class PLMap:
 	def __init__(self, domain, range):
 		r"""
 		Create a new ``PLMap`` given the breakpoints' coordinates.
+		Breakpoint lists are normalised in memory: redudant breakpoints (where the the gradient does not change) are removed.
 		Coordinates are provided via two lists *domain* and *range* of :class:`~py3:fractions.Fraction` s.
 		
 		:raises ValueError: if ``len(domain) != len(range)``.
@@ -52,24 +53,26 @@ class PLMap:
 			...
 			ValueError: range is not an increasing sequence
 		"""
+		domain = [Fraction(d) for d in domain]
+		range  = [Fraction(r) for r in range ]
+		self._validate_inputs(domain, range)
+		self.domain, self.range, self.gradients = self._normalise_breakpoints(domain, range)
+
+	@classmethod
+	def _validate_inputs(cls, domain, range):
 		if len(domain) != len(range):
 			raise ValueError("Domain and range lengths differ")
 		if len(domain) < 2:
 			raise ValueError("Domain must be defined by at least two points")
 		
-		domain = [Fraction(d) for d in domain]
-		range  = [Fraction(r) for r in range ]
-		
 		for name, list in (("domain", domain), ("range", range)):
 			if not increasing_sequence(list):
 				raise ValueError(name + " is not an increasing sequence")
-			if not all_satisfy(list[1:-1], self._validate_breakpoint):
-				raise ValueError(name + " contains an invalid breakpoint for " + self.__class__.__name__)
-			if not (isinstance(list[ 0], (Fraction, int)) and
-			        isinstance(list[-1], (Fraction, int))):
+			if not all_satisfy(list[1:-1], cls._validate_breakpoint):
+				raise ValueError(name + " contains an invalid breakpoint for " + cls.__name__)
+			if not (isinstance(list[ 0], (Fraction)) and
+			        isinstance(list[-1], (Fraction))):
 				raise ValueError(name + "'s endpoints should be rational")
-		
-		self.domain, self.range, self.gradients = self._normalise_breakpoints(domain, range)
 	
 	@classmethod
 	def _normalise_breakpoints(cls, domain, range):
@@ -140,15 +143,21 @@ class PLMap:
 		"""
 		if not isinstance(other, type(self)):
 			return NotImplemented
+		self._validate_multiplication(other)
+		domain, range = self._compute_product_breakpoints(other)
+		return type(self)(domain, range)
+	
+	def _validate_multiplication(self, other):
 		if ends(self.range) != ends(other.domain):
 			raise ValueError("left multiplicand's range is different from right multiplicand's domain")
-		
+	
+	def _compute_product_breakpoints(self, other):
 		domain = set(self.domain)
-		for r in other.range:
-			domain.update(self.inverse_image(r))
+		for d in other.domain:
+			domain.add(self.inverse_image(d))
 		domain = sorted(domain)
 		range = [other.image(self.image(d)) for d in domain]
-		return type(self)(domain, range)
+		return domain, range
 	
 	def image(self, x):
 		"""Where does the current PLMap send the point :math:`x`?
@@ -157,7 +166,7 @@ class PLMap:
 		"""
 		if not self.domain[0] <= x <= self.domain[-1]:
 			raise ValueError(str(x) + " is not in the domain")
-		for (x0, x1), (y0, y1) in pairwise(self):
+		for (x0, y0), (x1, y1) in pairwise(self):
 			if x0 <= x <= x1:
 				return lerp(x, x0, x1, y0, y1)
 	
@@ -166,9 +175,9 @@ class PLMap:
 		
 		:raises ValueError: if :math:`y` is not in the current map's range.
 		"""
-		if not self.range[0] <= x <= self.range[-1]:
-			raise ValueError(str(x) + " is not in the range")
-		for (x0, x1), (y0, y1) in pairwise(self):
+		if not self.range[0] <= y <= self.range[-1]:
+			raise ValueError(str(y) + " is not in the range")
+		for (x0, y0), (x1, y1) in pairwise(self):
 			if y0 <= y <= y1:
 				return lerp(y, y0, y1, x0, x1)
 	
