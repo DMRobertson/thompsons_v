@@ -1339,7 +1339,7 @@ class Automorphism(Homomorphism):
 	
 	def periodic_points(self, include_intervals=True):
 		"""Identifies the intervals and points which are (pointwise) peridically mapped under the current automorphism.
-		Pointwise periodic intervals are represented as :class`~thompson.word.Word`s; isolated periodic points are represented as :class:`~py3:fractions.Fraction`s.
+		Pointwise periodic intervals are represented as :class`~thompson.word.Word`s; isolated periodic points are represented as :class:`~py3:fractions.Fraction` s.
 		
 		:param bool include_intervals: If False, intervals are not included in the output. If the current automorphism is in T, the result is the boundary of the set of fixed points.
 		
