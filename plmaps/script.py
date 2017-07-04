@@ -36,6 +36,7 @@ bsr = beta_squared.restriction(0, F(1, 2))
 print("bsr")
 print(bsr)
 
+#2. Generate lots of elements of the centraliser
 cent_generator = PL2(
 	[0, F(1,4), F(3, 8), F(1, 2)],
 	[0, F(1,8), F(1, 4), F(1, 2)]
@@ -47,5 +48,7 @@ assert cent_generator.is_one_bump()
 result = bsr.one_bump_cent_gen()
 assert result == cent_generator
 
-#2. Generate lots of elements of the centraliser
 #3. Test to see which commute with alpha itself.
+#TODO: extend cent_generator to the whole circle
+assert cent_generator.commutes(beta)
+

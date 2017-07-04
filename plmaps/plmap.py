@@ -1,5 +1,5 @@
 from fractions import Fraction
-from .util import all_satisfy, ends, fixed_point, grad, increasing_sequence, int_power_of_two, ilog2, lerp, pairwise
+from .util import all_satisfy, ends, fixed_point, grad, gradient_roots_dyadic, increasing_sequence, int_power_of_two, ilog2, lerp, pairwise
 
 __all__ = ["PLMap", "PL2"]
 
@@ -212,6 +212,10 @@ class PLMap:
 			range  += r.ljust(n) + "  "
 		return domain[:-2] + "\n" + range[:-2]
 	
+	def __repr__(self):
+		return "<{}: [{}, {}] -> [{}, {}]>".format(
+			type(self).__name__, str(self.domain[0]), str(self.domain[-1]), str(self.range[0]), str(self.range[-1]))
+	
 	def commutes(self, other):
 		return self * other == other * self
 	
@@ -286,6 +290,46 @@ class PLMap:
 	
 	def is_one_bump(self):
 		return ends(self.domain) == ends(self.range) == self.fixed_points(raw=True)
+	
+	def one_bump_test_conjugate(self, other, initial_gradient):
+		if self.gradients[0] != other.gradients[0] or self.gradients[-1] != other.gradients[-1]:
+			return None
+		if not (self.is_one_bump() and other.is_one_bump() and ends(self.domain) == ends(other.domain)):
+			raise ValueError("Functions are not one-bump, or have different domains")
+		
+		start = self.domain[0]
+		end   = self.domain[-1]
+		conj_linear_upto, sources_linear_from  = self.one_bump_linearity_boxes(other, initial_gradient)
+		
+		domain = (start, conj_linear_upto)
+		range  = (start, start + (conj_linear_upto - start) * initial_gradient)
+		candidate = type(self)(domain, range)
+		
+		while not(
+			candidate.domain[-1] >= sources_linear_from and
+			candidate.range [-1] >= sources_linear_from
+		):
+			LHS = self.restriction(start, self.inverse_image(candidate.domain[-1]))
+			RHS = (~other).restriction(*ends(candidate.range))
+			candidate = LHS * candidate * RHS
+		
+		domain = candidate.domain + (end,)
+		range  = candidate.range  + (end,)
+		candidate = type(self)(domain, range)
+		if self ^ candidate == other:
+			return candidate
+	
+	def one_bump_linearity_boxes(self, other, initial_gradient):
+		sources_linear_upto = min(self.domain[ 1], other.domain[ 1])
+		sources_linear_from = max(self.domain[-2], other.domain[-2])
+		
+		if initial_gradient < 1:
+			conj_linear_upto = sources_linear_upto
+		else:
+			conj_linear_upto = start + (sources_linear_upto - start) / initial_gradient
+		
+		return conj_linear_upto, sources_linear_from
+		
 
 class PL2(PLMap):
 	r"""
@@ -326,6 +370,13 @@ class PL2(PLMap):
 		if not self.is_one_bump():
 			raise ValueError("Given function is not one-bump")
 		initial_gradient = self.gradients[0]
+		print("Initial gradient", initial_gradient)
+		for target_gradient in gradient_roots_dyadic(initial_gradient):
+			print("target gradient", target_gradient)
+			result = self.one_bump_test_conjugate(self, target_gradient)
+			if result is not None:
+				return result
+		return self
 
 def linear_superclass(self):
 	for cls in self.__class__.__bases__:

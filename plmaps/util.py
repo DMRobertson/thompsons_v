@@ -1,3 +1,4 @@
+from fractions import Fraction
 from itertools import tee
 
 def pairwise(iterable):
@@ -42,5 +43,23 @@ def fixed_point(x0, x1, y0, y1):
 		return crossing
 
 def ilog2(n):
-	"Assume n >= 1 is a power of two".
+	"Assume n >= 1 is a power of two"
 	return n.bit_length() - 1
+
+def small_divisors(n):
+	"""Yields the positive divisors d of n > 0 which are smaller in magnitude than their complement n/d."""
+	i = 1
+	while i * i <= n:
+		if n % i == 0:
+			yield i
+		i += 1
+
+def gradient_roots_dyadic(initial):
+	steep = initial > 1
+	initial = max(initial.numerator, initial.denominator)
+	log = ilog2(initial)
+	for d in small_divisors(log):
+		if steep:
+			yield Fraction(2**d, 1)
+		else:
+			yield Fraction(1, 2**d)
