@@ -28,3 +28,19 @@ def lerp(x, x0, x1, y0, y1):
 
 def ends(indexable):
 	return indexable[0], indexable[-1]
+
+def fixed_point(x0, x1, y0, y1):
+	"""Where does the line segment mapping [d0, d1] -> [r0, r1] cross the line :math:`y = x`?
+	
+	:returns: ``None`` if this segment has gradient one, or there is no crossing.
+	"""
+	m = grad(x0, x1, y0, y1)
+	if m == 1:
+		return None
+	crossing = (y0 - m * x0) / (1 - m)
+	if x0 <= crossing <= x1:
+		return crossing
+
+def ilog2(n):
+	"Assume n >= 1 is a power of two".
+	return n.bit_length() - 1

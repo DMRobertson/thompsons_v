@@ -1,5 +1,5 @@
 from fractions import Fraction
-from .util import all_satisfy, ends, grad, increasing_sequence, int_power_of_two, lerp, pairwise
+from .util import all_satisfy, ends, fixed_point, grad, increasing_sequence, int_power_of_two, ilog2, lerp, pairwise
 
 __all__ = ["PLMap", "PL2"]
 
@@ -181,6 +181,12 @@ class PLMap:
 			if y0 <= y <= y1:
 				return lerp(y, y0, y1, x0, x1)
 	
+	def rgradient_at(self, x):
+		for i, (d0, d1) in enumerate(pairwise(self.domain)):
+			if d0 <= x < d1:
+				return self.gradients[i]
+		raise ValueError(str(x) + " is not in the domain")
+	
 	def __eq__(self, other):
 		return self.domain == other.domain and self.range == other.range
 	
@@ -195,11 +201,91 @@ class PLMap:
 			raise ValueError("Mismatching domains and ranges")
 		return ~other * self * other
 	
+	def __str__(self):
+		domain = ""
+		range  = ""
+		for d, r in self:
+			d = str(d)
+			r = str(r)
+			n = max(len(d), len(r))
+			domain += d.ljust(n) + "  "
+			range  += r.ljust(n) + "  "
+		return domain[:-2] + "\n" + range[:-2]
+	
 	def commutes(self, other):
 		return self * other == other * self
 	
 	def centralise_in_F(*params):
 		...
+	
+	def restriction(self, t0, t1):
+		r"""
+		Produce a copy of the current PLMap restricted to the interval :math:`[t_0, t_1]`.
+		
+		:param iterable target: A sequence of at least two integers. The first and last entries are the start and end of the interval onto which we restrict.
+		
+		:raises ValueError: if ``t0 >= t1``.
+		:raises ValueError: if *t0* and *t1* do not describe a subinterval of ``self.domain``.
+		
+		"""
+		if not t0 < t1:
+			raise ValueError("Start point is not less than end point")
+		d0, d1 = ends(self.domain)
+		# Problems here with circular?
+		if not d0 <= t0 < t1 <= d1:
+			raise ValueError("Target interval is not within domain")
+		
+		domain = [t0]
+		range  = [self.image(t0)]
+		
+		for d, r in self:
+			if t0 < d < t1:
+				domain.append(d)
+				range .append(r)
+		
+		domain.append(t1)
+		range .append(self.image(t1))
+		return linear_superclass(self)(domain, range)
+	
+	def is_permutation(self):
+		return ends(self.domain) == ends(self.range)
+	
+	def fixed_points(self, raw=False):
+		output = []
+		for (d0, r0), (d1, r1) in pairwise(self):
+			if d0 == r0 and d1 == r1:
+				output.append((d0, d1))
+			else:
+				x = fixed_point(d0, d1, r0, r1)
+				if x is not None:
+					output.append(x)
+		
+		if not raw:
+			self._normalise_points_and_intervals(output)
+		return tuple(output)
+	
+	@staticmethod
+	def _normalise_points_and_intervals(output):
+		i = 0
+		while i < len(output) - 1:
+			if (
+				isinstance(output[i  ], Fraction) and
+				isinstance(output[i+1], tuple   ) and
+				output[i] == output[i+1][0]
+			):
+				del output[i]
+			elif (
+				isinstance(output[i  ], tuple) and
+				isinstance(output[i+1], Fraction   ) and
+				output[i][1] == output[i+1]
+			):
+				del output[i+1]
+				i += 1
+			else:
+				i += 1
+	
+	def is_one_bump(self):
+		return ends(self.domain) == ends(self.range) == self.fixed_points(raw=True)
 
 class PL2(PLMap):
 	r"""
@@ -217,7 +303,6 @@ class PL2(PLMap):
 		Traceback (most recent call last):
 		...
 		ValueError: Invalid gradient
-	
 	"""
 	@classmethod
 	def _validate_gradient(cls, gradient):
@@ -231,3 +316,18 @@ class PL2(PLMap):
 	@classmethod
 	def _validate_breakpoint(cls, breakpoint):
 		return super()._validate_breakpoint(breakpoint) and int_power_of_two(breakpoint.denominator)
+	
+	def one_bump_cent_gen(self):
+		"""If the current PLMap is a one-bump function :math:`D \to D`, produce an element which generates its centraliser in :math:`\operatorname{PL}(D)`.
+		The generator's initial gradient will be above 1 if and only if the the current PLMap's initial gradient is above 1.
+		
+		:raises ValueError: if the current PLMap is not a one-bump function.
+		"""
+		if not self.is_one_bump():
+			raise ValueError("Given function is not one-bump")
+		initial_gradient = self.gradients[0]
+
+def linear_superclass(self):
+	for cls in self.__class__.__bases__:
+		if cls in {PLMap, PL2}:
+			return cls
