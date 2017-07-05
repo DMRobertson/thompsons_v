@@ -33,22 +33,34 @@ print("beta_squared")
 print(beta_squared)
 
 bsr = beta_squared.restriction(0, F(1, 2))
-print("bsr")
+print("beta_squared restricted to a fundamental domain for beta (bsr)")
 print(bsr)
 
 #2. Generate lots of elements of the centraliser
-cent_generator = PL2(
-	[0, F(1,4), F(3, 8), F(1, 2)],
-	[0, F(1,8), F(1, 4), F(1, 2)]
-)
-
+cent_generator = bsr.one_bump_cent_gen()
+print("cent_generator")
+print(cent_generator)
 assert cent_generator * cent_generator == bsr
-assert cent_generator.is_one_bump()
-
-result = bsr.one_bump_cent_gen()
-assert result == cent_generator
 
 #3. Test to see which commute with alpha itself.
 #TODO: extend cent_generator to the whole circle
-assert cent_generator.commutes(beta)
+#assert cent_generator.commutes(beta)
 
+assert (~beta * beta).is_identity()
+
+LHS = beta.restriction_of_range(*ends(cent_generator.domain))
+prod = LHS * cent_generator * ~beta
+
+prod.commutes(beta_squared.restriction(F(1, 2), 1))
+
+#glue conj and prod together
+mapping = { d: r for d, r in cent_generator }
+mapping.update( pair for pair in prod )
+mapping = sorted(mapping.items())
+domain, range = zip(*mapping);
+cent_extended = CPL2(domain, range)
+
+print("cent_extended")
+print(cent_extended)
+
+assert cent_extended.commutes(beta)

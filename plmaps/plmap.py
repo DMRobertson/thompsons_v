@@ -141,22 +141,33 @@ class PLMap:
 		"""
 		Postcompose on the right.
 		"""
-		if not isinstance(other, type(self)):
+		check = self._validate_multiplication(other)
+		if check is NotImplemented:
 			return NotImplemented
-		self._validate_multiplication(other)
 		domain, range = self._compute_product_breakpoints(other)
 		return type(self)(domain, range)
 	
 	def _validate_multiplication(self, other):
-		if ends(self.range) != ends(other.domain):
-			raise ValueError("left multiplicand's range is different from right multiplicand's domain")
+		if not isinstance(other, type(self)):
+			return NotImplemented
+		s0, s1 = ends(self.range)
+		d0, d1 = ends(other.domain)
+		if not d0 <= s0 < s1 <= d1:
+			raise ValueError("left multiplicand's range is not a subset of right multiplicand's domain")
 	
 	def _compute_product_breakpoints(self, other):
 		domain = set(self.domain)
+		s0, s1 = ends(self.range)
 		for d in other.domain:
-			domain.add(self.inverse_image(d))
+			if s0 < d < s1:
+				domain.add(self.inverse_image(d))
 		domain = sorted(domain)
 		range = [other.image(self.image(d)) for d in domain]
+		
+		from .cplmap import CPLMap
+		if isinstance(other, CPLMap):
+			CPLMap._uncycle(range)
+	
 		return domain, range
 	
 	def image(self, x):
@@ -191,7 +202,7 @@ class PLMap:
 		return self.domain == other.domain and self.range == other.range
 	
 	def is_identity(self):
-		return len(self.domain) == len(self.range) == 2 and domain == range
+		return len(self.domain) == len(self.range) == 2 and self.domain == self.range
 	
 	def __invert__(self):
 		return type(self)(self.range, self.domain)
@@ -230,7 +241,6 @@ class PLMap:
 		
 		:raises ValueError: if ``t0 >= t1``.
 		:raises ValueError: if *t0* and *t1* do not describe a subinterval of ``self.domain``.
-		
 		"""
 		if not t0 < t1:
 			raise ValueError("Start point is not less than end point")
@@ -249,7 +259,44 @@ class PLMap:
 		
 		domain.append(t1)
 		range .append(self.image(t1))
+		from . import CPLMap
+		if isinstance(self, CPLMap):
+			self._uncycle(range)
 		return linear_superclass(self)(domain, range)
+	
+	def restriction_of_range(self, t0, t1, raw=False):
+		"""
+		Produce a copy of the current PLMap restricted to the interval :math:`[t_0, t_1]`.
+		
+		:param iterable target: A sequence of at least two integers. The first and last entries are the start and end of the interval onto which we restrict.
+		
+		:raises ValueError: if ``t0 >= t1``.
+		:raises ValueError: if *t0* and *t1* do not describe a subinterval of ``self.domain``.
+		"""
+		if not t0 < t1:
+			raise ValueError("Start point is not less than end point")
+		d0, d1 = ends(self.range)
+		# Problems here with circular?
+		if not d0 <= t0 < t1 <= d1:
+			raise ValueError("Target interval is not within range")
+		
+		domain = [self.inverse_image(t0)]
+		range  = [t0]
+		
+		for d, r in self:
+			if t0 < r < t1:
+				domain.append(d)
+				range .append(r)
+		
+		domain.append(self.inverse_image(t1))
+		range .append(t1)
+		from . import CPLMap
+		if isinstance(self, CPLMap):
+			self._uncycle(domain)
+		if raw:
+			return domain, range
+		else:
+			return linear_superclass(self)(domain, range)
 	
 	def is_permutation(self):
 		return ends(self.domain) == ends(self.range)
@@ -309,9 +356,8 @@ class PLMap:
 			candidate.domain[-1] >= sources_linear_from and
 			candidate.range [-1] >= sources_linear_from
 		):
-			LHS = self.restriction(start, self.inverse_image(candidate.domain[-1]))
-			RHS = (~other).restriction(*ends(candidate.range))
-			candidate = LHS * candidate * RHS
+			LHS = self.restriction_of_range(start, candidate.domain[-1])
+			candidate = LHS * candidate * ~other
 		
 		domain = candidate.domain + (end,)
 		range  = candidate.range  + (end,)
@@ -370,9 +416,7 @@ class PL2(PLMap):
 		if not self.is_one_bump():
 			raise ValueError("Given function is not one-bump")
 		initial_gradient = self.gradients[0]
-		print("Initial gradient", initial_gradient)
 		for target_gradient in gradient_roots_dyadic(initial_gradient):
-			print("target gradient", target_gradient)
 			result = self.one_bump_test_conjugate(self, target_gradient)
 			if result is not None:
 				return result
