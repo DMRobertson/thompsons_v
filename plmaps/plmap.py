@@ -156,15 +156,15 @@ class PLMap:
 			raise ValueError("left multiplicand's range is not a subset of right multiplicand's domain")
 	
 	def _compute_product_breakpoints(self, other):
+		from .cplmap import CPLMap
 		domain = set(self.domain)
 		s0, s1 = ends(self.range)
 		for d in other.domain:
-			if s0 < d < s1:
+			if isinstance(self, CPLMap) or s0 < d < s1:
 				domain.add(self.inverse_image(d))
 		domain = sorted(domain)
 		range = [other.image(self.image(d)) for d in domain]
 		
-		from .cplmap import CPLMap
 		if isinstance(other, CPLMap):
 			CPLMap._uncycle(range)
 	
