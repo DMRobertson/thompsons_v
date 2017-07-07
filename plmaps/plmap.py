@@ -1,5 +1,5 @@
 from fractions import Fraction
-from .util import all_satisfy, ends, fixed_point, grad, gradient_roots_dyadic, increasing_sequence, int_power_of_two, ilog2, lerp, pairwise
+from .util import all_satisfy, ends, fixed_point, grad, gradient_roots_dyadic, increasing_sequence, int_power_of_two, lerp, pairwise
 
 __all__ = ["PLMap", "PL2"]
 
@@ -208,7 +208,7 @@ class PLMap:
 		return type(self)(self.range, self.domain)
 	
 	def __xor__(self, other):
-		if ends(other.domain) != ends(self.range) or ends(self.domain) != ends(other.range):
+		if ends(other.domain) != ends(self.range) or ends(other.domain) != ends(self.domain):
 			raise ValueError("Mismatching domains and ranges")
 		return ~other * self * other
 	
@@ -338,7 +338,7 @@ class PLMap:
 	def is_one_bump(self):
 		return ends(self.domain) == ends(self.range) == self.fixed_points(raw=True)
 	
-	def one_bump_test_conjugate(self, other, initial_gradient):
+	def one_bump_test_conjugate_with(self, other, initial_gradient):
 		if self.gradients[0] != other.gradients[0] or self.gradients[-1] != other.gradients[-1]:
 			return None
 		if not (self.is_one_bump() and other.is_one_bump() and ends(self.domain) == ends(other.domain)):
@@ -407,6 +407,23 @@ class PL2(PLMap):
 	def _validate_breakpoint(cls, breakpoint):
 		return super()._validate_breakpoint(breakpoint) and int_power_of_two(breakpoint.denominator)
 	
+	def one_bump_test_conjugate(self, other):
+		if not (self.is_one_bump() and other.is_one_bump()):
+			raise ValueError("Given functions are not one-bump")
+		#Must have self.gradients[0] == other.gradients[0]
+		#If there exists a conjugator, there must exist a (possibly different) conjugator with initial gradient in [1, A) or (A, 1] (whichever is nonempty)
+		bound = self.gradients[0]
+		if bound > 1:
+			limits = (1, bound)
+		else:
+			limits = (bound, 1)
+		power = limits[0]
+		while power <= limits[1]:
+			result = self.one_bump_test_conjugate_with(other, power)
+			if result is not None:
+				return result
+			power *= 2
+	
 	def one_bump_cent_gen(self):
 		"""If the current PLMap is a one-bump function :math:`D \to D`, produce an element which generates its centraliser in :math:`\operatorname{PL}(D)`.
 		The generator's initial gradient will be above 1 if and only if the the current PLMap's initial gradient is above 1.
@@ -417,7 +434,7 @@ class PL2(PLMap):
 			raise ValueError("Given function is not one-bump")
 		initial_gradient = self.gradients[0]
 		for target_gradient in gradient_roots_dyadic(initial_gradient):
-			result = self.one_bump_test_conjugate(self, target_gradient)
+			result = self.one_bump_test_conjugate_with(self, target_gradient)
 			if result is not None:
 				return result
 		return self

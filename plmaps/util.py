@@ -43,7 +43,12 @@ def fixed_point(x0, x1, y0, y1):
 		return crossing
 
 def ilog2(n):
-	"Assume n >= 1 is a power of two"
+	"Assume n >= 1 is a power of two. What is the "
+	"""
+	If n > 1 is not a power of two, n.bit_length() == ceil( log2(n))
+	If n is a power of two, n.bit_length() == log2(n) + 1.
+	So n.bit_length() = floor(log2(n) + 1)
+	"""
 	return n.bit_length() - 1
 
 def small_divisors(n):
@@ -63,3 +68,12 @@ def gradient_roots_dyadic(initial):
 			yield Fraction(2**d, 1)
 		else:
 			yield Fraction(1, 2**d)
+
+def powers_of_two_between(a, b):
+	assert a < b
+	
+	while power <= b:
+		yield term
+		power *= 2
+
+	
