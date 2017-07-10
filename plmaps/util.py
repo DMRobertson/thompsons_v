@@ -69,11 +69,9 @@ def gradient_roots_dyadic(initial):
 		else:
 			yield Fraction(1, 2**d)
 
-def powers_of_two_between(a, b):
-	assert a < b
-	
-	while power <= b:
-		yield term
-		power *= 2
-
-	
+def dump(aut, name):
+	from thompson import Automorphism
+	if isinstance(aut, Automorphism):
+		print(name, aut.tikz_path(), sep="\n")
+	else:
+		print(name, aut, sep="\n")

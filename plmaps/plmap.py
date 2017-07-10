@@ -22,6 +22,8 @@ class PLMap:
 	:ivar gradients: The ith entry of this list is the gradient of the ith linear segment.
 		
 	"""
+	__slots__ = ('domain', 'range', 'gradients')
+	
 	def __init__(self, domain, range):
 		r"""
 		Create a new ``PLMap`` given the breakpoints' coordinates.
@@ -226,6 +228,12 @@ class PLMap:
 	def __repr__(self):
 		return "<{}: [{}, {}] -> [{}, {}]>".format(
 			type(self).__name__, str(self.domain[0]), str(self.domain[-1]), str(self.range[0]), str(self.range[-1]))
+	
+	def tikz_path(self):
+		return " -- ".join(
+			"({}, {})".format(str(d), str(r))
+			for d, r in self
+		) + ";"
 	
 	def commutes(self, other):
 		return self * other == other * self
@@ -443,3 +451,18 @@ def linear_superclass(self):
 	for cls in self.__class__.__bases__:
 		if cls in {PLMap, PL2}:
 			return cls
+
+def glue(*maps, cls=None):
+	"""Assume maps is a list of PLMaps, whose domains and ranges can be glued together properly.
+	"""
+	domain = maps[0].domain + tuple( x
+		for map in maps[1:] for x in map.domain[1:])
+	range  = maps[0].range  + tuple( x
+		for map in maps[1:] for x in map.range [1:])
+	if cls is None:
+		if all (isinstance(map, PL2) for map in maps):
+			cls = PL2
+		else:
+			cls = PLMap
+	
+	return cls(domain, range)

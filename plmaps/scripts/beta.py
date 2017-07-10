@@ -1,17 +1,12 @@
 from thompson import *
 from plmaps   import *
+from plmaps.util import dump
 
 """In this example we take the element whose graph looks like
          x0 |    
  beta:  ---------
             | x0 
 """
-
-def dump(aut, name):
-	if isinstance(aut, Automorphism):
-		print(name, aut.tikz_path(), sep="\n")
-	else:
-		print(name, aut, sep="\n")
 
 #1. Load the definition of beta.
 beta = CPL2(
@@ -37,12 +32,8 @@ assert cent_generator * cent_generator == bsr
 LHS = beta.restriction_of_range(*ends(cent_generator.domain))
 prod = LHS * cent_generator * ~beta
 assert prod.commutes(beta_squared.restriction(F(1, 2), 1))
-#glue conj and prod together
-mapping = { d: r for d, r in cent_generator }
-mapping.update( pair for pair in prod )
-mapping = sorted(mapping.items())
-domain, range = zip(*mapping);
-cent_extended = CPL2(domain, range)
+
+cent_extended = glue(cent_generator, prod, cls=CPL2)
 
 print("cent_extended")
 print(cent_extended)
