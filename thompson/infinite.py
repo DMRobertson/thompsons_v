@@ -155,7 +155,8 @@ class InfiniteAut(Automorphism):
 		terminal, initial = self.semi_infinite_end_points()
 		endpts = sorted(terminal + initial)
 		G = DiGraph()
-		orbit_generators = set(min_exp + endpts)
+		orbit_generators = set(min_exp)
+		orbit_generators.update(endpts)
 		
 		#1. Add an edge for every direct congruence relationship.
 		for gen in orbit_generators:

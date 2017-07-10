@@ -781,6 +781,8 @@ class Homomorphism:
 			Traceback (most recent call last):
 			...
 			ValueError: Automorphism doesn't map x1 a2 affinely
+			>>> f.gradient_at(Word("x a2 a2 a2 a2", (2, 1)))
+			Fraction(2, 1)
 		"""
 		if isinstance(x, Word):
 			try:
@@ -788,7 +790,7 @@ class Homomorphism:
 			except TypeError:
 				raise ValueError("Automorphism doesn't map {} affinely".format(x))
 			else:
-				return self.gradient(self.domain[i], self.range[i])
+				return self.gradient(self.domain[index], self.range[index])
 		else:
 			assert 0 <= x < self.signature.alphabet_size
 			for d, r in zip(self.domain, self.range):

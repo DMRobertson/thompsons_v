@@ -465,11 +465,11 @@ class Word(tuple):
 		>>> w.address()
 		'02001'
 		>>> Word("x2 a1 a3 a1 a1 a2", (3, 4)).address(include_root=True)
-		'202001'
+		'x202001'
 		"""
 		assert self.is_simple()
 		if include_root:
-			output = str(self[0])
+			output = 'x' + str(self[0])
 		else:
 			output = ""
 		return output + format_cantor(self[1:])

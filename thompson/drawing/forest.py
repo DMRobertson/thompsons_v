@@ -69,7 +69,7 @@ def forest_code(aut,
 
 def write_word(word, index, highlight, intersection):
 	below_intersection = False
-	lines = ["root"]
+	lines = [ word.address(include_root=True)[:2] ]
 	output = ""
 	if len(word) == 1:
 		lines[0] += " [point, label=below:\\strut$1$]"
@@ -101,7 +101,7 @@ def write_subword(subword, index, highlight, below_intersection, last):
 
 def name(word, options):
 	"""Introduce a node with the given key/value options."""
-	label = word.address()
+	label = word.address(include_root=True)
 	pairs = []
 	for key, value in options.items():
 		if value is None:
