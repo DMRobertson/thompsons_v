@@ -6,7 +6,7 @@
 	from thompson.examples   import *
 """
 from copy        import copy
-from collections import defaultdict, Counter
+from collections import defaultdict, Counter, Iterable
 
 from .     import word
 from .word import Word, Signature
@@ -58,6 +58,18 @@ class Generators(list):
 		#This is probably inefficient but I just want an extend method that does the checks that append() does above
 		for word in words:
 			self.append(word)
+	
+	def __add__(self, other):
+		if not isinstance(other, type(self)):
+			return NotImplemented
+		new = self.copy()
+		new.extend(other)
+		return new
+		
+	def __iadd__(self, other):
+		if not isinstance(other, Iterable):
+			return NotImplemented
+		self.extend(other)
 
 	def __str__(self):
 		return "[" + ", ".join(format(w) for w in self) + "]"
