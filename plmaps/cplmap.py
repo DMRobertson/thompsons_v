@@ -72,6 +72,10 @@ class CPLMap(PLMap):
 			if list[i] > list[i+1]:
 				list[i+1] += 1
 	
+	@classmethod
+	def rotation(cls, angle):
+		return cls([0, 1], [angle, angle + 1])
+	
 	def image(self, x):
 		"""Take in anything; spew out something in [0, 1)"""
 		return super().image(x % 1) % 1

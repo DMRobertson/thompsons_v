@@ -167,7 +167,7 @@ class PLMap:
 		domain = sorted(domain)
 		range = [other.image(self.image(d)) for d in domain]
 		
-		if isinstance(other, CPLMap):
+		if isinstance(other, CPLMap) or isinstance(self, CPLMap):
 			CPLMap._uncycle(range)
 	
 		return domain, range
