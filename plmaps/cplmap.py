@@ -95,6 +95,11 @@ class CPLMap(PLMap):
 		domain, range = super().restriction_of_range(t0, t1, raw=True)
 		range = [r - offset for r in range]
 		return linear_superclass(self)(domain, range)
+	
+	def __xor__(self, other):
+		if not isinstance(other, type(self)):
+			return NotImplemented
+		return ~other * self * other
 		
 class CPL2(CPLMap, PL2):
 	pass

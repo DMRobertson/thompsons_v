@@ -99,7 +99,7 @@ class PLMap:
 			if previous_gradient == next_gradient:
 				del domain[i-1]
 				del range[i-1]
-			elif not cls._validate_gradient(initial_gradient):
+			elif not cls._validate_gradient(next_gradient):
 				raise ValueError("Invalid gradient")
 			else:
 				gradients.append(next_gradient)
@@ -119,7 +119,10 @@ class PLMap:
 	def __iter__(self):
 		r"""Iterating over a ``PLMap`` yields its breakpoints."""
 		yield from zip(self.domain, self.range)
-		
+	
+	def __len__(self):
+		return len(self.domain)
+	
 	@classmethod
 	def from_aut(cls, aut):
 		"""Creates a new PLMap using a :class:`~thompson.homomorphism.Homomorphism`."""
@@ -228,6 +231,29 @@ class PLMap:
 	def __repr__(self):
 		return "<{}: [{}, {}] -> [{}, {}]>".format(
 			type(self).__name__, str(self.domain[0]), str(self.domain[-1]), str(self.range[0]), str(self.range[-1]))
+	
+	def dump(self, short=True):
+		cls = "F" if short else "Fraction"
+		dterms = [self._format_fraction(d, cls) for d in self.domain]
+		rterms = [self._format_fraction(r, cls) for r in self.range ]
+		for i in range(len(self)):
+			m = max(len(dterms[i]), len(rterms[i]))
+			dterms[i] = dterms[i].ljust(m)
+			rterms[i] = rterms[i].ljust(m)
+		
+		output = "{}(\n\t[{}],\n\t[{}]\n)".format(
+			type(self).__name__,
+			", ".join(dterms),
+			", ".join(rterms)
+		)
+		return output
+	
+	@staticmethod
+	def _format_fraction(fraction, cls="Fraction"):
+		if fraction.denominator == 1:
+			return str(fraction.numerator)
+		else:
+			return  cls + "({},{})".format(fraction.numerator, fraction.denominator)
 	
 	def tikz_path(self):
 		return " -- ".join(
@@ -356,6 +382,8 @@ class PLMap:
 		end   = self.domain[-1]
 		conj_linear_upto, sources_linear_from  = self.one_bump_linearity_boxes(other, initial_gradient)
 		
+		# assert conj_linear_upto and sources_linear_from are valid breakpoints
+		
 		domain = (start, conj_linear_upto)
 		range  = (start, start + (conj_linear_upto - start) * initial_gradient)
 		candidate = type(self)(domain, range)
@@ -369,7 +397,13 @@ class PLMap:
 		
 		domain = candidate.domain + (end,)
 		range  = candidate.range  + (end,)
-		candidate = type(self)(domain, range)
+		try:
+			candidate = type(self)(domain, range)
+		except ValueError as e:
+			#Should raise own exception class instead of checking message
+			if "Invalid gradient" in e.args:
+				return None
+		
 		if self ^ candidate == other:
 			return candidate
 	
