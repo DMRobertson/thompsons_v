@@ -20,12 +20,22 @@ dump(delta_squared, "delta_squared")
 dsr = delta_squared.restriction(0, F(1, 2))
 dump(dsr, "dsr")
 
+#2A. Check what DSR actually is (cf gamma.py)
+x0 = PL2.from_aut(standard_generator())
+y  = PL2(
+	[F(0), F(1, 8), F(3,8), F(1,2), F(3,4), F(1,1)],
+	[F(0), F(1,16), F(1,8), F(3,8), F(1,2), F(1,1)]
+)
+rescaler1 = PL2(
+	[0, 1],
+	[0, F(1,2)]
+)
+x0 ^= rescaler1
+y  ^= rescaler1
+assert dsr == x0 * y
+
 #3. dsr is a one bump function, so has a cyclic centraliser.
 #   construct a generator.
-
 cent_generator = dsr.one_bump_cent_gen()
-#THIS ISNT WORKING
-print("cent_generator")
-print(cent_generator)
-assert cent_generator * cent_generator == dsr
-
+dump(cent_generator, "cent_generator")
+assert cent_generator == dsr
