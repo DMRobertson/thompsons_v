@@ -124,7 +124,7 @@ def from_string(string):
 	This is used internally by other functions and doesn't typically need to be called directly.
 	Two forms of string are accepted: 'Higman' and 'Cantor'.
 	We assume the former is in use if the string contains an ``x``, ``a`` or ``L``; else we assume the latter. 
-	The first is the Higman notation (involving :math:`x`s, :math:`\alpha`s and :math:`\lambda`s).
+	The first is the Higman notation (involving :math:`x` s, :math:`\alpha` s and :math:`\lambda` s).
 	Anything which does not denote a basis letter (e.g. ``'x'``, ``'x2'``, ``'x45'``) a descendant operator (e.g.  ``'a1'``, ``'a3'``, ``'a27'``) or a  contraction (``'L'`` for :math:`\lambda`) is ignored.
 	Note that ``'x'`` is interpreted as shorthand for ``'x1'``.
 	

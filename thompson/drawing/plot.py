@@ -152,14 +152,20 @@ def graph_segments(aut):
 			y0, y1 = (float(y) for y in r.as_interval())
 			yield (x0, y0, x1, y1)
 	else:
-		#this doesn't detect jumps 1 -> 0, but it's a crude starting point
 		from plmaps.util import pairwise
 		for (d0, r0), (d1, r1) in pairwise(aut):
 			d0 = crude_mod_one(d0)
 			r0 = crude_mod_one(r0)
 			d1 = crude_mod_one(d1)
 			r1 = crude_mod_one(r1)
-			yield (d0, r0, d1, r1)
+			
+			#detect jumps 1->0 on vertical axis
+			if r0 > r1:
+				x = aut.inverse_image(1)
+				yield (d0, r0, x, 1)
+				yield (x, 0, d1, r1)
+			else:
+				yield (d0, r0, d1, r1)
 
 def crude_mod_one(x):
 	x = float(x)

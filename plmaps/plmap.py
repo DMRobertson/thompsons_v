@@ -116,6 +116,10 @@ class PLMap:
 	def _validate_breakpoint(cls, breakpoint):
 		return isinstance(breakpoint, Fraction)
 	
+	@classmethod
+	def identity(cls, t0, t1):
+		return cls([t0, t1], [t0, t1])
+	
 	def __iter__(self):
 		r"""Iterating over a ``PLMap`` yields its breakpoints."""
 		yield from zip(self.domain, self.range)
