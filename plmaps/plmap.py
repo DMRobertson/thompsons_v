@@ -405,7 +405,9 @@ class PLMap:
 			candidate = type(self)(domain, range)
 		except ValueError as e:
 			#Should raise own exception class instead of checking message
-			if "Invalid gradient" in e.args:
+			if ("Invalid gradient" in e.args or
+			    "domain contains an invalid breakpoint for PL2" in e.args or 
+			    "range contains an invalid breakpoint for PL2" in e.args):
 				return None
 		
 		if self ^ candidate == other:

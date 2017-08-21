@@ -14,7 +14,7 @@ class CPLMap(PLMap):
 	def __init__(self, domain, range):
 		domain = [Fraction(d) for d in domain]
 		range  = [Fraction(r) for r in range ]
-		super()._validate_inputs(domain, range)
+		self._validate_inputs(domain, range)
 		for name, list in (("domain", domain), ("range", range)):
 			if list[-1] - list[0] != 1:
 				raise ValueError(name + " doesn't have width 1")
@@ -64,6 +64,11 @@ class CPLMap(PLMap):
 	
 	def _validate_multiplication(self, other):
 		pass
+		
+	@classmethod
+	def _validate_inputs(cls, domain, range):
+		cls._uncycle(range)
+		return super()._validate_inputs(domain, range)
 	
 	@staticmethod
 	def _uncycle(list):
