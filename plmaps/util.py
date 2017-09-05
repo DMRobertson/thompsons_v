@@ -75,3 +75,23 @@ def dump(aut, name):
 		print(name, aut.tikz_path(), sep="\n")
 	else:
 		print(name, aut, sep="\n")
+		 
+def glue(*auts, cls=None):
+	#TODO: put this function in another file. Circular imports are messy
+	from .plmap import PL2
+	from .cplmap import CPLMap
+	if cls is None:
+		cls = PL2
+	D = list( auts[0].domain )
+	R = list( auts[0].range  )
+	for prev, next in pairwise(auts):
+		if not issubclass(cls, CPLMap):
+			assert next.domain[0] == prev.domain[-1]
+			assert next.range [0] == prev.range [-1]
+		D += next.domain[1:]
+		R += next.range[1:]
+	
+	if issubclass(cls, CPLMap):
+		cls._uncycle(D)
+		cls._uncycle(R)
+	return cls(D,R)
