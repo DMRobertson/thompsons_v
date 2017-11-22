@@ -9,11 +9,11 @@ import pkg_resources
 PADDING = 40
 SCALE   = 400
 
-def new_drawing(filename='plot.svg'):
+def new_drawing(filename='plot.svg', display_scale=1):
 	from svgwrite.drawing   import Drawing
 	from svgwrite.container import Group
 	size = 2 * PADDING + SCALE
-	dwg = Drawing(filename, size=(size, size))
+	dwg = Drawing(filename, size=(size * display_scale, size * display_scale))
 	dwg.viewbox(minx=0, miny=0, width=size, height=size)
 	
 	add_stylesheet(dwg)
@@ -108,7 +108,7 @@ def draw_grid(canvas, signature, levels=None):
 		for line in lines[d]:
 			canvas.add(line)
 
-def plot(*auts, filename='plot.svg', diagonal=True, endpoints=False):
+def plot(*auts, filename='plot.svg', diagonal=True, endpoints=False, display_scale=1):
 	assert len({aut.signature for aut in auts if isinstance(aut, Homomorphism)}) <= 1
 	try:
 		signature = next(aut.signature for aut in auts if isinstance(aut, Homomorphism))
@@ -118,7 +118,7 @@ def plot(*auts, filename='plot.svg', diagonal=True, endpoints=False):
 	from svgwrite.path      import Path
 	from svgwrite.shapes    import Line, Polyline
 	from svgwrite.container import Group
-	dwg, canvas = new_drawing(filename)
+	dwg, canvas = new_drawing(filename, display_scale)
 	include_markers(dwg, endpoints)
 	draw_grid(canvas, signature)
 	

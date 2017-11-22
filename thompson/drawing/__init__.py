@@ -66,7 +66,7 @@ def display_file(filepath, format=None, scale=1.0, verbose=False):
 		raise NotImplementedError
 	return filepath
 
-def plot(*auts, dest=None, display=True, diagonal=False, endpoints=False):
+def plot(*auts, dest=None, display=True, diagonal=False, endpoints=False, scale=1):
 	r"""Plots the given :class:`automorphism <thompson.automorphism.Automorphism>` s as a function :math:`[0, 1] \to [0, 1]`. The image is rendered as an SVG using `svgwrite`.
 
 	:param str dest: the destination filepath to save the SVG to. If `None`, the SVG is saved to a temporary file location.
@@ -79,7 +79,7 @@ def plot(*auts, dest=None, display=True, diagonal=False, endpoints=False):
 	if dest is None:
 		#Write to a temporary file
 		dest = mkstemp()[1]
-	plot_svg(*auts, filename=dest, diagonal=diagonal, endpoints=endpoints)
+	plot_svg(*auts, filename=dest, diagonal=diagonal, endpoints=endpoints, display_scale=scale)
 
 	if display:
 		return display_file(dest, format='svg')
