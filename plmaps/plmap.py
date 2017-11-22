@@ -347,11 +347,16 @@ class PLMap:
 			else:
 				x = fixed_point(d0, d1, r0, r1)
 				if x is not None:
-					output.append(x)
+					#Possible problems here with mod 1 in CPL2?
+					if raw or not (output and x == output[-1]):
+						output.append(x)
 		
 		if not raw:
 			self._normalise_points_and_intervals(output)
 		return tuple(output)
+	
+	def fixed_point_boundary(self):
+		return tuple( x for x in self.fixed_points() if isinstance(x, Fraction) )
 	
 	@staticmethod
 	def _normalise_points_and_intervals(output):
