@@ -428,11 +428,12 @@ class PLMap:
 class PL2(PLMap):
 	r"""
 	:math:`\operatorname{PL}_2` is shorthand for the set of ``PLMap`` s with :math:`S = \mathbb{Z}[1/2]` and :math:`G = 2^{\mathbb Z}`.
+	As `noted above <plmaps.plmaps.PLMap>`, we don't insist that the endpoints of the domain and range lie in S: we're working with what my thesis calls :math:`\operatorname{PL}_2^\text{rest}` rather than :math:`\operatorname{PL}_2^\text{flat}`.
 	
 	.. doctest::
 	
 		>>> PL2([0, Fraction(1, 3)], [1, Fraction(5, 3)])
-		<plmaps.plmap.PL2 object at 0x...>
+		<PL2: [0, 1/3] -> [1, 5/3]>
 		>>> PL2([0, Fraction(1, 2), 1], [1, Fraction(5, 3), 2])
 		Traceback (most recent call last):
 		...
