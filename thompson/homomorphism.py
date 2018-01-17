@@ -652,7 +652,7 @@ class Homomorphism:
 			 		 0   &+& 1/2 &(t - 0   ) &\text{if}& 0   &\leq t < & 1/2  \\
 			 		 1/4 &+& 1   &(t - 1/2 ) &\text{if}& 1/2 &\leq t < & 3/4  \\
 			 		 1/2 &+& 2   &(t - 3/4 ) &\text{if}& 3/4 &\leq t < & 1    
-				\end{array}
+				\end{array} \right.
 			\end{equation*}
 		"""
 		return self.format_pl_segments_directly( self.pl_segments(), LaTeX, sfrac)
@@ -697,7 +697,7 @@ class Homomorphism:
 	\setlength\arraycolsep{1.3pt}
 	\left\{ \begin{array}{llll>{\quad}l<{\quad}lll}
 """ + body + """
-	\end{array}
+	\end{array} \right.
 \end{equation*}"""
 		else:
 			return body
