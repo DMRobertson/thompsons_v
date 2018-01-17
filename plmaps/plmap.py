@@ -389,7 +389,7 @@ class PLMap:
 	def is_one_bump(self):
 		return ends(self.domain) == ends(self.range) == self.fixed_points(raw=True)
 	
-	def one_bump_test_conjugate_with(self, other, initial_gradient):
+	def one_bump_test_conjugate_with(self, other, initial_gradient, verbose=False):
 		if self.gradients[0] != other.gradients[0] or self.gradients[-1] != other.gradients[-1]:
 			return None
 		if not (self.is_one_bump() and other.is_one_bump() and ends(self.domain) == ends(other.domain)):
@@ -398,12 +398,17 @@ class PLMap:
 		start = self.domain[0]
 		end   = self.domain[-1]
 		conj_linear_upto, sources_linear_from  = self.one_bump_linearity_boxes(other, initial_gradient)
-		
+		if verbose:
+			print("conj_linear_upto", conj_linear_upto)
+			print("sources_linear_from", sources_linear_from)
 		# assert conj_linear_upto and sources_linear_from are valid breakpoints
 		
 		domain = (start, conj_linear_upto)
 		range  = (start, start + (conj_linear_upto - start) * initial_gradient)
 		candidate = type(self)(domain, range)
+		if verbose:
+			print("initial segment of candidate conjugator:")
+			print(candidate.format_pl_segments(LaTeX=True, sfrac=True))
 		
 		while not(
 			candidate.domain[-1] >= sources_linear_from and
@@ -411,6 +416,11 @@ class PLMap:
 		):
 			LHS = self.restriction_of_range(start, candidate.domain[-1])
 			candidate = LHS * candidate * ~other
+			if verbose:
+				print("next candidate:")
+				print(candidate.format_pl_segments(LaTeX=True, sfrac=True))
+		
+		print("inside final linearity box")
 		
 		domain = candidate.domain + (end,)
 		range  = candidate.range  + (end,)
@@ -486,7 +496,7 @@ class PL2(PLMap):
 				return result
 			power *= 2
 	
-	def one_bump_cent_gen(self):
+	def one_bump_cent_gen(self, verbose=False):
 		"""If the current PLMap is a one-bump function :math:`D \to D`, produce an element which generates its centraliser in :math:`\operatorname{PL}(D)`.
 		The generator's initial gradient will be above 1 if and only if the the current PLMap's initial gradient is above 1.
 		
@@ -496,7 +506,9 @@ class PL2(PLMap):
 			raise ValueError("Given function is not one-bump")
 		initial_gradient = self.gradients[0]
 		for target_gradient in gradient_roots_dyadic(initial_gradient):
-			result = self.one_bump_test_conjugate_with(self, target_gradient)
+			if verbose:
+				print("Searching for conj with initial gradient", target_gradient)
+			result = self.one_bump_test_conjugate_with(self, target_gradient, verbose)
 			if result is not None:
 				return result
 		return self
