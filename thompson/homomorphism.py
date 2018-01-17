@@ -644,11 +644,15 @@ class Homomorphism:
 		.. doctest::
 		
 			>>> print(x.format_pl_segments(LaTeX=True))
-			\begin{cases}
-			    0   + 1/2 (t - 0   ) &\text{if\quad $ 0   \leq t < 1/2 $} \\
-			    1/4 + 1   (t - 1/2 ) &\text{if\quad $ 1/2 \leq t < 3/4 $} \\
-			    1/2 + 2   (t - 3/4 ) &\text{if\quad $ 3/4 \leq t < 1   $} 
-			\end{cases}
+			%\usepackage{array}
+			\begin{equation*}
+				\setlength\arraycolsep{1.3pt}
+				\left\{ \begin{array}{llll>{\quad}l<{\quad}lll}
+			 		 0   &+& 1/2 &(t - 0   ) &\text{if}& 0   &\leq t < & 1/2  \\
+			 		 1/4 &+& 1   &(t - 1/2 ) &\text{if}& 1/2 &\leq t < & 3/4  \\
+			 		 1/2 &+& 2   &(t - 3/4 ) &\text{if}& 3/4 &\leq t < & 1    
+				\end{array}
+			\end{equation*}
 		"""
 		return self.format_pl_segments_directly( self.pl_segments(), LaTeX, sfrac)
 	
@@ -677,7 +681,7 @@ class Homomorphism:
 		columns = [ystarts, gradients, xstarts, xstarts, xends]
 		if LaTeX:
 			joiner = "\\\\\n"
-			sep = [" "*2, "+", "(t -", ") &\\text{{if\\quad $", "\\leq t <", "$}}"]
+			sep = ["\t"*2, "&+&", "&(t -", r") &\text{{if}}&", r"&\leq t < &", ""]
 			blank_column = ["" for _ in columns[0]]
 			columns.insert(0, blank_column)
 			columns.append(blank_column)
@@ -686,7 +690,14 @@ class Homomorphism:
 			sep = ["+", "(t -", ") from", "to"]
 		body = joiner.join( format_table(*columns, sep=sep) )
 		if LaTeX:
-			return "\\begin{cases}\n" + body + "\n\\end{cases}"
+			#Should set colsep in ems
+			return r"""%\usepackage{array}
+\begin{equation*}
+	\setlength\arraycolsep{1.3pt}
+	\left\{ \begin{array}{llll>{\quad}l<{\quad}lll}
+""" + body + """
+	\end{array}
+\end{equation*}"""
 		else:
 			return body
 	
