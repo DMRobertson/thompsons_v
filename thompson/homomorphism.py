@@ -648,7 +648,7 @@ class Homomorphism:
 			%\usepackage{array}
 			\begin{equation*}
 				\setlength\arraycolsep{1.3pt}
-				\left\{ \begin{array}{llll>{\quad}l<{\quad}lll}
+				\left\{ \begin{array}{ccrl>{\quad}c<{\quad}ccc}
 			 		 0   &+& 1/2 &(t - 0   ) &\text{if}& 0   &\leq t < & 1/2  \\
 			 		 1/4 &+& 1   &(t - 1/2 ) &\text{if}& 1/2 &\leq t < & 3/4  \\
 			 		 1/2 &+& 2   &(t - 3/4 ) &\text{if}& 3/4 &\leq t < & 1    
@@ -695,8 +695,8 @@ class Homomorphism:
 			return r"""%\usepackage{array}
 \begin{equation*}
 	\setlength\arraycolsep{1.3pt}
-	\left\{ \begin{array}{llll>{\quad}l<{\quad}lll}
-""" + body + """
+	\left\{ \begin{array}{ccrl>{\quad}c<{\quad}ccc}
+""" + body + r"""
 	\end{array} \right.
 \end{equation*}"""
 		else:
