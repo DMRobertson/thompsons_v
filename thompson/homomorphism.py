@@ -598,21 +598,25 @@ class Homomorphism:
 		self._append_output(rows, output)
 		return output.getvalue()
 	
+	@classmethod
+	def pl_segment(cls, d1, d2, r1, r2):
+		gradient = (r2 - r1) / (d2 - d1)
+		intercept = r1 - gradient * d1
+		return {
+			"ystart":     r1,
+			"yend":       r2,
+			"xstart":     d1,
+			"xend":       d2,
+			"intercept": intercept,
+			"gradient":  gradient,
+		}
+	
 	def pl_segments(self):
 		segments = []
 		for d, r in zip(self.domain, self.range):
 			d1, d2 = d.as_interval()
 			r1, r2 = r.as_interval()
-			gradient = self.gradient(d, r)
-			intercept = r1 - gradient * d1
-			segments.append({
-				"ystart":     r1,
-				"yend":       r2,
-				"xstart":     d1,
-				"xend":       d2,
-				"intercept": intercept,
-				"gradient":  self.gradient(d, r),
-			})
+			segments.append( self.pl_segment(d1, d2, r1, r2) )
 		
 		i = 1
 		while i < len(segments):
@@ -646,7 +650,10 @@ class Homomorphism:
 			    1/2 + 2   (t - 3/4 ) &\text{if\quad $ 3/4 \leq t < 1   $} 
 			\end{cases}
 		"""
-		segments = self.pl_segments()
+		return self.format_pl_segments_directly( self.pl_segments(), LaTeX, sfrac)
+	
+	@classmethod
+	def format_pl_segments_directly(cls, segments, LaTeX=False, sfrac=False):
 		ystarts = []
 		gradients = []
 		xstarts = []
