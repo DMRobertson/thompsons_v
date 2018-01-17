@@ -259,6 +259,14 @@ class PLMap:
 		else:
 			return  cls + "({},{})".format(fraction.numerator, fraction.denominator)
 	
+	def format_pl_segments(self, **kwargs):
+		#A dirty, dirty hack that I'm not proud of
+		from thompson.homomorphism import Homomorphism
+		segments = []
+		for (d1, d2), (r1, r2) in zip( pairwise(self.domain), pairwise(self.range) ):
+			segments.append(Homomorphism.pl_segment(d1, d2, r1, r2))
+		return Homomorphism.format_pl_segments_directly(segments, **kwargs)
+	
 	def tikz_path(self):
 		return " -- ".join(
 			"({}, {})".format(str(d), str(r))
