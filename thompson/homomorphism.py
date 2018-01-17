@@ -642,7 +642,8 @@ class Homomorphism:
 		:param bool sfrac: if True, and if *LaTeX* is True, format fractions using xfrac's ``\sfrac`` command.
 		
 		.. doctest::
-		
+			:options: +NORMALIZE_WHITESPACE
+			
 			>>> print(x.format_pl_segments(LaTeX=True))
 			%\usepackage{array}
 			\begin{equation*}
