@@ -296,7 +296,12 @@ class PLMap:
 			raise ValueError("Target interval is not within domain")
 		
 		domain = [t0]
-		range  = [self.image(t0)]
+		
+		from . import CPLMap
+		if isinstance(self, CPLMap):
+			range = [PLMap.image(self, t0)]
+		else:
+			range  = [self.image(t0)]
 		
 		for d, r in self:
 			if t0 < d < t1:
@@ -308,7 +313,12 @@ class PLMap:
 		from . import CPLMap
 		if isinstance(self, CPLMap):
 			self._uncycle(range)
-		return linear_superclass(self)(domain, range)
+		if isinstance(self, PL2):
+			try:
+				return PL2(domain, range)
+			except:
+				pass
+		return PLMap(domain, range)
 	
 	def restriction_of_range(self, t0, t1, raw=False):
 		"""
@@ -364,7 +374,14 @@ class PLMap:
 		return tuple(output)
 	
 	def fixed_point_boundary(self):
-		return tuple( x for x in self.fixed_points() if isinstance(x, Fraction) )
+		boundary = set()
+		for thing in self.fixed_points():
+			if isinstance(thing, Fraction):
+				boundary.add(thing)
+			else:
+				boundary.add(thing[0])
+				boundary.add(thing[1])
+		return tuple(sorted(boundary))
 	
 	@staticmethod
 	def _normalise_points_and_intervals(output):
