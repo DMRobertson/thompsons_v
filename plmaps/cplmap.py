@@ -75,7 +75,11 @@ class CPLMap(PLMap):
 		#Slightly awkward hack here...
 		for i in range(len(list) - 1):
 			if list[i] > list[i+1]:
-				list[i+1] += 1
+				list[i+1] += ceil(list[i] - list[i+1])
+		if list[1] - list[0] > 1:
+			d = floor(list[1] - list[0])
+			for i in range(1, len(list)):
+				list[i] -= d
 	
 	@classmethod
 	def rotation(cls, angle):
