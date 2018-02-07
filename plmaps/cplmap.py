@@ -109,6 +109,9 @@ class CPLMap(PLMap):
 		if not isinstance(other, type(self)):
 			return NotImplemented
 		return ~other * self * other
-		
+	
+	def fixed_point_boundary(self):
+		return tuple(sorted( {x % 1 for x in super().fixed_point_boundary()} ))
+	
 class CPL2(CPLMap, PL2):
 	pass
