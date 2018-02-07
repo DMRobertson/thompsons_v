@@ -33,6 +33,11 @@ bleak_klein_gamma
 
 	The example :math:`\gamma` in [BBG11]_ of an element generating a Klein four group as part of the centraliser of ``bleak_klein_alpha``.
 
+commutator
+	See the :download:`forest <examples/commutator.pdf>` diagram and function :download:`plot <examples/commutator.svg>`.
+
+	An element of the commutator subgroup of F. It has one bump and two fixed intervals.
+
 cyclic_order_six
 	See the :download:`forest <examples/cyclic_order_six.pdf>` diagram and function :download:`plot <examples/cyclic_order_six.svg>`.
 
@@ -250,6 +255,11 @@ semi_inf_c
 
 	An example of an automorphism whose :meth:`quasi-normal basis <thompson.automorphism.Automorphism.compute_quasinormal_basis>` :math:`X` contains an element :math:`x\alpha_2\alpha_1` which belongs to a semi-infinite :math:`X`-component which is not characteristic.
 
+t_generator_c
+	See the :download:`forest <examples/t_generator_c.pdf>` diagram and function :download:`plot <examples/t_generator_c.svg>`.
+
+	This is the element C used by Cannon, Floyd and Parry to generate Thompson's group T.
+
 thirds_fixed
 	See the :download:`forest <examples/thirds_fixed.pdf>` diagram and function :download:`plot <examples/thirds_fixed.svg>`.
 
@@ -264,6 +274,11 @@ two_flow_components_e
 	See the :download:`forest <examples/two_flow_components_e.pdf>` diagram and function :download:`plot <examples/two_flow_components_e.svg>`.
 
 	An example which found a bug in the infinite conjugacy test. This automorphism is a conjugated version of ``two_flow_components_d``.
+
+v_generator_pi
+	See the :download:`forest <examples/v_generator_pi.pdf>` diagram and function :download:`plot <examples/v_generator_pi.svg>`.
+
+	This is the generator :math:`\pi_0` used by Cannon, Floyd and Parry to generate V.
 
 v_revealing_test
 	See the :download:`forest <examples/v_revealing_test.pdf>` diagram and function :download:`plot <examples/v_revealing_test.svg>`.
