@@ -528,6 +528,8 @@ class PL2(PLMap):
 			result = self.one_bump_test_conjugate_with(self, target_gradient, verbose)
 			if result is not None:
 				return result
+			if verbose:
+				print("No more gradients to try. Current element generates its own centraliser.")
 		return self
 
 def linear_superclass(self):
