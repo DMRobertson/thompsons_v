@@ -1,4 +1,5 @@
 {% if standalone %}
+\RequirePackage{luatex85}
 \documentclass[tikz]{standalone}
 \usetikzlibrary{graphs, graphdrawing, positioning, calc, backgrounds}
 \usegdlibrary{trees}

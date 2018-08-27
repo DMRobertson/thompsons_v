@@ -115,7 +115,7 @@ def forest(aut, jobname=None, display=True, scale=1, **kwargs):
 	check_call(['lualatex',
 		'-output-directory=' + outdir,
 		'-interaction=batchmode',
-		'-no-shell-escape',
+		'--halt-on-error',
 		 tex
 	])
 	
