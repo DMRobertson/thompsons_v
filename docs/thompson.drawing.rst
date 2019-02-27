@@ -2,7 +2,7 @@ Drawing automorphisms
 =====================
 
 It can be helpful to see automorphisms rather than just read a description of them.
-To that end we introduce functions for rendering automorphisms as tree pair diagrams.
+To that end, we introduce functions for rendering automorphisms as piecewise linear maps and as forest pair diagrams.
 The output looks best for automorphisms with a small arity (2--5) and a reasonable number of leaves.
 
 Examples
@@ -33,7 +33,7 @@ Discontinuities are fine too. Here's ``example_4_17`` for instance.
 .. sourcecode:: python
 
 	>>> pond = load_example('example_4_17')
-	>>> plot(pond, discontinuities=True)
+	>>> plot(pond, endpoints=True)
 	>>> forest(pond)
 
 .. image:: _static/images/pond_plot.svg
